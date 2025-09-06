@@ -18,3 +18,4 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 - [x] Better design for some areas (TBD)
 - [ ] More filters (TBD)
 - [ ] Whatever I feel like is missing on the way (aka, TBD)
+- [ ] different themes for the app
