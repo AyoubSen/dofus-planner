@@ -1,55 +1,123 @@
 <template>
-  <div class="min-h-screen bg-gray-900 text-white">
-    <div class="max-w-7xl mx-auto p-8">
+  <div
+    class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+  >
+    <div class="max-w-7xl mx-auto px-8 py-12">
       <!-- Header -->
-      <div class="flex items-center gap-4 mb-8">
-        <NuxtLink
-          to="/"
-          class="text-blue-400 hover:text-blue-300 transition-colors"
-        >
-          ← Back to Home
-        </NuxtLink>
-        <h1 class="text-4xl font-bold text-gray-100">
-          Statistiques d'Équipements
-        </h1>
+      <div class="mb-12">
+        <div class="flex items-center gap-6 mb-6">
+          <NuxtLink
+            to="/"
+            class="group flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-all duration-200 text-lg"
+          >
+            <svg
+              class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to Home
+          </NuxtLink>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
+          >
+            <svg
+              class="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1
+              class="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"
+            >
+              Equipment Statistics
+            </h1>
+            <p class="text-gray-400 text-lg mt-1">
+              Analyze equipment usage patterns and meta trends
+            </p>
+          </div>
+        </div>
       </div>
 
       <div class="flex gap-8">
         <!-- Filters Sidebar -->
-        <div class="w-80 bg-gray-800 rounded-lg p-6 h-fit">
-          <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-            <span class="bg-pink-500 p-1 rounded text-sm">📊</span>
-            FILTRES
-          </h2>
+        <div
+          class="w-80 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 h-fit shadow-2xl"
+        >
+          <div class="flex items-center gap-3 mb-6">
+            <div
+              class="w-8 h-8 bg-gradient-to-br from-pink-500 to-red-500 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-4 h-4 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
+                />
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-100">FILTERS</h2>
+          </div>
 
           <!-- Element Filter -->
           <div class="mb-6">
-            <h3 class="text-sm font-semibold mb-3 text-red-400">ÉLÉMENT</h3>
+            <h3
+              class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
+            >
+              Element
+            </h3>
             <div class="space-y-2">
-              <label class="flex items-center">
+              <label
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
+              >
                 <input
                   type="radio"
                   value=""
                   v-model="filters.element"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span>Tous les éléments</span>
+                <span class="text-gray-300">All Elements</span>
               </label>
               <label
                 v-for="element in elements"
                 :key="element.name"
-                class="flex items-center"
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
                 <input
                   type="radio"
                   :value="element.name"
                   v-model="filters.element"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="flex items-center gap-2">
-                  <span>{{ element.icon }}</span>
+                <span class="flex items-center gap-2 text-gray-300">
+                  <span class="text-lg">{{ element.icon }}</span>
                   {{ element.label }}
                 </span>
               </label>
@@ -58,134 +126,166 @@
 
           <!-- Mode Filter -->
           <div class="mb-6">
-            <h3 class="text-sm font-semibold mb-3 text-red-400">MODE</h3>
+            <h3
+              class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
+            >
+              Mode
+            </h3>
             <div class="space-y-2">
-              <label class="flex items-center">
+              <label
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
+              >
                 <input
                   type="radio"
                   value=""
                   v-model="filters.mode"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span>Tous les modes</span>
+                <span class="text-gray-300">All Modes</span>
               </label>
               <label
                 v-for="mode in modes"
                 :key="mode"
-                class="flex items-center"
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
                 <input
                   type="radio"
                   :value="mode"
                   v-model="filters.mode"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="uppercase">{{ mode }}</span>
+                <span class="uppercase text-gray-300 font-medium">{{
+                  mode
+                }}</span>
               </label>
             </div>
           </div>
 
-          <!-- Class Filter -->
           <div class="mb-6">
-            <h3 class="text-sm font-semibold mb-3 text-red-400">CLASSE</h3>
-            <div class="space-y-2">
-              <label class="flex items-center">
+            <h3
+              class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
+            >
+              Class
+            </h3>
+            <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+              <label
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
+              >
                 <input
                   type="radio"
                   value=""
                   v-model="filters.classe"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span>Toutes les classes</span>
+                <span class="text-gray-300">All Classes</span>
               </label>
               <label
                 v-for="classe in classes"
                 :key="classe.name"
-                class="flex items-center"
+                class="flex items-center p-3 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer group"
               >
                 <input
                   type="radio"
                   :value="classe.name"
                   v-model="filters.classe"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-4 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="flex items-center gap-2">
-                  <img
-                    :src="classe.icon"
-                    :alt="classe.name"
-                    class="w-4 h-4 rounded"
-                    @error="handleImageError"
-                  />
-                  {{
-                    classe.name.charAt(0).toUpperCase() + classe.name.slice(1)
-                  }}
-                </span>
+                <div class="flex items-center gap-4 text-gray-300">
+                  <div
+                    class="w-10 h-10 bg-gray-600/50 rounded-lg border-2 border-gray-500/50 p-1 flex-shrink-0 group-hover:border-gray-400/50 transition-colors overflow-hidden"
+                  >
+                    <img
+                      :src="classe.icon"
+                      :alt="classe.name"
+                      class="w-full h-full object-cover object-top rounded"
+                      @error="handleImageError"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span class="font-medium">
+                    {{
+                      classe.name.charAt(0).toUpperCase() + classe.name.slice(1)
+                    }}
+                  </span>
+                </div>
               </label>
             </div>
           </div>
 
           <!-- Level Filter -->
           <div class="mb-6">
-            <h3 class="text-sm font-semibold mb-3 text-red-400">NIVEAU</h3>
+            <h3
+              class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
+            >
+              Level
+            </h3>
             <div class="space-y-2">
-              <label class="flex items-center">
+              <label
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
+              >
                 <input
                   type="radio"
                   value=""
                   v-model="filters.level"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span>Tous niveaux</span>
+                <span class="text-gray-300">All Levels</span>
               </label>
               <label
                 v-for="level in levels"
                 :key="level"
-                class="flex items-center"
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
                 <input
                   type="radio"
                   :value="level"
                   v-model="filters.level"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span>{{ level }}</span>
+                <span class="text-gray-300">Level {{ level }}</span>
               </label>
             </div>
           </div>
 
           <!-- Budget Filter -->
           <div class="mb-6">
-            <h3 class="text-sm font-semibold mb-3 text-red-400">BUDGET</h3>
+            <h3
+              class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
+            >
+              Budget
+            </h3>
             <div class="space-y-2">
-              <label class="flex items-center">
+              <label
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
+              >
                 <input
                   type="radio"
                   value=""
                   v-model="filters.budget"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span>Tous budgets</span>
+                <span class="text-gray-300">All Budgets</span>
               </label>
               <label
                 v-for="budget in budgets"
                 :key="budget"
-                class="flex items-center"
+                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
                 <input
                   type="radio"
                   :value="budget"
                   v-model="filters.budget"
                   @change="applyFilters"
-                  class="mr-2"
+                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="capitalize">{{ budget }}</span>
+                <span class="capitalize text-gray-300">{{ budget }}</span>
               </label>
             </div>
           </div>
@@ -195,74 +295,90 @@
         <div class="flex-1">
           <!-- Loading State -->
           <div v-if="isLoading" class="flex justify-center items-center h-64">
-            <div
-              class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"
-            ></div>
+            <div class="flex items-center gap-3 text-blue-400">
+              <div
+                class="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full"
+              ></div>
+              <span class="text-lg">Loading statistics...</span>
+            </div>
           </div>
 
           <!-- Statistics Content -->
           <div v-else class="space-y-8">
             <!-- Summary Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div class="bg-gray-800 rounded-lg p-6 text-center">
-                <div class="text-3xl font-bold text-blue-400">
+              <div
+                class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 text-center shadow-lg"
+              >
+                <div class="text-3xl font-bold text-blue-400 mb-2">
                   {{ totalEquipments }}
                 </div>
-                <div class="text-gray-400">Total Équipements</div>
+                <div class="text-gray-400">Total Equipment</div>
               </div>
-              <div class="bg-gray-800 rounded-lg p-6 text-center">
-                <div class="text-3xl font-bold text-green-400">
+              <div
+                class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 text-center shadow-lg"
+              >
+                <div class="text-3xl font-bold text-green-400 mb-2">
                   {{ uniqueItems }}
                 </div>
-                <div class="text-gray-400">Objets Uniques</div>
+                <div class="text-gray-400">Unique Items</div>
               </div>
-              <div class="bg-gray-800 rounded-lg p-6 text-center">
-                <div class="text-3xl font-bold text-purple-400">
+              <div
+                class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 text-center shadow-lg"
+              >
+                <div class="text-3xl font-bold text-purple-400 mb-2">
                   {{ mostPopularSlot?.slot || "N/A" }}
                 </div>
-                <div class="text-gray-400">Slot le Plus Varié</div>
+                <div class="text-gray-400">Most Varied Slot</div>
               </div>
-              <div class="bg-gray-800 rounded-lg p-6 text-center">
-                <div class="text-3xl font-bold text-yellow-400">
+              <div
+                class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 text-center shadow-lg"
+              >
+                <div class="text-3xl font-bold text-yellow-400 mb-2">
                   {{ averageItemsPerSet.toFixed(1) }}
                 </div>
-                <div class="text-gray-400">Objets/Set Moyen</div>
+                <div class="text-gray-400">Avg Items/Set</div>
               </div>
             </div>
 
             <!-- Equipment Slot Tabs -->
-            <div class="bg-gray-800 rounded-lg">
-              <div class="flex flex-wrap border-b border-gray-700">
+            <div
+              class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div
+                class="flex flex-wrap border-b border-gray-700/50 bg-gray-800/30"
+              >
                 <button
                   v-for="slot in equipmentSlots"
                   :key="slot.key"
                   @click="activeSlot = slot.key"
                   :class="[
-                    'px-4 py-3 text-sm font-medium transition-colors flex items-center gap-2',
+                    'px-4 py-3 text-sm font-medium transition-all duration-200 flex items-center gap-2 border-b-2',
                     activeSlot === slot.key
-                      ? 'bg-blue-600 text-white border-b-2 border-blue-400'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700',
+                      ? 'bg-blue-600/20 text-blue-300 border-blue-400 shadow-lg'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50 border-transparent',
                   ]"
                 >
-                  <span>{{ slot.icon }}</span>
+                  <span class="text-lg">{{ slot.icon }}</span>
                   {{ slot.name }}
-                  <span class="bg-gray-600 px-2 py-1 rounded text-xs">
+                  <span
+                    class="bg-gray-600/50 px-2 py-1 rounded-full text-xs border border-gray-500/50"
+                  >
                     {{ getSlotStats(slot.key)?.totalItems || 0 }}
                   </span>
                 </button>
               </div>
 
               <!-- Slot Statistics -->
-              <div class="p-6">
-                <div v-if="getSlotStats(activeSlot)" class="space-y-6">
+              <div class="p-8">
+                <div v-if="getSlotStats(activeSlot)" class="space-y-8">
                   <!-- Top Items for Selected Slot -->
                   <div>
-                    <h3 class="text-xl font-bold mb-4">
-                      Top
+                    <h3 class="text-2xl font-bold mb-6 text-gray-100">
+                      Most Used
                       {{
                         equipmentSlots.find((s) => s.key === activeSlot)?.name
                       }}
-                      les plus utilisés
                     </h3>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div
@@ -270,11 +386,11 @@
                           activeSlot
                         ).topItems.slice(0, 10)"
                         :key="item.name"
-                        class="bg-gray-700 rounded-lg p-4 flex items-center gap-4"
+                        class="bg-gradient-to-r from-gray-700/50 to-gray-800/50 rounded-xl p-4 flex items-center gap-4 border border-gray-600/30 hover:border-gray-500/50 transition-all duration-200"
                       >
                         <div class="flex-shrink-0">
                           <div
-                            class="w-12 h-12 bg-gray-600 rounded border-2 border-gray-500 p-1"
+                            class="w-12 h-12 bg-gray-600/50 rounded-lg border-2 border-gray-500/50 p-1"
                           >
                             <img
                               v-if="item.image_url"
@@ -285,7 +401,7 @@
                             />
                             <div
                               v-else
-                              class="w-full h-full bg-gray-500 rounded"
+                              class="w-full h-full bg-gray-500/50 rounded"
                             ></div>
                           </div>
                         </div>
@@ -294,7 +410,7 @@
                             {{ item.name }}
                           </div>
                           <div class="text-sm text-gray-400">
-                            Utilisé {{ item.count }} fois ({{
+                            Used {{ item.count }} times ({{
                               ((item.count / totalEquipments) * 100).toFixed(1)
                             }}%)
                           </div>
@@ -308,12 +424,12 @@
                     </div>
                   </div>
 
-                  <!-- Usage Distribution Chart (Text-based) -->
+                  <!-- Usage Distribution Chart -->
                   <div>
-                    <h3 class="text-xl font-bold mb-4">
-                      Distribution d'utilisation
+                    <h3 class="text-2xl font-bold mb-6 text-gray-100">
+                      Usage Distribution
                     </h3>
-                    <div class="space-y-2">
+                    <div class="space-y-3">
                       <div
                         v-for="item in getSlotStats(activeSlot).topItems.slice(
                           0,
@@ -322,14 +438,16 @@
                         :key="item.name"
                         class="flex items-center gap-4"
                       >
-                        <div class="w-24 text-sm text-gray-400 truncate">
+                        <div
+                          class="w-32 text-sm text-gray-300 truncate font-medium"
+                        >
                           {{ item.name }}
                         </div>
                         <div
-                          class="flex-1 bg-gray-700 rounded-full h-4 relative"
+                          class="flex-1 bg-gray-700/50 rounded-full h-6 relative overflow-hidden"
                         >
                           <div
-                            class="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full transition-all duration-500"
+                            class="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full transition-all duration-1000 ease-out"
                             :style="{
                               width: `${
                                 (item.count /
@@ -339,7 +457,9 @@
                             }"
                           ></div>
                         </div>
-                        <div class="w-16 text-sm text-white text-right">
+                        <div
+                          class="w-16 text-sm text-white text-right font-medium"
+                        >
                           {{ item.count }}
                         </div>
                       </div>
@@ -347,33 +467,65 @@
                   </div>
                 </div>
 
-                <div v-else class="text-center py-8 text-gray-400">
-                  Aucune donnée disponible pour ce slot
+                <div v-else class="text-center py-12 text-gray-400">
+                  <svg
+                    class="w-16 h-16 mx-auto mb-4 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <p class="text-lg">No data available for this slot</p>
                 </div>
               </div>
             </div>
 
             <!-- Cross-Slot Analysis -->
-            <div class="bg-gray-800 rounded-lg p-6">
-              <h3 class="text-xl font-bold mb-4">Analyse Globale</h3>
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div
+              class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl"
+            >
+              <h3 class="text-2xl font-bold mb-6 text-gray-100">
+                Global Analysis
+              </h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Most Diverse Slots -->
                 <div>
-                  <h4 class="text-lg font-semibold mb-3 text-blue-400">
-                    Slots les plus variés
+                  <h4
+                    class="text-lg font-semibold mb-4 text-blue-400 flex items-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+                      />
+                    </svg>
+                    Most Diverse Slots
                   </h4>
-                  <div class="space-y-2">
+                  <div class="space-y-3">
                     <div
                       v-for="slot in sortedSlotsByDiversity.slice(0, 5)"
                       :key="slot.key"
-                      class="flex justify-between items-center p-3 bg-gray-700 rounded"
+                      class="flex justify-between items-center p-4 bg-gradient-to-r from-gray-700/30 to-gray-800/30 rounded-xl border border-gray-600/30"
                     >
-                      <span class="flex items-center gap-2">
-                        <span>{{ slot.icon }}</span>
+                      <span class="flex items-center gap-3 text-gray-200">
+                        <span class="text-lg">{{ slot.icon }}</span>
                         {{ slot.name }}
                       </span>
-                      <span class="text-blue-400 font-medium"
-                        >{{ slot.uniqueItems }} objets</span
+                      <span class="text-blue-400 font-semibold"
+                        >{{ slot.uniqueItems }} items</span
                       >
                     </div>
                   </div>
@@ -381,20 +533,35 @@
 
                 <!-- Most Standardized Slots -->
                 <div>
-                  <h4 class="text-lg font-semibold mb-3 text-green-400">
-                    Slots les plus standardisés
+                  <h4
+                    class="text-lg font-semibold mb-4 text-green-400 flex items-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Most Standardized Slots
                   </h4>
-                  <div class="space-y-2">
+                  <div class="space-y-3">
                     <div
                       v-for="slot in sortedSlotsByStandardization.slice(0, 5)"
                       :key="slot.key"
-                      class="flex justify-between items-center p-3 bg-gray-700 rounded"
+                      class="flex justify-between items-center p-4 bg-gradient-to-r from-gray-700/30 to-gray-800/30 rounded-xl border border-gray-600/30"
                     >
-                      <span class="flex items-center gap-2">
-                        <span>{{ slot.icon }}</span>
+                      <span class="flex items-center gap-3 text-gray-200">
+                        <span class="text-lg">{{ slot.icon }}</span>
                         {{ slot.name }}
                       </span>
-                      <span class="text-green-400 font-medium"
+                      <span class="text-green-400 font-semibold"
                         >{{ slot.topItemPercentage }}%</span
                       >
                     </div>
@@ -408,7 +575,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 // Data
 const statistics = ref(null);
@@ -679,7 +845,42 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.hover\:bg-gray-750:hover {
-  background-color: rgb(55, 65, 81);
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 </style>

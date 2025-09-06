@@ -14,7 +14,7 @@ I made this cause of 2 reasons:
 On a serious note, I'll be mostly focusing on polishing the app for now, Plan goes as follows:
 
 - [ ] Better Icons
-- [ ] Clearer Images for Classes
-- [ ] Better design for some areas (TBD)
+- [x] Clearer Images for Classes
+- [x] Better design for some areas (TBD)
 - [ ] More filters (TBD)
 - [ ] Whatever I feel like is missing on the way (aka, TBD)
