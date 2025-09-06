@@ -60,6 +60,7 @@
 
       <div class="flex gap-8">
         <!-- Filters Sidebar -->
+        <!-- Filters Sidebar -->
         <div
           class="w-80 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 h-fit shadow-2xl"
         >
@@ -89,9 +90,10 @@
             <h3
               class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
             >
-              Element
+              Elements
             </h3>
-            <div class="space-y-2">
+            <div class="space-y-3">
+              <!-- All Elements Option -->
               <label
                 class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
@@ -104,23 +106,43 @@
                 />
                 <span class="text-gray-300">All Elements</span>
               </label>
-              <label
-                v-for="element in elements"
-                :key="element.name"
-                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  :value="element.name"
-                  v-model="filters.element"
-                  @change="applyFilters"
-                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
-                />
-                <span class="flex items-center gap-2 text-gray-300">
-                  <span class="text-lg">{{ element.icon }}</span>
-                  {{ element.label }}
-                </span>
-              </label>
+
+              <!-- Element Grid -->
+              <div class="grid grid-cols-3 gap-2">
+                <label
+                  v-for="element in elements"
+                  :key="element.name"
+                  class="group cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    :value="element.name"
+                    v-model="filters.element"
+                    @change="applyFilters"
+                    class="sr-only"
+                  />
+                  <div
+                    :class="[
+                      'w-full h-12 bg-gray-700/50 rounded-lg border-2 p-2 transition-all duration-200 flex flex-col items-center justify-center',
+                      'group-hover:border-gray-400/70 group-hover:bg-gray-600/50',
+                      filters.element === element.name
+                        ? 'border-blue-400 bg-blue-500/20 shadow-lg shadow-blue-500/25'
+                        : 'border-gray-600/50',
+                    ]"
+                  >
+                    <img
+                      :src="element.icon"
+                      :alt="element.label"
+                      class="w-6 h-6 object-contain"
+                      @error="handleImageError"
+                      loading="lazy"
+                    />
+                    <span class="text-xs text-gray-300 font-medium">{{
+                      element.label
+                    }}</span>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -131,7 +153,8 @@
             >
               Mode
             </h3>
-            <div class="space-y-2">
+            <div class="space-y-3">
+              <!-- All Modes Option -->
               <label
                 class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
@@ -144,32 +167,48 @@
                 />
                 <span class="text-gray-300">All Modes</span>
               </label>
-              <label
-                v-for="mode in modes"
-                :key="mode"
-                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  :value="mode"
-                  v-model="filters.mode"
-                  @change="applyFilters"
-                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
-                />
-                <span class="uppercase text-gray-300 font-medium">{{
-                  mode
-                }}</span>
-              </label>
+
+              <!-- Mode Grid -->
+              <div class="grid grid-cols-2 gap-2">
+                <label
+                  v-for="mode in modes"
+                  :key="mode"
+                  class="group cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    :value="mode"
+                    v-model="filters.mode"
+                    @change="applyFilters"
+                    class="sr-only"
+                  />
+                  <div
+                    :class="[
+                      'w-full h-12 bg-gray-700/50 rounded-lg border-2 p-2 transition-all duration-200 flex items-center justify-center',
+                      'group-hover:border-gray-400/70 group-hover:bg-gray-600/50',
+                      filters.mode === mode
+                        ? 'border-green-400 bg-green-500/20 shadow-lg shadow-green-500/25'
+                        : 'border-gray-600/50',
+                    ]"
+                  >
+                    <span class="uppercase text-gray-300 font-bold text-sm">{{
+                      mode
+                    }}</span>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 
+          <!-- Class Filter -->
           <div class="mb-6">
             <h3
               class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
             >
-              Class
+              Classes
             </h3>
-            <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+            <div class="space-y-3">
+              <!-- All Classes Option -->
               <label
                 class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
@@ -182,37 +221,46 @@
                 />
                 <span class="text-gray-300">All Classes</span>
               </label>
-              <label
-                v-for="classe in classes"
-                :key="classe.name"
-                class="flex items-center p-3 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer group"
+
+              <!-- Class Grid -->
+              <div
+                class="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto custom-scrollbar"
               >
-                <input
-                  type="radio"
-                  :value="classe.name"
-                  v-model="filters.classe"
-                  @change="applyFilters"
-                  class="mr-4 text-blue-500 focus:ring-blue-500 focus:ring-2"
-                />
-                <div class="flex items-center gap-4 text-gray-300">
+                <label
+                  v-for="classe in classes"
+                  :key="classe.name"
+                  class="group cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    :value="classe.name"
+                    v-model="filters.classe"
+                    @change="applyFilters"
+                    class="sr-only"
+                  />
                   <div
-                    class="w-10 h-10 bg-gray-600/50 rounded-lg border-2 border-gray-500/50 p-1 flex-shrink-0 group-hover:border-gray-400/50 transition-colors overflow-hidden"
+                    :class="[
+                      'w-12 h-12 bg-gray-700/50 rounded-lg border-2 p-1 transition-all duration-200 overflow-hidden',
+                      'group-hover:border-gray-400/70 group-hover:bg-gray-600/50',
+                      filters.classe === classe.name
+                        ? 'border-blue-400 bg-blue-500/20 shadow-lg shadow-blue-500/25'
+                        : 'border-gray-600/50',
+                    ]"
                   >
                     <img
                       :src="classe.icon"
                       :alt="classe.name"
+                      :title="
+                        classe.name.charAt(0).toUpperCase() +
+                        classe.name.slice(1)
+                      "
                       class="w-full h-full object-cover object-top rounded"
                       @error="handleImageError"
                       loading="lazy"
                     />
                   </div>
-                  <span class="font-medium">
-                    {{
-                      classe.name.charAt(0).toUpperCase() + classe.name.slice(1)
-                    }}
-                  </span>
-                </div>
-              </label>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -223,7 +271,8 @@
             >
               Level
             </h3>
-            <div class="space-y-2">
+            <div class="space-y-3">
+              <!-- All Levels Option -->
               <label
                 class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
@@ -236,20 +285,36 @@
                 />
                 <span class="text-gray-300">All Levels</span>
               </label>
-              <label
-                v-for="level in levels"
-                :key="level"
-                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  :value="level"
-                  v-model="filters.level"
-                  @change="applyFilters"
-                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
-                />
-                <span class="text-gray-300">Level {{ level }}</span>
-              </label>
+
+              <!-- Level Grid -->
+              <div class="grid grid-cols-5 gap-2">
+                <label
+                  v-for="level in levels"
+                  :key="level"
+                  class="group cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    :value="level"
+                    v-model="filters.level"
+                    @change="applyFilters"
+                    class="sr-only"
+                  />
+                  <div
+                    :class="[
+                      'w-full h-10 bg-gray-700/50 rounded-lg border-2 p-1 transition-all duration-200 flex items-center justify-center',
+                      'group-hover:border-gray-400/70 group-hover:bg-gray-600/50',
+                      filters.level === level
+                        ? 'border-purple-400 bg-purple-500/20 shadow-lg shadow-purple-500/25'
+                        : 'border-gray-600/50',
+                    ]"
+                  >
+                    <span class="text-gray-300 font-bold text-sm">{{
+                      level
+                    }}</span>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -260,7 +325,8 @@
             >
               Budget
             </h3>
-            <div class="space-y-2">
+            <div class="space-y-3">
+              <!-- All Budgets Option -->
               <label
                 class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
               >
@@ -273,20 +339,37 @@
                 />
                 <span class="text-gray-300">All Budgets</span>
               </label>
-              <label
-                v-for="budget in budgets"
-                :key="budget"
-                class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  :value="budget"
-                  v-model="filters.budget"
-                  @change="applyFilters"
-                  class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
-                />
-                <span class="capitalize text-gray-300">{{ budget }}</span>
-              </label>
+
+              <!-- Budget Grid -->
+              <div class="grid grid-cols-3 gap-2">
+                <label
+                  v-for="budget in budgets"
+                  :key="budget"
+                  class="group cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    :value="budget"
+                    v-model="filters.budget"
+                    @change="applyFilters"
+                    class="sr-only"
+                  />
+                  <div
+                    :class="[
+                      'w-full h-10 bg-gray-700/50 rounded-lg border-2 p-1 transition-all duration-200 flex items-center justify-center',
+                      'group-hover:border-gray-400/70 group-hover:bg-gray-600/50',
+                      filters.budget === budget
+                        ? 'border-yellow-400 bg-yellow-500/20 shadow-lg shadow-yellow-500/25'
+                        : 'border-gray-600/50',
+                    ]"
+                  >
+                    <span
+                      class="capitalize text-gray-300 font-medium text-sm"
+                      >{{ budget }}</span
+                    >
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -603,11 +686,14 @@ const equipmentSlots = [
 
 // Filter options
 const elements = [
-  { name: "eau", label: "Eau", icon: "💧" },
-  { name: "feu", label: "Feu", icon: "🔥" },
-  { name: "terre", label: "Terre", icon: "🌱" },
-  { name: "air", label: "Air", icon: "💨" },
-  { name: "neutre", label: "Neutre", icon: "⚪" },
+  { name: "eau", label: "Eau", icon: "/eau.png" },
+  { name: "feu", label: "Feu", icon: "/feu.png" },
+  { name: "terre", label: "Terre", icon: "/terre.png" },
+  { name: "air", label: "Air", icon: "/air.png" },
+  { name: "multi", label: "Multi", icon: "/multi.png" },
+  { name: "tank", label: "Tank", icon: "/tank.png" },
+  { name: "doPou", label: "Do Pou", icon: "/doPou.png" },
+  { name: "pp", label: "Prospection", icon: "/pp.png" },
 ];
 
 const modes = ["pvm", "pvp"];
@@ -644,7 +730,7 @@ const levels = [
   "199",
   "200",
 ];
-const budgets = ["low", "moyen", "gros"];
+const budgets = ["low", "mid", "high"];
 
 const filters = ref({
   element: "",

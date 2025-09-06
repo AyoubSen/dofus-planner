@@ -16,6 +16,7 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 - [ ] Better Icons
 - [x] Clearer Images for Classes
 - [x] Better design for some areas (TBD)
+- [x] Better filters flow/design
 - [ ] More filters (TBD)
 - [ ] Whatever I feel like is missing on the way (aka, TBD)
 - [ ] different themes for the app
