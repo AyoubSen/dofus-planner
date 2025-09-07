@@ -1,33 +1,5 @@
 <template>
   <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h2 class="text-2xl font-semibold text-gray-100">
-          Archimonstres Tracker
-        </h2>
-        <p class="text-gray-300">
-          {{ server.name }} - {{ character.name }} ({{ character.class }})
-        </p>
-        <div v-if="isLoadingCharacter" class="text-blue-400 text-sm mt-1">
-          Loading character data...
-        </div>
-      </div>
-      <div class="flex gap-3">
-        <button
-          @click="$emit('changeCharacter')"
-          class="text-blue-400 hover:text-blue-300 transition-colors"
-        >
-          Change Character
-        </button>
-        <button
-          @click="$emit('changeServer')"
-          class="text-blue-400 hover:text-blue-300 transition-colors"
-        >
-          Change Server
-        </button>
-      </div>
-    </div>
-
     <div class="grid md:grid-cols-2 gap-6 mb-6">
       <button
         @click="handleModeSelection('dofus-ocre')"
@@ -50,7 +22,7 @@
             </svg>
           </div>
         </div>
-        <p>Track your progress towards the Ochre Dofus</p>
+        <p>Track your progress towards the Ocre Dofus</p>
       </button>
 
       <button
