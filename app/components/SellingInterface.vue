@@ -493,14 +493,14 @@
             </div>
 
             <!-- Search and Sort Controls -->
-            <div class="flex gap-3">
+            <div class="flex gap-3 flex-wrap">
               <!-- Search Input -->
               <div class="relative">
                 <input
                   v-model="searchQuery"
                   type="text"
                   placeholder="Search items..."
-                  class="w-48 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  class="w-40 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
                 <svg
                   class="absolute right-3 top-2.5 w-4 h-4 text-gray-400"
@@ -515,6 +515,24 @@
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   ></path>
                 </svg>
+              </div>
+              <!-- Price Range Filter -->
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="priceFilterMin"
+                  type="number"
+                  min="0"
+                  placeholder="Min Price"
+                  class="w-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+                <span class="text-gray-500">-</span>
+                <input
+                  v-model.number="priceFilterMax"
+                  type="number"
+                  min="0"
+                  placeholder="Max Price"
+                  class="w-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
               </div>
 
               <!-- Sort Controls -->
@@ -1140,6 +1158,17 @@
             ]"
           >
             📈 Price Trends
+          </button>
+          <button
+            @click="analyticsSubTab = 'pricing-inconsistencies'"
+            :class="[
+              'px-4 py-2 text-sm font-medium transition-colors border-b-2',
+              analyticsSubTab === 'pricing-inconsistencies'
+                ? 'border-orange-400 text-orange-200 bg-orange-900/20'
+                : 'border-transparent text-gray-300 hover:text-white hover:bg-gray-600',
+            ]"
+          >
+            ⚠️ Price Inconsistencies
           </button>
         </div>
       </div>
@@ -1794,6 +1823,191 @@
         </div>
       </div>
     </div>
+    <div v-if="analyticsSubTab === 'pricing-inconsistencies'" class="space-y-6">
+      <div class="bg-gray-800 border border-gray-700 rounded-lg">
+        <div class="p-6 border-b border-gray-700">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-semibold text-gray-100">
+                Price Inconsistencies
+              </h3>
+              <p class="text-sm text-gray-400 mt-1">
+                Monsters with different prices in your current listings
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span
+                :class="[
+                  'px-3 py-1.5 rounded-full text-sm font-bold border-2',
+                  pricingInconsistencies.length > 0
+                    ? 'bg-orange-600 text-white border-orange-400'
+                    : 'bg-gray-700 text-gray-300 border-gray-600',
+                ]"
+              >
+                {{ pricingInconsistencies.length }} inconsistenc{{
+                  pricingInconsistencies.length !== 1 ? "ies" : "y"
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="pricingInconsistencies.length === 0" class="p-8 text-center">
+          <div class="text-center max-w-md mx-auto">
+            <div class="mb-4">
+              <div
+                class="w-20 h-20 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg"
+              >
+                <svg
+                  class="w-10 h-10 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+            <p class="text-xl font-bold text-green-300 mb-2">
+              Perfect pricing! ✨
+            </p>
+            <p class="text-green-200/80">
+              All your monsters have consistent pricing across listings.
+            </p>
+          </div>
+        </div>
+
+        <div v-else class="divide-y divide-gray-700 max-h-96 overflow-y-auto">
+          <div
+            v-for="inconsistency in pricingInconsistencies"
+            :key="inconsistency.name"
+            class="p-4 hover:bg-gray-750 transition-colors"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-4">
+                <!-- Monster Info -->
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center relative"
+                  >
+                    <img
+                      v-if="inconsistency.image_url"
+                      :src="inconsistency.image_url"
+                      :alt="inconsistency.name"
+                      class="w-full h-full object-cover"
+                    />
+                    <svg
+                      v-else
+                      class="w-6 h-6 text-orange-200"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <!-- Warning badge -->
+                    <div
+                      class="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center"
+                    >
+                      <span class="text-white text-xs font-bold">!</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 class="font-medium text-gray-100">
+                      {{ inconsistency.name }}
+                    </h4>
+                    <p class="text-sm text-gray-400">
+                      {{ inconsistency.items.length }} items •
+                      {{ inconsistency.priceGroups.length }} different prices
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Price Stats -->
+              <div class="flex items-center gap-6 text-right">
+                <div>
+                  <p class="text-sm text-gray-300">Price Range</p>
+                  <p class="font-bold text-orange-400">
+                    {{ formatKamas(inconsistency.minPrice) }} -
+                    {{ formatKamas(inconsistency.maxPrice) }}
+                  </p>
+                  <p class="text-xs text-orange-300">
+                    +{{ inconsistency.priceVariation }}% variation
+                  </p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-300">Average</p>
+                  <p class="font-bold text-blue-400">
+                    {{ formatKamas(inconsistency.avgPrice) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Price Groups Display -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <div
+                v-for="group in inconsistency.priceGroups"
+                :key="group.price"
+                class="bg-gray-700/50 border border-gray-600 rounded-lg p-3"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-gray-200">{{
+                    formatKamas(group.price)
+                  }}</span>
+                  <span
+                    class="text-sm text-gray-400 bg-gray-600 px-2 py-1 rounded"
+                    >{{ group.count }}x</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="flex gap-2 flex-wrap">
+              <button
+                @click="standardizeToLowest(inconsistency.name)"
+                class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm transition-colors"
+                title="Set all to lowest price"
+              >
+                ↓ Use Lowest ({{ formatKamas(inconsistency.minPrice) }})
+              </button>
+              <button
+                @click="standardizeToHighest(inconsistency.name)"
+                class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
+                title="Set all to highest price"
+              >
+                ↑ Use Highest ({{ formatKamas(inconsistency.maxPrice) }})
+              </button>
+              <button
+                @click="standardizeToAverage(inconsistency.name)"
+                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors"
+                title="Set all to average price"
+              >
+                ≈ Use Average ({{ formatKamas(inconsistency.avgPrice) }})
+              </button>
+              <!-- Quick select all items of this monster -->
+              <button
+                @click="selectMonsterItems(inconsistency.name)"
+                class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm transition-colors"
+                title="Select all items for manual editing"
+              >
+                📝 Select All
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Price Range Selection Modal -->
     <div
@@ -1961,6 +2175,8 @@ const selectedSuggestionIndex = ref(-1);
 const searchQuery = ref("");
 const sortBy = ref("dateAdded");
 const sortDirection = ref("desc");
+const priceFilterMin = ref(null);
+const priceFilterMax = ref(null);
 
 const selectedItems = ref([]);
 const bulkPriceAction = ref("set");
@@ -1985,7 +2201,56 @@ const selectedTrendMonster = ref("");
 
 const analyticsSubTab = ref("sales-analytics");
 
-const slowMovingThreshold = ref(7); // Default to 7 days
+const slowMovingThreshold = ref(7);
+
+const pricingInconsistencies = computed(() => {
+  // Group pending items by monster name
+  const monsterGroups = {};
+
+  pendingItems.value.forEach((item) => {
+    const name = item.monsterName;
+    if (!monsterGroups[name]) {
+      monsterGroups[name] = [];
+    }
+    monsterGroups[name].push(item);
+  });
+
+  // Find groups with price variations
+  const inconsistencies = [];
+
+  Object.entries(monsterGroups).forEach(([name, items]) => {
+    if (items.length < 2) return; // Need at least 2 items to compare
+
+    const prices = items.map((item) => item.price || 0);
+    const uniquePrices = [...new Set(prices)];
+
+    if (uniquePrices.length > 1) {
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      const priceVariation =
+        maxPrice > 0 ? ((maxPrice - minPrice) / minPrice) * 100 : 0;
+
+      // Only include if variation is significant (more than 5%)
+      if (priceVariation > 5) {
+        inconsistencies.push({
+          name,
+          items,
+          minPrice,
+          maxPrice,
+          priceVariation: Math.round(priceVariation),
+          avgPrice: Math.round(
+            prices.reduce((a, b) => a + b, 0) / prices.length
+          ),
+          image_url: items[0].image_url,
+          priceGroups: groupItemsByPrice(items),
+        });
+      }
+    }
+  });
+
+  // Sort by highest variation first
+  return inconsistencies.sort((a, b) => b.priceVariation - a.priceVariation);
+});
 
 const slowMovingItems = computed(() => {
   const threshold = new Date();
@@ -1993,7 +2258,7 @@ const slowMovingItems = computed(() => {
 
   return pendingItems.value
     .filter((item) => new Date(item.dateAdded) <= threshold)
-    .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded)); // Oldest first
+    .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded));
 });
 
 const monstersWithPriceData = computed(() => {
@@ -2003,7 +2268,6 @@ const monstersWithPriceData = computed(() => {
       (monsterCounts[item.monsterName] || 0) + 1;
   });
 
-  // Only show monsters with 2+ sales for trend analysis
   return Object.entries(monsterCounts)
     .filter(([name, count]) => count >= 2)
     .map(([name]) => name)
@@ -2049,7 +2313,6 @@ const filteredPriceTrends = computed(() => {
   const now = new Date();
   let filtered = [...soldItems.value];
 
-  // Apply timeframe filter
   switch (trendTimeframe.value) {
     case "week":
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -2065,14 +2328,12 @@ const filteredPriceTrends = computed(() => {
       break;
   }
 
-  // Apply monster filter
   if (selectedTrendMonster.value) {
     filtered = filtered.filter(
       (item) => item.monsterName === selectedTrendMonster.value
     );
   }
 
-  // Group by monster and calculate trends
   const monsterTrends = {};
 
   filtered.forEach((item) => {
@@ -2093,11 +2354,9 @@ const filteredPriceTrends = computed(() => {
     monsterTrends[name].salesCount++;
   });
 
-  // Calculate trend statistics for each monster
   const trends = Object.values(monsterTrends)
-    .filter((monster) => monster.salesCount >= 2) // Need at least 2 sales for trend
+    .filter((monster) => monster.salesCount >= 2)
     .map((monster) => {
-      // Sort by date
       monster.priceHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       const prices = monster.priceHistory.map((p) => p.price);
@@ -2118,7 +2377,7 @@ const filteredPriceTrends = computed(() => {
         maxPrice: Math.max(...prices),
       };
     })
-    .sort((a, b) => Math.abs(b.priceChange) - Math.abs(a.priceChange)); // Sort by biggest change
+    .sort((a, b) => Math.abs(b.priceChange) - Math.abs(a.priceChange));
 
   return trends;
 });
@@ -2135,7 +2394,6 @@ const captureStats = computed(() => {
     };
   }
 
-  // Group by monster
   const monsterCounts = {};
   captures.forEach((item) => {
     const name = item.monsterName;
@@ -2146,7 +2404,6 @@ const captureStats = computed(() => {
     ([, a], [, b]) => b - a
   )[0];
 
-  // Calculate time-based stats
   const dates = captures.map((item) => new Date(item.dateAdded));
   const firstDate = new Date(Math.min(...dates));
   const lastDate = new Date(Math.max(...dates));
@@ -2196,7 +2453,6 @@ const captureRanking = computed(() => {
     }
   });
 
-  // Calculate days active for each monster
   Object.values(monsterStats).forEach((monster) => {
     const first = new Date(monster.firstCapture);
     const last = new Date(monster.lastCapture);
@@ -2356,7 +2612,6 @@ const bulkRemoveSlowMovingItems = () => {
     (item) => !slowMovingIds.includes(item.id)
   );
 
-  // Remove from selection if any were selected
   selectedItems.value = selectedItems.value.filter(
     (id) => !slowMovingIds.includes(id)
   );
@@ -2365,7 +2620,6 @@ const bulkRemoveSlowMovingItems = () => {
 };
 
 const updateSlowMovingThreshold = () => {
-  // Save the threshold preference
   localStorage.setItem(
     `slow_moving_threshold_${props.server.id}_${props.character.id}`,
     slowMovingThreshold.value.toString()
@@ -2469,6 +2723,64 @@ const validatePriceInput = (item) => {
   return true;
 };
 
+const groupItemsByPrice = (items) => {
+  const groups = {};
+  items.forEach((item) => {
+    const price = item.price || 0;
+    if (!groups[price]) {
+      groups[price] = [];
+    }
+    groups[price].push(item);
+  });
+
+  return Object.entries(groups)
+    .map(([price, items]) => ({
+      price: parseInt(price),
+      count: items.length,
+      items,
+    }))
+    .sort((a, b) => a.price - b.price);
+};
+
+const standardizeMonsterPrice = (monsterName, targetPrice) => {
+  const itemsToUpdate = pendingItems.value.filter(
+    (item) => item.monsterName === monsterName
+  );
+
+  itemsToUpdate.forEach((item) => {
+    item.price = targetPrice;
+  });
+
+  saveData();
+};
+
+const standardizeToLowest = (monsterName) => {
+  const items = pendingItems.value.filter(
+    (item) => item.monsterName === monsterName
+  );
+  const lowestPrice = Math.min(...items.map((item) => item.price || 0));
+  standardizeMonsterPrice(monsterName, lowestPrice);
+};
+
+const standardizeToHighest = (monsterName) => {
+  const items = pendingItems.value.filter(
+    (item) => item.monsterName === monsterName
+  );
+  const highestPrice = Math.max(...items.map((item) => item.price || 0));
+  standardizeMonsterPrice(monsterName, highestPrice);
+};
+
+const standardizeToAverage = (monsterName) => {
+  const items = pendingItems.value.filter(
+    (item) => item.monsterName === monsterName
+  );
+  const prices = items.map((item) => item.price || 0);
+  const avgPrice = Math.round(
+    prices.reduce((a, b) => a + b, 0) / prices.length
+  );
+  standardizeMonsterPrice(monsterName, avgPrice);
+};
+
 const finishEditingPrice = (item) => {
   if (!validatePriceInput(item)) {
     return;
@@ -2534,9 +2846,9 @@ const saveData = () => {
 };
 
 const getBarColor = (price, firstPrice, latestPrice) => {
-  if (price > firstPrice * 1.1) return "#10b981"; // green for higher prices
-  if (price < firstPrice * 0.9) return "#ef4444"; // red for lower prices
-  return "#6b7280"; // gray for stable prices
+  if (price > firstPrice * 1.1) return "#10b981";
+  if (price < firstPrice * 0.9) return "#ef4444";
+  return "#6b7280";
 };
 
 const savePriceHistory = (monsterId, monsterName, price) => {
@@ -2613,6 +2925,16 @@ const filteredAndSortedPendingItems = computed(() => {
     const query = searchQuery.value.toLowerCase().trim();
     filtered = filtered.filter((item) =>
       item.monsterName.toLowerCase().includes(query)
+    );
+  }
+  if (priceFilterMin.value) {
+    filtered = filtered.filter(
+      (item) => (item.price || 0) >= priceFilterMin.value
+    );
+  }
+  if (priceFilterMax.value) {
+    filtered = filtered.filter(
+      (item) => (item.price || 0) <= priceFilterMax.value
     );
   }
 
@@ -2747,7 +3069,7 @@ const filteredSoldItems = computed(() => {
 
 const getFilteredCaptures = () => {
   const now = new Date();
-  let filtered = [...pendingItems.value, ...soldItems.value]; // All items you've ever added
+  let filtered = [...pendingItems.value, ...soldItems.value];
 
   switch (captureTimeframe.value) {
     case "today":
@@ -2833,7 +3155,6 @@ const selectAllSlowMovingItems = () => {
     ...new Set([...selectedItems.value, ...slowMovingIds]),
   ];
 
-  // Scroll to the main pending list
   nextTick(() => {
     const pendingSection = document.querySelector(
       '.bg-gray-800.border.border-gray-700.rounded-lg:has(h3:contains("Items for Sale"))'
@@ -3025,10 +3346,6 @@ const addItem = () => {
   };
 };
 
-const updateItemPrice = (item) => {
-  saveData();
-};
-
 const confirmSale = (item) => {
   const soldItem = {
     ...item,
@@ -3120,11 +3437,40 @@ const formatDate = (dateString) => {
     );
   }
 };
+
+const selectMonsterItems = (monsterName) => {
+  const monsterItems = pendingItems.value
+    .filter((item) => item.monsterName === monsterName)
+    .map((item) => item.id);
+
+  selectedItems.value = [...new Set([...selectedItems.value, ...monsterItems])];
+
+  // Switch to sales tab and scroll to pending items
+  activeTab.value = "sales";
+  nextTick(() => {
+    const pendingSection = document.querySelector(
+      '.bg-gray-800.border.border-gray-700.rounded-lg:has(h3:contains("Items for Sale"))'
+    );
+    if (pendingSection) {
+      pendingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+};
 </script>
 
 <style scoped>
 .hover\:bg-gray-750:hover {
   background-color: #374151;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; /* For Firefox */
 }
 
 @keyframes pulse {
