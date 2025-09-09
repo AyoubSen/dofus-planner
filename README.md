@@ -33,10 +33,12 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 
 #### Sell Mode:
 
-- [ ] Track the ones captured to have an idea about which ones i tend to capture more of per X time
-- [ ] Visualize price trends for each monster over time
-- [ ] Highlight monsters that haven’t sold for a long time
+- [x] Track the ones captured to have an idea about which ones i tend to capture more of per X time
+- [x] Visualize price trends for each monster over time
+- [x] Highlight monsters that haven’t sold for a long time
 - [ ] Top Zones for Profit
+- [ ] Show a list of monsters that are the "same" but have different price
+- [ ] Add a search for the prices, cause im done with CTRL + F which doesnt even fucking work
 
 ## Items
 
