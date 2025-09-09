@@ -36,7 +36,7 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 - [x] Track the ones captured to have an idea about which ones i tend to capture more of per X time
 - [x] Visualize price trends for each monster over time
 - [x] Highlight monsters that haven’t sold for a long time
-- [ ] Top Zones for Profit
+- [ ] ~~Top Zones for Profit~~
 - [x] Show a list of monsters that are the "same" but have different price
 - [x] Add a search for the prices, cause im done with CTRL + F which doesnt even fucking work (did this in the min max way for more control)
 
