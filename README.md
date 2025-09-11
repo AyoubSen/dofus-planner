@@ -42,4 +42,4 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 
 ## Items
 
--[x] Fix Classes icons
+- [x] Fix Classes icons
