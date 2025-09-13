@@ -32,7 +32,7 @@
       </div>
 
       <!-- Feature Cards Grid -->
-      <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      <div class="grid md:grid-cols-3 gap-8 max-w-8xl mx-auto">
         <!-- Archimonstres Card -->
         <NuxtLink
           to="/archimonstres"
@@ -235,6 +235,116 @@
                 <div class="flex items-center gap-2 text-gray-400">
                   <div class="w-2 h-2 bg-indigo-400 rounded-full"></div>
                   <span>Class Builds</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </NuxtLink>
+
+        <!-- Crafting Card -->
+        <NuxtLink
+          to="/crafting"
+          class="group relative overflow-hidden bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-emerald-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/10"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          ></div>
+
+          <div class="relative z-10">
+            <div class="flex items-start justify-between mb-6">
+              <div
+                class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg"
+              >
+                <!-- Better crafting icon -->
+                <svg
+                  class="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
+                  />
+                </svg>
+                <!-- Alternative hammer/anvil icon -->
+                <!-- <svg
+          class="w-8 h-8 text-white"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M18.5 3.5L12 10L5.5 3.5L2 7L8.5 13.5L7 15L5.5 13.5L2 17L5.5 20.5L9 17L7.5 15.5L14 9L20.5 15.5L22 14L18.5 10.5L22 7L18.5 3.5Z"/>
+        </svg> -->
+              </div>
+
+              <div
+                class="text-gray-500 group-hover:text-emerald-400 transition-colors duration-300"
+              >
+                <svg
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <h2
+              class="text-3xl font-bold text-gray-100 mb-4 group-hover:text-emerald-400 transition-colors duration-300"
+            >
+              Crafted Sales Tracker
+            </h2>
+
+            <p class="text-gray-400 mb-6 leading-relaxed">
+              Monitor your crafted equipment sales with precision. Track custom
+              stats, sale prices, and profit margins to maximize your crafting
+              business.
+            </p>
+
+            <div class="flex flex-wrap gap-2">
+              <span
+                class="px-3 py-1 bg-emerald-500/10 text-emerald-300 text-sm rounded-full border border-emerald-500/30"
+              >
+                Sales Tracking
+              </span>
+              <span
+                class="px-3 py-1 bg-teal-500/10 text-teal-300 text-sm rounded-full border border-teal-500/30"
+              >
+                Custom Stats
+              </span>
+              <span
+                class="px-3 py-1 bg-green-500/10 text-green-300 text-sm rounded-full border border-green-500/30"
+              >
+                Profit Analysis
+              </span>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-gray-700/50">
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="flex items-center gap-2 text-gray-400">
+                  <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                  <span>Item Search</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-400">
+                  <div class="w-2 h-2 bg-teal-400 rounded-full"></div>
+                  <span>Stat Customization</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-400">
+                  <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span>Revenue Reports</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-400">
+                  <div class="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                  <span>Multi-Character</span>
                 </div>
               </div>
             </div>

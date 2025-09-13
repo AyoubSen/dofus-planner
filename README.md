@@ -43,3 +43,10 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 ## Items
 
 -[x] Fix Classes icons
+
+## Crafting
+
+- [x] Show sold equipments with their exact stats
+- [x] Search for equipments
+- [x] Fetch effects and link the effectId to its name
+- [x] Be able to change the stats so i can match them to what i have in game.
