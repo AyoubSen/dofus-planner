@@ -39,6 +39,9 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 - [ ] ~~Top Zones for Profit~~
 - [x] Show a list of monsters that are the "same" but have different price
 - [x] Add a search for the prices, cause im done with CTRL + F which doesnt even fucking work (did this in the min max way for more control)
+- [ ] Fix dropdown when looking for an archi
+- [ ] ability to copy price of X item in clipboard
+- [ ] make the price filter the default
 
 ## Items
 

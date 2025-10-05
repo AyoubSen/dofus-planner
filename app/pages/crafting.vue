@@ -666,15 +666,12 @@
 </template>
 
 <script setup>
-// All your existing JavaScript code remains the same
 const servers = ref([]);
 const currentServer = ref(null);
 const currentCharacter = ref(null);
 
-// Tab management
 const activeTab = ref("search");
 
-// API search functionality
 const itemSearch = ref("");
 const searchResults = ref([]);
 const selectedItem = ref(null);
@@ -683,36 +680,28 @@ const isSearching = ref(false);
 const isLoadingEffects = ref(false);
 const processedEffects = ref([]);
 
-// Custom values for effects
 const customEffectValues = ref({});
 const salePrice = ref(null);
 const itemNotes = ref("");
 
-// Sold items management
 const soldItems = ref([]);
 
-// Tooltip management
 const showTooltip = ref(null);
 
-// Floating UI setup
 const searchInput = ref(null);
 const dropdown = ref(null);
 
-// Cache storage for effects only
 const effectsCache = ref({});
 
-// Computed properties
 const totalSoldValue = computed(() => {
   return soldItems.value.reduce((total, item) => total + item.price, 0);
 });
 
-// Load data on mount
 onMounted(async () => {
   loadServersData();
   loadEffectsCache();
   loadSoldItems();
 
-  // Close dropdown when clicking outside
   document.addEventListener("click", handleClickOutside);
 });
 
@@ -720,7 +709,6 @@ onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
 });
 
-// Handle clicks outside the dropdown
 const handleClickOutside = (event) => {
   if (
     searchInput.value &&
@@ -732,14 +720,12 @@ const handleClickOutside = (event) => {
   }
 };
 
-// Handle input blur with delay to allow click events on dropdown items
 const handleInputBlur = () => {
   setTimeout(() => {
     showDropdown.value = false;
   }, 150);
 };
 
-// Load servers data (reuse from archimonstres)
 const loadServersData = () => {
   const savedServers = localStorage.getItem("archimonstres-servers");
   if (savedServers) {
@@ -747,12 +733,10 @@ const loadServersData = () => {
   }
 };
 
-// Save servers data
 const saveServersData = () => {
   localStorage.setItem("archimonstres-servers", JSON.stringify(servers.value));
 };
 
-// Load effects cache
 const loadEffectsCache = () => {
   const savedEffects = localStorage.getItem("dofus-effects-cache");
   if (savedEffects) {
@@ -760,7 +744,6 @@ const loadEffectsCache = () => {
   }
 };
 
-// Load sold items
 const loadSoldItems = () => {
   const saved = localStorage.getItem("sold-equipments");
   if (saved) {
@@ -768,12 +751,10 @@ const loadSoldItems = () => {
   }
 };
 
-// Save sold items
 const saveSoldItems = () => {
   localStorage.setItem("sold-equipments", JSON.stringify(soldItems.value));
 };
 
-// Save effects cache whenever it changes
 watch(
   effectsCache,
   (newCache) => {
@@ -782,7 +763,6 @@ watch(
   { deep: true }
 );
 
-// Server management methods (reuse from archimonstres)
 const addServer = (serverName) => {
   const newServer = {
     id: Date.now().toString(),
@@ -843,7 +823,6 @@ const deleteCharacter = (characterId) => {
   }
 };
 
-// Item search functionality
 const searchItems = async () => {
   if (itemSearch.value.length < 2) {
     searchResults.value = [];
@@ -880,7 +859,6 @@ const selectItem = async (item) => {
   showDropdown.value = false;
   searchResults.value = [];
 
-  // Reset form
   customEffectValues.value = {};
   salePrice.value = null;
   itemNotes.value = "";
@@ -901,7 +879,6 @@ const processItemEffects = async (item) => {
     const effectId = effect.effectId;
     const effectKey = `${effectId}-${index}`;
 
-    // Initialize custom value with the minimum value
     customEffectValues.value[effectKey] = effect.from;
 
     if (effectsCache.value[effectId]) {
@@ -953,7 +930,7 @@ const formatEffectWithData = (effect, effectData) => {
     if (effect.from !== undefined && effect.to !== undefined) {
       if (effect.from === effect.to) {
         description = description
-          .replace(/{[^}]*}/g, "") // ← FIX: Use single braces, not double
+          .replace(/{[^}]*}/g, "")
           .replace(/#1/g, effect.from)
           .replace(/#2/g, "")
           .trim();
@@ -961,7 +938,7 @@ const formatEffectWithData = (effect, effectData) => {
         description = description
           .replace(/#1/g, effect.from)
           .replace(/#2/g, effect.to)
-          .replace(/{~1~2 ([^}]*)}/g, "$1") // ← FIX: Replace the specific pattern
+          .replace(/{~1~2 ([^}]*)}/g, "$1")
           .trim();
       }
     }
@@ -986,22 +963,21 @@ const getEffectBaseDescription = (effect) => {
     effectData.description?.en ||
     `Effect ${effect.effectId}`;
 
-  // Remove template markers for display
   description = description
     .replace(/{{[^}]*}}/g, "")
     .replace(/#[12]/g, "X")
+    .replace(/^X+\s*/, "")
+    .replace(/\s+X+(?=\s|$)/g, " X")
     .trim();
 
   return description;
 };
 
-// Save item as sold
 const saveItemAsSold = () => {
   if (!selectedItem.value || !salePrice.value || salePrice.value <= 0) {
     return;
   }
 
-  // Create custom effects with actual values
   const customEffects = processedEffects.value.map((effect, index) => {
     const effectKey = `${effect.effectId}-${index}`;
     const customValue = customEffectValues.value[effectKey] || effect.from;
@@ -1027,7 +1003,6 @@ const saveItemAsSold = () => {
   soldItems.value.unshift(soldItem);
   saveSoldItems();
 
-  // Reset form and show success
   resetItemForm();
   activeTab.value = "sold";
 };
@@ -1041,15 +1016,14 @@ const formatCustomEffectDescription = (effect, customValue) => {
     effectData.description?.en ||
     `Effect ${effect.effectId}`;
 
-  // Aggressively strip ALL template garbage
   effectName = effectName
-    .replace(/#[12]/g, "") // Remove #1, #2
-    .replace(/{[^}]*}/g, "") // Remove {anything}
-    .replace(/{{[^}]*}}/g, "") // Remove {{anything}}
-    .replace(/[{}]/g, "") // Remove any leftover { or }
-    .replace(/~\d+/g, "") // Remove ~1, ~2, etc
-    .replace(/\s+/g, " ") // Collapse multiple spaces
-    .trim(); // Remove leading/trailing spaces
+    .replace(/#[12]/g, "")
+    .replace(/{[^}]*}/g, "")
+    .replace(/{{[^}]*}}/g, "")
+    .replace(/[{}]/g, "")
+    .replace(/~\d+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
   return `${customValue} ${effectName}`;
 };
@@ -1070,7 +1044,6 @@ const deleteSoldItem = (itemId) => {
   }
 };
 
-// Helper functions
 const getItemName = (item) => {
   return item.name?.fr || item.name?.en || "Objet Inconnu";
 };

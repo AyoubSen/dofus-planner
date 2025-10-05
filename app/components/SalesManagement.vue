@@ -60,7 +60,7 @@
             <label class="block text-sm font-medium text-gray-300 mb-2"
               >Monster Name</label
             >
-            <div class="relative">
+            <div class="relative input-with-suggestions">
               <input
                 v-model="newItem.monsterName"
                 @input="onMonsterNameInput"
@@ -75,7 +75,7 @@
               <!-- Suggestions Dropdown -->
               <div
                 v-if="showSuggestions && filteredSuggestions.length > 0"
-                class="absolute z-10 w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                class="absolute z-50 w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto suggestions-popover"
               >
                 <div
                   v-for="(suggestion, index) in filteredSuggestions"
@@ -160,7 +160,7 @@
       </div>
 
       <div
-        class="bg-gradient-to-br from-amber-900/20 via-gray-800 to-orange-900/20 border border-amber-500/30 rounded-lg relative overflow-hidden"
+        class="bg-gradient-to-br from-amber-900/20 via-gray-800 to-orange-900/20 border border-amber-500/30 rounded-lg relative overflow-hidden slow-moving-card"
       >
         <!-- Animated background accent -->
         <div
@@ -800,9 +800,9 @@
                       @click="startEditingPrice(item)"
                       class="flex items-center gap-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors group min-w-24"
                     >
-                      <span class="text-gray-100 font-medium">{{
-                        formatPriceForDisplay(item.price)
-                      }}</span>
+                      <span class="text-gray-100 font-medium">
+                        {{ formatPriceForDisplay(item.price) }}
+                      </span>
                       <svg
                         class="w-3 h-3 text-gray-400 group-hover:text-gray-300"
                         fill="none"
@@ -895,6 +895,47 @@
                       class="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
                     ></div>
                   </div>
+
+                  <!-- Copy price button -->
+                  <button
+                    @click.stop="handleCopyItemPrice(item)"
+                    class="p-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded text-gray-100 transition-colors relative"
+                    :title="
+                      copiedPrice[item.id]
+                        ? 'Copied!'
+                        : 'Copy price to clipboard'
+                    "
+                  >
+                    <svg
+                      v-if="!copiedPrice[item.id]"
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M8 16h8a2 2 0 002-2V8m-6 8H8a2 2 0 01-2-2v-2"
+                      />
+                    </svg>
+                    <svg
+                      v-else
+                      class="w-4 h-4 text-green-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </button>
+
                   <span class="text-yellow-400 font-medium">⚡</span>
                 </div>
 
@@ -1210,8 +1251,8 @@ const showSuggestions = ref(false);
 const selectedSuggestionIndex = ref(-1);
 
 const searchQuery = ref("");
-const sortBy = ref("dateAdded");
-const sortDirection = ref("desc");
+const sortBy = ref("price");
+const sortDirection = ref("asc");
 const priceFilterMin = ref(null);
 const priceFilterMax = ref(null);
 
@@ -1230,6 +1271,8 @@ const tempPrices = ref({});
 const priceErrors = ref({});
 const priceChanged = ref({});
 const priceInputRefs = ref({});
+
+const copiedPrice = ref({});
 
 const slowMovingThreshold = ref(7);
 
@@ -1802,6 +1845,42 @@ const formatDate = (dateString) => {
     );
   }
 };
+
+const copyPriceToClipboard = async (price) => {
+  try {
+    await navigator.clipboard.writeText(String(price));
+    return true;
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = String(price);
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      return true;
+    } catch {
+      return false;
+    } finally {
+      document.body.removeChild(ta);
+    }
+  }
+};
+
+const handleCopyItemPrice = async (item) => {
+  const price = editingPrice.value[item.id]
+    ? tempPrices.value[item.id] || 0
+    : item.price || 0;
+
+  const ok = await copyPriceToClipboard(price);
+  if (ok) {
+    copiedPrice.value[item.id] = true;
+    setTimeout(() => {
+      copiedPrice.value[item.id] = false;
+    }, 1200);
+  }
+};
 </script>
 
 <style scoped>
@@ -1859,5 +1938,20 @@ input[type="number"] {
 
 .drop-shadow-glow {
   filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));
+}
+
+.suggestions-popover {
+  z-index: 9999 !important;
+}
+
+.input-with-suggestions {
+  position: relative;
+  isolation: isolate;
+  z-index: 10;
+}
+
+.slow-moving-card {
+  position: relative;
+  z-index: 1;
 }
 </style>
