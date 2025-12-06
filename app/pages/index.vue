@@ -350,6 +350,106 @@
             </div>
           </div>
         </NuxtLink>
+
+        <!-- Succès Card -->
+        <NuxtLink
+  to="/succes"
+  class="group relative overflow-hidden bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-yellow-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-yellow-500/10"
+>
+  <div
+    class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-orange-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+  ></div>
+
+  <div class="relative z-10">
+    <div class="flex items-start justify-between mb-6">
+      <div
+        class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg"
+      >
+        <svg
+          class="w-8 h-8 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+          />
+        </svg>
+      </div>
+
+      <div
+        class="text-gray-500 group-hover:text-yellow-400 transition-colors duration-300"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 8l4 4m0 0l-4 4m4-4H3"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <h2
+      class="text-3xl font-bold text-gray-100 mb-4 group-hover:text-yellow-400 transition-colors duration-300"
+    >
+      Succès
+    </h2>
+
+    <p class="text-gray-400 mb-6 leading-relaxed">
+      Browse the complete achievement database. Track your progress,
+      discover rewards, and plan your next accomplishments.
+    </p>
+
+    <div class="flex flex-wrap gap-2">
+      <span
+        class="px-3 py-1 bg-yellow-500/10 text-yellow-300 text-sm rounded-full border border-yellow-500/30"
+      >
+        Achievement Browser
+      </span>
+      <span
+        class="px-3 py-1 bg-orange-500/10 text-orange-300 text-sm rounded-full border border-orange-500/30"
+      >
+        Category Filters
+      </span>
+      <span
+        class="px-3 py-1 bg-amber-500/10 text-amber-300 text-sm rounded-full border border-amber-500/30"
+      >
+        Reward Info
+      </span>
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-gray-700/50">
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div class="flex items-center gap-2 text-gray-400">
+          <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+          <span>Search & Filter</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-400">
+          <div class="w-2 h-2 bg-orange-400 rounded-full"></div>
+          <span>Point Ranges</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-400">
+          <div class="w-2 h-2 bg-amber-400 rounded-full"></div>
+          <span>Categories</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-400">
+          <div class="w-2 h-2 bg-red-400 rounded-full"></div>
+          <span>Detailed View</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</NuxtLink>
       </div>
 
       <!-- Stats Section -->
