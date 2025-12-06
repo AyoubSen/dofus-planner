@@ -2,7 +2,7 @@
 <template>
   <div>
     <!-- Character Stats Header -->
-    <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Level Input -->
       <div
         class="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-xl p-4"
@@ -31,32 +31,6 @@
         </div>
         <div class="text-xs text-green-400/50 mt-1">
           {{ completionPercentage }}% done
-        </div>
-      </div>
-
-      <!-- Total Points -->
-      <div
-        class="bg-gradient-to-br from-yellow-500/10 to-orange-600/10 border border-yellow-500/30 rounded-xl p-4"
-      >
-        <div class="text-sm text-yellow-400 mb-1">Points Earned</div>
-        <div class="text-2xl font-bold text-yellow-300">
-          {{ formatNumber(earnedPoints) }}
-        </div>
-        <div class="text-xs text-yellow-400/50 mt-1">
-          {{ formatNumber(totalPoints - earnedPoints) }} remaining
-        </div>
-      </div>
-
-      <!-- Potential Rewards -->
-      <div
-        class="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/30 rounded-xl p-4"
-      >
-        <div class="text-sm text-purple-400 mb-1">Unclaimed XP</div>
-        <div class="text-2xl font-bold text-purple-300">
-          {{ formatNumber(unclaimedXP) }}
-        </div>
-        <div class="text-xs text-purple-400/50 mt-1">
-          At Lv.{{ characterLevel }}
         </div>
       </div>
     </div>
@@ -92,21 +66,116 @@
         />
       </div>
 
-      <!-- Category Filter -->
-      <select
-        v-model="selectedCategory"
-        @change="onFilterChange"
-        class="bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-yellow-500/50"
-      >
-        <option value="">All Categories</option>
-        <option
-          v-for="category in organizedCategories"
-          :key="category.id"
-          :value="category.id"
+      <!-- Category Filter Dropdown -->
+      <div class="relative" ref="categoryDropdownRef">
+        <button
+          @click="showCategoryDropdown = !showCategoryDropdown"
+          class="flex items-center gap-2 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-yellow-500/50 min-w-48"
         >
-          {{ category.name.fr }}
-        </option>
-      </select>
+          <span class="flex-1 text-left truncate">
+            {{ selectedCategoryName || "All Categories" }}
+          </span>
+          <svg
+            class="w-4 h-4 transition-transform duration-200"
+            :class="{ 'rotate-180': showCategoryDropdown }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+
+        <!-- Category Dropdown -->
+        <div
+          v-if="showCategoryDropdown"
+          class="absolute top-full left-0 mt-1 w-72 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto custom-scrollbar"
+        >
+          <div class="p-2">
+            <button
+              @click="selectCategory('')"
+              :class="[
+                'w-full text-left px-3 py-2 rounded-lg transition-colors',
+                selectedCategory === ''
+                  ? 'bg-yellow-500/20 text-yellow-400'
+                  : 'text-gray-300 hover:bg-gray-700/50',
+              ]"
+            >
+              All Categories
+            </button>
+
+            <template
+              v-for="parent in organizedCategories"
+              :key="parent.id"
+            >
+              <div class="flex items-center">
+                <button
+                  @click="selectCategory(parent.id)"
+                  :class="[
+                    'flex-1 text-left px-3 py-2 rounded-lg transition-colors',
+                    selectedCategory === parent.id
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'text-gray-200 hover:bg-gray-700/50',
+                  ]"
+                >
+                  {{ parent.name.fr }}
+                </button>
+                <button
+                  v-if="parent.children && parent.children.length > 0"
+                  @click.stop="toggleCategoryExpand(parent.id)"
+                  class="p-2 rounded-lg hover:bg-gray-700/50 text-gray-400 hover:text-yellow-400 transition-colors"
+                >
+                  <svg
+                    class="w-4 h-4 transition-transform duration-200"
+                    :class="{
+                      'rotate-180': expandedCategories.has(parent.id),
+                    }"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Child categories -->
+              <div
+                v-if="
+                  parent.children &&
+                  parent.children.length > 0 &&
+                  expandedCategories.has(parent.id)
+                "
+                class="ml-4 border-l border-gray-700 pl-2"
+              >
+                <button
+                  v-for="child in parent.children"
+                  :key="child.id"
+                  @click="selectCategory(child.id)"
+                  :class="[
+                    'w-full text-left px-3 py-1.5 rounded-lg transition-colors text-sm',
+                    selectedCategory === child.id
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-200',
+                  ]"
+                >
+                  {{ child.name.fr }}
+                </button>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
 
       <!-- Status Filter -->
       <div class="flex items-center gap-2">
@@ -124,18 +193,6 @@
           {{ status.label }}
         </button>
       </div>
-
-      <!-- Points Filter -->
-      <select
-        v-model="selectedPoints"
-        @change="onFilterChange"
-        class="bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-yellow-500/50"
-      >
-        <option value="">All Points</option>
-        <option value="1-5">1-5 pts</option>
-        <option value="6-10">6-10 pts</option>
-        <option value="10+">10+ pts</option>
-      </select>
 
       <!-- Bulk Actions -->
       <div class="flex items-center gap-2 ml-auto">
@@ -393,21 +450,6 @@
             <!-- Meta Info -->
             <div class="flex items-center gap-2 mt-2 flex-wrap">
               <span
-                :class="[
-                  'inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded border',
-                  isCompleted(achievement.id)
-                    ? 'bg-green-500/10 text-green-300 border-green-500/30'
-                    : 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30',
-                ]"
-              >
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                  />
-                </svg>
-                {{ achievement.points }}
-              </span>
-              <span
                 v-if="achievement.level"
                 class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-300 text-xs font-medium rounded border border-blue-500/30"
               >
@@ -615,15 +657,7 @@
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-3 gap-4 mb-6">
-              <div
-                class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/30"
-              >
-                <div class="text-2xl font-bold text-yellow-400">
-                  {{ selectedAchievement.points }}
-                </div>
-                <div class="text-sm text-gray-400">Points</div>
-              </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
               <div
                 class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/30"
               >
@@ -873,6 +907,8 @@
 </template>
 
 <script setup>
+import { onClickOutside } from "@vueuse/core";
+
 const props = defineProps({
   server: { type: Object, required: true },
   character: { type: Object, required: true },
@@ -886,6 +922,16 @@ const selectedAchievement = ref(null);
 const showBulkActions = ref(false);
 const showResetConfirm = ref(false);
 
+// Category dropdown state
+const showCategoryDropdown = ref(false);
+const expandedCategories = ref(new Set());
+const categoryDropdownRef = ref(null);
+
+// Close dropdown when clicking outside
+onClickOutside(categoryDropdownRef, () => {
+  showCategoryDropdown.value = false;
+});
+
 // Pagination
 const total = ref(0);
 const currentPage = ref(1);
@@ -897,14 +943,12 @@ const completedAchievements = ref(new Set());
 
 // Stats data (fetched separately for accurate totals)
 const totalAchievements = ref(0);
-const totalPoints = ref(0);
 const allAchievementsForStats = ref([]);
 
 // Filters
 const searchQuery = ref("");
 const selectedCategory = ref("");
 const selectedStatus = ref("");
-const selectedPoints = ref("");
 
 const statusFilters = [
   { label: "All", value: "" },
@@ -914,9 +958,23 @@ const statusFilters = [
 
 // Computed
 const organizedCategories = computed(() => {
-  return props.categories
-    .filter((c) => c.parentId === 0)
+  const parents = props.categories.filter((c) => c.parentId === 0);
+  return parents
+    .map((parent) => ({
+      ...parent,
+      children: props.categories
+        .filter((c) => c.parentId === parent.id)
+        .sort((a, b) => a.order - b.order),
+    }))
     .sort((a, b) => a.order - b.order);
+});
+
+const selectedCategoryName = computed(() => {
+  if (!selectedCategory.value) return "";
+  const category = props.categories.find(
+    (c) => c.id === selectedCategory.value
+  );
+  return category?.name?.fr || "";
 });
 
 // Apply client-side status filter to server-fetched achievements
@@ -959,21 +1017,6 @@ const displayedCompletedCount = computed(() => {
   ).length;
 });
 
-const earnedPoints = computed(() => {
-  return allAchievementsForStats.value
-    .filter((a) => completedAchievements.value.has(a.id))
-    .reduce((sum, a) => sum + (a.points || 0), 0);
-});
-
-const unclaimedXP = computed(() => {
-  return allAchievementsForStats.value
-    .filter((a) => !completedAchievements.value.has(a.id) && a.rewards)
-    .reduce((sum, a) => {
-      const ratio = getTotalExperienceRatio(a.rewards);
-      return sum + calculateXP(characterLevel.value, ratio);
-    }, 0);
-});
-
 // Methods
 const isCompleted = (achievementId) =>
   completedAchievements.value.has(achievementId);
@@ -992,6 +1035,22 @@ const openAchievementDetail = (achievement) => {
   selectedAchievement.value = achievement;
 };
 
+const toggleCategoryExpand = (categoryId) => {
+  if (expandedCategories.value.has(categoryId)) {
+    expandedCategories.value.delete(categoryId);
+  } else {
+    expandedCategories.value.add(categoryId);
+  }
+  expandedCategories.value = new Set(expandedCategories.value);
+};
+
+const selectCategory = (categoryId) => {
+  selectedCategory.value = categoryId;
+  showCategoryDropdown.value = false;
+  currentPage.value = 1;
+  fetchAchievements();
+};
+
 // Debounced search
 let searchTimeout = null;
 const debouncedSearch = () => {
@@ -1002,11 +1061,6 @@ const debouncedSearch = () => {
   }, 300);
 };
 
-const onFilterChange = () => {
-  currentPage.value = 1;
-  fetchAchievements();
-};
-
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
@@ -1015,7 +1069,9 @@ const goToPage = (page) => {
 };
 
 const getChildCategoryIds = (parentId) => {
-  return props.categories.filter((c) => c.parentId === parentId).map((c) => c.id);
+  return props.categories
+    .filter((c) => c.parentId === parentId)
+    .map((c) => c.id);
 };
 
 // Fetch achievements with server-side filtering (same as browse mode)
@@ -1037,24 +1093,13 @@ const fetchAchievements = async () => {
       const childIds = getChildCategoryIds(categoryId);
 
       if (childIds.length > 0) {
+        // It's a parent category, include all children
         childIds.forEach((id) => {
           params.append("categoryId[$in][]", String(id));
         });
       } else {
+        // It's a child category or has no children
         params.append("categoryId", String(selectedCategory.value));
-      }
-    }
-
-    // Points filter
-    if (selectedPoints.value) {
-      if (selectedPoints.value === "1-5") {
-        params.append("points[$gte]", "1");
-        params.append("points[$lte]", "5");
-      } else if (selectedPoints.value === "6-10") {
-        params.append("points[$gte]", "6");
-        params.append("points[$lte]", "10");
-      } else if (selectedPoints.value === "10+") {
-        params.append("points[$gt]", "10");
       }
     }
 
@@ -1088,10 +1133,6 @@ const fetchAllAchievementsForStats = async () => {
 
     allAchievementsForStats.value = allAchievements;
     totalAchievements.value = allAchievements.length;
-    totalPoints.value = allAchievements.reduce(
-      (sum, a) => sum + (a.points || 0),
-      0
-    );
   } catch (error) {
     console.error("Error fetching all achievements for stats:", error);
   }
@@ -1308,5 +1349,23 @@ onMounted(() => {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
 }
 </style>

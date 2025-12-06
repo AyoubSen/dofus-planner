@@ -28,7 +28,7 @@
           </NuxtLink>
         </div>
 
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-4">
           <div class="flex items-center gap-4">
             <div
               class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg"
@@ -144,16 +144,82 @@
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                   />
                 </svg>
-                Track Progress
+                Track
+              </button>
+              <button
+                @click="switchMode('multi-track')"
+                :class="[
+                  'flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200',
+                  currentMode === 'multi-track'
+                    ? 'bg-yellow-500 text-gray-900 font-semibold'
+                    : 'text-gray-400 hover:text-gray-200',
+                ]"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                  />
+                </svg>
+                Multi-Track
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Track Mode -->
+      <!-- Multi-Track Mode -->
       <Transition name="fade" mode="out-in">
-        <div v-if="currentMode === 'track'" key="track-mode">
+        <div v-if="currentMode === 'multi-track'" key="multi-track-mode">
+          <!-- No characters message -->
+          <div
+            v-if="allCharacters.length === 0"
+            class="text-center py-16 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl"
+          >
+            <svg
+              class="w-16 h-16 mx-auto mb-4 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <p class="text-lg text-gray-400">No characters found</p>
+            <p class="text-sm text-gray-500 mt-2 mb-6">
+              Create characters in the Track mode first
+            </p>
+            <button
+              @click="switchMode('track')"
+              class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500 rounded-lg font-semibold text-gray-900 transition-all duration-200"
+            >
+              Go to Track Mode
+            </button>
+          </div>
+
+          <!-- Multi-tracker interface -->
+          <AchievementMultiTrackerInterface
+            v-else
+            :servers="servers"
+            :categories="categories"
+            @update-servers="handleUpdateServers"
+          />
+        </div>
+
+        <!-- Track Mode (existing) -->
+        <div v-else-if="currentMode === 'track'" key="track-mode">
+          <!-- ... existing track mode content ... -->
           <!-- Breadcrumb Navigation -->
           <div class="mb-8">
             <div class="flex items-center gap-2 text-sm">
@@ -374,8 +440,9 @@
           </Transition>
         </div>
 
-        <!-- Browse Mode -->
+        <!-- Browse Mode (existing) -->
         <div v-else key="browse-mode">
+          <!-- ... existing browse mode content stays the same ... -->
           <div class="flex gap-8">
             <!-- Filters Sidebar -->
             <div
@@ -425,7 +492,9 @@
                 >
                   Category
                 </h3>
-                <div class="space-y-1 max-h-80 overflow-y-auto custom-scrollbar">
+                <div
+                  class="space-y-1 max-h-80 overflow-y-auto custom-scrollbar"
+                >
                   <label
                     class="flex items-center p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
                   >
@@ -514,43 +583,6 @@
                 </div>
               </div>
 
-              <!-- Points Range Filter -->
-              <div class="mb-6">
-                <h3
-                  class="text-sm font-semibold mb-3 text-yellow-400 uppercase tracking-wide"
-                >
-                  Points
-                </h3>
-                <div class="grid grid-cols-2 gap-2">
-                  <label
-                    v-for="pointRange in pointRanges"
-                    :key="pointRange.label"
-                    class="group cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      :value="pointRange.value"
-                      v-model="filters.points"
-                      @change="fetchAchievements"
-                      class="sr-only"
-                    />
-                    <div
-                      :class="[
-                        'w-full py-2 px-3 rounded-lg border transition-all duration-200 text-center',
-                        'group-hover:border-gray-500 group-hover:bg-gray-700/50',
-                        filters.points === pointRange.value
-                          ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
-                          : 'border-gray-600/50 bg-gray-700/30 text-gray-400',
-                      ]"
-                    >
-                      <span class="font-medium text-sm">{{
-                        pointRange.label
-                      }}</span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
               <button
                 @click="resetFilters"
                 class="w-full px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
@@ -586,7 +618,9 @@
                 </div>
 
                 <div
-                  v-if="showBookmarksOnly && bookmarkedAchievements.length > 0"
+                  v-if="
+                    showBookmarksOnly && bookmarkedAchievements.length > 0
+                  "
                   class="flex items-center gap-4"
                 >
                   <div
@@ -606,23 +640,6 @@
                       formatNumber(totalBookmarkedXP)
                     }}</span>
                     <span class="text-blue-400/70 text-sm">XP (Lv.200)</span>
-                  </div>
-                  <div
-                    class="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/30 rounded-lg"
-                  >
-                    <svg
-                      class="w-4 h-4 text-orange-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                      />
-                    </svg>
-                    <span class="text-orange-300 font-medium">{{
-                      totalBookmarkedPoints
-                    }}</span>
-                    <span class="text-orange-400/70 text-sm">Points</span>
                   </div>
                 </div>
 
@@ -714,20 +731,6 @@
 
                       <div class="flex items-center gap-2 mt-3 flex-wrap">
                         <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-500/10 text-yellow-300 text-xs font-medium rounded border border-yellow-500/30"
-                        >
-                          <svg
-                            class="w-3 h-3"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                            />
-                          </svg>
-                          {{ achievement.points }}
-                        </span>
-                        <span
                           v-if="achievement.level"
                           class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-300 text-xs font-medium rounded border border-blue-500/30"
                         >
@@ -754,7 +757,9 @@
                       <svg
                         class="w-5 h-5"
                         :fill="
-                          isBookmarked(achievement.id) ? 'currentColor' : 'none'
+                          isBookmarked(achievement.id)
+                            ? 'currentColor'
+                            : 'none'
                         "
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -792,7 +797,9 @@
                 <p v-if="showBookmarksOnly" class="text-lg text-gray-400">
                   No bookmarked achievements
                 </p>
-                <p v-else class="text-lg text-gray-400">No achievements found</p>
+                <p v-else class="text-lg text-gray-400">
+                  No achievements found
+                </p>
                 <p class="text-sm text-gray-500 mt-2">
                   {{
                     showBookmarksOnly
@@ -843,13 +850,14 @@
       </Transition>
     </div>
 
-    <!-- Achievement Detail Modal -->
+    <!-- Achievement Detail Modal (keep existing) -->
     <Teleport to="body">
       <div
         v-if="selectedAchievement"
         class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
         @click.self="selectedAchievement = null"
       >
+        <!-- ... existing modal content ... -->
         <div
           class="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         >
@@ -927,7 +935,9 @@
             </div>
 
             <div class="mb-6">
-              <h3 class="text-sm font-semibold text-yellow-400 uppercase mb-2">
+              <h3
+                class="text-sm font-semibold text-yellow-400 uppercase mb-2"
+              >
                 Description
               </h3>
               <p class="text-gray-300">
@@ -935,15 +945,7 @@
               </p>
             </div>
 
-            <div class="grid grid-cols-3 gap-4 mb-6">
-              <div
-                class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/30"
-              >
-                <div class="text-2xl font-bold text-yellow-400">
-                  {{ selectedAchievement.points }}
-                </div>
-                <div class="text-sm text-gray-400">Points</div>
-              </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
               <div
                 class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/30"
               >
@@ -969,7 +971,9 @@
               "
               class="mb-6"
             >
-              <h3 class="text-sm font-semibold text-yellow-400 uppercase mb-3">
+              <h3
+                class="text-sm font-semibold text-yellow-400 uppercase mb-3"
+              >
                 Rewards
               </h3>
 
@@ -987,7 +991,9 @@
                         formatNumber(
                           calculateXP(
                             200,
-                            getTotalExperienceRatio(selectedAchievement.rewards)
+                            getTotalExperienceRatio(
+                              selectedAchievement.rewards
+                            )
                           )
                         )
                       }}
@@ -1026,7 +1032,8 @@
                     <div class="text-xs text-yellow-400/70">
                       {{
                         (
-                          getTotalKamasRatio(selectedAchievement.rewards) * 100
+                          getTotalKamasRatio(selectedAchievement.rewards) *
+                          100
                         ).toFixed(0)
                       }}%
                       ratio (Lv.{{ selectedAchievement.level }})
@@ -1051,12 +1058,16 @@
               <div
                 v-if="getItemRewards(selectedAchievement.rewards).length > 0"
               >
-                <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">
+                <h4
+                  class="text-xs font-semibold text-gray-400 uppercase mb-2"
+                >
                   Item Rewards
                 </h4>
                 <div class="grid grid-cols-1 gap-2">
                   <div
-                    v-for="item in getItemRewards(selectedAchievement.rewards)"
+                    v-for="item in getItemRewards(
+                      selectedAchievement.rewards
+                    )"
                     :key="item.id"
                     class="flex items-center gap-3 p-3 bg-gray-700/30 border border-gray-600/30 rounded-lg"
                   >
@@ -1086,10 +1097,14 @@
               </div>
 
               <div
-                v-if="getTitleRewards(selectedAchievement.rewards).length > 0"
+                v-if="
+                  getTitleRewards(selectedAchievement.rewards).length > 0
+                "
                 class="mt-3"
               >
-                <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">
+                <h4
+                  class="text-xs font-semibold text-gray-400 uppercase mb-2"
+                >
                   Titles
                 </h4>
                 <div class="flex flex-wrap gap-2">
@@ -1111,7 +1126,9 @@
                 "
                 class="mt-3"
               >
-                <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">
+                <h4
+                  class="text-xs font-semibold text-gray-400 uppercase mb-2"
+                >
                   Ornaments
                 </h4>
                 <div class="flex flex-wrap gap-2">
@@ -1128,10 +1145,14 @@
               </div>
 
               <div
-                v-if="getEmoteRewards(selectedAchievement.rewards).length > 0"
+                v-if="
+                  getEmoteRewards(selectedAchievement.rewards).length > 0
+                "
                 class="mt-3"
               >
-                <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">
+                <h4
+                  class="text-xs font-semibold text-gray-400 uppercase mb-2"
+                >
                   Emotes
                 </h4>
                 <div class="flex flex-wrap gap-2">
@@ -1198,18 +1219,25 @@ const expandedCategories = ref(new Set());
 const filters = ref({
   search: "",
   categoryId: "",
-  points: "",
 });
-
-const pointRanges = [
-  { label: "All", value: "" },
-  { label: "1-5", value: "1-5" },
-  { label: "6-10", value: "6-10" },
-  { label: "10+", value: "10+" },
-];
 
 // Computed
 const totalPages = computed(() => Math.ceil(total.value / limit.value));
+
+// All characters across all servers (for multi-track)
+const allCharacters = computed(() => {
+  const chars = [];
+  servers.value.forEach((server) => {
+    (server.characters || []).forEach((char) => {
+      chars.push({
+        ...char,
+        serverId: server.id,
+        serverName: server.name,
+      });
+    });
+  });
+  return chars;
+});
 
 const totalBookmarkedKamas = computed(() => {
   return bookmarkedAchievements.value.reduce((total, achievement) => {
@@ -1224,12 +1252,6 @@ const totalBookmarkedXP = computed(() => {
     if (!achievement.rewards) return total;
     const xpRatio = getTotalExperienceRatio(achievement.rewards);
     return total + calculateXP(200, xpRatio);
-  }, 0);
-});
-
-const totalBookmarkedPoints = computed(() => {
-  return bookmarkedAchievements.value.reduce((total, achievement) => {
-    return total + (achievement.points || 0);
   }, 0);
 });
 
@@ -1461,6 +1483,11 @@ const saveServers = () => {
   }
 };
 
+const handleUpdateServers = (updatedServers) => {
+  servers.value = updatedServers;
+  saveServers();
+};
+
 const selectServer = (server) => {
   currentServer.value = server;
   currentCharacter.value = null;
@@ -1546,22 +1573,10 @@ const fetchAchievements = async () => {
       }
     }
 
-    if (filters.value.points) {
-      if (filters.value.points === "1-5") {
-        params.append("points[$gte]", "1");
-        params.append("points[$lte]", "5");
-      } else if (filters.value.points === "6-10") {
-        params.append("points[$gte]", "6");
-        params.append("points[$lte]", "10");
-      } else if (filters.value.points === "10+") {
-        params.append("points[$gt]", "10");
-      }
-    }
-
     const response = await $fetch(`/api/achievements?${params.toString()}`);
     achievements.value = response.data || [];
     total.value = response.total || 0;
-  } catch (error) {
+    } catch (error) {
     console.error("Error fetching achievements:", error);
     achievements.value = [];
   } finally {
@@ -1599,7 +1614,6 @@ const resetFilters = () => {
   filters.value = {
     search: "",
     categoryId: "",
-    points: "",
   };
   currentPage.value = 1;
   fetchAchievements();
