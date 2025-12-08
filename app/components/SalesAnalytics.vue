@@ -1,706 +1,734 @@
 <template>
   <div class="space-y-6">
     <!-- Analytics Header -->
-    <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-gray-100">Sales Analytics</h2>
-          <p class="text-gray-400 mt-1">
-            Track your best-selling monsters and sales performance
-          </p>
-        </div>
-        <div class="flex gap-3">
-          <select
-            v-model="analyticsTimeframe"
-            class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Time</option>
-            <option value="month">This Month</option>
-            <option value="week">This Week</option>
-          </select>
-          <select
-            v-model="analyticsSortBy"
-            class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="quantity">Most Sold (Quantity)</option>
-            <option value="revenue">Highest Revenue</option>
-            <option value="avgPrice">Highest Avg Price</option>
-            <option value="frequency">Most Frequent</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="grid md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-gray-700 rounded-lg p-4 text-center">
-          <h3 class="text-sm font-medium text-gray-300">
-            Unique Monsters Sold
-          </h3>
-          <p class="text-2xl font-bold text-blue-400">
-            {{ analyticsData.uniqueMonsters }}
-          </p>
-        </div>
-        <div class="bg-gray-700 rounded-lg p-4 text-center">
-          <h3 class="text-sm font-medium text-gray-300">Best Seller</h3>
-          <p class="text-lg font-bold text-green-400">
-            {{ analyticsData.bestSeller?.name || "N/A" }}
-          </p>
-          <p class="text-xs text-gray-400">
-            {{ analyticsData.bestSeller?.quantity || 0 }} sold
-          </p>
-        </div>
-        <div class="bg-gray-700 rounded-lg p-4 text-center">
-          <h3 class="text-sm font-medium text-gray-300">
-            Highest Revenue Monster
-          </h3>
-          <p class="text-lg font-bold text-yellow-400">
-            {{ analyticsData.highestRevenue?.name || "N/A" }}
-          </p>
-          <p class="text-xs text-gray-400">
-            {{ formatKamas(analyticsData.highestRevenue?.revenue || 0) }}
-          </p>
-        </div>
-        <div class="bg-gray-700 rounded-lg p-4 text-center">
-          <h3 class="text-sm font-medium text-gray-300">Avg Sale Price</h3>
-          <p class="text-2xl font-bold text-purple-400">
-            {{ formatKamas(analyticsData.avgSalePrice) }}
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-gray-700 border border-gray-600 rounded-lg">
-      <div class="flex">
-        <button
-          @click="analyticsSubTab = 'sales-analytics'"
-          :class="[
-            'px-4 py-2 text-sm font-medium transition-colors border-b-2',
-            analyticsSubTab === 'sales-analytics'
-              ? 'border-green-400 text-green-200 bg-green-900/20'
-              : 'border-transparent text-gray-300 hover:text-white hover:bg-gray-600',
-          ]"
-        >
-          📊 Sales Performance
-        </button>
-        <button
-          @click="analyticsSubTab = 'capture-patterns'"
-          :class="[
-            'px-4 py-2 text-sm font-medium transition-colors border-b-2',
-            analyticsSubTab === 'capture-patterns'
-              ? 'border-purple-400 text-purple-200 bg-purple-900/20'
-              : 'border-transparent text-gray-300 hover:text-white hover:bg-gray-600',
-          ]"
-        >
-          🎯 Capture Patterns
-        </button>
-        <button
-          @click="analyticsSubTab = 'price-trends'"
-          :class="[
-            'px-4 py-2 text-sm font-medium transition-colors border-b-2',
-            analyticsSubTab === 'price-trends'
-              ? 'border-blue-400 text-blue-200 bg-blue-900/20'
-              : 'border-transparent text-gray-300 hover:text-white hover:bg-gray-600',
-          ]"
-        >
-          📈 Price Trends
-        </button>
-        <button
-          @click="analyticsSubTab = 'pricing-inconsistencies'"
-          :class="[
-            'px-4 py-2 text-sm font-medium transition-colors border-b-2',
-            analyticsSubTab === 'pricing-inconsistencies'
-              ? 'border-orange-400 text-orange-200 bg-orange-900/20'
-              : 'border-transparent text-gray-300 hover:text-white hover:bg-gray-600',
-          ]"
-        >
-          ⚠️ Price Inconsistencies
-        </button>
-      </div>
-    </div>
-
-    <!-- Monster Sales Ranking -->
-    <div v-if="analyticsSubTab === 'sales-analytics'" class="space-y-6">
-      <div class="bg-gray-800 border border-gray-700 rounded-lg">
-        <div class="p-6 border-b border-gray-700">
-          <h3 class="text-xl font-semibold text-gray-100">
-            Monster Sales Ranking
-          </h3>
-          <p class="text-sm text-gray-400 mt-1">
-            {{ filteredAnalyticsData.length }} monsters • Showing top performers
-          </p>
-        </div>
-
-        <div v-if="filteredAnalyticsData.length === 0" class="p-6 text-center">
-          <div class="text-gray-400">
-            <svg
-              class="w-16 h-16 mx-auto mb-4 text-gray-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+    <div
+      class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50 backdrop-blur-sm"
+    >
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5"
+      ></div>
+      <div class="relative z-10 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              ></path>
-            </svg>
-            <p class="text-lg font-medium">No sales data available</p>
-            <p class="text-sm">Start selling monsters to see analytics here!</p>
-          </div>
-        </div>
-
-        <div v-else class="divide-y divide-gray-700 max-h-96 overflow-y-auto">
-          <div
-            v-for="(monster, index) in filteredAnalyticsData"
-            :key="monster.name"
-            class="p-4 hover:bg-gray-750 transition-colors"
-          >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <!-- Ranking Badge -->
-                <div
-                  :class="[
-                    'w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm',
-                    index === 0
-                      ? 'bg-yellow-500 text-yellow-900'
-                      : index === 1
-                      ? 'bg-gray-400 text-gray-900'
-                      : index === 2
-                      ? 'bg-amber-600 text-amber-100'
-                      : 'bg-gray-600 text-gray-200',
-                  ]"
-                >
-                  {{ index + 1 }}
-                </div>
-
-                <!-- Monster Info -->
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center"
-                  >
-                    <img
-                      v-if="monster.image_url"
-                      :src="monster.image_url"
-                      :alt="monster.name"
-                      class="w-full h-full object-cover"
-                    />
-                    <svg
-                      v-else
-                      class="w-6 h-6 text-yellow-200"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-medium text-gray-100">
-                      {{ monster.name }}
-                    </h4>
-                    <p class="text-sm text-gray-400">
-                      {{ monster.salesCount }} sale{{
-                        monster.salesCount > 1 ? "s" : ""
-                      }}
-                      • Last sold {{ formatDate(monster.lastSold) }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Stats -->
-              <div class="flex items-center gap-6 text-right">
-                <div>
-                  <p class="text-sm text-gray-300">Quantity Sold</p>
-                  <p class="font-bold text-blue-400">
-                    {{ monster.quantity }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-300">Total Revenue</p>
-                  <p class="font-bold text-green-400">
-                    {{ formatKamas(monster.revenue) }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-300">Avg Price</p>
-                  <p class="font-bold text-yellow-400">
-                    {{ formatKamas(monster.avgPrice) }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-300">Price Range</p>
-                  <p class="text-sm text-gray-400">
-                    {{ formatKamas(monster.minPrice) }} -
-                    {{ formatKamas(monster.maxPrice) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Progress Bar for Visual Representation -->
-            <div class="mt-3">
-              <div
-                class="flex items-center justify-between text-xs text-gray-400 mb-1"
+              <svg
+                class="w-7 h-7 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <span>Performance</span>
-                <span
-                  >{{
-                    Math.round(
-                      (monster.quantity /
-                        (filteredAnalyticsData[0]?.quantity || 1)) *
-                        100
-                    )
-                  }}% of top seller</span
-                >
-              </div>
-              <div class="w-full bg-gray-700 rounded-full h-2">
-                <div
-                  class="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-300"
-                  :style="{
-                    width: `${Math.round(
-                      (monster.quantity /
-                        (filteredAnalyticsData[0]?.quantity || 1)) *
-                        100
-                    )}%`,
-                  }"
-                ></div>
-              </div>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="analyticsSubTab === 'capture-patterns'" class="space-y-6">
-      <div class="bg-gray-800 border border-gray-700 rounded-lg">
-        <div class="p-6 border-b border-gray-700">
-          <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-xl font-semibold text-gray-100">
-                Capture Patterns
-              </h3>
-              <p class="text-sm text-gray-400 mt-1">
-                Based on items you've added for sale (your captures)
+              <h2 class="text-2xl font-bold text-gray-100">Sales Analytics</h2>
+              <p class="text-gray-400 mt-1">
+                Track your best-selling monsters and sales performance
               </p>
             </div>
+          </div>
+          <div class="flex gap-3">
             <select
-              v-model="captureTimeframe"
-              class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              v-model="analyticsTimeframe"
+              class="px-4 py-2.5 bg-gray-800/80 border border-gray-600/50 rounded-xl text-gray-100 text-sm font-medium focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-200"
             >
               <option value="all">All Time</option>
               <option value="month">This Month</option>
               <option value="week">This Week</option>
-              <option value="today">Today</option>
             </select>
-          </div>
-
-          <!-- Quick Capture Stats -->
-          <div class="grid md:grid-cols-3 gap-4 mt-6">
-            <div class="bg-gray-700 rounded-lg p-4 text-center">
-              <h3 class="text-sm font-medium text-gray-300">Items Captured</h3>
-              <p class="text-2xl font-bold text-purple-400">
-                {{ captureStats.totalItems }}
-              </p>
-              <p class="text-xs text-gray-400">
-                {{ captureStats.uniqueMonsters }} unique monsters
-              </p>
-            </div>
-            <div class="bg-gray-700 rounded-lg p-4 text-center">
-              <h3 class="text-sm font-medium text-gray-300">Most Captured</h3>
-              <p class="text-lg font-bold text-green-400">
-                {{ captureStats.mostCaptured?.name || "N/A" }}
-              </p>
-              <p class="text-xs text-gray-400">
-                {{ captureStats.mostCaptured?.count || 0 }} times
-              </p>
-            </div>
-            <div class="bg-gray-700 rounded-lg p-4 text-center">
-              <h3 class="text-sm font-medium text-gray-300">Avg per Day</h3>
-              <p class="text-2xl font-bold text-blue-400">
-                {{ captureStats.avgPerDay }}
-              </p>
-            </div>
+            <select
+              v-model="analyticsSortBy"
+              class="px-4 py-2.5 bg-gray-800/80 border border-gray-600/50 rounded-xl text-gray-100 text-sm font-medium focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-200"
+            >
+              <option value="quantity">Most Sold (Quantity)</option>
+              <option value="revenue">Highest Revenue</option>
+              <option value="avgPrice">Highest Avg Price</option>
+              <option value="frequency">Most Frequent</option>
+            </select>
           </div>
         </div>
 
-        <!-- Capture Ranking -->
-        <div class="divide-y divide-gray-700 max-h-96 overflow-y-auto">
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Unique Monsters -->
           <div
-            v-for="(monster, index) in captureRanking"
-            :key="monster.name"
-            class="p-4 hover:bg-gray-750 transition-colors"
+            class="group relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-blue-500/10 to-cyan-600/10 border border-blue-500/30 hover:border-blue-500/50 transition-all duration-300"
           >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <!-- Ranking Badge -->
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            ></div>
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-2">
                 <div
-                  :class="[
-                    'w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm',
-                    index === 0
-                      ? 'bg-purple-500 text-white'
-                      : index === 1
-                      ? 'bg-gray-400 text-gray-900'
-                      : index === 2
-                      ? 'bg-amber-600 text-amber-100'
-                      : 'bg-gray-600 text-gray-200',
-                  ]"
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
                 >
-                  {{ index + 1 }}
-                </div>
-
-                <!-- Monster Info -->
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center"
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <img
-                      v-if="monster.image_url"
-                      :src="monster.image_url"
-                      :alt="monster.name"
-                      class="w-full h-full object-cover"
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                     />
-                    <svg
-                      v-else
-                      class="w-6 h-6 text-purple-200"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-medium text-gray-100">
-                      {{ monster.name }}
-                    </h4>
-                    <p class="text-sm text-gray-400">
-                      First captured {{ formatDate(monster.firstCapture) }} •
-                      Last: {{ formatDate(monster.lastCapture) }}
-                    </p>
-                  </div>
+                  </svg>
                 </div>
+                <h3 class="text-sm font-medium text-blue-200/80">
+                  Unique Monsters
+                </h3>
               </div>
-
-              <!-- Stats -->
-              <div class="flex items-center gap-6 text-right">
-                <div>
-                  <p class="text-sm text-gray-300">Captured</p>
-                  <p class="font-bold text-purple-400">{{ monster.count }}</p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-300">% of Total</p>
-                  <p class="font-bold text-blue-400">
-                    {{
-                      Math.round(
-                        (monster.count / captureStats.totalItems) * 100
-                      )
-                    }}%
-                  </p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-300">Days Active</p>
-                  <p class="text-sm text-gray-400">
-                    {{ monster.daysActive }}
-                  </p>
-                </div>
-              </div>
+              <p class="text-3xl font-bold text-blue-300">
+                {{ analyticsData.uniqueMonsters }}
+              </p>
+              <p class="text-sm text-blue-200/60 mt-1">Types sold</p>
             </div>
+          </div>
 
-            <!-- Progress Bar -->
-            <div class="mt-3">
-              <div class="w-full bg-gray-700 rounded-full h-2">
+          <!-- Best Seller -->
+          <div
+            class="group relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-green-500/10 to-emerald-600/10 border border-green-500/30 hover:border-green-500/50 transition-all duration-300"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            ></div>
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-2">
                 <div
-                  class="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                  :style="{
-                    width: `${Math.round(
-                      (monster.count / (captureRanking[0]?.count || 1)) * 100
-                    )}%`,
-                  }"
-                ></div>
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    />
+                  </svg>
+                </div>
+                <h3 class="text-sm font-medium text-green-200/80">Best Seller</h3>
               </div>
+              <p class="text-xl font-bold text-green-300 truncate">
+                {{ analyticsData.bestSeller?.name || "N/A" }}
+              </p>
+              <p class="text-sm text-green-200/60 mt-1">
+                {{ analyticsData.bestSeller?.quantity || 0 }} sold
+              </p>
+            </div>
+          </div>
+
+          <!-- Highest Revenue -->
+          <div
+            class="group relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-yellow-500/10 to-amber-600/10 border border-yellow-500/30 hover:border-yellow-500/50 transition-all duration-300"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-amber-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            ></div>
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-2">
+                <div
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-lg shadow-yellow-500/20"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 class="text-sm font-medium text-yellow-200/80">
+                  Top Revenue
+                </h3>
+              </div>
+              <p class="text-xl font-bold text-yellow-300 truncate">
+                {{ analyticsData.highestRevenue?.name || "N/A" }}
+              </p>
+              <p class="text-sm text-yellow-200/60 mt-1">
+                {{ formatKamas(analyticsData.highestRevenue?.revenue || 0) }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Average Price -->
+          <div
+            class="group relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-purple-500/10 to-pink-600/10 border border-purple-500/30 hover:border-purple-500/50 transition-all duration-300"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            ></div>
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-2">
+                <div
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/20"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+                    />
+                  </svg>
+                </div>
+                <h3 class="text-sm font-medium text-purple-200/80">Avg Price</h3>
+              </div>
+              <p class="text-3xl font-bold text-purple-300">
+                {{ formatKamasShort(analyticsData.avgSalePrice) }}
+              </p>
+              <p class="text-sm text-purple-200/60 mt-1">Per sale</p>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div v-if="analyticsSubTab === 'price-trends'" class="space-y-6">
-      <div class="bg-gray-800 border border-gray-700 rounded-lg">
-        <div class="p-6 border-b border-gray-700">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-xl font-semibold text-gray-100">Price Trends</h3>
-              <p class="text-sm text-gray-400 mt-1">
-                Track how prices change over time for each monster
-              </p>
-            </div>
-            <div class="flex gap-3">
-              <select
-                v-model="trendTimeframe"
-                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">All Time</option>
-                <option value="month">Last Month</option>
-                <option value="week">Last Week</option>
-              </select>
-              <select
-                v-model="selectedTrendMonster"
-                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">All Monsters</option>
-                <option
-                  v-for="monster in monstersWithPriceData"
-                  :key="monster"
-                  :value="monster"
-                >
-                  {{ monster }}
-                </option>
-              </select>
-            </div>
-          </div>
 
-          <!-- Price Trend Summary Stats -->
-          <div class="grid md:grid-cols-4 gap-4 mt-6" v-if="priceTrendStats">
-            <div class="bg-gray-700 rounded-lg p-4 text-center">
-              <h3 class="text-sm font-medium text-gray-300">
-                Monsters Tracked
-              </h3>
-              <p class="text-2xl font-bold text-blue-400">
-                {{ priceTrendStats.monstersCount }}
-              </p>
-            </div>
-            <div class="bg-gray-700 rounded-lg p-4 text-center">
-              <h3 class="text-sm font-medium text-gray-300">
-                Avg Price Change
-              </h3>
-              <p
-                :class="[
-                  'text-2xl font-bold',
-                  priceTrendStats.avgPriceChange > 0
-                    ? 'text-green-400'
-                    : priceTrendStats.avgPriceChange < 0
-                    ? 'text-red-400'
-                    : 'text-gray-400',
-                ]"
-              >
-                {{ priceTrendStats.avgPriceChange > 0 ? "+" : ""
-                }}{{ Math.round(priceTrendStats.avgPriceChange) }}%
-              </p>
-            </div>
-            <div class="bg-gray-700 rounded-lg p-4 text-center">
-              <h3 class="text-sm font-medium text-gray-300">Biggest Gainer</h3>
-              <p class="text-lg font-bold text-green-400">
-                {{ priceTrendStats.biggestGainer?.name || "N/A" }}
-              </p>
-              <p class="text-xs text-gray-400">
-                +{{ Math.round(priceTrendStats.biggestGainer?.change || 0) }}%
-              </p>
-            </div>
-            <div class="bg-gray-700 rounded-lg p-4 text-center">
-              <h3 class="text-sm font-medium text-gray-300">Biggest Loser</h3>
-              <p class="text-lg font-bold text-red-400">
-                {{ priceTrendStats.biggestLoser?.name || "N/A" }}
-              </p>
-              <p class="text-xs text-gray-400">
-                {{ Math.round(priceTrendStats.biggestLoser?.change || 0) }}%
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Price Trends List -->
-        <div v-if="filteredPriceTrends.length === 0" class="p-6 text-center">
-          <div class="text-gray-400">
-            <svg
-              class="w-16 h-16 mx-auto mb-4 text-gray-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              ></path>
-            </svg>
-            <p class="text-lg font-medium">No price trend data available</p>
-            <p class="text-sm">
-              You need at least 2 sales of the same monster to see price trends!
-            </p>
-          </div>
-        </div>
-
-        <div v-else class="divide-y divide-gray-700 max-h-96 overflow-y-auto">
-          <div
-            v-for="trend in filteredPriceTrends"
-            :key="trend.name"
-            class="p-4 hover:bg-gray-750 transition-colors"
+    <!-- Tab Navigation -->
+    <div
+      class="relative overflow-hidden rounded-xl bg-gray-800/60 border border-gray-700/50 p-1.5"
+    >
+      <div class="flex gap-1">
+        <button
+          @click="analyticsSubTab = 'sales-analytics'"
+          :class="[
+            'flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2',
+            analyticsSubTab === 'sales-analytics'
+              ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50',
+          ]"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          Sales Performance
+        </button>
+        <button
+          @click="analyticsSubTab = 'capture-patterns'"
+          :class="[
+            'flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2',
+            analyticsSubTab === 'capture-patterns'
+              ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50',
+          ]"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          Capture Patterns
+        </button>
+        <button
+          @click="analyticsSubTab = 'price-trends'"
+          :class="[
+            'flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2',
+            analyticsSubTab === 'price-trends'
+              ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50',
+          ]"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            />
+          </svg>
+          Price Trends
+        </button>
+        <button
+          @click="analyticsSubTab = 'pricing-inconsistencies'"
+          :class="[
+            'flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 relative',
+            analyticsSubTab === 'pricing-inconsistencies'
+              ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50',
+          ]"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          Inconsistencies
+          <span
+            v-if="pricingInconsistencies.length > 0"
+            class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse"
           >
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-4">
-                <!-- Monster Info -->
-                <div class="flex items-center gap-3">
+            {{ pricingInconsistencies.length }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sales Performance Tab -->
+    <Transition name="fade" mode="out-in">
+      <div v-if="analyticsSubTab === 'sales-analytics'" key="sales" class="space-y-6">
+        <div
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50"
+        >
+          <div class="relative z-10 p-6 border-b border-gray-700/50">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-100">Monster Sales Ranking</h3>
+                <p class="text-sm text-gray-400">
+                  {{ filteredAnalyticsData.length }} monsters • Top performers
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-if="filteredAnalyticsData.length === 0" class="p-10 text-center">
+            <div class="max-w-sm mx-auto">
+              <div
+                class="w-20 h-20 mx-auto bg-gray-700/50 rounded-2xl flex items-center justify-center mb-4"
+              >
+                <svg
+                  class="w-10 h-10 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </div>
+              <p class="text-lg font-medium text-gray-300 mb-2">No sales data available</p>
+              <p class="text-gray-500">Start selling monsters to see analytics here!</p>
+            </div>
+          </div>
+
+          <!-- Rankings List -->
+          <div
+            v-else
+            class="divide-y divide-gray-700/50 max-h-[500px] overflow-y-auto custom-scrollbar"
+          >
+            <div
+              v-for="(monster, index) in filteredAnalyticsData"
+              :key="monster.name"
+              class="group p-4 hover:bg-gray-700/30 transition-all duration-200"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <!-- Ranking Badge -->
                   <div
-                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center"
+                    :class="[
+                      'w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-lg transition-transform duration-200 group-hover:scale-110',
+                      index === 0
+                        ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-yellow-900 shadow-yellow-500/30'
+                        : index === 1
+                          ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700 shadow-gray-400/30'
+                          : index === 2
+                            ? 'bg-gradient-to-br from-amber-600 to-orange-700 text-amber-100 shadow-amber-600/30'
+                            : 'bg-gray-700/80 text-gray-300 border border-gray-600/50',
+                    ]"
                   >
-                    <img
-                      v-if="trend.image_url"
-                      :src="trend.image_url"
-                      :alt="trend.name"
-                      class="w-full h-full object-cover"
-                    />
-                    <svg
-                      v-else
-                      class="w-6 h-6 text-yellow-200"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
+                    <span v-if="index === 0">👑</span>
+                    <span v-else-if="index === 1">🥈</span>
+                    <span v-else-if="index === 2">🥉</span>
+                    <span v-else>{{ index + 1 }}</span>
                   </div>
-                  <div>
-                    <h4 class="font-medium text-gray-100">
-                      {{ trend.name }}
-                    </h4>
+
+                  <!-- Monster Info -->
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-14 h-14 rounded-xl overflow-hidden bg-gray-700/50 border border-gray-600/50 flex items-center justify-center"
+                    >
+                      <img
+                        v-if="monster.image_url"
+                        :src="monster.image_url"
+                        :alt="monster.name"
+                        class="w-full h-full object-cover"
+                      />
+                      <svg
+                        v-else
+                        class="w-7 h-7 text-yellow-300"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-gray-100 group-hover:text-white transition-colors">
+                        {{ monster.name }}
+                      </h4>
+                      <p class="text-sm text-gray-500">
+                        {{ monster.salesCount }} sale{{ monster.salesCount > 1 ? "s" : "" }}
+                        • Last {{ formatDateShort(monster.lastSold) }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="flex items-center gap-6">
+                  <div class="text-center">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Quantity</p>
+                    <p class="font-bold text-blue-400 text-lg">{{ monster.quantity }}</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Revenue</p>
+                    <p class="font-bold text-green-400 text-lg">
+                      {{ formatKamasShort(monster.revenue) }}
+                    </p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Avg Price</p>
+                    <p class="font-bold text-yellow-400 text-lg">
+                      {{ formatKamasShort(monster.avgPrice) }}
+                    </p>
+                  </div>
+                  <div class="text-center min-w-24">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Range</p>
                     <p class="text-sm text-gray-400">
-                      {{ trend.salesCount }} sales tracked
+                      {{ formatKamasShort(monster.minPrice) }} -
+                      {{ formatKamasShort(monster.maxPrice) }}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <!-- Price Stats -->
-              <div class="flex items-center gap-6 text-right">
-                <div>
-                  <p class="text-sm text-gray-300">First Sale</p>
-                  <p class="font-bold text-blue-400">
-                    {{ formatKamas(trend.firstPrice) }}
-                  </p>
-                  <p class="text-xs text-gray-400">
-                    {{ formatDate(trend.firstDate) }}
-                  </p>
+              <!-- Progress Bar -->
+              <div class="mt-4">
+                <div class="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+                  <span>Performance</span>
+                  <span>
+                    {{
+                      Math.round(
+                        (monster.quantity / (filteredAnalyticsData[0]?.quantity || 1)) * 100
+                      )
+                    }}% of top seller
+                  </span>
                 </div>
-                <div>
-                  <p class="text-sm text-gray-300">Latest Sale</p>
-                  <p class="font-bold text-yellow-400">
-                    {{ formatKamas(trend.latestPrice) }}
-                  </p>
-                  <p class="text-xs text-gray-400">
-                    {{ formatDate(trend.latestDate) }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-300">Change</p>
-                  <p
+                <div class="w-full bg-gray-700/50 rounded-full h-2.5 overflow-hidden">
+                  <div
+                    class="h-full rounded-full transition-all duration-500 ease-out"
                     :class="[
-                      'font-bold text-lg',
-                      trend.priceChange > 0
-                        ? 'text-green-400'
-                        : trend.priceChange < 0
-                        ? 'text-red-400'
-                        : 'text-gray-400',
+                      index === 0
+                        ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
+                        : index === 1
+                          ? 'bg-gradient-to-r from-gray-300 to-gray-400'
+                          : index === 2
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-600'
+                            : 'bg-gradient-to-r from-blue-500 to-green-500',
                     ]"
-                  >
-                    {{ trend.priceChange > 0 ? "+" : ""
-                    }}{{ Math.round(trend.priceChange) }}%
-                  </p>
-                  <p
-                    :class="[
-                      'text-xs',
-                      trend.priceChange > 0
-                        ? 'text-green-300'
-                        : trend.priceChange < 0
-                        ? 'text-red-300'
-                        : 'text-gray-400',
-                    ]"
-                  >
-                    {{ trend.priceChange > 0 ? "+" : ""
-                    }}{{ formatKamas(trend.latestPrice - trend.firstPrice) }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-300">Avg Price</p>
-                  <p class="font-bold text-purple-400">
-                    {{ formatKamas(trend.avgPrice) }}
-                  </p>
-                  <p class="text-xs text-gray-400">
-                    Range: {{ formatKamas(trend.minPrice) }} -
-                    {{ formatKamas(trend.maxPrice) }}
-                  </p>
+                    :style="{
+                      width: `${Math.round(
+                        (monster.quantity / (filteredAnalyticsData[0]?.quantity || 1)) * 100
+                      )}%`,
+                    }"
+                  ></div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
-            <!-- Mini Price Chart (Visual Representation) -->
-            <div class="mt-4">
-              <div
-                class="flex items-center justify-between text-xs text-gray-400 mb-2"
+    <!-- Capture Patterns Tab -->
+    <Transition name="fade" mode="out-in">
+      <div v-if="analyticsSubTab === 'capture-patterns'" key="capture" class="space-y-6">
+        <div
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900/20 via-gray-800/80 to-indigo-900/20 border border-purple-500/30"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-indigo-500/5"
+          ></div>
+
+          <div class="relative z-10 p-6 border-b border-purple-500/20">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20"
+                >
+                  <svg
+                    class="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-purple-200">Capture Patterns</h3>
+                  <p class="text-sm text-purple-200/60">
+                    Based on items you've added for sale
+                  </p>
+                </div>
+              </div>
+              <select
+                v-model="captureTimeframe"
+                class="px-4 py-2 bg-gray-800/80 border border-purple-500/30 rounded-xl text-purple-100 text-sm font-medium focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400/50 transition-all duration-200"
               >
-                <span>Price History</span>
-                <span>{{ trend.salesCount }} data points</span>
+                <option value="all">All Time</option>
+                <option value="month">This Month</option>
+                <option value="week">This Week</option>
+                <option value="today">Today</option>
+              </select>
+            </div>
+
+            <!-- Capture Stats -->
+            <div class="grid md:grid-cols-3 gap-4 mt-6">
+              <div
+                class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 text-center"
+              >
+                <h3 class="text-sm font-medium text-purple-300/80">Items Captured</h3>
+                <p class="text-3xl font-bold text-purple-300">
+                  {{ captureStats.totalItems }}
+                </p>
+                <p class="text-xs text-purple-200/60">
+                  {{ captureStats.uniqueMonsters }} unique monsters
+                </p>
               </div>
               <div
-                class="relative h-12 bg-gray-700 rounded-lg p-2 flex items-end justify-between"
+                class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 text-center"
               >
-                <!-- Simple bar chart showing price progression -->
-                <div
-                  v-for="(sale, index) in trend.priceHistory.slice(-10)"
-                  :key="index"
-                  class="flex-1 mx-0.5 rounded-t transition-all duration-200 hover:opacity-80 relative group"
-                  :style="{
-                    height: `${Math.max(
-                      8,
-                      (sale.price / trend.maxPrice) * 100
-                    )}%`,
-                    backgroundColor: getBarColor(
-                      sale.price,
-                      trend.firstPrice,
-                      trend.latestPrice
-                    ),
-                  }"
-                  :title="`${formatKamas(sale.price)} on ${formatDate(
-                    sale.date
-                  )}`"
+                <h3 class="text-sm font-medium text-purple-300/80">Most Captured</h3>
+                <p class="text-xl font-bold text-green-400 truncate">
+                  {{ captureStats.mostCaptured?.name || "N/A" }}
+                </p>
+                <p class="text-xs text-purple-200/60">
+                  {{ captureStats.mostCaptured?.count || 0 }} times
+                </p>
+              </div>
+              <div
+                class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 text-center"
+              >
+                <h3 class="text-sm font-medium text-purple-300/80">Avg per Day</h3>
+                <p class="text-3xl font-bold text-blue-400">
+                  {{ captureStats.avgPerDay }}
+                </p>
+                <p class="text-xs text-purple-200/60">captures daily</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Capture Ranking -->
+          <div
+            v-if="captureRanking.length === 0"
+            class="relative z-10 p-10 text-center"
+          >
+            <div class="max-w-sm mx-auto">
+              <div
+                class="w-20 h-20 mx-auto bg-gray-700/50 rounded-2xl flex items-center justify-center mb-4"
+              >
+                <svg
+                  class="w-10 h-10 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <!-- Tooltip -->
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                </svg>
+              </div>
+              <p class="text-lg font-medium text-gray-300 mb-2">No capture data yet</p>
+              <p class="text-gray-500">Add items for sale to track your captures!</p>
+            </div>
+          </div>
+
+          <div
+            v-else
+            class="relative z-10 divide-y divide-purple-500/20 max-h-[400px] overflow-y-auto custom-scrollbar"
+          >
+            <div
+              v-for="(monster, index) in captureRanking"
+              :key="monster.name"
+              class="group p-4 hover:bg-purple-900/20 transition-all duration-200"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <!-- Ranking Badge -->
                   <div
-                    class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10"
+                    :class="[
+                      'w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-lg transition-transform duration-200 group-hover:scale-110',
+                      index === 0
+                        ? 'bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-purple-500/30'
+                        : index === 1
+                          ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700 shadow-gray-400/30'
+                          : index === 2
+                            ? 'bg-gradient-to-br from-amber-600 to-orange-700 text-amber-100 shadow-amber-600/30'
+                            : 'bg-gray-700/80 text-gray-300 border border-gray-600/50',
+                    ]"
                   >
-                    {{ formatKamas(sale.price) }}<br />
-                    <span class="text-gray-300">{{
-                      formatDate(sale.date)
-                    }}</span>
+                    {{ index + 1 }}
+                  </div>
+
+                  <!-- Monster Info -->
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-14 h-14 rounded-xl overflow-hidden bg-gray-700/50 border border-purple-500/30 flex items-center justify-center"
+                    >
+                      <img
+                        v-if="monster.image_url"
+                        :src="monster.image_url"
+                        :alt="monster.name"
+                        class="w-full h-full object-cover"
+                      />
+                      <svg
+                        v-else
+                        class="w-7 h-7 text-purple-300"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-purple-100 group-hover:text-white transition-colors">
+                        {{ monster.name }}
+                      </h4>
+                      <p class="text-sm text-purple-200/60">
+                        First {{ formatDateShort(monster.firstCapture) }} • Last
+                        {{ formatDateShort(monster.lastCapture) }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="flex items-center gap-6">
+                  <div class="text-center">
+                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">Captured</p>
+                    <p class="font-bold text-purple-300 text-lg">{{ monster.count }}</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">% Total</p>
+                    <p class="font-bold text-blue-400 text-lg">
+                      {{ Math.round((monster.count / captureStats.totalItems) * 100) }}%
+                    </p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">Days Active</p>
+                    <p class="text-gray-400">{{ monster.daysActive }}</p>
                   </div>
                 </div>
               </div>
 
-              <!-- Trend Arrow -->
-              <div class="flex items-center justify-center mt-2">
+              <!-- Progress Bar -->
+              <div class="mt-4">
+                <div class="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                  <div
+                    class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-500 ease-out"
+                    :style="{
+                      width: `${Math.round(
+                        (monster.count / (captureRanking[0]?.count || 1)) * 100
+                      )}%`,
+                    }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Price Trends Tab -->
+    <Transition name="fade" mode="out-in">
+      <div v-if="analyticsSubTab === 'price-trends'" key="trends" class="space-y-6">
+        <div
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-900/20 via-gray-800/80 to-cyan-900/20 border border-blue-500/30"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-cyan-500/5"
+          ></div>
+
+          <div class="relative z-10 p-6 border-b border-blue-500/20">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+              <div class="flex items-center gap-4">
                 <div
-                  :class="[
-                    'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium',
-                    trend.priceChange > 5
-                      ? 'bg-green-900 text-green-300'
-                      : trend.priceChange < -5
-                      ? 'bg-red-900 text-red-300'
-                      : 'bg-gray-700 text-gray-300',
-                  ]"
+                  class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
                 >
                   <svg
-                    v-if="trend.priceChange > 5"
-                    class="w-3 h-3"
+                    class="w-6 h-6 text-white"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -710,69 +738,344 @@
                       stroke-linejoin="round"
                       stroke-width="2"
                       d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                    ></path>
+                    />
                   </svg>
-                  <svg
-                    v-else-if="trend.priceChange < -5"
-                    class="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-blue-200">Price Trends</h3>
+                  <p class="text-sm text-blue-200/60">
+                    Track how prices change over time
+                  </p>
+                </div>
+              </div>
+              <div class="flex gap-3">
+                <select
+                  v-model="trendTimeframe"
+                  class="px-4 py-2 bg-gray-800/80 border border-blue-500/30 rounded-xl text-blue-100 text-sm font-medium focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-200"
+                >
+                  <option value="all">All Time</option>
+                  <option value="month">Last Month</option>
+                  <option value="week">Last Week</option>
+                </select>
+                <select
+                  v-model="selectedTrendMonster"
+                  class="px-4 py-2 bg-gray-800/80 border border-blue-500/30 rounded-xl text-blue-100 text-sm font-medium focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-200"
+                >
+                  <option value="">All Monsters</option>
+                  <option
+                    v-for="monster in monstersWithPriceData"
+                    :key="monster"
+                    :value="monster"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
-                    ></path>
-                  </svg>
-                  <svg
-                    v-else
-                    class="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                    {{ monster }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Price Trend Stats -->
+            <div v-if="priceTrendStats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+              <div
+                class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-center"
+              >
+                <h3 class="text-sm font-medium text-blue-300/80">Monsters Tracked</h3>
+                <p class="text-3xl font-bold text-blue-300">
+                  {{ priceTrendStats.monstersCount }}
+                </p>
+              </div>
+              <div
+                class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-center"
+              >
+                <h3 class="text-sm font-medium text-blue-300/80">Avg Price Change</h3>
+                <p
+                  :class="[
+                    'text-3xl font-bold',
+                    priceTrendStats.avgPriceChange > 0
+                      ? 'text-green-400'
+                      : priceTrendStats.avgPriceChange < 0
+                        ? 'text-red-400'
+                        : 'text-gray-400',
+                  ]"
+                >
+                  {{ priceTrendStats.avgPriceChange > 0 ? "+" : ""
+                  }}{{ Math.round(priceTrendStats.avgPriceChange) }}%
+                </p>
+              </div>
+              <div
+                class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center"
+              >
+                <h3 class="text-sm font-medium text-green-300/80">Biggest Gainer</h3>
+                <p class="text-xl font-bold text-green-400 truncate">
+                  {{ priceTrendStats.biggestGainer?.name || "N/A" }}
+                </p>
+                <p class="text-xs text-green-200/60">
+                  +{{ Math.round(priceTrendStats.biggestGainer?.change || 0) }}%
+                </p>
+              </div>
+              <div
+                class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-center"
+              >
+                <h3 class="text-sm font-medium text-red-300/80">Biggest Loser</h3>
+                <p class="text-xl font-bold text-red-400 truncate">
+                  {{ priceTrendStats.biggestLoser?.name || "N/A" }}
+                </p>
+                <p class="text-xs text-red-200/60">
+                  {{ Math.round(priceTrendStats.biggestLoser?.change || 0) }}%
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            v-if="filteredPriceTrends.length === 0"
+            class="relative z-10 p-10 text-center"
+          >
+            <div class="max-w-sm mx-auto">
+              <div
+                class="w-20 h-20 mx-auto bg-gray-700/50 rounded-2xl flex items-center justify-center mb-4"
+              >
+                <svg
+                  class="w-10 h-10 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
+              </div>
+              <p class="text-lg font-medium text-gray-300 mb-2">No price trend data</p>
+              <p class="text-gray-500">
+                Sell the same monster at least twice to see price trends!
+              </p>
+            </div>
+          </div>
+
+          <!-- Price Trends List -->
+          <div
+            v-else
+            class="relative z-10 divide-y divide-blue-500/20 max-h-[500px] overflow-y-auto custom-scrollbar"
+          >
+            <div
+              v-for="trend in filteredPriceTrends"
+              :key="trend.name"
+              class="p-4 hover:bg-blue-900/20 transition-all duration-200"
+            >
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-14 h-14 rounded-xl overflow-hidden bg-gray-700/50 border border-blue-500/30 flex items-center justify-center"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M20 12H4"
-                    ></path>
-                  </svg>
-                  {{
-                    trend.priceChange > 5
-                      ? "Rising"
-                      : trend.priceChange < -5
-                      ? "Falling"
-                      : "Stable"
-                  }}
+                    <img
+                      v-if="trend.image_url"
+                      :src="trend.image_url"
+                      :alt="trend.name"
+                      class="w-full h-full object-cover"
+                    />
+                    <svg
+                      v-else
+                      class="w-7 h-7 text-blue-300"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-blue-100">{{ trend.name }}</h4>
+                    <p class="text-sm text-blue-200/60">
+                      {{ trend.salesCount }} sales tracked
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="flex items-center gap-6">
+                  <div class="text-center">
+                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">First</p>
+                    <p class="font-bold text-blue-400">{{ formatKamasShort(trend.firstPrice) }}</p>
+                    <p class="text-xs text-gray-500">{{ formatDateShort(trend.firstDate) }}</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">Latest</p>
+                    <p class="font-bold text-yellow-400">
+                      {{ formatKamasShort(trend.latestPrice) }}
+                    </p>
+                    <p class="text-xs text-gray-500">{{ formatDateShort(trend.latestDate) }}</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">Change</p>
+                    <p
+                      :class="[
+                        'font-bold text-xl',
+                        trend.priceChange > 0
+                          ? 'text-green-400'
+                          : trend.priceChange < 0
+                            ? 'text-red-400'
+                            : 'text-gray-400',
+                      ]"
+                    >
+                      {{ trend.priceChange > 0 ? "+" : "" }}{{ Math.round(trend.priceChange) }}%
+                    </p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">Avg</p>
+                    <p class="font-bold text-purple-400">{{ formatKamasShort(trend.avgPrice) }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mini Chart -->
+              <div class="mt-4">
+                <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                  <span>Price History</span>
+                  <span>{{ trend.salesCount }} data points</span>
+                </div>
+                <div
+                  class="relative h-14 bg-gray-700/50 rounded-xl p-2 flex items-end justify-between gap-0.5"
+                >
+                  <div
+                    v-for="(sale, index) in trend.priceHistory.slice(-12)"
+                    :key="index"
+                    class="flex-1 rounded-t transition-all duration-200 hover:opacity-80 relative group cursor-pointer"
+                    :style="{
+                      height: `${Math.max(12, (sale.price / trend.maxPrice) * 100)}%`,
+                      backgroundColor: getBarColor(sale.price, trend.firstPrice, trend.latestPrice),
+                    }"
+                  >
+                    <!-- Tooltip -->
+                    <div
+                      class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 border border-gray-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20 shadow-xl"
+                    >
+                      <p class="font-bold text-yellow-300">{{ formatKamas(sale.price) }}</p>
+                      <p class="text-gray-400">{{ formatDateShort(sale.date) }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Trend Indicator -->
+                <div class="flex items-center justify-center mt-3">
+                  <div
+                    :class="[
+                      'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border',
+                      trend.priceChange > 5
+                        ? 'bg-green-500/10 border-green-500/30 text-green-300'
+                        : trend.priceChange < -5
+                          ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                          : 'bg-gray-700/50 border-gray-600/50 text-gray-300',
+                    ]"
+                  >
+                    <svg
+                      v-if="trend.priceChange > 5"
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                      />
+                    </svg>
+                    <svg
+                      v-else-if="trend.priceChange < -5"
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
+                      />
+                    </svg>
+                    <svg
+                      v-else
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M20 12H4"
+                      />
+                    </svg>
+                    {{ trend.priceChange > 5 ? "Rising" : trend.priceChange < -5 ? "Falling" : "Stable" }}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div v-if="analyticsSubTab === 'pricing-inconsistencies'" class="space-y-6">
-      <div class="bg-gray-800 border border-gray-700 rounded-lg">
-        <div class="p-6 border-b border-gray-700">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-xl font-semibold text-gray-100">
-                Price Inconsistencies
-              </h3>
-              <p class="text-sm text-gray-400 mt-1">
-                Monsters with different prices in your current listings
-              </p>
-            </div>
-            <div class="flex items-center gap-3">
+    </Transition>
+
+    <!-- Pricing Inconsistencies Tab -->
+    <Transition name="fade" mode="out-in">
+      <div v-if="analyticsSubTab === 'pricing-inconsistencies'" key="inconsistencies" class="space-y-6">
+        <div
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-900/20 via-gray-800/80 to-red-900/20 border border-orange-500/30"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5"
+          ></div>
+
+          <div class="relative z-10 p-6 border-b border-orange-500/20">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+              <div class="flex items-center gap-4">
+                <div class="relative">
+                  <div
+                    class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/20"
+                  >
+                    <svg
+                      class="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    v-if="pricingInconsistencies.length > 0"
+                    class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-gray-800 animate-bounce"
+                  ></div>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-orange-200">Price Inconsistencies</h3>
+                  <p class="text-sm text-orange-200/60">
+                    Monsters with different prices in your current listings
+                  </p>
+                </div>
+              </div>
+
               <span
                 :class="[
-                  'px-3 py-1.5 rounded-full text-sm font-bold border-2',
+                  'px-4 py-2 rounded-full text-sm font-bold transition-all duration-300',
                   pricingInconsistencies.length > 0
-                    ? 'bg-orange-600 text-white border-orange-400'
-                    : 'bg-gray-700 text-gray-300 border-gray-600',
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25'
+                    : 'bg-gray-700/50 text-gray-400 border border-gray-600/50',
                 ]"
               >
                 {{ pricingInconsistencies.length }} inconsistenc{{
@@ -781,164 +1084,187 @@
               </span>
             </div>
           </div>
-        </div>
 
-        <div v-if="pricingInconsistencies.length === 0" class="p-8 text-center">
-          <div class="text-center max-w-md mx-auto">
-            <div class="mb-4">
-              <div
-                class="w-20 h-20 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg"
-              >
-                <svg
-                  class="w-10 h-10 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-            <p class="text-xl font-bold text-green-300 mb-2">
-              Perfect pricing! ✨
-            </p>
-            <p class="text-green-200/80">
-              All your monsters have consistent pricing across listings.
-            </p>
-          </div>
-        </div>
-
-        <div v-else class="divide-y divide-gray-700 max-h-96 overflow-y-auto">
+          <!-- Perfect State -->
           <div
-            v-for="inconsistency in pricingInconsistencies"
-            :key="inconsistency.name"
-            class="p-4 hover:bg-gray-750 transition-colors"
+            v-if="pricingInconsistencies.length === 0"
+            class="relative z-10 p-10 text-center"
           >
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-4">
-                <!-- Monster Info -->
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center relative"
+            <div class="max-w-sm mx-auto">
+              <div class="relative mb-4">
+                <div
+                  class="w-20 h-20 mx-auto bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl shadow-green-500/20"
+                >
+                  <svg
+                    class="w-10 h-10 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <img
-                      v-if="inconsistency.image_url"
-                      :src="inconsistency.image_url"
-                      :alt="inconsistency.name"
-                      class="w-full h-full object-cover"
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
-                    <svg
-                      v-else
-                      class="w-6 h-6 text-orange-200"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
-                    <!-- Warning badge -->
+                  </svg>
+                </div>
+                <div class="absolute -top-1 -right-4 text-2xl animate-bounce">🎉</div>
+                <div class="absolute -bottom-1 -left-4 text-xl animate-bounce delay-150">⭐</div>
+              </div>
+              <p class="text-xl font-bold text-green-300 mb-2">Perfect pricing! ✨</p>
+              <p class="text-green-200/70 text-sm">
+                All your monsters have consistent pricing across listings.
+              </p>
+            </div>
+          </div>
+
+          <!-- Inconsistencies List -->
+          <div
+            v-else
+            class="relative z-10 divide-y divide-orange-500/20 max-h-[500px] overflow-y-auto custom-scrollbar"
+          >
+            <div
+              v-for="inconsistency in pricingInconsistencies"
+              :key="inconsistency.name"
+              class="p-4 hover:bg-orange-900/20 transition-all duration-200"
+            >
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-4">
+                  <!-- Monster Info -->
+                  <div class="relative">
                     <div
-                      class="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center"
+                      class="w-14 h-14 rounded-xl overflow-hidden bg-gray-700/50 border-2 border-orange-500/30 flex items-center justify-center"
+                    >
+                      <img
+                        v-if="inconsistency.image_url"
+                        :src="inconsistency.image_url"
+                        :alt="inconsistency.name"
+                        class="w-full h-full object-cover"
+                      />
+                      <svg
+                        v-else
+                        class="w-7 h-7 text-orange-300"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg"
                     >
                       <span class="text-white text-xs font-bold">!</span>
                     </div>
                   </div>
                   <div>
-                    <h4 class="font-medium text-gray-100">
-                      {{ inconsistency.name }}
-                    </h4>
-                    <p class="text-sm text-gray-400">
+                    <h4 class="font-semibold text-orange-100">{{ inconsistency.name }}</h4>
+                    <p class="text-sm text-orange-200/60">
                       {{ inconsistency.items.length }} items •
                       {{ inconsistency.priceGroups.length }} different prices
                     </p>
                   </div>
                 </div>
-              </div>
 
-              <!-- Price Stats -->
-              <div class="flex items-center gap-6 text-right">
-                <div>
-                  <p class="text-sm text-gray-300">Price Range</p>
-                  <p class="font-bold text-orange-400">
-                    {{ formatKamas(inconsistency.minPrice) }} -
-                    {{ formatKamas(inconsistency.maxPrice) }}
-                  </p>
-                  <p class="text-xs text-orange-300">
-                    +{{ inconsistency.priceVariation }}% variation
-                  </p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-300">Average</p>
-                  <p class="font-bold text-blue-400">
-                    {{ formatKamas(inconsistency.avgPrice) }}
-                  </p>
+                <!-- Stats -->
+                <div class="flex items-center gap-6">
+                  <div class="text-center">
+                    <p class="text-xs text-orange-300/60 uppercase tracking-wide">Range</p>
+                    <p class="font-bold text-orange-300">
+                      {{ formatKamasShort(inconsistency.minPrice) }} -
+                      {{ formatKamasShort(inconsistency.maxPrice) }}
+                    </p>
+                    <p class="text-xs text-red-400">+{{ inconsistency.priceVariation }}% var</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-orange-300/60 uppercase tracking-wide">Average</p>
+                    <p class="font-bold text-blue-400 text-lg">
+                      {{ formatKamasShort(inconsistency.avgPrice) }}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Price Groups Display -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-              <div
-                v-for="group in inconsistency.priceGroups"
-                :key="group.price"
-                class="bg-gray-700/50 border border-gray-600 rounded-lg p-3"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="font-medium text-gray-200">{{
-                    formatKamas(group.price)
-                  }}</span>
-                  <span
-                    class="text-sm text-gray-400 bg-gray-600 px-2 py-1 rounded"
-                    >{{ group.count }}x</span
-                  >
+              <!-- Price Groups -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                <div
+                  v-for="group in inconsistency.priceGroups"
+                  :key="group.price"
+                  class="bg-gray-700/50 border border-gray-600/50 rounded-xl p-3 text-center"
+                >
+                  <p class="font-medium text-gray-200">{{ formatKamasShort(group.price) }}</p>
+                  <p class="text-xs text-gray-400 mt-1">{{ group.count }}x</p>
                 </div>
               </div>
-            </div>
 
-            <!-- Quick Actions -->
-            <div class="flex gap-2 flex-wrap">
-              <button
-                @click="standardizeToLowest(inconsistency.name)"
-                class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm transition-colors"
-                title="Set all to lowest price"
-              >
-                ↓ Use Lowest ({{ formatKamas(inconsistency.minPrice) }})
-              </button>
-              <button
-                @click="standardizeToHighest(inconsistency.name)"
-                class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
-                title="Set all to highest price"
-              >
-                ↑ Use Highest ({{ formatKamas(inconsistency.maxPrice) }})
-              </button>
-              <button
-                @click="standardizeToAverage(inconsistency.name)"
-                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors"
-                title="Set all to average price"
-              >
-                ≈ Use Average ({{ formatKamas(inconsistency.avgPrice) }})
-              </button>
-              <!-- Quick select all items of this monster -->
-              <button
-                @click="selectMonsterItems(inconsistency.name)"
-                class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm transition-colors"
-                title="Select all items for manual editing"
-              >
-                📝 Select All
-              </button>
+              <!-- Quick Actions -->
+              <div class="flex gap-2 flex-wrap">
+                <button
+                  @click="standardizeToLowest(inconsistency.name)"
+                  class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-green-500/20 flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
+                  </svg>
+                  Lowest ({{ formatKamasShort(inconsistency.minPrice) }})
+                </button>
+                <button
+                  @click="standardizeToHighest(inconsistency.name)"
+                  class="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-red-500/20 flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 10l7-7m0 0l7 7m-7-7v18"
+                    />
+                  </svg>
+                  Highest ({{ formatKamasShort(inconsistency.maxPrice) }})
+                </button>
+                <button
+                  @click="standardizeToAverage(inconsistency.name)"
+                  class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-blue-500/20 flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M20 12H4"
+                    />
+                  </svg>
+                  Average ({{ formatKamasShort(inconsistency.avgPrice) }})
+                </button>
+                <button
+                  @click="selectMonsterItems(inconsistency.name)"
+                  class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 hover:border-gray-500/50 text-gray-300 hover:text-white rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Select All
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
@@ -992,9 +1318,7 @@ const pricingInconsistencies = computed(() => {
           minPrice,
           maxPrice,
           priceVariation: Math.round(priceVariation),
-          avgPrice: Math.round(
-            prices.reduce((a, b) => a + b, 0) / prices.length
-          ),
+          avgPrice: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
           image_url: items[0].image_url,
           priceGroups: groupItemsByPrice(items),
         });
@@ -1008,11 +1332,10 @@ const pricingInconsistencies = computed(() => {
 const monstersWithPriceData = computed(() => {
   const monsterCounts = {};
   props.soldItems.forEach((item) => {
-    monsterCounts[item.monsterName] =
-      (monsterCounts[item.monsterName] || 0) + 1;
+    monsterCounts[item.monsterName] = (monsterCounts[item.monsterName] || 0) + 1;
   });
   return Object.entries(monsterCounts)
-    .filter(([name, count]) => count >= 2)
+    .filter(([, count]) => count >= 2)
     .map(([name]) => name)
     .sort();
 });
@@ -1022,9 +1345,7 @@ const priceTrendStats = computed(() => {
   if (trends.length === 0) return null;
   const changes = trends.map((t) => t.priceChange).filter((c) => !isNaN(c));
   const avgChange =
-    changes.length > 0
-      ? changes.reduce((a, b) => a + b, 0) / changes.length
-      : 0;
+    changes.length > 0 ? changes.reduce((a, b) => a + b, 0) / changes.length : 0;
   const biggestGainer = trends.reduce(
     (best, current) =>
       current.priceChange > (best?.priceChange || -Infinity) ? current : best,
@@ -1056,11 +1377,7 @@ const filteredPriceTrends = computed(() => {
       filtered = filtered.filter((item) => new Date(item.dateSold) >= weekAgo);
       break;
     case "month":
-      const monthAgo = new Date(
-        now.getFullYear(),
-        now.getMonth() - 1,
-        now.getDate()
-      );
+      const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
       filtered = filtered.filter((item) => new Date(item.dateSold) >= monthAgo);
       break;
   }
@@ -1125,26 +1442,16 @@ const captureStats = computed(() => {
     const name = item.monsterName;
     monsterCounts[name] = (monsterCounts[name] || 0) + (item.quantity || 1);
   });
-  const mostCaptured = Object.entries(monsterCounts).sort(
-    ([, a], [, b]) => b - a
-  )[0];
+  const mostCaptured = Object.entries(monsterCounts).sort(([, a], [, b]) => b - a)[0];
   const dates = captures.map((item) => new Date(item.dateAdded));
   const firstDate = new Date(Math.min(...dates));
   const lastDate = new Date(Math.max(...dates));
-  const daysDiff = Math.max(
-    1,
-    Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24))
-  );
-  const totalItems = captures.reduce(
-    (sum, item) => sum + (item.quantity || 1),
-    0
-  );
+  const daysDiff = Math.max(1, Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24)));
+  const totalItems = captures.reduce((sum, item) => sum + (item.quantity || 1), 0);
   return {
     totalItems,
     uniqueMonsters: Object.keys(monsterCounts).length,
-    mostCaptured: mostCaptured
-      ? { name: mostCaptured[0], count: mostCaptured[1] }
-      : null,
+    mostCaptured: mostCaptured ? { name: mostCaptured[0], count: mostCaptured[1] } : null,
     avgPerDay: Math.round((totalItems / daysDiff) * 10) / 10,
   };
 });
@@ -1174,8 +1481,7 @@ const captureRanking = computed(() => {
   Object.values(monsterStats).forEach((monster) => {
     const first = new Date(monster.firstCapture);
     const last = new Date(monster.lastCapture);
-    monster.daysActive =
-      Math.max(1, Math.ceil((last - first) / (1000 * 60 * 60 * 24))) + 1;
+    monster.daysActive = Math.max(1, Math.ceil((last - first) / (1000 * 60 * 60 * 24))) + 1;
   });
   return Object.values(monsterStats).sort((a, b) => b.count - a.count);
 });
@@ -1219,23 +1525,15 @@ const analyticsData = computed(() => {
     monster.maxPrice = Math.max(...monster.prices);
   });
   const bestSeller = monsters.reduce(
-    (best, current) =>
-      current.quantity > (best?.quantity || 0) ? current : best,
+    (best, current) => (current.quantity > (best?.quantity || 0) ? current : best),
     null
   );
   const highestRevenue = monsters.reduce(
-    (best, current) =>
-      current.revenue > (best?.revenue || 0) ? current : best,
+    (best, current) => (current.revenue > (best?.revenue || 0) ? current : best),
     null
   );
-  const totalRevenue = monsters.reduce(
-    (sum, monster) => sum + monster.revenue,
-    0
-  );
-  const totalQuantity = monsters.reduce(
-    (sum, monster) => sum + monster.quantity,
-    0
-  );
+  const totalRevenue = monsters.reduce((sum, monster) => sum + monster.revenue, 0);
+  const totalQuantity = monsters.reduce((sum, monster) => sum + monster.quantity, 0);
   return {
     uniqueMonsters: monsters.length,
     bestSeller,
@@ -1301,11 +1599,7 @@ const getFilteredSoldItemsForAnalytics = () => {
       filtered = filtered.filter((item) => new Date(item.dateSold) >= weekAgo);
       break;
     case "month":
-      const monthAgo = new Date(
-        now.getFullYear(),
-        now.getMonth() - 1,
-        now.getDate()
-      );
+      const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
       filtered = filtered.filter((item) => new Date(item.dateSold) >= monthAgo);
       break;
     case "all":
@@ -1329,14 +1623,8 @@ const getFilteredCaptures = () => {
       filtered = filtered.filter((item) => new Date(item.dateAdded) >= weekAgo);
       break;
     case "month":
-      const monthAgo = new Date(
-        now.getFullYear(),
-        now.getMonth() - 1,
-        now.getDate()
-      );
-      filtered = filtered.filter(
-        (item) => new Date(item.dateAdded) >= monthAgo
-      );
+      const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      filtered = filtered.filter((item) => new Date(item.dateAdded) >= monthAgo);
       break;
     case "all":
     default:
@@ -1371,29 +1659,21 @@ const standardizeMonsterPrice = (monsterName, targetPrice) => {
 };
 
 const standardizeToLowest = (monsterName) => {
-  const items = props.pendingItems.filter(
-    (item) => item.monsterName === monsterName
-  );
+  const items = props.pendingItems.filter((item) => item.monsterName === monsterName);
   const lowestPrice = Math.min(...items.map((item) => item.price || 0));
   standardizeMonsterPrice(monsterName, lowestPrice);
 };
 
 const standardizeToHighest = (monsterName) => {
-  const items = props.pendingItems.filter(
-    (item) => item.monsterName === monsterName
-  );
+  const items = props.pendingItems.filter((item) => item.monsterName === monsterName);
   const highestPrice = Math.max(...items.map((item) => item.price || 0));
   standardizeMonsterPrice(monsterName, highestPrice);
 };
 
 const standardizeToAverage = (monsterName) => {
-  const items = props.pendingItems.filter(
-    (item) => item.monsterName === monsterName
-  );
+  const items = props.pendingItems.filter((item) => item.monsterName === monsterName);
   const prices = items.map((item) => item.price || 0);
-  const avgPrice = Math.round(
-    prices.reduce((a, b) => a + b, 0) / prices.length
-  );
+  const avgPrice = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
   standardizeMonsterPrice(monsterName, avgPrice);
 };
 
@@ -1405,33 +1685,32 @@ const getBarColor = (price, firstPrice, latestPrice) => {
 
 const formatKamas = (amount) => {
   if (amount === 0) return "0 ⚡";
-  return new Intl.NumberFormat("fr-FR").format(amount) + " ⚡";
+  return new Intl.NumberFormat("fr-FR").format(Math.round(amount)) + " ⚡";
 };
 
-const formatDate = (dateString) => {
+const formatKamasShort = (amount) => {
+  if (amount === 0) return "0";
+  if (amount >= 1000000) {
+    return (amount / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  if (amount >= 1000) {
+    return (amount / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  return new Intl.NumberFormat("fr-FR").format(Math.round(amount));
+};
+
+const formatDateShort = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
   const today = now.toDateString();
-  const yesterday = new Date(
-    now.getTime() - 24 * 60 * 60 * 1000
-  ).toDateString();
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString();
 
   if (date.toDateString() === today) {
-    return (
-      "Today " +
-      date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-    );
+    return "Today";
   } else if (date.toDateString() === yesterday) {
-    return (
-      "Yesterday " +
-      date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-    );
+    return "Yesterday";
   } else {
-    return (
-      date.toLocaleDateString("fr-FR") +
-      " " +
-      date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-    );
+    return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
   }
 };
 
@@ -1439,3 +1718,75 @@ const selectMonsterItems = (monsterName) => {
   emit("select-monster-items", monsterName);
 };
 </script>
+
+<style scoped>
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40%,
+  43% {
+    transform: translateY(-6px);
+  }
+  70% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1.5s infinite;
+}
+
+.delay-150 {
+  animation-delay: 150ms;
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+</style>
