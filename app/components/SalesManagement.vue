@@ -208,29 +208,66 @@
   />
 
   <!-- Teleport dropdown to body -->
-  <Teleport to="body">
-    <Transition name="dropdown">
+ <!-- Teleport dropdown to body -->
+<Teleport to="body">
+  <Transition name="dropdown">
+    <div
+      v-if="showSuggestions && filteredSuggestions.length > 0"
+      class="fixed bg-gray-800 border border-gray-600/50 rounded-xl shadow-2xl shadow-black/50 max-h-64 overflow-y-auto"
+      :style="dropdownStyle"
+    >
       <div
-        v-if="showSuggestions && filteredSuggestions.length > 0"
-        class="fixed bg-gray-800 border border-gray-600/50 rounded-xl shadow-2xl shadow-black/50 max-h-64 overflow-y-auto suggestions-popover"
-        :style="dropdownStyle"
+        v-for="(suggestion, index) in filteredSuggestions"
+        :key="suggestion.id"
+        @mousedown.prevent="selectSuggestion(suggestion)"
+        :class="[
+          'px-4 py-3 cursor-pointer flex items-center gap-3 transition-all duration-150',
+          index === selectedSuggestionIndex
+            ? 'bg-blue-600/30 border-l-2 border-blue-500'
+            : 'hover:bg-gray-700/50 border-l-2 border-transparent',
+        ]"
       >
+        <img
+          v-if="suggestion.image_url"
+          :src="suggestion.image_url"
+          :alt="suggestion.nom"
+          class="w-10 h-10 rounded-lg object-cover border border-gray-600/50"
+        />
         <div
-          v-for="(suggestion, index) in filteredSuggestions"
-          :key="suggestion.id"
-          @mousedown.prevent="selectSuggestion(suggestion)"
-          :class="[
-            'px-4 py-3 cursor-pointer flex items-center gap-3 transition-all duration-150',
-            index === selectedSuggestionIndex
-              ? 'bg-blue-600/30 border-l-2 border-blue-500'
-              : 'hover:bg-gray-700/50 border-l-2 border-transparent',
-          ]"
+          v-else
+          class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center"
         >
-          <!-- ... rest of suggestion content stays the same ... -->
+          <svg
+            class="w-5 h-5 text-gray-500"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-gray-100 truncate">
+            {{ suggestion.nom }}
+          </div>
+          <div class="text-sm text-gray-400 truncate">
+            {{ suggestion.nom_normal }} • {{ suggestion.zone }}
+          </div>
+          <div
+            v-if="getSmartPrice(suggestion)"
+            class="text-xs text-blue-400 mt-0.5"
+          >
+            💡 Suggested: {{ formatKamas(getSmartPrice(suggestion)) }}
+          </div>
         </div>
       </div>
-    </Transition>
-  </Teleport>
+    </div>
+  </Transition>
+</Teleport>
 </div>
           </div>
 
