@@ -1,65 +1,199 @@
 <template>
   <div class="space-y-6">
-    <!-- Sales Management Tab Content -->
-    <div class="space-y-6">
-      <!-- Header with Stats -->
-      <div class="bg-gray-700 border border-gray-600 rounded-lg p-4">
-        <div class="grid md:grid-cols-4 gap-4 text-center">
-          <!-- Changed from 3 to 4 columns -->
-          <div>
-            <h3 class="text-lg font-semibold text-gray-100">Items for Sale</h3>
-            <p class="text-2xl font-bold text-yellow-400">
-              {{ totalPendingQuantity }}
-            </p>
-            <p class="text-sm text-gray-400">
-              Preview: {{ formatKamas(previewTotal) }}
-            </p>
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold text-gray-100">Slow Moving</h3>
-            <p
-              class="text-2xl font-bold"
-              :class="
-                slowMovingItems.length > 0 ? 'text-amber-400' : 'text-gray-500'
-              "
+    <!-- Header Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Items for Sale -->
+      <div
+        class="group relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-yellow-500/10 to-amber-600/10 border border-yellow-500/30 hover:border-yellow-500/50 transition-all duration-300"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-amber-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        ></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-3 mb-2">
+            <div
+              class="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-lg shadow-yellow-500/20"
             >
-              {{ slowMovingItems.length }}
-            </p>
-            <p class="text-sm text-gray-400">
-              {{ slowMovingThreshold }}+ days old
-            </p>
+              <svg
+                class="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                />
+              </svg>
+            </div>
+            <h3 class="text-sm font-medium text-yellow-200/80">Items for Sale</h3>
           </div>
-          <div>
-            <h3 class="text-lg font-semibold text-gray-100">Today's Sales</h3>
-            <p class="text-2xl font-bold text-green-400">
-              {{ todaysSales.count }}
-            </p>
-            <p class="text-sm text-gray-400">
-              {{ formatKamas(todaysSales.total) }}
-            </p>
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold text-gray-100">Total Earned</h3>
-            <p class="text-2xl font-bold text-blue-400">
-              {{ allTimeSales.count }}
-            </p>
-            <p class="text-sm text-gray-400">
-              {{ formatKamas(allTimeSales.total) }}
-            </p>
-          </div>
+          <p class="text-3xl font-bold text-yellow-300">
+            {{ totalPendingQuantity }}
+          </p>
+          <p class="text-sm text-yellow-200/60 mt-1">
+            {{ formatKamas(previewTotal) }} total
+          </p>
         </div>
       </div>
 
-      <!-- Add New Item Form -->
-      <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
-        <h3 class="text-xl font-semibold text-gray-100 mb-4">
-          Add Item for Sale
-        </h3>
+      <!-- Slow Moving -->
+      <div
+        class="group relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-amber-500/10 to-orange-600/10 border border-amber-500/30 hover:border-amber-500/50 transition-all duration-300"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        ></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-3 mb-2">
+            <div
+              class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20"
+            >
+              <svg
+                class="w-5 h-5 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <h3 class="text-sm font-medium text-amber-200/80">Slow Moving</h3>
+          </div>
+          <p
+            class="text-3xl font-bold"
+            :class="slowMovingItems.length > 0 ? 'text-amber-300' : 'text-gray-500'"
+          >
+            {{ slowMovingItems.length }}
+          </p>
+          <p class="text-sm text-amber-200/60 mt-1">
+            {{ slowMovingThreshold }}+ days old
+          </p>
+        </div>
+        <!-- Alert indicator -->
+        <div
+          v-if="slowMovingItems.length > 0"
+          class="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full animate-pulse"
+        ></div>
+      </div>
+
+      <!-- Today's Sales -->
+      <div
+        class="group relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-green-500/10 to-emerald-600/10 border border-green-500/30 hover:border-green-500/50 transition-all duration-300"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        ></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-3 mb-2">
+            <div
+              class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20"
+            >
+              <svg
+                class="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+            </div>
+            <h3 class="text-sm font-medium text-green-200/80">Today's Sales</h3>
+          </div>
+          <p class="text-3xl font-bold text-green-300">
+            {{ todaysSales.count }}
+          </p>
+          <p class="text-sm text-green-200/60 mt-1">
+            {{ formatKamas(todaysSales.total) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Total Earned -->
+      <div
+        class="group relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 border border-blue-500/30 hover:border-blue-500/50 transition-all duration-300"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        ></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-3 mb-2">
+            <div
+              class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
+            >
+              <svg
+                class="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-sm font-medium text-blue-200/80">Total Earned</h3>
+          </div>
+          <p class="text-3xl font-bold text-blue-300">
+            {{ allTimeSales.count }}
+          </p>
+          <p class="text-sm text-blue-200/60 mt-1">
+            {{ formatKamas(allTimeSales.total) }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Item Form -->
+    <div
+      class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50 backdrop-blur-sm"
+    >
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5"
+      ></div>
+      <div class="relative z-10 p-6">
+        <div class="flex items-center gap-3 mb-6">
+          <div
+            class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
+          >
+            <svg
+              class="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-100">Add Item for Sale</h3>
+            <p class="text-sm text-gray-400">List a new archimonstre soul</p>
+          </div>
+        </div>
+
         <div class="grid md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2"
-              >Monster Name</label
-            >
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              Monster Name
+            </label>
             <div class="relative input-with-suggestions">
               <input
                 v-model="newItem.monsterName"
@@ -68,507 +202,484 @@
                 @blur="onInputBlur"
                 @keydown="handleKeydown"
                 type="text"
-                placeholder="e.g., Archi-monstre : Crakmitaine"
-                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Search monster..."
+                class="w-full px-4 py-3 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
               />
 
               <!-- Suggestions Dropdown -->
-              <div
-                v-if="showSuggestions && filteredSuggestions.length > 0"
-                class="absolute z-50 w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto suggestions-popover"
-              >
+              <Transition name="dropdown">
                 <div
-                  v-for="(suggestion, index) in filteredSuggestions"
-                  :key="suggestion.id"
-                  @mousedown.prevent="selectSuggestion(suggestion)"
-                  :class="[
-                    'px-3 py-2 cursor-pointer flex items-center gap-3 transition-colors',
-                    index === selectedSuggestionIndex
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-gray-600 text-gray-100',
-                  ]"
+                  v-if="showSuggestions && filteredSuggestions.length > 0"
+                  class="absolute z-50 w-full mt-2 bg-gray-800 border border-gray-600/50 rounded-xl shadow-2xl shadow-black/50 max-h-64 overflow-y-auto suggestions-popover"
                 >
-                  <!-- Monster Image -->
-                  <img
-                    v-if="suggestion.image_url"
-                    :src="suggestion.image_url"
-                    :alt="suggestion.nom"
-                    class="w-8 h-8 rounded object-cover border border-gray-600"
-                  />
-
-                  <!-- Monster Info -->
-                  <div class="flex-1">
-                    <div class="font-medium">{{ suggestion.nom }}</div>
-                    <div class="text-sm text-gray-400">
-                      {{ suggestion.nom_normal }} • {{ suggestion.zone }}
-                      <span v-if="suggestion.souszone">
-                        ({{ suggestion.souszone }})</span
-                      >
-                    </div>
-                    <!-- Smart Price Suggestion -->
+                  <div
+                    v-for="(suggestion, index) in filteredSuggestions"
+                    :key="suggestion.id"
+                    @mousedown.prevent="selectSuggestion(suggestion)"
+                    :class="[
+                      'px-4 py-3 cursor-pointer flex items-center gap-3 transition-all duration-150',
+                      index === selectedSuggestionIndex
+                        ? 'bg-blue-600/30 border-l-2 border-blue-500'
+                        : 'hover:bg-gray-700/50 border-l-2 border-transparent',
+                    ]"
+                  >
+                    <img
+                      v-if="suggestion.image_url"
+                      :src="suggestion.image_url"
+                      :alt="suggestion.nom"
+                      class="w-10 h-10 rounded-lg object-cover border border-gray-600/50"
+                    />
                     <div
-                      v-if="getSmartPrice(suggestion)"
-                      class="text-xs text-blue-300"
+                      v-else
+                      class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center"
                     >
-                      Suggested: {{ formatKamas(getSmartPrice(suggestion)) }}
+                      <svg
+                        class="w-5 h-5 text-gray-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                      <div class="font-medium text-gray-100 truncate">
+                        {{ suggestion.nom }}
+                      </div>
+                      <div class="text-sm text-gray-400 truncate">
+                        {{ suggestion.nom_normal }} • {{ suggestion.zone }}
+                      </div>
+                      <div
+                        v-if="getSmartPrice(suggestion)"
+                        class="text-xs text-blue-400 mt-0.5"
+                      >
+                        💡 Suggested: {{ formatKamas(getSmartPrice(suggestion)) }}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Transition>
             </div>
           </div>
+
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2"
-              >Quantity</label
-            >
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              Quantity
+            </label>
             <input
               v-model.number="newItem.quantity"
               type="number"
               min="1"
               placeholder="1"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-3 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
             />
           </div>
+
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2"
-              >Price per Unit (Kamas)</label
-            >
-            <input
-              v-model.number="newItem.price"
-              type="number"
-              min="0"
-              placeholder="0"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              Price per Unit
+            </label>
+            <div class="relative">
+              <input
+                v-model.number="newItem.price"
+                type="number"
+                min="0"
+                placeholder="0"
+                class="w-full px-4 py-3 pr-10 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+              />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-yellow-400">
+                ⚡
+              </span>
+            </div>
             <p
               v-if="newItem.quantity > 1 && newItem.price"
-              class="text-xs text-gray-400 mt-1"
+              class="text-xs text-gray-400 mt-1.5"
             >
               Total: {{ formatKamas(newItem.price * newItem.quantity) }}
             </p>
           </div>
+
           <div class="flex items-end">
             <button
               @click="addItem"
               :disabled="!canAddItem"
-              class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              class="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:shadow-none"
             >
-              Add to Sale List
+              <span class="flex items-center justify-center gap-2">
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Add to List
+              </span>
             </button>
           </div>
         </div>
       </div>
+    </div>
 
+    <!-- Slow Moving Items Section -->
+    <div
+      class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-900/20 via-gray-800/80 to-orange-900/20 border border-amber-500/30"
+    >
       <div
-        class="bg-gradient-to-br from-amber-900/20 via-gray-800 to-orange-900/20 border border-amber-500/30 rounded-lg relative overflow-hidden slow-moving-card"
-      >
-        <!-- Animated background accent -->
-        <div
-          class="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-orange-500/5 animate-pulse"
-        ></div>
+        class="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-orange-500/5"
+      ></div>
 
-        <div class="p-4 border-b border-amber-500/20 relative z-10">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="flex items-center gap-2">
-                <!-- Enhanced icon with glow effect -->
-                <div class="relative">
-                  <svg
-                    class="w-6 h-6 text-amber-400 drop-shadow-glow animate-pulse"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                  <!-- Notification dot -->
-                  <div
-                    v-if="slowMovingItems.length > 0"
-                    class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-gray-800 animate-bounce"
-                  ></div>
-                </div>
-
-                <h3 class="text-xl font-bold text-amber-300">
-                  ⚠️ Slow Moving Items
-                </h3>
-              </div>
-
-              <!-- Enhanced count and threshold info with better styling -->
-              <div class="flex items-center gap-3 text-sm">
-                <span
-                  :class="[
-                    'px-3 py-1.5 rounded-full text-sm font-bold border-2 transition-all duration-300',
-                    slowMovingItems.length > 0
-                      ? 'bg-amber-600 text-white border-amber-400 shadow-lg shadow-amber-500/25 animate-pulse'
-                      : 'bg-gray-700 text-gray-300 border-gray-600',
-                  ]"
-                >
-                  🐌 {{ slowMovingItems.length }} item{{
-                    slowMovingItems.length !== 1 ? "s" : ""
-                  }}
-                </span>
-
-                <span class="text-amber-200/80 font-medium">
-                  stale for {{ slowMovingThreshold }}+ day{{
-                    slowMovingThreshold !== 1 ? "s" : ""
-                  }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Enhanced threshold selector with better styling -->
-            <div class="flex items-center gap-3">
-              <label
-                class="text-sm text-amber-200 font-medium whitespace-nowrap"
-              >
-                📊 Alert after:
-              </label>
-              <select
-                v-model="slowMovingThreshold"
-                @change="updateSlowMovingThreshold"
-                class="px-4 py-2 bg-gray-700/80 border-2 border-amber-500/30 rounded-lg text-amber-100 text-sm font-medium focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all duration-200 backdrop-blur-sm"
-              >
-                <option :value="1">1 day</option>
-                <option :value="3">3 days</option>
-                <option :value="5">5 days</option>
-                <option :value="7">7 days</option>
-                <option :value="10">10 days</option>
-                <option :value="14">14 days</option>
-                <option :value="21">21 days</option>
-                <option :value="30">30 days</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Content area with enhanced styling -->
-        <div
-          v-if="slowMovingItems.length === 0"
-          class="p-8 text-center relative z-10"
-        >
-          <!-- Success state with celebration -->
-          <div class="text-center max-w-md mx-auto">
-            <div class="mb-4 relative">
+      <div class="relative z-10 p-5 border-b border-amber-500/20">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div class="flex items-center gap-4">
+            <div class="relative">
               <div
-                class="w-20 h-20 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg"
+                class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20"
               >
                 <svg
-                  class="w-10 h-10 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  class="w-6 h-6 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
                 >
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </div>
-              <!-- Floating celebration elements -->
               <div
-                class="absolute -top-2 -right-2 text-2xl animate-bounce delay-100"
-              >
-                🎉
-              </div>
-              <div
-                class="absolute -bottom-1 -left-2 text-xl animate-bounce delay-300"
-              >
-                ⭐
-              </div>
+                v-if="slowMovingItems.length > 0"
+                class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-gray-800 animate-bounce"
+              ></div>
             </div>
 
-            <p class="text-xl font-bold text-green-300 mb-2">
-              Excellent work! 🚀
-            </p>
-            <p class="text-green-200/80">
-              All your items are moving fast! No items have been sitting for
-              more than
-              {{ slowMovingThreshold }} day{{
-                slowMovingThreshold !== 1 ? "s" : ""
-              }}.
-            </p>
-            <p class="text-sm text-green-300/60 mt-2">
-              Keep up the great sales momentum! 💪
-            </p>
-          </div>
-        </div>
-
-        <div v-else class="p-4 relative z-10">
-          <!-- Enhanced warning message with action button -->
-          <div
-            class="bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/40 rounded-lg p-4 mb-4 backdrop-blur-sm"
-          >
-            <div class="flex items-center justify-between flex-wrap gap-4">
-              <div class="flex items-center gap-3">
-                <div class="flex-shrink-0">
-                  <div
-                    class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg"
-                  >
-                    <svg
-                      class="w-5 h-5 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
-                  </div>
-                </div>
-
-                <div>
-                  <p class="text-amber-100 font-bold text-lg">
-                    📈 {{ slowMovingItems.length }} Item{{
-                      slowMovingItems.length !== 1 ? "s" : ""
-                    }}
-                    Need Attention
-                  </p>
-                  <p class="text-amber-200/80 text-sm">
-                    These items haven't sold in {{ slowMovingThreshold }}+ days.
-                    Consider adjusting prices or removing them.
-                  </p>
-                </div>
-              </div>
-
-              <!-- Quick action button -->
-              <button
-                @click="selectAllSlowMovingItems"
-                class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-amber-500/25"
-              >
-                ⚡ Select All Slow Items
-              </button>
+            <div>
+              <h3 class="text-xl font-bold text-amber-200">Slow Moving Items</h3>
+              <p class="text-sm text-amber-200/60">
+                Items listed for {{ slowMovingThreshold }}+ days
+              </p>
             </div>
-          </div>
 
-          <!-- Enhanced Slow Moving Items List -->
-          <div class="space-y-2 max-h-80 overflow-y-auto">
-            <div
-              v-for="(item, index) in slowMovingItems"
-              :key="item.id"
-              class="group flex items-center justify-between bg-gradient-to-r from-gray-800/60 to-gray-700/60 border border-amber-500/20 rounded-lg p-3 hover:from-amber-900/20 hover:to-orange-900/20 hover:border-amber-400/40 transition-all duration-200 backdrop-blur-sm"
+            <span
+              :class="[
+                'px-3 py-1.5 rounded-full text-sm font-bold transition-all duration-300',
+                slowMovingItems.length > 0
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
+                  : 'bg-gray-700/50 text-gray-400 border border-gray-600/50',
+              ]"
             >
-              <div class="flex items-center gap-3">
-                <!-- Enhanced item display with urgency indicator -->
-                <div class="relative">
-                  <div
-                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-600 flex items-center justify-center relative border-2 border-amber-500/30 shadow-lg"
-                  >
-                    <img
-                      v-if="item.image_url"
-                      :src="item.image_url"
-                      :alt="item.monsterName"
-                      class="w-full h-full object-cover"
-                    />
-                    <svg
-                      v-else
-                      class="w-6 h-6 text-amber-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
+              {{ slowMovingItems.length }} item{{
+                slowMovingItems.length !== 1 ? "s" : ""
+              }}
+            </span>
+          </div>
 
-                    <!-- Quantity badge with enhanced styling -->
-                    <div
-                      v-if="item.quantity > 1"
-                      class="absolute -top-1 -right-1 bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg border border-white/20"
-                    >
-                      {{ item.quantity }}
-                    </div>
-
-                    <!-- Days indicator -->
-                    <div
-                      class="absolute -bottom-1 -left-1 bg-gradient-to-br from-red-500 to-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg animate-pulse"
-                    >
-                      {{ getDaysListed(item.dateAdded) }}
-                    </div>
-                  </div>
-
-                  <!-- Urgency glow effect -->
-                  <div
-                    :class="[
-                      'absolute inset-0 rounded-lg blur-sm -z-10 opacity-0 group-hover:opacity-30 transition-opacity duration-200',
-                      getDaysListed(item.dateAdded) >= slowMovingThreshold * 2
-                        ? 'bg-red-500/40'
-                        : 'bg-amber-500/40',
-                    ]"
-                  ></div>
-                </div>
-
-                <div>
-                  <h4
-                    class="font-bold text-amber-100 text-lg group-hover:text-white transition-colors"
-                  >
-                    {{ item.monsterName }}
-                  </h4>
-                  <p
-                    :class="[
-                      'text-sm font-medium',
-                      getDaysListed(item.dateAdded) >= slowMovingThreshold * 2
-                        ? 'text-red-300'
-                        : 'text-amber-300',
-                    ]"
-                  >
-                    🕐 {{ getDaysListed(item.dateAdded) }} day{{
-                      getDaysListed(item.dateAdded) !== 1 ? "s" : ""
-                    }}
-                    old
-                    <span
-                      v-if="
-                        getDaysListed(item.dateAdded) >= slowMovingThreshold * 2
-                      "
-                      class="ml-2"
-                      >⚠️ URGENT</span
-                    >
-                  </p>
-                </div>
-              </div>
-
-              <div class="text-right">
-                <p class="font-bold text-amber-200 text-lg">
-                  {{ formatKamas(item.price * item.quantity) }}
-                </p>
-              </div>
-            </div>
+          <div class="flex items-center gap-3">
+            <label class="text-sm text-amber-200/80 font-medium">Alert after:</label>
+            <select
+              v-model="slowMovingThreshold"
+              @change="updateSlowMovingThreshold"
+              class="px-4 py-2 bg-gray-800/80 border border-amber-500/30 rounded-xl text-amber-100 text-sm font-medium focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-200"
+            >
+              <option :value="1">1 day</option>
+              <option :value="3">3 days</option>
+              <option :value="5">5 days</option>
+              <option :value="7">7 days</option>
+              <option :value="10">10 days</option>
+              <option :value="14">14 days</option>
+              <option :value="21">21 days</option>
+              <option :value="30">30 days</option>
+            </select>
           </div>
         </div>
       </div>
 
-      <!-- Pending Sales List -->
-      <div class="bg-gray-800 border border-gray-700 rounded-lg">
-        <div class="p-6 border-b border-gray-700">
-          <div class="flex items-center justify-between mb-4">
+      <!-- Empty State -->
+      <div v-if="slowMovingItems.length === 0" class="relative z-10 p-10 text-center">
+        <div class="max-w-sm mx-auto">
+          <div class="relative mb-4">
+            <div
+              class="w-20 h-20 mx-auto bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl shadow-green-500/20"
+            >
+              <svg
+                class="w-10 h-10 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div class="absolute -top-1 -right-4 text-2xl animate-bounce">🎉</div>
+            <div class="absolute -bottom-1 -left-4 text-xl animate-bounce delay-150">
+              ⭐
+            </div>
+          </div>
+          <p class="text-xl font-bold text-green-300 mb-2">All items moving fast!</p>
+          <p class="text-green-200/70 text-sm">
+            No items have been sitting for more than {{ slowMovingThreshold }} days.
+          </p>
+        </div>
+      </div>
+
+      <!-- Slow Moving Items List -->
+      <div v-else class="relative z-10 p-4">
+        <div
+          class="bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 rounded-xl p-4 mb-4"
+        >
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center"
+              >
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p class="text-amber-100 font-bold">
+                  {{ slowMovingItems.length }} items need attention
+                </p>
+                <p class="text-amber-200/70 text-sm">
+                  Consider adjusting prices or removing them
+                </p>
+              </div>
+            </div>
+            <button
+              @click="selectAllSlowMovingItems"
+              class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/20 transition-all duration-200"
+            >
+              Select All Slow Items
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-2 max-h-72 overflow-y-auto custom-scrollbar">
+          <div
+            v-for="item in slowMovingItems"
+            :key="item.id"
+            class="group flex items-center justify-between bg-gray-800/60 border border-amber-500/20 rounded-xl p-3 hover:bg-amber-900/20 hover:border-amber-400/40 transition-all duration-200"
+          >
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div
+                  class="w-12 h-12 rounded-xl overflow-hidden bg-gray-700 border-2 border-amber-500/30"
+                >
+                  <img
+                    v-if="item.image_url"
+                    :src="item.image_url"
+                    :alt="item.monsterName"
+                    class="w-full h-full object-cover"
+                  />
+                  <div
+                    v-else
+                    class="w-full h-full flex items-center justify-center"
+                  >
+                    <svg class="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fill-rule="evenodd"
+                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div
+                  class="absolute -bottom-1 -left-1 bg-gradient-to-br from-red-500 to-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg"
+                >
+                  {{ getDaysListed(item.dateAdded) }}
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-amber-100 group-hover:text-white transition-colors">
+                  {{ item.monsterName }}
+                </h4>
+                <p
+                  :class="[
+                    'text-sm font-medium',
+                    getDaysListed(item.dateAdded) >= slowMovingThreshold * 2
+                      ? 'text-red-400'
+                      : 'text-amber-300/80',
+                  ]"
+                >
+                  {{ getDaysListed(item.dateAdded) }} days old
+                  <span
+                    v-if="getDaysListed(item.dateAdded) >= slowMovingThreshold * 2"
+                    class="ml-1 text-red-400"
+                  >
+                    ⚠️ URGENT
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div class="text-right">
+              <p class="font-bold text-amber-200">
+                {{ formatKamas(item.price * item.quantity) }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Sales List -->
+    <div
+      class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50"
+    >
+      <div class="relative z-10 p-6 border-b border-gray-700/50">
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-lg shadow-yellow-500/20"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            </div>
             <div>
-              <h3 class="text-xl font-semibold text-gray-100">
-                Items for Sale ({{ totalPendingQuantity }} items)
-                <span v-if="selectedItems.length > 0" class="text-blue-400">
-                  - {{ selectedItems.length }} selected
+              <h3 class="text-xl font-bold text-gray-100">
+                Items for Sale
+                <span v-if="selectedItems.length > 0" class="text-blue-400 text-base font-medium">
+                  ({{ selectedItems.length }} selected)
                 </span>
               </h3>
-              <p class="text-sm text-gray-400 mt-1">
-                Preview Total: {{ formatKamas(previewTotal) }}
+              <p class="text-sm text-gray-400">
+                {{ totalPendingQuantity }} items • {{ formatKamas(previewTotal) }} total
                 <span v-if="selectedItems.length > 0" class="text-blue-300">
-                  • Selected: {{ formatKamas(selectedItemsTotal) }}
+                  • {{ formatKamas(selectedItemsTotal) }} selected
                 </span>
               </p>
             </div>
+          </div>
+        </div>
 
-            <!-- Search and Sort Controls -->
-            <div class="flex gap-3 flex-wrap">
-              <!-- Search Input -->
-              <div class="relative">
-                <input
-                  v-model="searchQuery"
-                  type="text"
-                  placeholder="Search items..."
-                  class="w-40 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-                <svg
-                  class="absolute right-3 top-2.5 w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  ></path>
-                </svg>
-              </div>
-              <!-- Price Range Filter -->
-              <div class="flex items-center gap-2">
-                <input
-                  v-model.number="priceFilterMin"
-                  type="number"
-                  min="0"
-                  placeholder="Min Price"
-                  class="w-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-                <span class="text-gray-500">-</span>
-                <input
-                  v-model.number="priceFilterMax"
-                  type="number"
-                  min="0"
-                  placeholder="Max Price"
-                  class="w-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-              </div>
-
-              <!-- Sort Controls -->
-              <div class="flex gap-2">
-                <select
-                  v-model="sortBy"
-                  class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="dateAdded">Date Added</option>
-                  <option value="name">Name</option>
-                  <option value="price">Price</option>
-                  <option value="total">Total Value</option>
-                </select>
-
-                <button
-                  @click="toggleSortDirection"
-                  class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 hover:bg-gray-600 transition-colors"
-                  :title="
-                    sortDirection === 'asc'
-                      ? 'Sort Ascending'
-                      : 'Sort Descending'
-                  "
-                >
-                  <svg
-                    class="w-4 h-4 transform transition-transform"
-                    :class="{ 'rotate-180': sortDirection === 'desc' }"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 15l7-7 7 7"
-                    ></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
+        <!-- Search and Sort Controls -->
+        <div class="flex flex-wrap gap-3 items-center">
+          <!-- Search -->
+          <div class="relative flex-1 min-w-48">
+            <svg
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search items..."
+              class="w-full pl-10 pr-4 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm"
+            />
           </div>
 
-          <!-- Bulk Operations Bar -->
+          <!-- Price Range -->
+          <div class="flex items-center gap-2">
+            <input
+              v-model.number="priceFilterMin"
+              type="number"
+              min="0"
+              placeholder="Min"
+              class="w-20 px-3 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm"
+            />
+            <span class="text-gray-500">–</span>
+            <input
+              v-model.number="priceFilterMax"
+              type="number"
+              min="0"
+              placeholder="Max"
+              class="w-20 px-3 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm"
+            />
+          </div>
+
+          <!-- Sort -->
+          <div class="flex gap-2">
+            <select
+              v-model="sortBy"
+              class="px-3 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+            >
+              <option value="dateAdded">Date Added</option>
+              <option value="name">Name</option>
+              <option value="price">Price</option>
+              <option value="total">Total Value</option>
+            </select>
+
+            <button
+              @click="toggleSortDirection"
+              class="px-3 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 hover:bg-gray-700/60 transition-all duration-200"
+              :title="sortDirection === 'asc' ? 'Ascending' : 'Descending'"
+            >
+              <svg
+                class="w-4 h-4 transition-transform duration-200"
+                :class="{ 'rotate-180': sortDirection === 'desc' }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 15l7-7 7 7"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bulk Operations -->
+        <Transition name="slide-fade">
           <div
             v-if="selectedItems.length > 0"
-            class="bg-gray-700 border border-gray-600 rounded-lg p-4 mb-4"
+            class="mt-4 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4"
           >
             <div class="flex items-center justify-between flex-wrap gap-4">
               <div class="flex items-center gap-4 flex-wrap">
-                <span class="text-gray-100 font-medium">
-                  {{ selectedItems.length }} item{{
-                    selectedItems.length > 1 ? "s" : ""
-                  }}
-                  selected
+                <span class="text-blue-200 font-medium">
+                  {{ selectedItems.length }} selected
                 </span>
 
-                <!-- Bulk Price Adjustment -->
                 <div class="flex items-center gap-2 flex-wrap">
-                  <label class="text-sm text-gray-300 whitespace-nowrap"
-                    >Adjust prices:</label
-                  >
                   <select
                     v-model="bulkPriceAction"
-                    class="px-3 py-1 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="px-3 py-1.5 bg-gray-800/80 border border-gray-600/50 rounded-lg text-gray-100 text-sm"
                   >
                     <option value="set">Set to</option>
                     <option value="increase">Increase by</option>
@@ -581,66 +692,150 @@
                     :min="bulkPriceAction === 'multiply' ? 0.1 : 0"
                     :step="bulkPriceAction === 'multiply' ? 0.1 : 1"
                     placeholder="0"
-                    class="w-20 px-2 py-1 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-20 px-2 py-1.5 bg-gray-800/80 border border-gray-600/50 rounded-lg text-gray-100 text-sm"
                   />
                   <button
                     @click="applyBulkPriceChange"
                     :disabled="!bulkPriceValue || bulkPriceValue <= 0"
-                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm transition-colors"
+                    class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm transition-colors"
                   >
                     Apply
                   </button>
                 </div>
               </div>
 
-              <!-- Bulk Action Buttons -->
               <div class="flex gap-2 flex-wrap">
                 <button
                   @click="bulkMarkAsSold"
-                  class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors"
+                  class="px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg text-sm font-medium transition-all duration-200"
                 >
-                  Mark All as Sold
+                  Mark as Sold
                 </button>
                 <button
                   @click="bulkDelete"
-                  class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors"
+                  class="px-3 py-1.5 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-lg text-sm font-medium transition-all duration-200"
                 >
-                  Delete Selected
+                  Delete
                 </button>
                 <button
                   @click="clearSelection"
-                  class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-colors"
+                  class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-colors"
                 >
-                  Clear Selection
+                  Clear
                 </button>
               </div>
             </div>
           </div>
+        </Transition>
 
-          <!-- Select All Controls -->
-          <div class="flex items-center gap-4 mb-4 flex-wrap">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <div class="relative">
+        <!-- Select All -->
+        <div class="flex items-center gap-4 mt-4 flex-wrap">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <div class="relative">
+              <input
+                type="checkbox"
+                :checked="isAllSelected"
+                :indeterminate="isPartiallySelected"
+                @change="toggleSelectAll"
+                class="sr-only"
+              />
+              <div
+                :class="[
+                  'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200',
+                  isAllSelected || isPartiallySelected
+                    ? 'bg-blue-600 border-blue-600'
+                    : 'bg-gray-700/50 border-gray-600 group-hover:border-gray-500',
+                ]"
+              >
+                <svg
+                  v-if="isAllSelected"
+                  class="w-3 h-3 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <div
+                  v-else-if="isPartiallySelected"
+                  class="w-2.5 h-0.5 bg-white rounded"
+                ></div>
+              </div>
+            </div>
+            <span class="text-sm text-gray-300 group-hover:text-gray-200">
+              {{ isAllSelected ? "Deselect All" : "Select All" }}
+              ({{ filteredAndSortedPendingItems.length }})
+            </span>
+          </label>
+
+          <div class="flex gap-4 text-sm">
+            <button
+              @click="selectByPriceRange"
+              class="text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Select by price
+            </button>
+            <button
+              @click="selectByMonsterType"
+              class="text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Select by type
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items List -->
+      <div v-if="filteredAndSortedPendingItems.length === 0" class="p-10 text-center">
+        <div
+          class="w-16 h-16 mx-auto bg-gray-700/50 rounded-2xl flex items-center justify-center mb-4"
+        >
+          <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+            />
+          </svg>
+        </div>
+        <p class="text-gray-400">
+          {{ searchQuery ? "No items match your search" : "No items listed for sale" }}
+        </p>
+      </div>
+
+      <div v-else class="divide-y divide-gray-700/50 max-h-[500px] overflow-y-auto custom-scrollbar">
+        <div
+          v-for="item in filteredAndSortedPendingItems"
+          :key="item.id"
+          class="p-4 hover:bg-gray-700/30 transition-all duration-200"
+          :class="{ 'bg-blue-900/20': selectedItems.includes(item.id) }"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <!-- Checkbox -->
+              <label class="cursor-pointer">
                 <input
                   type="checkbox"
-                  :checked="isAllSelected"
-                  :indeterminate="isPartiallySelected"
-                  @change="toggleSelectAll"
+                  :checked="selectedItems.includes(item.id)"
+                  @change="toggleItemSelection(item.id)"
                   class="sr-only"
                 />
                 <div
                   :class="[
-                    'w-4 h-4 rounded border-2 flex items-center justify-center transition-colors',
-                    isAllSelected
+                    'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200',
+                    selectedItems.includes(item.id)
                       ? 'bg-blue-600 border-blue-600'
-                      : isPartiallySelected
-                      ? 'bg-blue-600 border-blue-600'
-                      : 'bg-gray-700 border-gray-600 hover:border-gray-500',
+                      : 'bg-gray-700/50 border-gray-600 hover:border-gray-500',
                   ]"
                 >
-                  <!-- Checkmark for fully selected -->
                   <svg
-                    v-if="isAllSelected"
+                    v-if="selectedItems.includes(item.id)"
                     class="w-3 h-3 text-white"
                     fill="none"
                     stroke="currentColor"
@@ -651,85 +846,447 @@
                       stroke-linejoin="round"
                       stroke-width="3"
                       d="M5 13l4 4L19 7"
-                    ></path>
+                    />
                   </svg>
-                  <!-- Dash for partially selected -->
-                  <div
-                    v-else-if="isPartiallySelected"
-                    class="w-2 h-0.5 bg-white rounded"
-                  ></div>
+                </div>
+              </label>
+
+              <!-- Image -->
+              <div
+                class="w-12 h-12 rounded-xl overflow-hidden bg-gray-700/50 border border-gray-600/50 flex items-center justify-center relative"
+              >
+                <img
+                  v-if="item.image_url"
+                  :src="item.image_url"
+                  alt="monster"
+                  class="w-full h-full object-cover"
+                />
+                <svg
+                  v-else
+                  class="w-6 h-6 text-yellow-300"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <div
+                  v-if="item.quantity > 1"
+                  class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                >
+                  {{ item.quantity }}
                 </div>
               </div>
-              <span class="text-sm text-gray-300">
-                {{ isAllSelected ? "Deselect All" : "Select All" }}
-                {{
-                  filteredAndSortedPendingItems.length > 0
-                    ? `(${filteredAndSortedPendingItems.length})`
-                    : ""
-                }}
-              </span>
-            </label>
 
-            <!-- Quick Select Options -->
-            <div class="flex gap-4 text-sm">
-              <button
-                @click="selectByPriceRange"
-                class="text-blue-400 hover:text-blue-300 underline transition-colors"
+              <!-- Info -->
+              <div>
+                <h4 class="font-medium text-gray-100">
+                  {{ item.monsterName }}
+                  <span v-if="item.quantity > 1" class="text-gray-400 text-sm">
+                    ({{ item.quantity }}x)
+                  </span>
+                </h4>
+                <p class="text-sm text-gray-500">
+                  Added {{ formatDate(item.dateAdded) }}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <!-- Price Editor -->
+              <div class="flex items-center gap-2">
+                <div class="relative">
+                  <!-- Display Mode -->
+                  <div
+                    v-if="!editingPrice[item.id]"
+                    @click="startEditingPrice(item)"
+                    class="flex items-center gap-2 px-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-xl cursor-pointer hover:bg-gray-600/50 hover:border-gray-500/50 transition-all duration-200 min-w-28"
+                  >
+                    <span class="text-gray-100 font-medium">
+                      {{ formatPriceForDisplay(item.price) }}
+                    </span>
+                    <svg
+                      class="w-3.5 h-3.5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </div>
+
+                  <!-- Edit Mode -->
+                  <div v-else class="flex items-center gap-1">
+                    <input
+                      :ref="(el) => (priceInputRefs[item.id] = el)"
+                      v-model.number="tempPrices[item.id]"
+                      @blur="finishEditingPrice(item)"
+                      @keydown.enter="finishEditingPrice(item)"
+                      @keydown.escape="cancelEditingPrice(item)"
+                      @input="validatePriceInput(item)"
+                      type="number"
+                      min="0"
+                      class="w-24 px-3 py-2 bg-gray-700 border-2 rounded-xl text-gray-100 text-sm focus:outline-none transition-all duration-200"
+                      :class="{
+                        'border-red-500': priceErrors[item.id],
+                        'border-green-500': priceChanged[item.id] && !priceErrors[item.id],
+                        'border-blue-500': !priceErrors[item.id] && !priceChanged[item.id],
+                      }"
+                    />
+                    <button
+                      @click="finishEditingPrice(item)"
+                      :disabled="priceErrors[item.id]"
+                      class="p-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      @click="cancelEditingPrice(item)"
+                      class="p-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <!-- Change indicator -->
+                  <div
+                    v-if="priceChanged[item.id] && !editingPrice[item.id]"
+                    class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"
+                  ></div>
+                </div>
+
+                <!-- Copy button -->
+                <button
+                  @click.stop="handleCopyItemPrice(item)"
+                  class="p-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 rounded-lg text-gray-100 transition-all duration-200"
+                  :title="copiedPrice[item.id] ? 'Copied!' : 'Copy price'"
+                >
+                  <svg
+                    v-if="!copiedPrice[item.id]"
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M8 16h8a2 2 0 002-2V8m-6 8H8a2 2 0 01-2-2v-2"
+                    />
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-4 h-4 text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </button>
+
+                <span class="text-yellow-400">⚡</span>
+              </div>
+
+              <!-- Total -->
+              <div class="text-right min-w-20">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Total</p>
+                <p class="font-bold text-yellow-300">
+                  {{
+                    formatKamas(
+                      (editingPrice[item.id] ? tempPrices[item.id] || 0 : item.price) *
+                        item.quantity
+                    )
+                  }}
+                </p>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex gap-2">
+                <button
+                  @click="confirmSale(item)"
+                  class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-green-500/20"
+                >
+                  Sold!
+                </button>
+                <button
+                  @click="removeItem(item.id)"
+                  class="px-4 py-2 bg-gray-700/50 hover:bg-red-500/20 border border-gray-600/50 hover:border-red-500/50 text-gray-300 hover:text-red-400 rounded-xl text-sm transition-all duration-200"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales History -->
+    <div
+      class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50"
+    >
+      <div class="relative z-10 p-6 border-b border-gray-700/50">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                Select by price range
-              </button>
-              <button
-                @click="selectByMonsterType"
-                class="text-blue-400 hover:text-blue-300 underline transition-colors"
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-gray-100">Sales History</h3>
+              <p class="text-sm text-gray-400">Track your completed sales</p>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <select
+              v-model="historyFilter"
+              class="px-4 py-2 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 text-sm focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all duration-200"
+            >
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="all">All Time</option>
+            </select>
+            <button
+              v-if="soldItems.length > 0"
+              @click="clearHistory"
+              class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 text-red-400 rounded-xl text-sm font-medium transition-all duration-200"
+            >
+              Clear History
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="filteredSoldItems.length === 0" class="p-10 text-center">
+        <div
+          class="w-16 h-16 mx-auto bg-gray-700/50 rounded-2xl flex items-center justify-center mb-4"
+        >
+          <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <p class="text-gray-400">No sales recorded yet</p>
+      </div>
+
+      <div
+        v-else
+        class="divide-y divide-gray-700/50 max-h-96 overflow-y-auto custom-scrollbar"
+      >
+        <div
+          v-for="item in filteredSoldItems"
+          :key="item.id"
+          class="p-4 hover:bg-gray-700/30 transition-all duration-200"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl overflow-hidden bg-green-500/20 border border-green-500/30 flex items-center justify-center relative"
               >
-                Select same monster types
+                <img
+                  v-if="item.image_url"
+                  :src="item.image_url"
+                  :alt="item.nom"
+                  class="w-full h-full object-cover"
+                />
+                <svg
+                  v-else
+                  class="w-5 h-5 text-green-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <div
+                  v-if="item.quantity > 1"
+                  class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold"
+                >
+                  {{ item.quantity }}
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-medium text-gray-100">
+                  {{ item.monsterName }}
+                  <span v-if="item.quantity > 1" class="text-gray-400 text-sm">
+                    ({{ item.quantity }}x @ {{ formatKamas(item.soldPrice) }} each)
+                  </span>
+                </h4>
+                <p class="text-sm text-gray-500">
+                  Sold {{ formatDate(item.dateSold) }}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <p class="font-bold text-green-400">
+                  {{ formatKamas(item.soldPrice * item.quantity) }}
+                </p>
+                <p
+                  v-if="item.originalPrice !== item.soldPrice"
+                  class="text-xs text-gray-500 line-through"
+                >
+                  {{ formatKamas(item.originalPrice * item.quantity) }}
+                </p>
+              </div>
+
+              <button
+                @click="undoSale(item)"
+                class="px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 hover:border-orange-500/50 text-orange-400 rounded-lg text-sm font-medium transition-all duration-200"
+                title="Move back to items for sale"
+              >
+                ↶ Undo
               </button>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
+    <!-- Price Range Modal -->
+    <Transition name="modal">
+      <div
+        v-if="showPriceRangeModal"
+        class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        @click.self="showPriceRangeModal = false"
+      >
         <div
-          v-if="filteredAndSortedPendingItems.length === 0"
-          class="p-6 text-center"
+          class="bg-gray-800 border border-gray-700/50 rounded-2xl p-6 w-full max-w-md shadow-2xl"
         >
-          <p class="text-gray-400">
-            {{
-              searchQuery
-                ? "No items match your search"
-                : "No items currently listed for sale"
-            }}
-          </p>
+          <h3 class="text-xl font-bold text-gray-100 mb-6">Select by Price Range</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                Minimum Price
+              </label>
+              <input
+                v-model.number="priceRangeMin"
+                type="number"
+                min="0"
+                placeholder="0"
+                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                Maximum Price
+              </label>
+              <input
+                v-model.number="priceRangeMax"
+                type="number"
+                min="0"
+                placeholder="999999"
+                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+              />
+            </div>
+            <div class="flex gap-3 pt-4">
+              <button
+                @click="applyPriceRangeSelection"
+                class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200"
+              >
+                Select Items
+              </button>
+              <button
+                @click="showPriceRangeModal = false"
+                class="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+    </Transition>
 
-        <div v-else class="divide-y divide-gray-700 h-96 overflow-y-auto">
-          <div
-            v-for="item in filteredAndSortedPendingItems"
-            :key="item.id"
-            class="p-4 hover:bg-gray-750 transition-colors"
-            :class="{
-              'bg-blue-900 bg-opacity-20': selectedItems.includes(item.id),
-            }"
-          >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <!-- Custom Styled Checkbox -->
-                <label class="cursor-pointer">
+    <!-- Monster Type Modal -->
+    <Transition name="modal">
+      <div
+        v-if="showMonsterTypeModal"
+        class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        @click.self="showMonsterTypeModal = false"
+      >
+        <div
+          class="bg-gray-800 border border-gray-700/50 rounded-2xl p-6 w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl"
+        >
+          <h3 class="text-xl font-bold text-gray-100 mb-6">Select by Monster Type</h3>
+          <div class="flex-1 overflow-y-auto space-y-2 mb-4 custom-scrollbar">
+            <div
+              v-for="monsterType in uniqueMonsterTypes"
+              :key="monsterType.name"
+              class="flex items-center justify-between p-3 hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+            >
+              <label class="flex items-center gap-3 cursor-pointer flex-1">
+                <div class="relative">
                   <input
                     type="checkbox"
-                    :checked="selectedItems.includes(item.id)"
-                    @change="toggleItemSelection(item.id)"
+                    :checked="selectedMonsterTypes.includes(monsterType.name)"
+                    @change="toggleMonsterTypeSelection(monsterType.name)"
                     class="sr-only"
                   />
                   <div
                     :class="[
-                      'w-4 h-4 rounded border-2 flex items-center justify-center transition-colors',
-                      selectedItems.includes(item.id)
+                      'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200',
+                      selectedMonsterTypes.includes(monsterType.name)
                         ? 'bg-blue-600 border-blue-600'
-                        : 'bg-gray-700 border-gray-600 hover:border-gray-500',
+                        : 'bg-gray-700/50 border-gray-600 hover:border-gray-500',
                     ]"
                   >
                     <svg
-                      v-if="selectedItems.includes(item.id)"
+                      v-if="selectedMonsterTypes.includes(monsterType.name)"
                       class="w-3 h-3 text-white"
                       fill="none"
                       stroke="currentColor"
@@ -740,465 +1297,40 @@
                         stroke-linejoin="round"
                         stroke-width="3"
                         d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
-                  </div>
-                </label>
-
-                <div
-                  class="w-10 h-10 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center relative"
-                >
-                  <img
-                    v-if="item.image_url"
-                    :src="item.image_url"
-                    alt="monster"
-                    class="w-full h-full object-cover"
-                  />
-                  <svg
-                    v-else
-                    class="w-6 h-6 text-yellow-200"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                  <!-- Quantity Badge -->
-                  <div
-                    v-if="item.quantity > 1"
-                    class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                  >
-                    {{ item.quantity }}
-                  </div>
-                </div>
-                <div>
-                  <h4 class="font-medium text-gray-100">
-                    {{ item.monsterName }}
-                    <span
-                      v-if="item.quantity > 1"
-                      class="text-gray-400 text-sm"
-                    >
-                      ({{ item.quantity }}x)
-                    </span>
-                  </h4>
-                  <p class="text-sm text-gray-400">
-                    Added {{ formatDate(item.dateAdded) }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-4">
-                <!-- Enhanced Price Editor -->
-                <div class="flex items-center gap-2">
-                  <div class="relative">
-                    <!-- Display Mode -->
-                    <div
-                      v-if="!editingPrice[item.id]"
-                      @click="startEditingPrice(item)"
-                      class="flex items-center gap-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-600 transition-colors group min-w-24"
-                    >
-                      <span class="text-gray-100 font-medium">
-                        {{ formatPriceForDisplay(item.price) }}
-                      </span>
-                      <svg
-                        class="w-3 h-3 text-gray-400 group-hover:text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        ></path>
-                      </svg>
-                    </div>
-
-                    <!-- Edit Mode -->
-                    <div v-else class="flex items-center gap-1">
-                      <input
-                        :ref="(el) => (priceInputRefs[item.id] = el)"
-                        v-model.number="tempPrices[item.id]"
-                        @blur="finishEditingPrice(item)"
-                        @keydown.enter="finishEditingPrice(item)"
-                        @keydown.escape="cancelEditingPrice(item)"
-                        @input="validatePriceInput(item)"
-                        type="number"
-                        min="0"
-                        step="1"
-                        class="w-24 px-2 py-1 bg-gray-600 border border-blue-500 rounded text-gray-100 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                        :class="{
-                          'border-red-500 focus:ring-red-400':
-                            priceErrors[item.id],
-                          'border-green-500 focus:ring-green-400':
-                            priceChanged[item.id] && !priceErrors[item.id],
-                        }"
-                      />
-                      <div class="flex flex-col gap-1">
-                        <button
-                          @click="finishEditingPrice(item)"
-                          :disabled="priceErrors[item.id]"
-                          class="p-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded text-xs transition-colors"
-                          title="Save price"
-                        >
-                          <svg
-                            class="w-3 h-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M5 13l4 4L19 7"
-                            ></path>
-                          </svg>
-                        </button>
-                        <button
-                          @click="cancelEditingPrice(item)"
-                          class="p-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs transition-colors"
-                          title="Cancel editing"
-                        >
-                          <svg
-                            class="w-3 h-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"
-                            ></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Price Error Message -->
-                    <div
-                      v-if="priceErrors[item.id]"
-                      class="absolute top-full left-0 mt-1 px-2 py-1 bg-red-600 text-white text-xs rounded shadow-lg whitespace-nowrap z-10"
-                    >
-                      {{ priceErrors[item.id] }}
-                    </div>
-
-                    <!-- Price Change Indicator -->
-                    <div
-                      v-if="priceChanged[item.id] && !editingPrice[item.id]"
-                      class="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
-                    ></div>
-                  </div>
-
-                  <!-- Copy price button -->
-                  <button
-                    @click.stop="handleCopyItemPrice(item)"
-                    class="p-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded text-gray-100 transition-colors relative"
-                    :title="
-                      copiedPrice[item.id]
-                        ? 'Copied!'
-                        : 'Copy price to clipboard'
-                    "
-                  >
-                    <svg
-                      v-if="!copiedPrice[item.id]"
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M8 16h8a2 2 0 002-2V8m-6 8H8a2 2 0 01-2-2v-2"
                       />
                     </svg>
-                    <svg
-                      v-else
-                      class="w-4 h-4 text-green-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </button>
-
-                  <span class="text-yellow-400 font-medium">⚡</span>
-                </div>
-
-                <!-- Total Price Display -->
-                <div class="text-right min-w-20">
-                  <p class="text-sm text-gray-300">Total:</p>
-                  <p class="font-bold text-yellow-400">
-                    {{
-                      formatKamas(
-                        (editingPrice[item.id]
-                          ? tempPrices[item.id] || 0
-                          : item.price) * item.quantity
-                      )
-                    }}
-                  </p>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex gap-2">
-                  <button
-                    @click="confirmSale(item)"
-                    class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm transition-colors"
-                  >
-                    Sold!
-                  </button>
-                  <button
-                    @click="removeItem(item.id)"
-                    class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sales History -->
-      <div class="bg-gray-800 border border-gray-700 rounded-lg">
-        <div class="p-6 border-b border-gray-700">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xl font-semibold text-gray-100">Sales History</h3>
-            <div class="flex gap-2">
-              <select
-                v-model="historyFilter"
-                class="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-gray-100 text-sm focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="all">All Time</option>
-              </select>
-              <button
-                v-if="soldItems.length > 0"
-                @click="clearHistory"
-                class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
-              >
-                Clear History
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="filteredSoldItems.length === 0" class="p-6 text-center">
-          <p class="text-gray-400">No sales recorded yet</p>
-        </div>
-
-        <div v-else class="divide-y divide-gray-700 max-h-96 overflow-y-auto">
-          <div v-for="item in filteredSoldItems" :key="item.id" class="p-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center relative"
-                >
-                  <img
-                    v-if="item.image_url"
-                    :src="item.image_url"
-                    :alt="item.nom"
-                    class="w-8 h-8 rounded object-cover border border-gray-600"
-                  />
-                  <div
-                    v-if="item.quantity > 1"
-                    class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"
-                  >
-                    {{ item.quantity }}
                   </div>
                 </div>
-                <div>
-                  <h4 class="font-medium text-gray-100">
-                    {{ item.monsterName }}
-                    <span
-                      v-if="item.quantity > 1"
-                      class="text-gray-400 text-sm"
-                    >
-                      ({{ item.quantity }}x @
-                      {{ formatKamas(item.soldPrice) }} each)
-                    </span>
-                  </h4>
-                  <p class="text-sm text-gray-400">
-                    Sold {{ formatDate(item.dateSold) }}
-                  </p>
-                </div>
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="text-right">
-                  <p class="font-bold text-green-400">
-                    {{ formatKamas(item.soldPrice * item.quantity) }}
-                  </p>
-                  <p
-                    v-if="item.originalPrice !== item.soldPrice"
-                    class="text-xs text-gray-500 line-through"
-                  >
-                    {{ formatKamas(item.originalPrice * item.quantity) }}
-                  </p>
-                </div>
-                <!-- Undo Sale Button -->
-                <button
-                  @click="undoSale(item)"
-                  class="px-2 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded text-xs transition-colors"
-                  title="Undo sale - move back to items for sale"
-                >
-                  ↶ Undo
-                </button>
-              </div>
+                <span class="text-gray-100">{{ monsterType.name }}</span>
+              </label>
+              <span
+                class="text-sm text-gray-400 bg-gray-700/50 px-2.5 py-1 rounded-lg">
+                {{ monsterType.count }}
+              </span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Price Range Selection Modal -->
-    <div
-      v-if="showPriceRangeModal"
-      class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-      @click.self="showPriceRangeModal = false"
-    >
-      <div
-        class="bg-gray-800 border border-gray-600 rounded-lg p-6 w-full max-w-md shadow-2xl"
-      >
-        <h3 class="text-lg font-semibold text-gray-100 mb-4">
-          Select by Price Range
-        </h3>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2"
-              >Minimum Price</label
-            >
-            <input
-              v-model.number="priceRangeMin"
-              type="number"
-              min="0"
-              placeholder="0"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2"
-              >Maximum Price</label
-            >
-            <input
-              v-model.number="priceRangeMax"
-              type="number"
-              min="0"
-              placeholder="999999"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div class="flex gap-3 pt-4">
+          <div class="flex gap-3 pt-4 border-t border-gray-700/50">
             <button
-              @click="applyPriceRangeSelection"
-              class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+              @click="applyMonsterTypeSelection"
+              class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200"
             >
               Select Items
             </button>
             <button
-              @click="showPriceRangeModal = false"
-              class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-medium"
+              @click="showMonsterTypeModal = false"
+              class="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200"
             >
               Cancel
             </button>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Monster Type Selection Modal -->
-    <div
-      v-if="showMonsterTypeModal"
-      class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-      @click.self="showMonsterTypeModal = false"
-    >
-      <div
-        class="bg-gray-800 border border-gray-600 rounded-lg p-6 w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl"
-      >
-        <h3 class="text-lg font-semibold text-gray-100 mb-4">
-          Select by Monster Type
-        </h3>
-        <div class="flex-1 overflow-y-auto space-y-2 mb-4">
-          <div
-            v-for="monsterType in uniqueMonsterTypes"
-            :key="monsterType.name"
-            class="flex items-center justify-between p-3 hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <label class="flex items-center gap-3 cursor-pointer flex-1">
-              <div class="relative">
-                <input
-                  type="checkbox"
-                  :checked="selectedMonsterTypes.includes(monsterType.name)"
-                  @change="toggleMonsterTypeSelection(monsterType.name)"
-                  class="sr-only"
-                />
-                <div
-                  :class="[
-                    'w-4 h-4 rounded border-2 flex items-center justify-center transition-colors',
-                    selectedMonsterTypes.includes(monsterType.name)
-                      ? 'bg-blue-600 border-blue-600'
-                      : 'bg-gray-700 border-gray-600 hover:border-gray-500',
-                  ]"
-                >
-                  <svg
-                    v-if="selectedMonsterTypes.includes(monsterType.name)"
-                    class="w-3 h-3 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="3"
-                      d="M5 13l4 4L19 7"
-                    ></path>
-                  </svg>
-                </div>
-              </div>
-              <span class="text-gray-100 flex-1">{{ monsterType.name }}</span>
-            </label>
-            <span class="text-sm text-gray-400 bg-gray-700 px-2 py-1 rounded">{{
-              monsterType.count
-            }}</span>
-          </div>
-        </div>
-        <div class="flex gap-3 pt-4 border-t border-gray-700">
-          <button
-            @click="applyMonsterTypeSelection"
-            class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-          >
-            Select Items
-          </button>
-          <button
-            @click="showMonsterTypeModal = false"
-            class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-medium"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 
 const props = defineProps({
   server: {
@@ -1236,54 +1368,49 @@ const emit = defineEmits([
   "update-prices",
   "undo-sale",
   "clear-history",
-  "save-price-history",
-  "get-price-history",
 ]);
 
+// Form state
 const newItem = ref({
   monsterName: "",
   price: null,
   quantity: 1,
 });
 
+// UI state
 const historyFilter = ref("today");
 const showSuggestions = ref(false);
 const selectedSuggestionIndex = ref(-1);
-
 const searchQuery = ref("");
 const sortBy = ref("price");
 const sortDirection = ref("asc");
 const priceFilterMin = ref(null);
 const priceFilterMax = ref(null);
-
 const selectedItems = ref([]);
 const bulkPriceAction = ref("set");
 const bulkPriceValue = ref(null);
-
 const showPriceRangeModal = ref(false);
 const showMonsterTypeModal = ref(false);
 const priceRangeMin = ref(0);
 const priceRangeMax = ref(999999);
 const selectedMonsterTypes = ref([]);
-
 const editingPrice = ref({});
 const tempPrices = ref({});
 const priceErrors = ref({});
 const priceChanged = ref({});
 const priceInputRefs = ref({});
-
 const copiedPrice = ref({});
-
 const slowMovingThreshold = ref(7);
 
+// Helpers
 const getPriceHistoryKey = () => {
   return `selling_price_history_${props.server.id}_${props.character.id}`;
 };
 
+// Computed
 const slowMovingItems = computed(() => {
   const threshold = new Date();
   threshold.setDate(threshold.getDate() - slowMovingThreshold.value);
-
   return props.pendingItems
     .filter((item) => new Date(item.dateAdded) <= threshold)
     .sort((a, b) => new Date(a.dateAdded) - new Date(b.dateAdded));
@@ -1299,17 +1426,14 @@ const canAddItem = computed(() => {
 
 const filteredSuggestions = computed(() => {
   if (!newItem.value.monsterName || !props.monstersData) return [];
-
   const searchTerm = newItem.value.monsterName.toLowerCase();
   return props.monstersData
     .filter(
       (monster) =>
         (monster.nom && monster.nom.toLowerCase().includes(searchTerm)) ||
-        (monster.nom_normal &&
-          monster.nom_normal.toLowerCase().includes(searchTerm)) ||
+        (monster.nom_normal && monster.nom_normal.toLowerCase().includes(searchTerm)) ||
         (monster.zone && monster.zone.toLowerCase().includes(searchTerm)) ||
-        (monster.souszone &&
-          monster.souszone.toLowerCase().includes(searchTerm))
+        (monster.souszone && monster.souszone.toLowerCase().includes(searchTerm))
     )
     .slice(0, 8);
 });
@@ -1324,19 +1448,14 @@ const filteredAndSortedPendingItems = computed(() => {
     );
   }
   if (priceFilterMin.value) {
-    filtered = filtered.filter(
-      (item) => (item.price || 0) >= priceFilterMin.value
-    );
+    filtered = filtered.filter((item) => (item.price || 0) >= priceFilterMin.value);
   }
   if (priceFilterMax.value) {
-    filtered = filtered.filter(
-      (item) => (item.price || 0) <= priceFilterMax.value
-    );
+    filtered = filtered.filter((item) => (item.price || 0) <= priceFilterMax.value);
   }
 
   filtered.sort((a, b) => {
     let aValue, bValue;
-
     switch (sortBy.value) {
       case "name":
         aValue = a.monsterName.toLowerCase();
@@ -1356,7 +1475,6 @@ const filteredAndSortedPendingItems = computed(() => {
         bValue = new Date(b.dateAdded);
         break;
     }
-
     if (sortDirection.value === "asc") {
       return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
     } else {
@@ -1395,17 +1513,13 @@ const uniqueMonsterTypes = computed(() => {
     }
     types[item.monsterName]++;
   });
-
   return Object.entries(types)
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
 });
 
 const totalPendingQuantity = computed(() => {
-  return props.pendingItems.reduce(
-    (total, item) => total + (item.quantity || 1),
-    0
-  );
+  return props.pendingItems.reduce((total, item) => total + (item.quantity || 1), 0);
 });
 
 const previewTotal = computed(() => {
@@ -1431,10 +1545,7 @@ const todaysSales = computed(() => {
 
 const allTimeSales = computed(() => {
   return {
-    count: props.soldItems.reduce(
-      (total, item) => total + (item.quantity || 1),
-      0
-    ),
+    count: props.soldItems.reduce((total, item) => total + (item.quantity || 1), 0),
     total: props.soldItems.reduce(
       (total, item) => total + item.soldPrice * (item.quantity || 1),
       0
@@ -1464,28 +1575,81 @@ const filteredSoldItems = computed(() => {
   return filtered.sort((a, b) => new Date(b.dateSold) - new Date(a.dateSold));
 });
 
+// Watchers
 watch(
   () => props.initialSelections,
   (newSelections) => {
     if (newSelections && newSelections.length > 0) {
-      selectedItems.value = [
-        ...new Set([...selectedItems.value, ...newSelections]),
-      ];
+      selectedItems.value = [...new Set([...selectedItems.value, ...newSelections])];
     }
   },
   { immediate: true }
 );
 
+// Methods
 const formatPriceForDisplay = (price) => {
   if (!price && price !== 0) return "0";
   return new Intl.NumberFormat("fr-FR").format(price);
 };
 
+const formatKamas = (amount) => {
+  if (amount === 0) return "0 ⚡";
+  return new Intl.NumberFormat("fr-FR").format(amount) + " ⚡";
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const today = now.toDateString();
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString();
+
+  if (date.toDateString() === today) {
+    return "Today " + date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  } else if (date.toDateString() === yesterday) {
+    return "Yesterday " + date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  } else {
+    return (
+      date.toLocaleDateString("fr-FR") +
+      " " +
+      date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    );
+  }
+};
+
+const getDaysListed = (dateAdded) => {
+  const now = new Date();
+  const added = new Date(dateAdded);
+  const diffTime = Math.abs(now - added);
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+const getSmartPrice = (monster) => {
+  const key = getPriceHistoryKey();
+  const priceHistory = JSON.parse(localStorage.getItem(key) || "{}");
+  if (!priceHistory[monster.id] || !priceHistory[monster.id].prices.length) {
+    return null;
+  }
+  const prices = priceHistory[monster.id].prices;
+  const lastPrice = prices[prices.length - 1].price;
+  if (prices.length >= 3) {
+    const recentPrices = prices.slice(-3).map((p) => p.price);
+    return Math.round(recentPrices.reduce((a, b) => a + b, 0) / recentPrices.length);
+  }
+  return lastPrice;
+};
+
+const updateSlowMovingThreshold = () => {
+  localStorage.setItem(
+    `slow_moving_threshold_${props.server.id}_${props.character.id}`,
+    slowMovingThreshold.value.toString()
+  );
+};
+
+// Price editing
 const startEditingPrice = (item) => {
   editingPrice.value[item.id] = true;
   tempPrices.value[item.id] = item.price || 0;
   priceErrors.value[item.id] = null;
-
   nextTick(() => {
     const input = priceInputRefs.value[item.id];
     if (input) {
@@ -1502,11 +1666,11 @@ const validatePriceInput = (item) => {
     return false;
   }
   if (isNaN(value) || value < 0) {
-    priceErrors.value[item.id] = "Price must be a positive number";
+    priceErrors.value[item.id] = "Must be positive";
     return false;
   }
   if (value > 999999999) {
-    priceErrors.value[item.id] = "Price is too high";
+    priceErrors.value[item.id] = "Price too high";
     return false;
   }
   priceErrors.value[item.id] = null;
@@ -1514,22 +1678,16 @@ const validatePriceInput = (item) => {
 };
 
 const finishEditingPrice = (item) => {
-  if (!validatePriceInput(item)) {
-    return;
-  }
-
+  if (!validatePriceInput(item)) return;
   const newPrice = Math.floor(tempPrices.value[item.id] || 0);
   const oldPrice = item.price;
-
   if (newPrice !== oldPrice) {
-    const updatedItem = { ...item, price: newPrice };
-    emit("update-prices", [updatedItem]);
+    emit("update-prices", [{ ...item, price: newPrice }]);
     priceChanged.value[item.id] = true;
     setTimeout(() => {
       priceChanged.value[item.id] = false;
     }, 2000);
   }
-
   editingPrice.value[item.id] = false;
   tempPrices.value[item.id] = null;
   priceErrors.value[item.id] = null;
@@ -1541,53 +1699,43 @@ const cancelEditingPrice = (item) => {
   priceErrors.value[item.id] = null;
 };
 
-const savePriceHistory = (monsterId, monsterName, price) => {
-  const key = getPriceHistoryKey();
-  const existing = JSON.parse(localStorage.getItem(key) || "{}");
-  if (!existing[monsterId]) {
-    existing[monsterId] = { name: monsterName, prices: [] };
+// Clipboard
+const copyPriceToClipboard = async (price) => {
+  try {
+    await navigator.clipboard.writeText(String(price));
+    return true;
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = String(price);
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      return true;
+    } catch {
+      return false;
+    } finally {
+      document.body.removeChild(ta);
+    }
   }
-  existing[monsterId].prices.push({
-    price: price,
-    date: new Date().toISOString(),
-  });
-  existing[monsterId].prices = existing[monsterId].prices.slice(-10);
-  localStorage.setItem(key, JSON.stringify(existing));
 };
 
-const getSmartPrice = (monster) => {
-  const key = getPriceHistoryKey();
-  const priceHistory = JSON.parse(localStorage.getItem(key) || "{}");
-  if (!priceHistory[monster.id] || !priceHistory[monster.id].prices.length) {
-    return null;
+const handleCopyItemPrice = async (item) => {
+  const price = editingPrice.value[item.id]
+    ? tempPrices.value[item.id] || 0
+    : item.price || 0;
+  const ok = await copyPriceToClipboard(price);
+  if (ok) {
+    copiedPrice.value[item.id] = true;
+    setTimeout(() => {
+      copiedPrice.value[item.id] = false;
+    }, 1200);
   }
-  const prices = priceHistory[monster.id].prices;
-  const lastPrice = prices[prices.length - 1].price;
-  if (prices.length >= 3) {
-    const recentPrices = prices.slice(-3).map((p) => p.price);
-    const average = Math.round(
-      recentPrices.reduce((a, b) => a + b, 0) / recentPrices.length
-    );
-    return average;
-  }
-  return lastPrice;
 };
 
-const getDaysListed = (dateAdded) => {
-  const now = new Date();
-  const added = new Date(dateAdded);
-  const diffTime = Math.abs(now - added);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-};
-
-const updateSlowMovingThreshold = () => {
-  localStorage.setItem(
-    `slow_moving_threshold_${props.server.id}_${props.character.id}`,
-    slowMovingThreshold.value.toString()
-  );
-};
-
+// Selection
 const toggleItemSelection = (itemId) => {
   const index = selectedItems.value.indexOf(itemId);
   if (index > -1) {
@@ -1601,9 +1749,7 @@ const toggleSelectAll = () => {
   if (isAllSelected.value) {
     selectedItems.value = [];
   } else {
-    selectedItems.value = filteredAndSortedPendingItems.value.map(
-      (item) => item.id
-    );
+    selectedItems.value = filteredAndSortedPendingItems.value.map((item) => item.id);
   }
 };
 
@@ -1611,62 +1757,9 @@ const clearSelection = () => {
   selectedItems.value = [];
 };
 
-const applyBulkPriceChange = () => {
-  if (!bulkPriceValue.value || bulkPriceValue.value <= 0) return;
-
-  const itemsToUpdate = [];
-  selectedItems.value.forEach((itemId) => {
-    const item = props.pendingItems.find((i) => i.id === itemId);
-    if (!item) return;
-
-    let newPrice = item.price;
-    switch (bulkPriceAction.value) {
-      case "set":
-        newPrice = bulkPriceValue.value;
-        break;
-      case "increase":
-        newPrice = (item.price || 0) + bulkPriceValue.value;
-        break;
-      case "decrease":
-        newPrice = Math.max(0, (item.price || 0) - bulkPriceValue.value);
-        break;
-      case "multiply":
-        newPrice = Math.round((item.price || 0) * bulkPriceValue.value);
-        break;
-    }
-    itemsToUpdate.push({ ...item, price: newPrice });
-  });
-
-  emit("update-prices", itemsToUpdate);
-  bulkPriceValue.value = null;
-};
-
 const selectAllSlowMovingItems = () => {
   const slowMovingIds = slowMovingItems.value.map((item) => item.id);
-  selectedItems.value = [
-    ...new Set([...selectedItems.value, ...slowMovingIds]),
-  ];
-
-  nextTick(() => {
-    const pendingSection = document.querySelector(
-      '.bg-gray-800.border.border-gray-700.rounded-lg:has(h3:contains("Items for Sale"))'
-    );
-    if (pendingSection) {
-      pendingSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  });
-};
-
-const bulkMarkAsSold = () => {
-  if (!confirm(`Mark ${selectedItems.value.length} items as sold?`)) return;
-  emit("bulk-sell", selectedItems.value);
-  selectedItems.value = [];
-};
-
-const bulkDelete = () => {
-  if (!confirm(`Delete ${selectedItems.value.length} selected items?`)) return;
-  emit("bulk-delete", selectedItems.value);
-  selectedItems.value = [];
+  selectedItems.value = [...new Set([...selectedItems.value, ...slowMovingIds])];
 };
 
 const selectByPriceRange = () => {
@@ -1678,14 +1771,12 @@ const selectByPriceRange = () => {
 const applyPriceRangeSelection = () => {
   const min = priceRangeMin.value || 0;
   const max = priceRangeMax.value || 999999;
-
   selectedItems.value = filteredAndSortedPendingItems.value
     .filter((item) => {
       const price = item.price || 0;
       return price >= min && price <= max;
     })
     .map((item) => item.id);
-
   showPriceRangeModal.value = false;
 };
 
@@ -1707,14 +1798,55 @@ const applyMonsterTypeSelection = () => {
   selectedItems.value = filteredAndSortedPendingItems.value
     .filter((item) => selectedMonsterTypes.value.includes(item.monsterName))
     .map((item) => item.id);
-
   showMonsterTypeModal.value = false;
 };
 
+// Bulk actions
+const applyBulkPriceChange = () => {
+  if (!bulkPriceValue.value || bulkPriceValue.value <= 0) return;
+  const itemsToUpdate = [];
+  selectedItems.value.forEach((itemId) => {
+    const item = props.pendingItems.find((i) => i.id === itemId);
+    if (!item) return;
+    let newPrice = item.price;
+    switch (bulkPriceAction.value) {
+      case "set":
+        newPrice = bulkPriceValue.value;
+        break;
+      case "increase":
+        newPrice = (item.price || 0) + bulkPriceValue.value;
+        break;
+      case "decrease":
+        newPrice = Math.max(0, (item.price || 0) - bulkPriceValue.value);
+        break;
+      case "multiply":
+        newPrice = Math.round((item.price || 0) * bulkPriceValue.value);
+        break;
+    }
+    itemsToUpdate.push({ ...item, price: newPrice });
+  });
+  emit("update-prices", itemsToUpdate);
+  bulkPriceValue.value = null;
+};
+
+const bulkMarkAsSold = () => {
+  if (!confirm(`Mark ${selectedItems.value.length} items as sold?`)) return;
+  emit("bulk-sell", selectedItems.value);
+  selectedItems.value = [];
+};
+
+const bulkDelete = () => {
+  if (!confirm(`Delete ${selectedItems.value.length} selected items?`)) return;
+  emit("bulk-delete", selectedItems.value);
+  selectedItems.value = [];
+};
+
+// Sorting
 const toggleSortDirection = () => {
   sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
 };
 
+// Suggestions
 const onMonsterNameInput = () => {
   showSuggestions.value = true;
   selectedSuggestionIndex.value = -1;
@@ -1728,7 +1860,6 @@ const onInputBlur = () => {
 
 const handleKeydown = (event) => {
   if (!showSuggestions.value || filteredSuggestions.value.length === 0) return;
-
   switch (event.key) {
     case "ArrowDown":
       event.preventDefault();
@@ -1739,17 +1870,12 @@ const handleKeydown = (event) => {
       break;
     case "ArrowUp":
       event.preventDefault();
-      selectedSuggestionIndex.value = Math.max(
-        selectedSuggestionIndex.value - 1,
-        -1
-      );
+      selectedSuggestionIndex.value = Math.max(selectedSuggestionIndex.value - 1, -1);
       break;
     case "Enter":
       event.preventDefault();
       if (selectedSuggestionIndex.value >= 0) {
-        selectSuggestion(
-          filteredSuggestions.value[selectedSuggestionIndex.value]
-        );
+        selectSuggestion(filteredSuggestions.value[selectedSuggestionIndex.value]);
       }
       break;
     case "Escape":
@@ -1769,15 +1895,9 @@ const selectSuggestion = (suggestion) => {
   }
   showSuggestions.value = false;
   selectedSuggestionIndex.value = -1;
-  nextTick(() => {
-    const nextInput =
-      newItem.value.quantity === 1
-        ? document.querySelector('input[placeholder="1"]')
-        : document.querySelector('input[placeholder="0"]');
-    if (nextInput) nextInput.focus();
-  });
 };
 
+// CRUD
 const addItem = () => {
   if (!canAddItem.value) return;
   emit("add-item", { ...newItem.value });
@@ -1805,99 +1925,32 @@ const removeItem = (itemId) => {
 };
 
 const clearHistory = () => {
-  if (
-    confirm(
-      "Are you sure you want to clear all sales history? This cannot be undone."
-    )
-  ) {
+  if (confirm("Clear all sales history? This cannot be undone.")) {
     emit("clear-history");
-  }
-};
-
-const formatKamas = (amount) => {
-  if (amount === 0) return "0 ⚡";
-  return new Intl.NumberFormat("fr-FR").format(amount) + " ⚡";
-};
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const today = now.toDateString();
-  const yesterday = new Date(
-    now.getTime() - 24 * 60 * 60 * 1000
-  ).toDateString();
-
-  if (date.toDateString() === today) {
-    return (
-      "Today " +
-      date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-    );
-  } else if (date.toDateString() === yesterday) {
-    return (
-      "Yesterday " +
-      date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-    );
-  } else {
-    return (
-      date.toLocaleDateString("fr-FR") +
-      " " +
-      date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
-    );
-  }
-};
-
-const copyPriceToClipboard = async (price) => {
-  try {
-    await navigator.clipboard.writeText(String(price));
-    return true;
-  } catch (e) {
-    const ta = document.createElement("textarea");
-    ta.value = String(price);
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      document.execCommand("copy");
-      return true;
-    } catch {
-      return false;
-    } finally {
-      document.body.removeChild(ta);
-    }
-  }
-};
-
-const handleCopyItemPrice = async (item) => {
-  const price = editingPrice.value[item.id]
-    ? tempPrices.value[item.id] || 0
-    : item.price || 0;
-
-  const ok = await copyPriceToClipboard(price);
-  if (ok) {
-    copiedPrice.value[item.id] = true;
-    setTimeout(() => {
-      copiedPrice.value[item.id] = false;
-    }, 1200);
   }
 };
 </script>
 
 <style scoped>
-.hover\:bg-gray-750:hover {
-  background-color: #374151;
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-input[type="number"] {
-  -moz-appearance: textfield; /* For Firefox */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
 }
 
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* Animations */
 @keyframes pulse {
   0%,
   100% {
@@ -1922,13 +1975,10 @@ input[type="number"] {
   }
   40%,
   43% {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
   }
   70% {
-    transform: translateY(-4px);
-  }
-  90% {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
   }
 }
 
@@ -1936,10 +1986,45 @@ input[type="number"] {
   animation: bounce 1.5s infinite;
 }
 
-.drop-shadow-glow {
-  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));
+/* Transitions */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
 }
 
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from > div,
+.modal-leave-to > div {
+  transform: scale(0.95);
+}
+
+/* Suggestions */
 .suggestions-popover {
   z-index: 9999 !important;
 }
@@ -1950,8 +2035,14 @@ input[type="number"] {
   z-index: 10;
 }
 
-.slow-moving-card {
-  position: relative;
-  z-index: 1;
+/* Number input */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 </style>

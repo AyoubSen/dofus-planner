@@ -129,9 +129,8 @@
                     'min-w-[3rem] h-9 px-3 rounded-xl flex items-center justify-center font-bold text-lg border transition-all duration-300',
                     monsterCount === 0
                       ? 'bg-red-500/10 border-red-500/20 text-red-400'
-                      : monsterCount === 1
-                      ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
-                      : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+                      :
+ 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
                   ]"
                 >
                   {{ monsterCount }}
@@ -166,8 +165,6 @@
                     'h-full rounded-full transition-all duration-500',
                     monsterCount === 0
                       ? 'w-0'
-                      : monsterCount === 1
-                      ? 'w-1/2 bg-gradient-to-r from-yellow-500 to-yellow-400'
                       : 'w-full bg-gradient-to-r from-emerald-500 to-teal-400',
                   ]"
                 ></div>
