@@ -1,16 +1,38 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+    class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden"
   >
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <!-- Grid pattern -->
+      <div
+        class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"
+      ></div>
+
+      <!-- Floating orbs -->
+      <div
+        class="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse-slow"
+      ></div>
+      <div
+        class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow animation-delay-2000"
+      ></div>
+      <div
+        class="absolute top-1/2 right-1/3 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow animation-delay-4000"
+      ></div>
+    </div>
+
     <!-- Hero Section -->
-    <div class="max-w-7xl mx-auto px-8 pt-16 pb-12">
-      <div class="text-center mb-16">
-        <div class="inline-flex items-center gap-3 mb-6">
+    <div class="relative z-10 max-w-7xl mx-auto px-8 pt-20 pb-16">
+      <div class="text-center mb-20">
+        <!-- Logo and Title -->
+        <div
+          class="inline-flex items-center gap-4 mb-8 animate-fade-in-down"
+        >
           <div
-            class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center"
+            class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/25 animate-float"
           >
             <svg
-              class="w-6 h-6 text-white"
+              class="w-8 h-8 text-white"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -20,35 +42,68 @@
             </svg>
           </div>
           <h1
-            class="text-6xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent"
+            class="text-7xl font-black bg-gradient-to-r from-orange-400 via-red-500 to-orange-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient"
           >
             Dofus Stuff
           </h1>
         </div>
-        <p class="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-          Your ultimate companion for mastering the World of Twelve. Track
-          archimonstres, manage your gear, and optimize your Dofus adventure.
+
+        <!-- Subtitle with typing effect style -->
+        <p
+          class="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed animate-fade-in opacity-0 animation-delay-300"
+        >
+          Your ultimate companion for mastering the
+          <span class="text-orange-400 font-semibold">World of Twelve</span>.
+          Track archimonstres, manage your gear, and optimize your Dofus
+          adventure.
         </p>
+
+        <!-- CTA hint -->
+        <div
+          class="mt-8 flex items-center justify-center gap-2 text-gray-500 animate-fade-in opacity-0 animation-delay-500"
+        >
+          <span class="text-sm">Explore our tools below</span>
+          <svg
+            class="w-4 h-4 animate-bounce"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            />
+          </svg>
+        </div>
       </div>
 
       <!-- Feature Cards Grid -->
-      <div class="grid md:grid-cols-3 gap-8 max-w-8xl mx-auto">
+      <div
+        class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-8xl mx-auto"
+      >
         <!-- Archimonstres Card -->
         <NuxtLink
           to="/archimonstres"
-          class="group relative overflow-hidden bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-orange-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-orange-500/10"
+          class="group relative overflow-hidden bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 hover:border-orange-500/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-orange-500/20 animate-fade-in-up opacity-0 animation-delay-100"
         >
+          <!-- Glow effect -->
           <div
-            class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            class="absolute -inset-px bg-gradient-to-r from-orange-500 to-red-600 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"
+          ></div>
+
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
           ></div>
 
           <div class="relative z-10">
-            <div class="flex items-start justify-between mb-6">
+            <div class="flex items-start justify-between mb-5">
               <div
-                class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg"
+                class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-orange-500/25"
               >
                 <svg
-                  class="w-8 h-8 text-white"
+                  class="w-7 h-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -63,10 +118,10 @@
               </div>
 
               <div
-                class="text-gray-500 group-hover:text-orange-400 transition-colors duration-300"
+                class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-orange-400 group-hover:bg-orange-500/20 transition-all duration-300"
               >
                 <svg
-                  class="w-6 h-6"
+                  class="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -75,68 +130,42 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    d="M9 5l7 7-7 7"
                   />
                 </svg>
               </div>
             </div>
 
             <h2
-              class="text-3xl font-bold text-gray-100 mb-4 group-hover:text-orange-400 transition-colors duration-300"
+              class="text-2xl font-bold text-gray-100 mb-3 group-hover:text-orange-400 transition-colors duration-300"
             >
               Archimonstres
             </h2>
 
-            <p class="text-gray-400 mb-6 leading-relaxed">
-              Master the hunt with comprehensive tracking tools. Manage multiple
-              servers, characters, and monitor your archimonstre collection
-              progress.
+            <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-2">
+              Master the hunt with comprehensive tracking tools for the Dofus
+              Ocre quest.
             </p>
 
-            <!-- Updated badges based on actual functionality -->
-            <div class="flex flex-wrap gap-2">
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-1.5 mb-4">
               <span
-                class="px-3 py-1 bg-orange-500/10 text-orange-300 text-sm rounded-full border border-orange-500/30"
+                class="px-2.5 py-1 bg-orange-500/10 text-orange-300 text-xs font-medium rounded-full border border-orange-500/20"
               >
-                Dofus Ocre Quest
+                Ocre Quest
               </span>
               <span
-                class="px-3 py-1 bg-green-500/10 text-green-300 text-sm rounded-full border border-green-500/30"
+                class="px-2.5 py-1 bg-green-500/10 text-green-300 text-xs font-medium rounded-full border border-green-500/20"
               >
-                Sell-Only Mode
-              </span>
-              <span
-                class="px-3 py-1 bg-blue-500/10 text-blue-300 text-sm rounded-full border border-blue-500/30"
-              >
-                Multi-Character
-              </span>
-              <span
-                class="px-3 py-1 bg-purple-500/10 text-purple-300 text-sm rounded-full border border-purple-500/30"
-              >
-                Progress Tracking
+                Multi-Char
               </span>
             </div>
 
-            <!-- Feature highlights -->
-            <div class="mt-4 pt-4 border-t border-gray-700/50">
-              <div class="grid grid-cols-2 gap-4 text-sm">
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-orange-400 rounded-full"></div>
-                  <span>Server Management</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span>Monster Grid View</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  <span>Character Profiles</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
-                  <span>Local Storage</span>
-                </div>
-              </div>
+            <!-- Progress bar decoration -->
+            <div class="h-1 bg-gray-700/50 rounded-full overflow-hidden">
+              <div
+                class="h-full w-0 group-hover:w-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-700 ease-out"
+              ></div>
             </div>
           </div>
         </NuxtLink>
@@ -144,19 +173,23 @@
         <!-- Items Card -->
         <NuxtLink
           to="/items"
-          class="group relative overflow-hidden bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-blue-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/10"
+          class="group relative overflow-hidden bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 hover:border-blue-500/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20 animate-fade-in-up opacity-0 animation-delay-200"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            class="absolute -inset-px bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"
+          ></div>
+
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
           ></div>
 
           <div class="relative z-10">
-            <div class="flex items-start justify-between mb-6">
+            <div class="flex items-start justify-between mb-5">
               <div
-                class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg"
+                class="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-blue-500/25"
               >
                 <svg
-                  class="w-8 h-8 text-white"
+                  class="w-7 h-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -171,10 +204,10 @@
               </div>
 
               <div
-                class="text-gray-500 group-hover:text-blue-400 transition-colors duration-300"
+                class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-blue-400 group-hover:bg-blue-500/20 transition-all duration-300"
               >
                 <svg
-                  class="w-6 h-6"
+                  class="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -183,60 +216,40 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    d="M9 5l7 7-7 7"
                   />
                 </svg>
               </div>
             </div>
 
             <h2
-              class="text-3xl font-bold text-gray-100 mb-4 group-hover:text-blue-400 transition-colors duration-300"
+              class="text-2xl font-bold text-gray-100 mb-3 group-hover:text-blue-400 transition-colors duration-300"
             >
               Items & Gear
             </h2>
 
-            <p class="text-gray-400 mb-6 leading-relaxed">
-              Optimize your equipment and stay ahead of the meta. Comprehensive
-              item database with advanced filtering and comparison tools.
+            <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-2">
+              Comprehensive item database with advanced filtering and comparison
+              tools.
             </p>
 
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-1.5 mb-4">
               <span
-                class="px-3 py-1 bg-blue-500/10 text-blue-300 text-sm rounded-full border border-blue-500/30"
+                class="px-2.5 py-1 bg-blue-500/10 text-blue-300 text-xs font-medium rounded-full border border-blue-500/20"
               >
-                Item Database
+                Database
               </span>
               <span
-                class="px-3 py-1 bg-purple-500/10 text-purple-300 text-sm rounded-full border border-purple-500/30"
+                class="px-2.5 py-1 bg-purple-500/10 text-purple-300 text-xs font-medium rounded-full border border-purple-500/20"
               >
-                Meta Analysis
-              </span>
-              <span
-                class="px-3 py-1 bg-cyan-500/10 text-cyan-300 text-sm rounded-full border border-cyan-500/30"
-              >
-                Build Optimizer
+                Optimizer
               </span>
             </div>
 
-            <div class="mt-4 pt-4 border-t border-gray-700/50">
-              <div class="grid grid-cols-2 gap-4 text-sm">
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  <span>Equipment Sets</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
-                  <span>Stat Comparison</span>
-                </div>
-                <!-- <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                  <span>Price Tracking</span>
-                </div> -->
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-indigo-400 rounded-full"></div>
-                  <span>Class Builds</span>
-                </div>
-              </div>
+            <div class="h-1 bg-gray-700/50 rounded-full overflow-hidden">
+              <div
+                class="h-full w-0 group-hover:w-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-700 ease-out"
+              ></div>
             </div>
           </div>
         </NuxtLink>
@@ -244,20 +257,23 @@
         <!-- Crafting Card -->
         <NuxtLink
           to="/crafting"
-          class="group relative overflow-hidden bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-emerald-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/10"
+          class="group relative overflow-hidden bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 hover:border-emerald-500/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/20 animate-fade-in-up opacity-0 animation-delay-300"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            class="absolute -inset-px bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"
+          ></div>
+
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
           ></div>
 
           <div class="relative z-10">
-            <div class="flex items-start justify-between mb-6">
+            <div class="flex items-start justify-between mb-5">
               <div
-                class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg"
+                class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-emerald-500/25"
               >
-                <!-- Better crafting icon -->
                 <svg
-                  class="w-8 h-8 text-white"
+                  class="w-7 h-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -269,21 +285,13 @@
                     d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
                   />
                 </svg>
-                <!-- Alternative hammer/anvil icon -->
-                <!-- <svg
-          class="w-8 h-8 text-white"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path d="M18.5 3.5L12 10L5.5 3.5L2 7L8.5 13.5L7 15L5.5 13.5L2 17L5.5 20.5L9 17L7.5 15.5L14 9L20.5 15.5L22 14L18.5 10.5L22 7L18.5 3.5Z"/>
-        </svg> -->
               </div>
 
               <div
-                class="text-gray-500 group-hover:text-emerald-400 transition-colors duration-300"
+                class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-emerald-400 group-hover:bg-emerald-500/20 transition-all duration-300"
               >
                 <svg
-                  class="w-6 h-6"
+                  class="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -292,187 +300,208 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    d="M9 5l7 7-7 7"
                   />
                 </svg>
               </div>
             </div>
 
             <h2
-              class="text-3xl font-bold text-gray-100 mb-4 group-hover:text-emerald-400 transition-colors duration-300"
+              class="text-2xl font-bold text-gray-100 mb-3 group-hover:text-emerald-400 transition-colors duration-300"
             >
-              Crafted Sales Tracker
+              Sales Tracker
             </h2>
 
-            <p class="text-gray-400 mb-6 leading-relaxed">
-              Monitor your crafted equipment sales with precision. Track custom
-              stats, sale prices, and profit margins to maximize your crafting
-              business.
+            <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-2">
+              Track crafted equipment sales, custom stats, and profit margins.
             </p>
 
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-1.5 mb-4">
               <span
-                class="px-3 py-1 bg-emerald-500/10 text-emerald-300 text-sm rounded-full border border-emerald-500/30"
+                class="px-2.5 py-1 bg-emerald-500/10 text-emerald-300 text-xs font-medium rounded-full border border-emerald-500/20"
               >
-                Sales Tracking
+                Profits
               </span>
               <span
-                class="px-3 py-1 bg-teal-500/10 text-teal-300 text-sm rounded-full border border-teal-500/30"
+                class="px-2.5 py-1 bg-teal-500/10 text-teal-300 text-xs font-medium rounded-full border border-teal-500/20"
               >
-                Custom Stats
-              </span>
-              <span
-                class="px-3 py-1 bg-green-500/10 text-green-300 text-sm rounded-full border border-green-500/30"
-              >
-                Profit Analysis
+                Analytics
               </span>
             </div>
 
-            <div class="mt-4 pt-4 border-t border-gray-700/50">
-              <div class="grid grid-cols-2 gap-4 text-sm">
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                  <span>Item Search</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-teal-400 rounded-full"></div>
-                  <span>Stat Customization</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span>Revenue Reports</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-400">
-                  <div class="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                  <span>Multi-Character</span>
-                </div>
-              </div>
+            <div class="h-1 bg-gray-700/50 rounded-full overflow-hidden">
+              <div
+                class="h-full w-0 group-hover:w-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-700 ease-out"
+              ></div>
             </div>
           </div>
         </NuxtLink>
 
         <!-- Succès Card -->
         <NuxtLink
-  to="/succes"
-  class="group relative overflow-hidden bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 hover:border-yellow-500/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-yellow-500/10"
->
-  <div
-    class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-orange-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-  ></div>
-
-  <div class="relative z-10">
-    <div class="flex items-start justify-between mb-6">
-      <div
-        class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg"
-      >
-        <svg
-          class="w-8 h-8 text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+          to="/succes"
+          class="group relative overflow-hidden bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 hover:border-yellow-500/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-yellow-500/20 animate-fade-in-up opacity-0 animation-delay-400"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-          />
-        </svg>
-      </div>
+          <div
+            class="absolute -inset-px bg-gradient-to-r from-yellow-500 to-orange-600 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"
+          ></div>
 
-      <div
-        class="text-gray-500 group-hover:text-yellow-400 transition-colors duration-300"
-      >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M17 8l4 4m0 0l-4 4m4-4H3"
-          />
-        </svg>
-      </div>
-    </div>
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-orange-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
+          ></div>
 
-    <h2
-      class="text-3xl font-bold text-gray-100 mb-4 group-hover:text-yellow-400 transition-colors duration-300"
-    >
-      Succès
-    </h2>
+          <div class="relative z-10">
+            <div class="flex items-start justify-between mb-5">
+              <div
+                class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-yellow-500/25"
+              >
+                <svg
+                  class="w-7 h-7 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                  />
+                </svg>
+              </div>
 
-    <p class="text-gray-400 mb-6 leading-relaxed">
-      Browse the complete achievement database. Track your progress,
-      discover rewards, and plan your next accomplishments.
-    </p>
+              <div
+                class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-yellow-400 group-hover:bg-yellow-500/20 transition-all duration-300"
+              >
+                <svg
+                  class="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </div>
 
-    <div class="flex flex-wrap gap-2">
-      <span
-        class="px-3 py-1 bg-yellow-500/10 text-yellow-300 text-sm rounded-full border border-yellow-500/30"
-      >
-        Achievement Browser
-      </span>
-      <span
-        class="px-3 py-1 bg-orange-500/10 text-orange-300 text-sm rounded-full border border-orange-500/30"
-      >
-        Category Filters
-      </span>
-      <span
-        class="px-3 py-1 bg-amber-500/10 text-amber-300 text-sm rounded-full border border-amber-500/30"
-      >
-        Reward Info
-      </span>
-    </div>
+            <h2
+              class="text-2xl font-bold text-gray-100 mb-3 group-hover:text-yellow-400 transition-colors duration-300"
+            >
+              Succès
+            </h2>
 
-    <div class="mt-4 pt-4 border-t border-gray-700/50">
-      <div class="grid grid-cols-2 gap-4 text-sm">
-        <div class="flex items-center gap-2 text-gray-400">
-          <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
-          <span>Search & Filter</span>
-        </div>
-        <div class="flex items-center gap-2 text-gray-400">
-          <div class="w-2 h-2 bg-orange-400 rounded-full"></div>
-          <span>Point Ranges</span>
-        </div>
-        <div class="flex items-center gap-2 text-gray-400">
-          <div class="w-2 h-2 bg-amber-400 rounded-full"></div>
-          <span>Categories</span>
-        </div>
-        <div class="flex items-center gap-2 text-gray-400">
-          <div class="w-2 h-2 bg-red-400 rounded-full"></div>
-          <span>Detailed View</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</NuxtLink>
+            <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-2">
+              Browse achievements, track progress, and discover rewards.
+            </p>
+
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              <span
+                class="px-2.5 py-1 bg-yellow-500/10 text-yellow-300 text-xs font-medium rounded-full border border-yellow-500/20"
+              >
+                Browser
+              </span>
+              <span
+                class="px-2.5 py-1 bg-orange-500/10 text-orange-300 text-xs font-medium rounded-full border border-orange-500/20"
+              >
+                Rewards
+              </span>
+            </div>
+
+            <div class="h-1 bg-gray-700/50 rounded-full overflow-hidden">
+              <div
+                class="h-full w-0 group-hover:w-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-700 ease-out"
+              ></div>
+            </div>
+          </div>
+        </NuxtLink>
       </div>
 
       <!-- Stats Section -->
       <div
-        class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
+        class="mt-24 relative animate-fade-in opacity-0 animation-delay-600"
       >
-        <div class="text-center">
-          <div class="text-3xl font-bold text-orange-400 mb-2">286</div>
-          <div class="text-gray-400 text-sm">Archimonstres</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-blue-400 mb-2">1000+</div>
-          <div class="text-gray-400 text-sm">Items Tracked</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-green-400 mb-2">100%</div>
-          <div class="text-gray-400 text-sm">Local</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-purple-400 mb-2">24/7</div>
-          <div class="text-gray-400 text-sm">Tracking</div>
+        <!-- Stats background decoration -->
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-transparent via-gray-800/50 to-transparent rounded-3xl"
+        ></div>
+
+        <div
+          class="relative grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto py-12 px-8"
+        >
+          <div class="text-center group">
+            <div
+              class="text-4xl font-black bg-gradient-to-b from-orange-400 to-orange-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300"
+            >
+              286
+            </div>
+            <div class="text-gray-500 text-sm font-medium tracking-wide">
+              Archimonstres
+            </div>
+          </div>
+          <div class="text-center group">
+            <div
+              class="text-4xl font-black bg-gradient-to-b from-blue-400 to-blue-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300"
+            >
+              1000+
+            </div>
+            <div class="text-gray-500 text-sm font-medium tracking-wide">
+              Items Tracked
+            </div>
+          </div>
+          <div class="text-center group">
+            <div
+              class="text-4xl font-black bg-gradient-to-b from-emerald-400 to-emerald-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300"
+            >
+              100%
+            </div>
+            <div class="text-gray-500 text-sm font-medium tracking-wide">
+              Local Storage
+            </div>
+          </div>
+          <div class="text-center group">
+            <div
+              class="text-4xl font-black bg-gradient-to-b from-purple-400 to-purple-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300"
+            >
+              24/7
+            </div>
+            <div class="text-gray-500 text-sm font-medium tracking-wide">
+              Available
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- Footer -->
+      <footer
+        class="mt-24 pb-8 text-center animate-fade-in opacity-0 animation-delay-700"
+      >
+        <div class="flex items-center justify-center gap-2 text-gray-600 mb-4">
+          <div
+            class="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-3 h-3 text-white"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"
+              />
+            </svg>
+          </div>
+          <span class="font-semibold text-gray-400">Dofus Stuff</span>
+        </div>
+        <p class="text-gray-600 text-sm">
+          Made with
+          <span class="text-red-500">♥</span>
+          for the Dofus community
+        </p>
+      </footer>
     </div>
   </div>
 </template>
@@ -491,12 +520,139 @@ useHead({
 </script>
 
 <style scoped>
-.backdrop-blur-sm {
-  backdrop-filter: blur(4px);
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
 }
 
 .bg-clip-text {
   -webkit-background-clip: text;
   background-clip: text;
+}
+
+/* Animations */
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.6s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-gradient {
+  animation: gradient 3s ease infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+/* Animation delays */
+.animation-delay-100 {
+  animation-delay: 100ms;
+}
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+.animation-delay-700 {
+  animation-delay: 700ms;
+}
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
+.animation-delay-4000 {
+  animation-delay: 4000ms;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

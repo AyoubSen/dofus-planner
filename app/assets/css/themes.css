@@ -1,0 +1,47 @@
+/* assets/css/themes.css */
+
+/* Default theme */
+:root,
+[data-theme="default"] {
+  --color-bg-primary: theme('colors.gray.900');
+  --color-bg-secondary: theme('colors.gray.800');
+  --color-bg-hover: theme('colors.gray.700');
+  --color-border: theme('colors.gray.700');
+  --color-border-hover: theme('colors.gray.600');
+  --color-text-primary: theme('colors.gray.100');
+  --color-text-secondary: theme('colors.gray.400');
+  --color-accent: theme('colors.blue.500');
+  --color-accent-hover: theme('colors.blue.600');
+  --color-accent-glow: theme('colors.blue.500/50');
+  --border-radius: 0.75rem;
+}
+
+/* Cyberpunk theme */
+[data-theme="cyberpunk"] {
+  --color-bg-primary: theme('colors.black');
+  --color-bg-secondary: rgba(0, 0, 0, 0.8);
+  --color-bg-hover: theme('colors.gray.900');
+  --color-border: theme('colors.cyan.500/30');
+  --color-border-hover: theme('colors.cyan.400/50');
+  --color-text-primary: theme('colors.cyan.400');
+  --color-text-secondary: theme('colors.gray.500');
+  --color-accent: theme('colors.cyan.400');
+  --color-accent-hover: theme('colors.cyan.300');
+  --color-accent-glow: theme('colors.cyan.400/50');
+  --border-radius: 0;
+}
+
+/* Medieval theme */
+[data-theme="medieval"] {
+  --color-bg-primary: theme('colors.amber.950');
+  --color-bg-secondary: theme('colors.amber.900');
+  --color-bg-hover: theme('colors.amber.800');
+  --color-border: theme('colors.amber.700');
+  --color-border-hover: theme('colors.amber.600');
+  --color-text-primary: theme('colors.amber.100');
+  --color-text-secondary: theme('colors.amber.300');
+  --color-accent: theme('colors.amber.500');
+  --color-accent-hover: theme('colors.amber.400');
+  --color-accent-glow: theme('colors.amber.500/50');
+  --border-radius: 0.25rem;
+}
