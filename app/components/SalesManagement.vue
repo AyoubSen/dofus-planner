@@ -159,7 +159,7 @@
 
     <!-- Add New Item Form -->
     <div
-      class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50 backdrop-blur-sm"
+      class="relative rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50 backdrop-blur-sm"
     >
       <div
         class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5"
