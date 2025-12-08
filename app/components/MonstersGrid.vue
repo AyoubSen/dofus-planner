@@ -1,116 +1,376 @@
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-2xl font-bold text-gray-100">
-          Monsters ({{ filteredMonsters.length }})
-        </h2>
-        <p class="text-sm text-gray-400">
-          Showing {{ displayedMonsters.length }} of
-          {{ filteredMonsters.length }} | Search: "{{ searchTerm }}" | Type:
-          {{ filterType || "All" }} | Étape: {{ filterEtape || "All" }}
-          {{
-            mode === "dofus-ocre" && filterCount
-              ? " | Count: " + getCountFilterLabel(filterCount)
-              : ""
-          }}
-        </p>
+  <div class="space-y-8">
+    <!-- Header & Filters -->
+    <div
+      class="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6"
+    >
+      <!-- Stats Row -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-red-600/20 rounded-xl flex items-center justify-center border border-orange-500/20"
+          >
+            <svg
+              class="w-6 h-6 text-orange-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-100">
+              Monsters
+              <span class="text-orange-400">({{ filteredMonsters.length }})</span>
+            </h2>
+            <p class="text-sm text-gray-400">
+              Showing {{ displayedMonsters.length }} of
+              {{ filteredMonsters.length }} monsters
+            </p>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div v-if="mode === 'dofus-ocre'" class="flex items-center gap-3">
+          <div
+            class="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl"
+          >
+            <span class="text-red-400 font-semibold">{{ countStats.zero }}</span>
+            <span class="text-red-400/60 text-sm ml-1">missing</span>
+          </div>
+          <div
+            class="px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl"
+          >
+            <span class="text-yellow-400 font-semibold">{{ countStats.one }}</span>
+            <span class="text-yellow-400/60 text-sm ml-1">have 1</span>
+          </div>
+          <div
+            class="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl"
+          >
+            <span class="text-emerald-400 font-semibold">{{ countStats.multiple }}</span>
+            <span class="text-emerald-400/60 text-sm ml-1">have 2+</span>
+          </div>
+        </div>
       </div>
-      <div class="flex gap-2">
-        <input
-          v-model="searchTerm"
-          type="text"
-          placeholder="Search monsters..."
-          class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        <select
-          v-model="filterType"
-          class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">All Types</option>
-          <option value="archimonstre">Archimonstres</option>
-          <option value="monstre">Monstres</option>
-        </select>
-        <select
-          v-model="filterEtape"
-          class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">All Étapes</option>
-          <option v-for="etape in availableEtapes" :key="etape" :value="etape">
-            {{ etape }}
-          </option>
-        </select>
+
+      <!-- Filters Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Search -->
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+          >
+            <svg
+              class="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <input
+            v-model="searchTerm"
+            type="text"
+            placeholder="Search monsters..."
+            class="w-full pl-12 pr-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300"
+          />
+        </div>
+
+        <!-- Type Filter -->
+        <div class="relative">
+          <select
+            v-model="filterType"
+            class="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-gray-100 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300 appearance-none cursor-pointer"
+          >
+            <option value="">All Types</option>
+            <option value="archimonstre">Archimonstres</option>
+            <option value="monstre">Monstres</option>
+          </select>
+          <div
+            class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"
+          >
+            <svg
+              class="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Étape Filter -->
+        <div class="relative">
+          <select
+            v-model="filterEtape"
+            class="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-gray-100 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300 appearance-none cursor-pointer"
+          >
+            <option value="">All Étapes</option>
+            <option v-for="etape in availableEtapes" :key="etape" :value="etape">
+              Étape {{ etape }}
+            </option>
+          </select>
+          <div
+            class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"
+          >
+            <svg
+              class="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
+
         <!-- Count Filter (only for dofus-ocre mode) -->
-        <select
-          v-if="mode === 'dofus-ocre'"
-          v-model="filterCount"
-          class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">All Counts</option>
-          <option value="0">Have 0 ({{ countStats.zero }})</option>
-          <option value="1">Have 1 ({{ countStats.one }})</option>
-          <option value="2+">Have 2+ ({{ countStats.multiple }})</option>
-        </select>
+        <div v-if="mode === 'dofus-ocre'" class="relative">
+          <select
+            v-model="filterCount"
+            class="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-gray-100 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300 appearance-none cursor-pointer"
+          >
+            <option value="">All Counts</option>
+            <option value="0">Missing ({{ countStats.zero }})</option>
+            <option value="1">Have 1 ({{ countStats.one }})</option>
+            <option value="2+">Have 2+ ({{ countStats.multiple }})</option>
+          </select>
+          <div
+            class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"
+          >
+            <svg
+              class="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
       </div>
+
+      <!-- Active Filters Tags -->
+      <Transition name="fade">
+        <div
+          v-if="searchTerm || filterType || filterEtape || filterCount"
+          class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-700/50"
+        >
+          <span class="text-sm text-gray-500">Active filters:</span>
+
+          <span
+            v-if="searchTerm"
+            class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-300 text-sm rounded-full border border-blue-500/20"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            "{{ searchTerm }}"
+            <button @click="searchTerm = ''" class="ml-1 hover:text-blue-100">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+
+          <span
+            v-if="filterType"
+            class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 text-purple-300 text-sm rounded-full border border-purple-500/20"
+          >
+            {{ filterType }}
+            <button @click="filterType = ''" class="ml-1 hover:text-purple-100">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+
+          <span
+            v-if="filterEtape"
+            class="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-500/10 text-orange-300 text-sm rounded-full border border-orange-500/20"
+          >
+            Étape {{ filterEtape }}
+            <button @click="filterEtape = ''" class="ml-1 hover:text-orange-100">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+
+          <span
+            v-if="filterCount"
+            class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-300 text-sm rounded-full border border-emerald-500/20"
+          >
+            {{ getCountFilterLabel(filterCount) }}
+            <button @click="filterCount = ''" class="ml-1 hover:text-emerald-100">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+
+          <button
+            @click="clearAllFilters"
+            class="text-sm text-gray-400 hover:text-red-400 transition-colors ml-2"
+          >
+            Clear all
+          </button>
+        </div>
+      </Transition>
     </div>
 
     <!-- Monsters Grid -->
-    <div
+    <TransitionGroup
       v-if="displayedMonsters.length > 0"
+      name="grid"
+      tag="div"
       class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
     >
       <MonsterCard
-        v-for="monster in displayedMonsters"
+        v-for="(monster, index) in displayedMonsters"
         :key="monster.id"
         :monster="monster"
         :mode="mode"
         :server="server"
         :character="character"
+        :style="{ animationDelay: `${(index % itemsPerPage) * 30}ms` }"
+        class="animate-fade-in-up"
       />
-    </div>
+    </TransitionGroup>
 
     <!-- Loading Spinner -->
-    <div
-      v-if="isLoading && displayedMonsters.length > 0"
-      class="flex justify-center py-8"
-    >
+    <Transition name="fade">
       <div
-        class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
-      ></div>
-    </div>
+        v-if="isLoading && displayedMonsters.length > 0"
+        class="flex justify-center py-8"
+      >
+        <div class="flex items-center gap-3 text-blue-400">
+          <div class="relative">
+            <div class="w-8 h-8 border-2 border-blue-400/30 rounded-full"></div>
+            <div
+              class="absolute inset-0 w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"
+            ></div>
+          </div>
+          <span class="font-medium">Loading more monsters...</span>
+        </div>
+      </div>
+    </Transition>
 
-    <!-- Load More Trigger (Intersection Observer target) -->
+    <!-- Load More Trigger -->
     <div
       v-if="hasMoreToLoad && !isLoading"
       ref="loadMoreTrigger"
-      class="h-20 flex items-center justify-center"
+      class="flex items-center justify-center py-8"
     >
       <button
         @click="loadMore"
-        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        class="group flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-medium rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300"
       >
-        Load More
+        <svg
+          class="w-5 h-5 group-hover:translate-y-0.5 transition-transform duration-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
+        </svg>
+        Load More Monsters
       </button>
     </div>
 
     <!-- No Results -->
-    <div v-else-if="filteredMonsters.length === 0" class="text-center py-12">
-      <p class="text-gray-400 text-lg">
-        No monsters found matching your criteria.
-      </p>
-    </div>
+    <Transition name="fade">
+      <div
+        v-if="filteredMonsters.length === 0"
+        class="text-center py-16"
+      >
+        <div
+          class="w-24 h-24 bg-gray-800/60 rounded-2xl flex items-center justify-center mx-auto mb-6"
+        >
+          <svg
+            class="w-12 h-12 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-300 mb-2">No monsters found</h3>
+        <p class="text-gray-500 mb-6">
+          Try adjusting your search or filter criteria
+        </p>
+        <button
+          @click="clearAllFilters"
+          class="px-5 py-2.5 bg-gray-700/50 hover:bg-gray-700 text-gray-300 font-medium rounded-xl border border-gray-600/50 hover:border-gray-500 transition-all duration-300"
+        >
+          Clear all filters
+        </button>
+      </div>
+    </Transition>
 
     <!-- All Loaded Message -->
-    <div
-      v-else-if="
-        displayedMonsters.length === filteredMonsters.length &&
-        displayedMonsters.length > itemsPerPage
-      "
-      class="text-center py-8"
-    >
-      <p class="text-gray-400">All monsters loaded!</p>
-    </div>
+    <Transition name="fade">
+      <div
+        v-if="
+          displayedMonsters.length === filteredMonsters.length &&
+          displayedMonsters.length > itemsPerPage
+        "
+        class="text-center py-8"
+      >
+        <div
+          class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          <span class="font-medium">All {{ filteredMonsters.length }} monsters loaded!</span>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -156,7 +416,7 @@ const getMonsterCount = (monster) => {
 const getCountFilterLabel = (filterValue) => {
   switch (filterValue) {
     case "0":
-      return "Have 0";
+      return "Missing";
     case "1":
       return "Have 1";
     case "2+":
@@ -164,6 +424,13 @@ const getCountFilterLabel = (filterValue) => {
     default:
       return "All";
   }
+};
+
+const clearAllFilters = () => {
+  searchTerm.value = "";
+  filterType.value = "";
+  filterEtape.value = "";
+  filterCount.value = "";
 };
 
 const availableEtapes = computed(() => {
@@ -249,9 +516,7 @@ const loadMore = async () => {
   if (isLoading.value || !hasMoreToLoad.value) return;
 
   isLoading.value = true;
-
   await new Promise((resolve) => setTimeout(resolve, 300));
-
   currentPage.value += 1;
   isLoading.value = false;
 };
@@ -296,20 +561,73 @@ onUnmounted(() => {
 
 watch(
   loadMoreTrigger,
-  (newTrigger) => {
+  (newTrigger, oldTrigger) => {
+    if (observer && oldTrigger) {
+      observer.unobserve(oldTrigger);
+    }
     if (observer && newTrigger) {
       observer.observe(newTrigger);
     }
   },
   { immediate: true }
 );
-
-watch(loadMoreTrigger, (newTrigger, oldTrigger) => {
-  if (observer && oldTrigger) {
-    observer.unobserve(oldTrigger);
-  }
-  if (observer && newTrigger) {
-    observer.observe(newTrigger);
-  }
-});
 </script>
+
+<style scoped>
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Grid transitions */
+.grid-enter-active,
+.grid-leave-active {
+  transition: all 0.4s ease;
+}
+
+.grid-enter-from {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.grid-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.grid-move {
+  transition: transform 0.4s ease;
+}
+</style>
