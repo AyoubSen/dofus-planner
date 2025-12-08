@@ -2025,14 +2025,15 @@ const clearHistory = () => {
 }
 
 /* Suggestions */
-.suggestions-popover {
-  z-index: 9999 !important;
-}
 
 .input-with-suggestions {
   position: relative;
   isolation: isolate;
-  z-index: 10;
+  z-index: 30;
+}
+
+.suggestions-popover {
+  z-index: 9999 !important;
 }
 
 /* Number input */
