@@ -16,11 +16,8 @@ export default defineNuxtConfig({
   modules: ["@nuxt/fonts", "@nuxtjs/tailwindcss", "@vueuse/nuxt"],
 
   runtimeConfig: {
-    // server-only
-
-    metamobApiKey: process.env.METAMOB_API_KEY,
-    equipmentsApiBase: process.env.EQUIPMENTS_API_BASE,
-
-    public: {},
-  },
+  metamobApiKey: '',       
+  equipmentsApiBase: '',    
+  public: {},
+},
 });
