@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     const response = await $fetch(`https://api.metamob.fr/monstres`, {
       method: "GET",
       headers: {
-        "X-APIKEY": config.metamobApiKey,  // Changed from HTTP-X-APIKEY
+        "HTTP-X-APIKEY": config.metamobApiKey, 
         "Accept": "application/json",
       },
     });
