@@ -443,6 +443,8 @@
 </template>
 
 <script setup>
+
+import monstersJson from '@/data/monsters.json';
 const servers = ref([]);
 const currentServer = ref(null);
 const currentCharacter = ref(null);
@@ -529,27 +531,8 @@ const selectCharacter = async (character) => {
   isLoadingCharacter.value = true;
 
   if (!monstersData.value) {
-    isLoadingMonsters.value = true;
-    try {
-      const data = await $fetch("/api/metamob/user");
-      monstersData.value = data;
-      saveMonstersData(data);
-      console.log(
-        "Monsters data fetched and saved:",
-        data?.length || 0,
-        "monsters"
-      );
-    } catch (error) {
-      console.error("Failed to fetch monsters data:", error);
-    } finally {
-      isLoadingMonsters.value = false;
-    }
-  } else {
-    console.log(
-      "Using cached monsters data:",
-      monstersData.value?.length || 0,
-      "monsters"
-    );
+    monstersData.value = monstersJson;
+    saveMonstersData(monstersJson);
   }
 
   isLoadingCharacter.value = false;
