@@ -26,12 +26,18 @@
           </div>
           <div>
             <h2 class="text-2xl font-bold text-gray-100">
-              Monsters
-              <span class="text-orange-400">({{ filteredMonsters.length }})</span>
+              {{ t('archimonstres.monstersGrid.title') }}
+              <span class="text-orange-400"
+                >({{ filteredMonsters.length }})</span
+              >
             </h2>
             <p class="text-sm text-gray-400">
-              Showing {{ displayedMonsters.length }} of
-              {{ filteredMonsters.length }} monsters
+              {{
+                t('archimonstres.monstersGrid.showing', {
+                  displayed: displayedMonsters.length,
+                  total: filteredMonsters.length,
+                })
+              }}
             </p>
           </div>
         </div>
@@ -41,20 +47,32 @@
           <div
             class="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl"
           >
-            <span class="text-red-400 font-semibold">{{ countStats.zero }}</span>
-            <span class="text-red-400/60 text-sm ml-1">missing</span>
+            <span class="text-red-400 font-semibold">{{
+              countStats.zero
+            }}</span>
+            <span class="text-red-400/60 text-sm ml-1">{{
+              t('archimonstres.monstersGrid.stats.missing')
+            }}</span>
           </div>
           <div
             class="px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl"
           >
-            <span class="text-yellow-400 font-semibold">{{ countStats.one }}</span>
-            <span class="text-yellow-400/60 text-sm ml-1">have 1</span>
+            <span class="text-yellow-400 font-semibold">{{
+              countStats.one
+            }}</span>
+            <span class="text-yellow-400/60 text-sm ml-1">{{
+              t('archimonstres.monstersGrid.stats.haveOne')
+            }}</span>
           </div>
           <div
             class="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl"
           >
-            <span class="text-emerald-400 font-semibold">{{ countStats.multiple }}</span>
-            <span class="text-emerald-400/60 text-sm ml-1">have 2+</span>
+            <span class="text-emerald-400 font-semibold">{{
+              countStats.multiple
+            }}</span>
+            <span class="text-emerald-400/60 text-sm ml-1">{{
+              t('archimonstres.monstersGrid.stats.haveMultiple')
+            }}</span>
           </div>
         </div>
       </div>
@@ -83,7 +101,7 @@
           <input
             v-model="searchTerm"
             type="text"
-            placeholder="Search monsters..."
+            :placeholder="t('archimonstres.monstersGrid.filters.searchPlaceholder')"
             class="w-full pl-12 pr-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300"
           />
         </div>
@@ -94,9 +112,15 @@
             v-model="filterType"
             class="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-gray-100 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300 appearance-none cursor-pointer"
           >
-            <option value="">All Types</option>
-            <option value="archimonstre">Archimonstres</option>
-            <option value="monstre">Monstres</option>
+            <option value="">
+              {{ t('archimonstres.monstersGrid.filters.allTypes') }}
+            </option>
+            <option value="archimonstre">
+              {{ t('archimonstres.monstersGrid.filters.archimonstres') }}
+            </option>
+            <option value="monstre">
+              {{ t('archimonstres.monstersGrid.filters.monstres') }}
+            </option>
           </select>
           <div
             class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"
@@ -123,9 +147,15 @@
             v-model="filterEtape"
             class="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-gray-100 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300 appearance-none cursor-pointer"
           >
-            <option value="">All Étapes</option>
-            <option v-for="etape in availableEtapes" :key="etape" :value="etape">
-              Étape {{ etape }}
+            <option value="">
+              {{ t('archimonstres.monstersGrid.filters.allEtapes') }}
+            </option>
+            <option
+              v-for="etape in availableEtapes"
+              :key="etape"
+              :value="etape"
+            >
+              {{ t('archimonstres.monstersGrid.filters.etape', { number: etape }) }}
             </option>
           </select>
           <div
@@ -153,10 +183,30 @@
             v-model="filterCount"
             class="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-gray-100 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300 appearance-none cursor-pointer"
           >
-            <option value="">All Counts</option>
-            <option value="0">Missing ({{ countStats.zero }})</option>
-            <option value="1">Have 1 ({{ countStats.one }})</option>
-            <option value="2+">Have 2+ ({{ countStats.multiple }})</option>
+            <option value="">
+              {{ t('archimonstres.monstersGrid.filters.allCounts') }}
+            </option>
+            <option value="0">
+              {{
+                t('archimonstres.monstersGrid.filters.missingCount', {
+                  count: countStats.zero,
+                })
+              }}
+            </option>
+            <option value="1">
+              {{
+                t('archimonstres.monstersGrid.filters.haveOneCount', {
+                  count: countStats.one,
+                })
+              }}
+            </option>
+            <option value="2+">
+              {{
+                t('archimonstres.monstersGrid.filters.haveMultipleCount', {
+                  count: countStats.multiple,
+                })
+              }}
+            </option>
           </select>
           <div
             class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"
@@ -184,19 +234,41 @@
           v-if="searchTerm || filterType || filterEtape || filterCount"
           class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-700/50"
         >
-          <span class="text-sm text-gray-500">Active filters:</span>
+          <span class="text-sm text-gray-500">{{
+            t('archimonstres.monstersGrid.filters.activeFilters')
+          }}</span>
 
           <span
             v-if="searchTerm"
             class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-300 text-sm rounded-full border border-blue-500/20"
           >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg
+              class="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
             "{{ searchTerm }}"
             <button @click="searchTerm = ''" class="ml-1 hover:text-blue-100">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </span>
@@ -206,9 +278,22 @@
             class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 text-purple-300 text-sm rounded-full border border-purple-500/20"
           >
             {{ filterType }}
-            <button @click="filterType = ''" class="ml-1 hover:text-purple-100">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <button
+              @click="filterType = ''"
+              class="ml-1 hover:text-purple-100"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </span>
@@ -217,10 +302,23 @@
             v-if="filterEtape"
             class="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-500/10 text-orange-300 text-sm rounded-full border border-orange-500/20"
           >
-            Étape {{ filterEtape }}
-            <button @click="filterEtape = ''" class="ml-1 hover:text-orange-100">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            {{ t('archimonstres.monstersGrid.filters.etape', { number: filterEtape }) }}
+            <button
+              @click="filterEtape = ''"
+              class="ml-1 hover:text-orange-100"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </span>
@@ -230,9 +328,22 @@
             class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-300 text-sm rounded-full border border-emerald-500/20"
           >
             {{ getCountFilterLabel(filterCount) }}
-            <button @click="filterCount = ''" class="ml-1 hover:text-emerald-100">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <button
+              @click="filterCount = ''"
+              class="ml-1 hover:text-emerald-100"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </span>
@@ -241,7 +352,7 @@
             @click="clearAllFilters"
             class="text-sm text-gray-400 hover:text-red-400 transition-colors ml-2"
           >
-            Clear all
+            {{ t('archimonstres.monstersGrid.filters.clearAll') }}
           </button>
         </div>
       </Transition>
@@ -274,12 +385,16 @@
       >
         <div class="flex items-center gap-3 text-blue-400">
           <div class="relative">
-            <div class="w-8 h-8 border-2 border-blue-400/30 rounded-full"></div>
+            <div
+              class="w-8 h-8 border-2 border-blue-400/30 rounded-full"
+            ></div>
             <div
               class="absolute inset-0 w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"
             ></div>
           </div>
-          <span class="font-medium">Loading more monsters...</span>
+          <span class="font-medium">{{
+            t('archimonstres.monstersGrid.loadingMore')
+          }}</span>
         </div>
       </div>
     </Transition>
@@ -307,16 +422,13 @@
             d="M19 14l-7 7m0 0l-7-7m7 7V3"
           />
         </svg>
-        Load More Monsters
+        {{ t('archimonstres.monstersGrid.loadMoreButton') }}
       </button>
     </div>
 
     <!-- No Results -->
     <Transition name="fade">
-      <div
-        v-if="filteredMonsters.length === 0"
-        class="text-center py-16"
-      >
+      <div v-if="filteredMonsters.length === 0" class="text-center py-16">
         <div
           class="w-24 h-24 bg-gray-800/60 rounded-2xl flex items-center justify-center mx-auto mb-6"
         >
@@ -334,15 +446,17 @@
             />
           </svg>
         </div>
-        <h3 class="text-xl font-semibold text-gray-300 mb-2">No monsters found</h3>
+        <h3 class="text-xl font-semibold text-gray-300 mb-2">
+          {{ t('archimonstres.monstersGrid.noResults.title') }}
+        </h3>
         <p class="text-gray-500 mb-6">
-          Try adjusting your search or filter criteria
+          {{ t('archimonstres.monstersGrid.noResults.description') }}
         </p>
         <button
           @click="clearAllFilters"
           class="px-5 py-2.5 bg-gray-700/50 hover:bg-gray-700 text-gray-300 font-medium rounded-xl border border-gray-600/50 hover:border-gray-500 transition-all duration-300"
         >
-          Clear all filters
+          {{ t('archimonstres.monstersGrid.noResults.clearButton') }}
         </button>
       </div>
     </Transition>
@@ -359,7 +473,12 @@
         <div
           class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -367,7 +486,11 @@
               d="M5 13l4 4L19 7"
             />
           </svg>
-          <span class="font-medium">All {{ filteredMonsters.length }} monsters loaded!</span>
+          <span class="font-medium">{{
+            t('archimonstres.monstersGrid.allLoaded', {
+              count: filteredMonsters.length,
+            })
+          }}</span>
         </div>
       </div>
     </Transition>
@@ -375,7 +498,9 @@
 </template>
 
 <script setup>
-import MonsterCard from "./MonsterCard.vue";
+import MonsterCard from './MonsterCard.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
   monsters: {
@@ -401,10 +526,10 @@ const currentPage = ref(1);
 const isLoading = ref(false);
 const loadMoreTrigger = ref(null);
 
-const searchTerm = ref("");
-const filterType = ref("");
-const filterEtape = ref("");
-const filterCount = ref("");
+const searchTerm = ref('');
+const filterType = ref('');
+const filterEtape = ref('');
+const filterCount = ref('');
 
 const getMonsterCount = (monster) => {
   if (!props.server || !props.character || !monster) return 0;
@@ -415,22 +540,22 @@ const getMonsterCount = (monster) => {
 
 const getCountFilterLabel = (filterValue) => {
   switch (filterValue) {
-    case "0":
-      return "Missing";
-    case "1":
-      return "Have 1";
-    case "2+":
-      return "Have 2+";
+    case '0':
+      return t('archimonstres.monstersGrid.filters.countLabels.missing');
+    case '1':
+      return t('archimonstres.monstersGrid.filters.countLabels.haveOne');
+    case '2+':
+      return t('archimonstres.monstersGrid.filters.countLabels.haveMultiple');
     default:
-      return "All";
+      return t('archimonstres.monstersGrid.filters.allCounts');
   }
 };
 
 const clearAllFilters = () => {
-  searchTerm.value = "";
-  filterType.value = "";
-  filterEtape.value = "";
-  filterCount.value = "";
+  searchTerm.value = '';
+  filterType.value = '';
+  filterEtape.value = '';
+  filterCount.value = '';
 };
 
 const availableEtapes = computed(() => {
@@ -442,7 +567,7 @@ const availableEtapes = computed(() => {
 });
 
 const countStats = computed(() => {
-  if (!props.monsters || props.mode !== "dofus-ocre") {
+  if (!props.monsters || props.mode !== 'dofus-ocre') {
     return { zero: 0, one: 0, multiple: 0 };
   }
 
@@ -484,15 +609,15 @@ const filteredMonsters = computed(() => {
     );
   }
 
-  if (props.mode === "dofus-ocre" && filterCount.value) {
+  if (props.mode === 'dofus-ocre' && filterCount.value) {
     filtered = filtered.filter((monster) => {
       const count = getMonsterCount(monster);
       switch (filterCount.value) {
-        case "0":
+        case '0':
           return count === 0;
-        case "1":
+        case '1':
           return count === 1;
-        case "2+":
+        case '2+':
           return count >= 2;
         default:
           return true;
@@ -532,7 +657,7 @@ watch([searchTerm, filterType, filterEtape, filterCount], resetPagination, {
 let observer = null;
 
 const setupIntersectionObserver = () => {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
 
   observer = new IntersectionObserver(
     (entries) => {
@@ -543,7 +668,7 @@ const setupIntersectionObserver = () => {
     },
     {
       root: null,
-      rootMargin: "100px",
+      rootMargin: '100px',
       threshold: 0.1,
     }
   );

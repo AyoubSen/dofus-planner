@@ -20,7 +20,7 @@
       <div class="mb-10 animate-fade-in-down">
         <div class="flex items-center gap-6 mb-8">
           <NuxtLink
-            to="/"
+            :to="localePath('/')"
             class="group flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-orange-400 bg-gray-800/40 hover:bg-gray-800/60 rounded-xl border border-gray-700/50 hover:border-orange-500/30 transition-all duration-300"
           >
             <svg
@@ -36,7 +36,9 @@
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            <span class="text-sm font-medium">Back to Home</span>
+            <span class="text-sm font-medium">{{
+              $t('archimonstres.backToHome')
+            }}</span>
           </NuxtLink>
         </div>
 
@@ -62,10 +64,10 @@
             <h1
               class="text-5xl font-black bg-gradient-to-r from-orange-400 via-red-500 to-orange-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient"
             >
-              Archimonstres
+              {{ $t('archimonstres.title') }}
             </h1>
             <p class="text-gray-400 text-lg mt-2">
-              Track your monster hunting progress across the World of Twelve
+              {{ $t('archimonstres.subtitle') }}
             </p>
           </div>
         </div>
@@ -87,7 +89,9 @@
             <div
               :class="[
                 'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold',
-                !currentServer ? 'bg-orange-500 text-white' : 'bg-emerald-500 text-white',
+                !currentServer
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-emerald-500 text-white',
               ]"
             >
               <svg
@@ -106,7 +110,9 @@
               </svg>
               <span v-else>1</span>
             </div>
-            <span class="text-sm font-medium">Server</span>
+            <span class="text-sm font-medium">{{
+              $t('archimonstres.breadcrumb.server')
+            }}</span>
           </div>
 
           <div class="flex items-center">
@@ -124,8 +130,8 @@
               currentCharacter
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                 : currentServer
-                ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-                : 'bg-gray-700/30 text-gray-500 border border-gray-600/30',
+                  ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                  : 'bg-gray-700/30 text-gray-500 border border-gray-600/30',
             ]"
           >
             <div
@@ -134,8 +140,8 @@
                 currentCharacter
                   ? 'bg-emerald-500 text-white'
                   : currentServer
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-600 text-gray-400',
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-600 text-gray-400',
               ]"
             >
               <svg
@@ -154,7 +160,9 @@
               </svg>
               <span v-else>2</span>
             </div>
-            <span class="text-sm font-medium">Character</span>
+            <span class="text-sm font-medium">{{
+              $t('archimonstres.breadcrumb.character')
+            }}</span>
           </div>
 
           <div class="flex items-center">
@@ -184,7 +192,9 @@
             >
               3
             </div>
-            <span class="text-sm font-medium">Tracking</span>
+            <span class="text-sm font-medium">{{
+              $t('archimonstres.breadcrumb.tracking')
+            }}</span>
           </div>
         </div>
       </div>
@@ -197,7 +207,6 @@
             <div
               class="group relative bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-10 shadow-2xl overflow-hidden"
             >
-              <!-- Glow effect -->
               <div
                 class="absolute -inset-px bg-gradient-to-r from-orange-500/20 to-red-600/20 rounded-3xl opacity-0 group-hover:opacity-100 blur transition-opacity duration-500"
               ></div>
@@ -221,13 +230,11 @@
                       />
                     </svg>
                   </div>
-                  <h2
-                    class="text-3xl font-bold text-gray-100 mb-3"
-                  >
-                    Choose Your Server
+                  <h2 class="text-3xl font-bold text-gray-100 mb-3">
+                    {{ $t('archimonstres.serverSelection.title') }}
                   </h2>
                   <p class="text-gray-400 text-lg max-w-md mx-auto">
-                    Select a server to begin tracking your archimonstres progress
+                    {{ $t('archimonstres.serverSelection.description') }}
                   </p>
                 </div>
 
@@ -261,10 +268,10 @@
                       </div>
                     </div>
                     <h2 class="text-3xl font-bold text-gray-100 mb-2">
-                      Choose Your Character
+                      {{ $t('archimonstres.characterSelection.title') }}
                     </h2>
                     <p class="text-gray-400">
-                      Select or create a character to track progress
+                      {{ $t('archimonstres.characterSelection.description') }}
                     </p>
                   </div>
                   <button
@@ -284,7 +291,9 @@
                         d="M15 19l-7-7 7-7"
                       />
                     </svg>
-                    <span class="text-sm font-medium">Change Server</span>
+                    <span class="text-sm font-medium">{{
+                      $t('archimonstres.characterSelection.changeServer')
+                    }}</span>
                   </button>
                 </div>
 
@@ -308,7 +317,6 @@
               <div
                 class="relative bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 border-b border-gray-700/50 p-8"
               >
-                <!-- Animated background pattern -->
                 <div
                   class="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_25%,rgba(255,255,255,0.02)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.02)_75%)] bg-[length:20px_20px]"
                 ></div>
@@ -370,7 +378,9 @@
                           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                         />
                       </svg>
-                      <span class="text-sm font-medium">Character</span>
+                      <span class="text-sm font-medium">{{
+                        $t('archimonstres.tracker.characterButton')
+                      }}</span>
                     </button>
                     <button
                       @click="currentServer = null"
@@ -389,7 +399,9 @@
                           d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
                         />
                       </svg>
-                      <span class="text-sm font-medium">Server</span>
+                      <span class="text-sm font-medium">{{
+                        $t('archimonstres.tracker.serverButton')
+                      }}</span>
                     </button>
                   </div>
                 </div>
@@ -413,8 +425,8 @@
                       </div>
                       <span class="text-blue-300 font-medium">{{
                         isLoadingMonsters
-                          ? "Loading monsters data..."
-                          : "Loading character data..."
+                          ? $t('archimonstres.tracker.loadingMonsters')
+                          : $t('archimonstres.tracker.loadingCharacter')
                       }}</span>
                     </div>
                   </div>
@@ -443,8 +455,21 @@
 </template>
 
 <script setup>
-
+const localePath = useLocalePath();
 import monstersJson from '@/data/monsters.json';
+
+const { t } = useI18n();
+
+useHead({
+  title: t('archimonstres.title'),
+  meta: [
+    {
+      name: 'description',
+      content: t('archimonstres.subtitle'),
+    },
+  ],
+});
+
 const servers = ref([]);
 const currentServer = ref(null);
 const currentCharacter = ref(null);
@@ -459,29 +484,29 @@ onMounted(() => {
 });
 
 const loadData = () => {
-  const savedServers = localStorage.getItem("archimonstres-servers");
+  const savedServers = localStorage.getItem('archimonstres-servers');
   if (savedServers) {
     servers.value = JSON.parse(savedServers);
   }
 };
 
 const saveData = () => {
-  localStorage.setItem("archimonstres-servers", JSON.stringify(servers.value));
+  localStorage.setItem('archimonstres-servers', JSON.stringify(servers.value));
 };
 
 const loadMonstersData = () => {
-  const savedMonsters = localStorage.getItem("archimonstres-monsters");
+  const savedMonsters = localStorage.getItem('archimonstres-monsters');
   if (savedMonsters) {
     try {
       monstersData.value = JSON.parse(savedMonsters);
     } catch (error) {
-      console.error("Failed to parse monsters data from localStorage:", error);
+      console.error('Failed to parse monsters data from localStorage:', error);
     }
   }
 };
 
 const saveMonstersData = (data) => {
-  localStorage.setItem("archimonstres-monsters", JSON.stringify(data));
+  localStorage.setItem('archimonstres-monsters', JSON.stringify(data));
 };
 
 const addServer = (serverName) => {

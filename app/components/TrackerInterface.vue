@@ -16,7 +16,9 @@
         <div
           :class="[
             'absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-600/10 transition-opacity duration-500',
-            selectedMode === 'dofus-ocre' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50',
+            selectedMode === 'dofus-ocre'
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-50',
           ]"
         ></div>
 
@@ -24,7 +26,9 @@
         <div
           :class="[
             'absolute -inset-px bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl blur transition-opacity duration-500',
-            selectedMode === 'dofus-ocre' ? 'opacity-20' : 'opacity-0 group-hover:opacity-10',
+            selectedMode === 'dofus-ocre'
+              ? 'opacity-20'
+              : 'opacity-0 group-hover:opacity-10',
           ]"
         ></div>
 
@@ -79,18 +83,22 @@
           <h3
             :class="[
               'text-2xl font-bold mb-2 transition-colors duration-300',
-              selectedMode === 'dofus-ocre' ? 'text-orange-300' : 'text-gray-100 group-hover:text-orange-300',
+              selectedMode === 'dofus-ocre'
+                ? 'text-orange-300'
+                : 'text-gray-100 group-hover:text-orange-300',
             ]"
           >
-            Dofus Ocre
+            {{ t('archimonstres.trackerInterface.dofusOcre.title') }}
           </h3>
           <p
             :class="[
               'text-sm leading-relaxed transition-colors duration-300',
-              selectedMode === 'dofus-ocre' ? 'text-orange-200/70' : 'text-gray-400 group-hover:text-gray-300',
+              selectedMode === 'dofus-ocre'
+                ? 'text-orange-200/70'
+                : 'text-gray-400 group-hover:text-gray-300',
             ]"
           >
-            Track your progress towards the legendary Ochre Dofus. Monitor archimonstres and collect all souls.
+            {{ t('archimonstres.trackerInterface.dofusOcre.description') }}
           </p>
 
           <!-- Features -->
@@ -98,12 +106,12 @@
             <span
               class="px-2.5 py-1 bg-orange-500/10 text-orange-300 text-xs font-medium rounded-full border border-orange-500/20"
             >
-              286 Archimonstres
+              {{ t('archimonstres.trackerInterface.dofusOcre.tag1') }}
             </span>
             <span
               class="px-2.5 py-1 bg-red-500/10 text-red-300 text-xs font-medium rounded-full border border-red-500/20"
             >
-              Progress Tracking
+              {{ t('archimonstres.trackerInterface.dofusOcre.tag2') }}
             </span>
           </div>
         </div>
@@ -122,14 +130,18 @@
         <div
           :class="[
             'absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-600/10 transition-opacity duration-500',
-            selectedMode === 'sell-only' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50',
+            selectedMode === 'sell-only'
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-50',
           ]"
         ></div>
 
         <div
           :class="[
             'absolute -inset-px bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl blur transition-opacity duration-500',
-            selectedMode === 'sell-only' ? 'opacity-20' : 'opacity-0 group-hover:opacity-10',
+            selectedMode === 'sell-only'
+              ? 'opacity-20'
+              : 'opacity-0 group-hover:opacity-10',
           ]"
         ></div>
 
@@ -183,30 +195,34 @@
           <h3
             :class="[
               'text-2xl font-bold mb-2 transition-colors duration-300',
-              selectedMode === 'sell-only' ? 'text-emerald-300' : 'text-gray-100 group-hover:text-emerald-300',
+              selectedMode === 'sell-only'
+                ? 'text-emerald-300'
+                : 'text-gray-100 group-hover:text-emerald-300',
             ]"
           >
-            Sell Only Mode
+            {{ t('archimonstres.trackerInterface.sellOnly.title') }}
           </h3>
           <p
             :class="[
               'text-sm leading-relaxed transition-colors duration-300',
-              selectedMode === 'sell-only' ? 'text-emerald-200/70' : 'text-gray-400 group-hover:text-gray-300',
+              selectedMode === 'sell-only'
+                ? 'text-emerald-200/70'
+                : 'text-gray-400 group-hover:text-gray-300',
             ]"
           >
-            Track archimonstres for selling purposes. Perfect for hunters focused on kamas.
+            {{ t('archimonstres.trackerInterface.sellOnly.description') }}
           </p>
 
           <div class="flex flex-wrap gap-2 mt-4">
             <span
               class="px-2.5 py-1 bg-emerald-500/10 text-emerald-300 text-xs font-medium rounded-full border border-emerald-500/20"
             >
-              Sell Tracking
+              {{ t('archimonstres.trackerInterface.sellOnly.tag1') }}
             </span>
             <span
               class="px-2.5 py-1 bg-teal-500/10 text-teal-300 text-xs font-medium rounded-full border border-teal-500/20"
             >
-              Quick Mode
+              {{ t('archimonstres.trackerInterface.sellOnly.tag2') }}
             </span>
           </div>
         </div>
@@ -224,15 +240,19 @@
             class="flex flex-col items-center justify-center py-16"
           >
             <div class="relative mb-6">
-              <div class="w-16 h-16 border-4 border-gray-700 rounded-full"></div>
+              <div
+                class="w-16 h-16 border-4 border-gray-700 rounded-full"
+              ></div>
               <div
                 class="absolute inset-0 w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"
               ></div>
             </div>
             <h3 class="text-xl font-semibold text-gray-200 mb-2">
-              Loading Monsters Data
+              {{ t('archimonstres.trackerInterface.loading.title') }}
             </h3>
-            <p class="text-gray-400">Please wait while we fetch the latest data...</p>
+            <p class="text-gray-400">
+              {{ t('archimonstres.trackerInterface.loading.description') }}
+            </p>
           </div>
 
           <!-- Dofus Ocre Content -->
@@ -280,10 +300,10 @@
           </svg>
         </div>
         <h3 class="text-xl font-semibold text-gray-300 mb-2">
-          Select a Tracking Mode
+          {{ t('archimonstres.trackerInterface.empty.title') }}
         </h3>
         <p class="text-gray-500">
-          Choose how you want to track your archimonstres above
+          {{ t('archimonstres.trackerInterface.empty.description') }}
         </p>
       </div>
     </Transition>
@@ -291,6 +311,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n();
+
 defineProps({
   server: {
     type: Object,
@@ -314,12 +336,12 @@ defineProps({
   },
 });
 
-const $emit = defineEmits(["changeCharacter", "changeServer", "modeSelected"]);
+const $emit = defineEmits(['changeCharacter', 'changeServer', 'modeSelected']);
 const selectedMode = ref(null);
 
 const handleModeSelection = (mode) => {
   selectedMode.value = mode;
-  $emit("modeSelected", mode);
+  $emit('modeSelected', mode);
 };
 </script>
 

@@ -16,7 +16,9 @@
         <div
           :class="[
             'absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 transition-opacity duration-500',
-            activeTab === 'sales' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50',
+            activeTab === 'sales'
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-50',
           ]"
         ></div>
 
@@ -24,7 +26,9 @@
         <div
           :class="[
             'absolute -inset-px bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur transition-opacity duration-500',
-            activeTab === 'sales' ? 'opacity-20' : 'opacity-0 group-hover:opacity-10',
+            activeTab === 'sales'
+              ? 'opacity-20'
+              : 'opacity-0 group-hover:opacity-10',
           ]"
         ></div>
 
@@ -79,18 +83,22 @@
           <h3
             :class="[
               'text-2xl font-bold mb-2 transition-colors duration-300',
-              activeTab === 'sales' ? 'text-blue-300' : 'text-gray-100 group-hover:text-blue-300',
+              activeTab === 'sales'
+                ? 'text-blue-300'
+                : 'text-gray-100 group-hover:text-blue-300',
             ]"
           >
-            Sales Management
+            {{ t('archimonstres.sellingInterface.salesManagement.title') }}
           </h3>
           <p
             :class="[
               'text-sm leading-relaxed transition-colors duration-300',
-              activeTab === 'sales' ? 'text-blue-200/70' : 'text-gray-400 group-hover:text-gray-300',
+              activeTab === 'sales'
+                ? 'text-blue-200/70'
+                : 'text-gray-400 group-hover:text-gray-300',
             ]"
           >
-            Add items to sell, set prices, and manage your inventory. Track pending and sold items.
+            {{ t('archimonstres.sellingInterface.salesManagement.description') }}
           </p>
 
           <!-- Features -->
@@ -98,12 +106,20 @@
             <span
               class="px-2.5 py-1 bg-blue-500/10 text-blue-300 text-xs font-medium rounded-full border border-blue-500/20"
             >
-              {{ pendingItems.length }} Pending
+              {{
+                t('archimonstres.sellingInterface.salesManagement.pendingTag', {
+                  count: pendingItems.length,
+                })
+              }}
             </span>
             <span
               class="px-2.5 py-1 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full border border-indigo-500/20"
             >
-              Bulk Actions
+              {{
+                t(
+                  'archimonstres.sellingInterface.salesManagement.bulkActionsTag'
+                )
+              }}
             </span>
           </div>
         </div>
@@ -122,14 +138,18 @@
         <div
           :class="[
             'absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-600/10 transition-opacity duration-500',
-            activeTab === 'analytics' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50',
+            activeTab === 'analytics'
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-50',
           ]"
         ></div>
 
         <div
           :class="[
             'absolute -inset-px bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl blur transition-opacity duration-500',
-            activeTab === 'analytics' ? 'opacity-20' : 'opacity-0 group-hover:opacity-10',
+            activeTab === 'analytics'
+              ? 'opacity-20'
+              : 'opacity-0 group-hover:opacity-10',
           ]"
         ></div>
 
@@ -183,30 +203,42 @@
           <h3
             :class="[
               'text-2xl font-bold mb-2 transition-colors duration-300',
-              activeTab === 'analytics' ? 'text-purple-300' : 'text-gray-100 group-hover:text-purple-300',
+              activeTab === 'analytics'
+                ? 'text-purple-300'
+                : 'text-gray-100 group-hover:text-purple-300',
             ]"
           >
-            Sales Analytics
+            {{ t('archimonstres.sellingInterface.salesAnalytics.title') }}
           </h3>
           <p
             :class="[
               'text-sm leading-relaxed transition-colors duration-300',
-              activeTab === 'analytics' ? 'text-purple-200/70' : 'text-gray-400 group-hover:text-gray-300',
+              activeTab === 'analytics'
+                ? 'text-purple-200/70'
+                : 'text-gray-400 group-hover:text-gray-300',
             ]"
           >
-            View your sales statistics, earnings breakdown, and performance insights.
+            {{ t('archimonstres.sellingInterface.salesAnalytics.description') }}
           </p>
 
           <div class="flex flex-wrap gap-2 mt-4">
             <span
               class="px-2.5 py-1 bg-purple-500/10 text-purple-300 text-xs font-medium rounded-full border border-purple-500/20"
             >
-              {{ soldItems.length }} Sold
+              {{
+                t('archimonstres.sellingInterface.salesAnalytics.soldTag', {
+                  count: soldItems.length,
+                })
+              }}
             </span>
             <span
               class="px-2.5 py-1 bg-pink-500/10 text-pink-300 text-xs font-medium rounded-full border border-pink-500/20"
             >
-              {{ formatKamas(totalEarnings) }} Earned
+              {{
+                t('archimonstres.sellingInterface.salesAnalytics.earnedTag', {
+                  amount: formatKamas(totalEarnings),
+                })
+              }}
             </span>
           </div>
         </div>
@@ -249,9 +281,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from "vue";
-import SalesManagement from "./SalesManagement.vue";
-import SalesAnalytics from "./SalesAnalytics.vue";
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import SalesManagement from './SalesManagement.vue';
+import SalesAnalytics from './SalesAnalytics.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
   server: {
@@ -268,7 +302,7 @@ const props = defineProps({
   },
 });
 
-const activeTab = ref("sales");
+const activeTab = ref('sales');
 const pendingItems = ref([]);
 const soldItems = ref([]);
 const selectionsForSalesTab = ref([]);
@@ -279,9 +313,9 @@ const totalEarnings = computed(() =>
 
 const formatKamas = (value) => {
   if (value >= 1000000) {
-    return (value / 1000000).toFixed(1) + "M";
+    return (value / 1000000).toFixed(1) + 'M';
   } else if (value >= 1000) {
-    return (value / 1000).toFixed(0) + "K";
+    return (value / 1000).toFixed(0) + 'K';
   }
   return value.toString();
 };
@@ -329,7 +363,7 @@ const saveData = () => {
 
 const savePriceHistory = (monsterId, monsterName, price) => {
   const key = getPriceHistoryKey();
-  const existing = JSON.parse(localStorage.getItem(key) || "{}");
+  const existing = JSON.parse(localStorage.getItem(key) || '{}');
   if (!existing[monsterId]) {
     existing[monsterId] = { name: monsterName, prices: [] };
   }
@@ -372,7 +406,9 @@ const handleSellItem = (itemToSell) => {
     );
   }
   soldItems.value.push(soldItem);
-  pendingItems.value = pendingItems.value.filter((p) => p.id !== itemToSell.id);
+  pendingItems.value = pendingItems.value.filter(
+    (p) => p.id !== itemToSell.id
+  );
   saveData();
 };
 
@@ -447,7 +483,7 @@ const handleSelectMonsterItems = (monsterName) => {
     .map((item) => item.id);
 
   selectionsForSalesTab.value = monsterItems;
-  activeTab.value = "sales";
+  activeTab.value = 'sales';
 
   nextTick(() => {
     selectionsForSalesTab.value = [];

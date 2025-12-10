@@ -7,7 +7,7 @@
       <div class="mb-12">
         <div class="flex items-center gap-6 mb-6">
           <NuxtLink
-            to="/"
+            :to="localePath('/')"
             class="group flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-all duration-200 text-lg"
           >
             <svg
@@ -23,7 +23,7 @@
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            Back to Home
+            {{ $t('items.backToHome') }}
           </NuxtLink>
         </div>
 
@@ -49,17 +49,16 @@
             <h1
               class="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"
             >
-              Equipment Statistics
+              {{ $t('items.title') }}
             </h1>
             <p class="text-gray-400 text-lg mt-1">
-              Analyze equipment usage patterns and meta trends
+              {{ $t('items.subtitle') }}
             </p>
           </div>
         </div>
       </div>
 
       <div class="flex gap-8">
-        <!-- Filters Sidebar -->
         <!-- Filters Sidebar -->
         <div
           class="w-80 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 h-fit shadow-2xl"
@@ -82,7 +81,7 @@
                 />
               </svg>
             </div>
-            <h2 class="text-xl font-bold text-gray-100">FILTERS</h2>
+            <h2 class="text-xl font-bold text-gray-100">{{ $t('items.filters.title') }}</h2>
           </div>
 
           <!-- Element Filter -->
@@ -90,7 +89,7 @@
             <h3
               class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
             >
-              Elements
+              {{ $t('items.filters.elements.title') }}
             </h3>
             <div class="space-y-3">
               <!-- All Elements Option -->
@@ -104,7 +103,7 @@
                   @change="applyFilters"
                   class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="text-gray-300">All Elements</span>
+                <span class="text-gray-300">{{ $t('items.filters.elements.all') }}</span>
               </label>
 
               <!-- Element Grid -->
@@ -132,13 +131,13 @@
                   >
                     <img
                       :src="element.icon"
-                      :alt="element.label"
+                      :alt="$t(`items.filters.elements.${element.name}`)"
                       class="w-6 h-6 object-contain"
                       @error="handleImageError"
                       loading="lazy"
                     />
                     <span class="text-xs text-gray-300 font-medium">{{
-                      element.label
+                      $t(`items.filters.elements.${element.name}`)
                     }}</span>
                   </div>
                 </label>
@@ -151,7 +150,7 @@
             <h3
               class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
             >
-              Mode
+              {{ $t('items.filters.mode.title') }}
             </h3>
             <div class="space-y-3">
               <!-- All Modes Option -->
@@ -165,7 +164,7 @@
                   @change="applyFilters"
                   class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="text-gray-300">All Modes</span>
+                <span class="text-gray-300">{{ $t('items.filters.mode.all') }}</span>
               </label>
 
               <!-- Mode Grid -->
@@ -192,7 +191,7 @@
                     ]"
                   >
                     <span class="uppercase text-gray-300 font-bold text-sm">{{
-                      mode
+                      $t(`items.filters.mode.${mode}`)
                     }}</span>
                   </div>
                 </label>
@@ -205,7 +204,7 @@
             <h3
               class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
             >
-              Classes
+              {{ $t('items.filters.classes.title') }}
             </h3>
             <div class="space-y-3">
               <!-- All Classes Option -->
@@ -219,7 +218,7 @@
                   @change="applyFilters"
                   class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="text-gray-300">All Classes</span>
+                <span class="text-gray-300">{{ $t('items.filters.classes.all') }}</span>
               </label>
 
               <!-- Class Grid -->
@@ -250,10 +249,7 @@
                     <img
                       :src="classe.icon"
                       :alt="classe.name"
-                      :title="
-                        classe.name.charAt(0).toUpperCase() +
-                        classe.name.slice(1)
-                      "
+                      :title="classe.name.charAt(0).toUpperCase() + classe.name.slice(1)"
                       class="w-full h-full object-cover object-top rounded"
                       @error="handleImageError"
                       loading="lazy"
@@ -269,7 +265,7 @@
             <h3
               class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
             >
-              Level
+              {{ $t('items.filters.level.title') }}
             </h3>
             <div class="space-y-3">
               <!-- All Levels Option -->
@@ -283,7 +279,7 @@
                   @change="applyFilters"
                   class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="text-gray-300">All Levels</span>
+                <span class="text-gray-300">{{ $t('items.filters.level.all') }}</span>
               </label>
 
               <!-- Level Grid -->
@@ -323,7 +319,7 @@
             <h3
               class="text-sm font-semibold mb-3 text-orange-400 uppercase tracking-wide"
             >
-              Budget
+              {{ $t('items.filters.budget.title') }}
             </h3>
             <div class="space-y-3">
               <!-- All Budgets Option -->
@@ -337,7 +333,7 @@
                   @change="applyFilters"
                   class="mr-3 text-blue-500 focus:ring-blue-500 focus:ring-2"
                 />
-                <span class="text-gray-300">All Budgets</span>
+                <span class="text-gray-300">{{ $t('items.filters.budget.all') }}</span>
               </label>
 
               <!-- Budget Grid -->
@@ -363,10 +359,9 @@
                         : 'border-gray-600/50',
                     ]"
                   >
-                    <span
-                      class="capitalize text-gray-300 font-medium text-sm"
-                      >{{ budget }}</span
-                    >
+                    <span class="capitalize text-gray-300 font-medium text-sm">{{
+                      $t(`items.filters.budget.${budget}`)
+                    }}</span>
                   </div>
                 </label>
               </div>
@@ -382,7 +377,7 @@
               <div
                 class="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full"
               ></div>
-              <span class="text-lg">Loading statistics...</span>
+              <span class="text-lg">{{ $t('items.loading') }}</span>
             </div>
           </div>
 
@@ -396,7 +391,7 @@
                 <div class="text-3xl font-bold text-blue-400 mb-2">
                   {{ totalEquipments }}
                 </div>
-                <div class="text-gray-400">Total Equipment</div>
+                <div class="text-gray-400">{{ $t('items.stats.totalEquipment') }}</div>
               </div>
               <div
                 class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 text-center shadow-lg"
@@ -404,15 +399,15 @@
                 <div class="text-3xl font-bold text-green-400 mb-2">
                   {{ uniqueItems }}
                 </div>
-                <div class="text-gray-400">Unique Items</div>
+                <div class="text-gray-400">{{ $t('items.stats.uniqueItems') }}</div>
               </div>
               <div
                 class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 text-center shadow-lg"
               >
                 <div class="text-3xl font-bold text-purple-400 mb-2">
-                  {{ mostPopularSlot?.slot || "N/A" }}
+                  {{ mostPopularSlot?.slot || $t('items.stats.na') }}
                 </div>
-                <div class="text-gray-400">Most Varied Slot</div>
+                <div class="text-gray-400">{{ $t('items.stats.mostVariedSlot') }}</div>
               </div>
               <div
                 class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 text-center shadow-lg"
@@ -420,7 +415,7 @@
                 <div class="text-3xl font-bold text-yellow-400 mb-2">
                   {{ averageItemsPerSet.toFixed(1) }}
                 </div>
-                <div class="text-gray-400">Avg Items/Set</div>
+                <div class="text-gray-400">{{ $t('items.stats.avgItemsPerSet') }}</div>
               </div>
             </div>
 
@@ -443,7 +438,7 @@
                   ]"
                 >
                   <span class="text-lg">{{ slot.icon }}</span>
-                  {{ slot.name }}
+                  {{ $t(`items.slots.${slot.key}`) }}
                   <span
                     class="bg-gray-600/50 px-2 py-1 rounded-full text-xs border border-gray-500/50"
                   >
@@ -458,16 +453,11 @@
                   <!-- Top Items for Selected Slot -->
                   <div>
                     <h3 class="text-2xl font-bold mb-6 text-gray-100">
-                      Most Used
-                      {{
-                        equipmentSlots.find((s) => s.key === activeSlot)?.name
-                      }}
+                      {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
                     </h3>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div
-                        v-for="(item, index) in getSlotStats(
-                          activeSlot
-                        ).topItems.slice(0, 10)"
+                        v-for="(item, index) in getSlotStats(activeSlot).topItems.slice(0, 10)"
                         :key="item.name"
                         class="bg-gradient-to-r from-gray-700/50 to-gray-800/50 rounded-xl p-4 flex items-center gap-4 border border-gray-600/30 hover:border-gray-500/50 transition-all duration-200"
                       >
@@ -493,15 +483,14 @@
                             {{ item.name }}
                           </div>
                           <div class="text-sm text-gray-400">
-                            Used {{ item.count }} times ({{
-                              ((item.count / totalEquipments) * 100).toFixed(1)
-                            }}%)
+                            {{ $t('items.usedTimes', { 
+                              count: item.count, 
+                              percent: ((item.count / totalEquipments) * 100).toFixed(1) 
+                            }) }}
                           </div>
                         </div>
                         <div class="flex-shrink-0">
-                          <span class="text-lg font-bold text-blue-400"
-                            >#{{ index + 1 }}</span
-                          >
+                          <span class="text-lg font-bold text-blue-400">#{{ index + 1 }}</span>
                         </div>
                       </div>
                     </div>
@@ -510,14 +499,11 @@
                   <!-- Usage Distribution Chart -->
                   <div>
                     <h3 class="text-2xl font-bold mb-6 text-gray-100">
-                      Usage Distribution
+                      {{ $t('items.usageDistribution') }}
                     </h3>
                     <div class="space-y-3">
                       <div
-                        v-for="item in getSlotStats(activeSlot).topItems.slice(
-                          0,
-                          5
-                        )"
+                        v-for="item in getSlotStats(activeSlot).topItems.slice(0, 5)"
                         :key="item.name"
                         class="flex items-center gap-4"
                       >
@@ -564,7 +550,7 @@
                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  <p class="text-lg">No data available for this slot</p>
+                  <p class="text-lg">{{ $t('items.noData') }}</p>
                 </div>
               </div>
             </div>
@@ -574,7 +560,7 @@
               class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl"
             >
               <h3 class="text-2xl font-bold mb-6 text-gray-100">
-                Global Analysis
+                {{ $t('items.globalAnalysis.title') }}
               </h3>
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Most Diverse Slots -->
@@ -595,7 +581,7 @@
                         d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
                       />
                     </svg>
-                    Most Diverse Slots
+                    {{ $t('items.globalAnalysis.mostDiverse') }}
                   </h4>
                   <div class="space-y-3">
                     <div
@@ -605,11 +591,11 @@
                     >
                       <span class="flex items-center gap-3 text-gray-200">
                         <span class="text-lg">{{ slot.icon }}</span>
-                        {{ slot.name }}
+                        {{ $t(`items.slots.${slot.key}`) }}
                       </span>
-                      <span class="text-blue-400 font-semibold"
-                        >{{ slot.uniqueItems }} items</span
-                      >
+                      <span class="text-blue-400 font-semibold">
+                        {{ $t('items.globalAnalysis.itemsCount', { count: slot.uniqueItems }) }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -632,7 +618,7 @@
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    Most Standardized Slots
+                    {{ $t('items.globalAnalysis.mostStandardized') }}
                   </h4>
                   <div class="space-y-3">
                     <div
@@ -642,11 +628,11 @@
                     >
                       <span class="flex items-center gap-3 text-gray-200">
                         <span class="text-lg">{{ slot.icon }}</span>
-                        {{ slot.name }}
+                        {{ $t(`items.slots.${slot.key}`) }}
                       </span>
-                      <span class="text-green-400 font-semibold"
-                        >{{ slot.topItemPercentage }}%</span
-                      >
+                      <span class="text-green-400 font-semibold">
+                        {{ slot.topItemPercentage }}%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -658,42 +644,46 @@
     </div>
   </div>
 </template>
+
 <script setup>
+const { t } = useI18n();
+const localePath = useLocalePath();
+
 // Data
 const statistics = ref(null);
 const isLoading = ref(false);
-const activeSlot = ref("ar"); // Default to weapon
+const activeSlot = ref("ar");
 
-// Equipment slots configuration
+// Equipment slots configuration (icons only, names come from i18n)
 const equipmentSlots = [
-  { key: "ar", name: "Arme", icon: "⚔️" },
-  { key: "ch", name: "Chapeau", icon: "🎩" },
-  { key: "ca", name: "Cape", icon: "🦸" },
-  { key: "am", name: "Amulette", icon: "📿" },
-  { key: "br", name: "Bouclier", icon: "🛡️" },
-  { key: "ce", name: "Ceinture", icon: "👑" },
-  { key: "bo", name: "Bottes", icon: "👢" },
-  { key: "a1", name: "Anneau 1", icon: "💍" },
-  { key: "a2", name: "Anneau 2", icon: "💍" },
-  { key: "fa", name: "Familier", icon: "🐾" },
-  { key: "d1", name: "Dofus 1", icon: "🥚" },
-  { key: "d2", name: "Dofus 2", icon: "🥚" },
-  { key: "d3", name: "Dofus 3", icon: "🥚" },
-  { key: "d4", name: "Dofus 4", icon: "🥚" },
-  { key: "d5", name: "Dofus 5", icon: "🥚" },
-  { key: "d6", name: "Dofus 6", icon: "🥚" },
+  { key: "ar", icon: "⚔️" },
+  { key: "ch", icon: "🎩" },
+  { key: "ca", icon: "🦸" },
+  { key: "am", icon: "📿" },
+  { key: "br", icon: "🛡️" },
+  { key: "ce", icon: "👑" },
+  { key: "bo", icon: "👢" },
+  { key: "a1", icon: "💍" },
+  { key: "a2", icon: "💍" },
+  { key: "fa", icon: "🐾" },
+  { key: "d1", icon: "🥚" },
+  { key: "d2", icon: "🥚" },
+  { key: "d3", icon: "🥚" },
+  { key: "d4", icon: "🥚" },
+  { key: "d5", icon: "🥚" },
+  { key: "d6", icon: "🥚" },
 ];
 
 // Filter options
 const elements = [
-  { name: "eau", label: "Eau", icon: "/eau.png" },
-  { name: "feu", label: "Feu", icon: "/feu.png" },
-  { name: "terre", label: "Terre", icon: "/terre.png" },
-  { name: "air", label: "Air", icon: "/air.png" },
-  { name: "multi", label: "Multi", icon: "/multi.png" },
-  { name: "tank", label: "Tank", icon: "/tank.png" },
-  { name: "doPou", label: "Do Pou", icon: "/doPou.png" },
-  { name: "pp", label: "Prospection", icon: "/pp.png" },
+  { name: "eau", icon: "/eau.png" },
+  { name: "feu", icon: "/feu.png" },
+  { name: "terre", icon: "/terre.png" },
+  { name: "air", icon: "/air.png" },
+  { name: "multi", icon: "/multi.png" },
+  { name: "tank", icon: "/tank.png" },
+  { name: "doPou", icon: "/doPou.png" },
+  { name: "pp", icon: "/pp.png" },
 ];
 
 const modes = ["pvm", "pvp"];
@@ -718,18 +708,7 @@ const classes = [
   { name: "roublard", icon: "/Roublard.png" },
   { name: "xelor", icon: "/Xelor.png" },
 ];
-const levels = [
-  "20",
-  "40",
-  "60",
-  "80",
-  "110",
-  "130",
-  "160",
-  "180",
-  "199",
-  "200",
-];
+const levels = ["20", "40", "60", "80", "110", "130", "160", "180", "199", "200"];
 const budgets = ["low", "mid", "high"];
 
 const filters = ref({
@@ -763,7 +742,7 @@ const mostPopularSlot = computed(() => {
     if (uniqueItemsCount > maxItems) {
       maxItems = uniqueItemsCount;
       mostPopular = {
-        slot: equipmentSlots.find((s) => s.key === slotKey)?.name || slotKey,
+        slot: t(`items.slots.${slotKey}`),
         count: uniqueItemsCount,
       };
     }
@@ -851,23 +830,18 @@ const buildQueryString = () => {
   if (filters.value.element) {
     params.append("where[tags][in][0]", filters.value.element);
   }
-
   if (filters.value.mode) {
     params.append("where[mode][equals]", filters.value.mode);
   }
-
   if (filters.value.classe) {
     params.append("where[classe][equals]", filters.value.classe);
   }
-
   if (filters.value.level) {
     params.append("where[level][equals]", filters.value.level);
   }
-
   if (filters.value.budget) {
     params.append("where[budget][equals]", filters.value.budget);
   }
-
   params.append("limit", "1000");
 
   return params.toString();
@@ -879,7 +853,6 @@ const fetchStatistics = async () => {
     const queryString = buildQueryString();
     const url = `/api/items/items${queryString ? "?" + queryString : ""}`;
     const response = await $fetch(url);
-
     processStatistics(response.docs || []);
   } catch (error) {
     console.error("Error fetching statistics:", error);

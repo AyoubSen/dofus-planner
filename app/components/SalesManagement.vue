@@ -28,13 +28,15 @@
                 />
               </svg>
             </div>
-            <h3 class="text-sm font-medium text-yellow-200/80">Items for Sale</h3>
+            <h3 class="text-sm font-medium text-yellow-200/80">
+              {{ t('archimonstres.salesManagement.stats.itemsForSale') }}
+            </h3>
           </div>
           <p class="text-3xl font-bold text-yellow-300">
             {{ totalPendingQuantity }}
           </p>
           <p class="text-sm text-yellow-200/60 mt-1">
-            {{ formatKamas(previewTotal) }} total
+            {{ formatKamas(previewTotal) }} {{ t('archimonstres.salesManagement.stats.total') }}
           </p>
         </div>
       </div>
@@ -63,7 +65,9 @@
                 />
               </svg>
             </div>
-            <h3 class="text-sm font-medium text-amber-200/80">Slow Moving</h3>
+            <h3 class="text-sm font-medium text-amber-200/80">
+              {{ t('archimonstres.salesManagement.stats.slowMoving') }}
+            </h3>
           </div>
           <p
             class="text-3xl font-bold"
@@ -72,10 +76,9 @@
             {{ slowMovingItems.length }}
           </p>
           <p class="text-sm text-amber-200/60 mt-1">
-            {{ slowMovingThreshold }}+ days old
+            {{ t('archimonstres.salesManagement.stats.daysOldThreshold', { days: slowMovingThreshold }) }}
           </p>
         </div>
-        <!-- Alert indicator -->
         <div
           v-if="slowMovingItems.length > 0"
           class="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full animate-pulse"
@@ -108,7 +111,9 @@
                 />
               </svg>
             </div>
-            <h3 class="text-sm font-medium text-green-200/80">Today's Sales</h3>
+            <h3 class="text-sm font-medium text-green-200/80">
+              {{ t('archimonstres.salesManagement.stats.todaysSales') }}
+            </h3>
           </div>
           <p class="text-3xl font-bold text-green-300">
             {{ todaysSales.count }}
@@ -145,7 +150,9 @@
                 />
               </svg>
             </div>
-            <h3 class="text-sm font-medium text-blue-200/80">Total Earned</h3>
+            <h3 class="text-sm font-medium text-blue-200/80">
+              {{ t('archimonstres.salesManagement.stats.totalEarned') }}
+            </h3>
           </div>
           <p class="text-3xl font-bold text-blue-300">
             {{ allTimeSales.count }}
@@ -184,96 +191,98 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-xl font-bold text-gray-100">Add Item for Sale</h3>
-            <p class="text-sm text-gray-400">List a new archimonstre soul</p>
+            <h3 class="text-xl font-bold text-gray-100">
+              {{ t('archimonstres.salesManagement.addForm.title') }}
+            </h3>
+            <p class="text-sm text-gray-400">
+              {{ t('archimonstres.salesManagement.addForm.subtitle') }}
+            </p>
           </div>
         </div>
 
         <div class="grid md:grid-cols-4 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">
-              Monster Name
+              {{ t('archimonstres.salesManagement.addForm.monsterName') }}
             </label>
             <div class="relative input-with-suggestions">
-  <input
-    v-model="newItem.monsterName"
-    @input="onMonsterNameInput"
-    @focus="onInputFocus"
-    @blur="onInputBlur"
-    @keydown="handleKeydown"
-    ref="monsterInputRef"
-    type="text"
-    placeholder="Search monster..."
-    class="w-full px-4 py-3 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
-  />
+              <input
+                v-model="newItem.monsterName"
+                @input="onMonsterNameInput"
+                @focus="onInputFocus"
+                @blur="onInputBlur"
+                @keydown="handleKeydown"
+                ref="monsterInputRef"
+                type="text"
+                :placeholder="t('archimonstres.salesManagement.addForm.searchPlaceholder')"
+                class="w-full px-4 py-3 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+              />
 
-  <!-- Teleport dropdown to body -->
- <!-- Teleport dropdown to body -->
-<Teleport to="body">
-  <Transition name="dropdown">
-    <div
-      v-if="showSuggestions && filteredSuggestions.length > 0"
-      class="fixed bg-gray-800 border border-gray-600/50 rounded-xl shadow-2xl shadow-black/50 max-h-64 overflow-y-auto"
-      :style="dropdownStyle"
-    >
-      <div
-        v-for="(suggestion, index) in filteredSuggestions"
-        :key="suggestion.id"
-        @mousedown.prevent="selectSuggestion(suggestion)"
-        :class="[
-          'px-4 py-3 cursor-pointer flex items-center gap-3 transition-all duration-150',
-          index === selectedSuggestionIndex
-            ? 'bg-blue-600/30 border-l-2 border-blue-500'
-            : 'hover:bg-gray-700/50 border-l-2 border-transparent',
-        ]"
-      >
-        <img
-          v-if="suggestion.image_url"
-          :src="suggestion.image_url"
-          :alt="suggestion.nom"
-          class="w-10 h-10 rounded-lg object-cover border border-gray-600/50"
-        />
-        <div
-          v-else
-          class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center"
-        >
-          <svg
-            class="w-5 h-5 text-gray-500"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </div>
+              <Teleport to="body">
+                <Transition name="dropdown">
+                  <div
+                    v-if="showSuggestions && filteredSuggestions.length > 0"
+                    class="fixed bg-gray-800 border border-gray-600/50 rounded-xl shadow-2xl shadow-black/50 max-h-64 overflow-y-auto"
+                    :style="dropdownStyle"
+                  >
+                    <div
+                      v-for="(suggestion, index) in filteredSuggestions"
+                      :key="suggestion.id"
+                      @mousedown.prevent="selectSuggestion(suggestion)"
+                      :class="[
+                        'px-4 py-3 cursor-pointer flex items-center gap-3 transition-all duration-150',
+                        index === selectedSuggestionIndex
+                          ? 'bg-blue-600/30 border-l-2 border-blue-500'
+                          : 'hover:bg-gray-700/50 border-l-2 border-transparent',
+                      ]"
+                    >
+                      <img
+                        v-if="suggestion.image_url"
+                        :src="suggestion.image_url"
+                        :alt="suggestion.nom"
+                        class="w-10 h-10 rounded-lg object-cover border border-gray-600/50"
+                      />
+                      <div
+                        v-else
+                        class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center"
+                      >
+                        <svg
+                          class="w-5 h-5 text-gray-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                      </div>
 
-        <div class="flex-1 min-w-0">
-          <div class="font-medium text-gray-100 truncate">
-            {{ suggestion.nom }}
-          </div>
-          <div class="text-sm text-gray-400 truncate">
-            {{ suggestion.nom_normal }} • {{ suggestion.zone }}
-          </div>
-          <div
-            v-if="getSmartPrice(suggestion)"
-            class="text-xs text-blue-400 mt-0.5"
-          >
-            💡 Suggested: {{ formatKamas(getSmartPrice(suggestion)) }}
-          </div>
-        </div>
-      </div>
-    </div>
-  </Transition>
-</Teleport>
-</div>
+                      <div class="flex-1 min-w-0">
+                        <div class="font-medium text-gray-100 truncate">
+                          {{ suggestion.nom }}
+                        </div>
+                        <div class="text-sm text-gray-400 truncate">
+                          {{ suggestion.nom_normal }} • {{ suggestion.zone }}
+                        </div>
+                        <div
+                          v-if="getSmartPrice(suggestion)"
+                          class="text-xs text-blue-400 mt-0.5"
+                        >
+                          💡 {{ t('archimonstres.salesManagement.addForm.suggested') }}: {{ formatKamas(getSmartPrice(suggestion)) }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Transition>
+              </Teleport>
+            </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">
-              Quantity
+              {{ t('archimonstres.salesManagement.addForm.quantity') }}
             </label>
             <input
               v-model.number="newItem.quantity"
@@ -286,7 +295,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">
-              Price per Unit
+              {{ t('archimonstres.salesManagement.addForm.pricePerUnit') }}
             </label>
             <div class="relative">
               <input
@@ -304,7 +313,7 @@
               v-if="newItem.quantity > 1 && newItem.price"
               class="text-xs text-gray-400 mt-1.5"
             >
-              Total: {{ formatKamas(newItem.price * newItem.quantity) }}
+              {{ t('archimonstres.salesManagement.addForm.totalLabel') }}: {{ formatKamas(newItem.price * newItem.quantity) }}
             </p>
           </div>
 
@@ -328,7 +337,7 @@
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
-                Add to List
+                {{ t('archimonstres.salesManagement.addForm.addButton') }}
               </span>
             </button>
           </div>
@@ -370,9 +379,11 @@
             </div>
 
             <div>
-              <h3 class="text-xl font-bold text-amber-200">Slow Moving Items</h3>
+              <h3 class="text-xl font-bold text-amber-200">
+                {{ t('archimonstres.salesManagement.slowMoving.title') }}
+              </h3>
               <p class="text-sm text-amber-200/60">
-                Items listed for {{ slowMovingThreshold }}+ days
+                {{ t('archimonstres.salesManagement.slowMoving.subtitle', { days: slowMovingThreshold }) }}
               </p>
             </div>
 
@@ -384,27 +395,27 @@
                   : 'bg-gray-700/50 text-gray-400 border border-gray-600/50',
               ]"
             >
-              {{ slowMovingItems.length }} item{{
-                slowMovingItems.length !== 1 ? "s" : ""
-              }}
+              {{ t('archimonstres.salesManagement.slowMoving.itemCount', slowMovingItems.length) }}
             </span>
           </div>
 
           <div class="flex items-center gap-3">
-            <label class="text-sm text-amber-200/80 font-medium">Alert after:</label>
+            <label class="text-sm text-amber-200/80 font-medium">
+              {{ t('archimonstres.salesManagement.slowMoving.alertAfter') }}:
+            </label>
             <select
               v-model="slowMovingThreshold"
               @change="updateSlowMovingThreshold"
               class="px-4 py-2 bg-gray-800/80 border border-amber-500/30 rounded-xl text-amber-100 text-sm font-medium focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all duration-200"
             >
-              <option :value="1">1 day</option>
-              <option :value="3">3 days</option>
-              <option :value="5">5 days</option>
-              <option :value="7">7 days</option>
-              <option :value="10">10 days</option>
-              <option :value="14">14 days</option>
-              <option :value="21">21 days</option>
-              <option :value="30">30 days</option>
+              <option :value="1">{{ t('archimonstres.salesManagement.slowMoving.days.one') }}</option>
+              <option :value="3">{{ t('archimonstres.salesManagement.slowMoving.days.three') }}</option>
+              <option :value="5">{{ t('archimonstres.salesManagement.slowMoving.days.five') }}</option>
+              <option :value="7">{{ t('archimonstres.salesManagement.slowMoving.days.seven') }}</option>
+              <option :value="10">{{ t('archimonstres.salesManagement.slowMoving.days.ten') }}</option>
+              <option :value="14">{{ t('archimonstres.salesManagement.slowMoving.days.fourteen') }}</option>
+              <option :value="21">{{ t('archimonstres.salesManagement.slowMoving.days.twentyOne') }}</option>
+              <option :value="30">{{ t('archimonstres.salesManagement.slowMoving.days.thirty') }}</option>
             </select>
           </div>
         </div>
@@ -436,9 +447,11 @@
               ⭐
             </div>
           </div>
-          <p class="text-xl font-bold text-green-300 mb-2">All items moving fast!</p>
+          <p class="text-xl font-bold text-green-300 mb-2">
+            {{ t('archimonstres.salesManagement.slowMoving.emptyTitle') }}
+          </p>
           <p class="text-green-200/70 text-sm">
-            No items have been sitting for more than {{ slowMovingThreshold }} days.
+            {{ t('archimonstres.salesManagement.slowMoving.emptyDescription', { days: slowMovingThreshold }) }}
           </p>
         </div>
       </div>
@@ -463,10 +476,10 @@
               </div>
               <div>
                 <p class="text-amber-100 font-bold">
-                  {{ slowMovingItems.length }} items need attention
+                  {{ t('archimonstres.salesManagement.slowMoving.needAttention', { count: slowMovingItems.length }) }}
                 </p>
                 <p class="text-amber-200/70 text-sm">
-                  Consider adjusting prices or removing them
+                  {{ t('archimonstres.salesManagement.slowMoving.considerAdjusting') }}
                 </p>
               </div>
             </div>
@@ -474,7 +487,7 @@
               @click="selectAllSlowMovingItems"
               class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/20 transition-all duration-200"
             >
-              Select All Slow Items
+              {{ t('archimonstres.salesManagement.slowMoving.selectAll') }}
             </button>
           </div>
         </div>
@@ -528,12 +541,12 @@
                       : 'text-amber-300/80',
                   ]"
                 >
-                  {{ getDaysListed(item.dateAdded) }} days old
+                  {{ t('archimonstres.salesManagement.slowMoving.daysOld', { days: getDaysListed(item.dateAdded) }) }}
                   <span
                     v-if="getDaysListed(item.dateAdded) >= slowMovingThreshold * 2"
                     class="ml-1 text-red-400"
                   >
-                    ⚠️ URGENT
+                    ⚠️ {{ t('archimonstres.salesManagement.slowMoving.urgent') }}
                   </span>
                 </p>
               </div>
@@ -575,15 +588,15 @@
             </div>
             <div>
               <h3 class="text-xl font-bold text-gray-100">
-                Items for Sale
+                {{ t('archimonstres.salesManagement.pending.title') }}
                 <span v-if="selectedItems.length > 0" class="text-blue-400 text-base font-medium">
-                  ({{ selectedItems.length }} selected)
+                  ({{ t('archimonstres.salesManagement.pending.selected', { count: selectedItems.length }) }})
                 </span>
               </h3>
               <p class="text-sm text-gray-400">
-                {{ totalPendingQuantity }} items • {{ formatKamas(previewTotal) }} total
+                {{ t('archimonstres.salesManagement.pending.summary', { count: totalPendingQuantity, total: formatKamas(previewTotal) }) }}
                 <span v-if="selectedItems.length > 0" class="text-blue-300">
-                  • {{ formatKamas(selectedItemsTotal) }} selected
+                  • {{ t('archimonstres.salesManagement.pending.selectedTotal', { total: formatKamas(selectedItemsTotal) }) }}
                 </span>
               </p>
             </div>
@@ -610,7 +623,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search items..."
+              :placeholder="t('archimonstres.salesManagement.pending.searchPlaceholder')"
               class="w-full pl-10 pr-4 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm"
             />
           </div>
@@ -621,7 +634,7 @@
               v-model.number="priceFilterMin"
               type="number"
               min="0"
-              placeholder="Min"
+              :placeholder="t('archimonstres.salesManagement.pending.min')"
               class="w-20 px-3 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm"
             />
             <span class="text-gray-500">–</span>
@@ -629,7 +642,7 @@
               v-model.number="priceFilterMax"
               type="number"
               min="0"
-              placeholder="Max"
+              :placeholder="t('archimonstres.salesManagement.pending.max')"
               class="w-20 px-3 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-sm"
             />
           </div>
@@ -640,16 +653,16 @@
               v-model="sortBy"
               class="px-3 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
             >
-              <option value="dateAdded">Date Added</option>
-              <option value="name">Name</option>
-              <option value="price">Price</option>
-              <option value="total">Total Value</option>
+              <option value="dateAdded">{{ t('archimonstres.salesManagement.pending.sort.dateAdded') }}</option>
+              <option value="name">{{ t('archimonstres.salesManagement.pending.sort.name') }}</option>
+              <option value="price">{{ t('archimonstres.salesManagement.pending.sort.price') }}</option>
+              <option value="total">{{ t('archimonstres.salesManagement.pending.sort.totalValue') }}</option>
             </select>
 
             <button
               @click="toggleSortDirection"
               class="px-3 py-2.5 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 hover:bg-gray-700/60 transition-all duration-200"
-              :title="sortDirection === 'asc' ? 'Ascending' : 'Descending'"
+              :title="sortDirection === 'asc' ? t('archimonstres.salesManagement.pending.ascending') : t('archimonstres.salesManagement.pending.descending')"
             >
               <svg
                 class="w-4 h-4 transition-transform duration-200"
@@ -678,7 +691,7 @@
             <div class="flex items-center justify-between flex-wrap gap-4">
               <div class="flex items-center gap-4 flex-wrap">
                 <span class="text-blue-200 font-medium">
-                  {{ selectedItems.length }} selected
+                  {{ t('archimonstres.salesManagement.pending.selected', { count: selectedItems.length }) }}
                 </span>
 
                 <div class="flex items-center gap-2 flex-wrap">
@@ -686,10 +699,10 @@
                     v-model="bulkPriceAction"
                     class="px-3 py-1.5 bg-gray-800/80 border border-gray-600/50 rounded-lg text-gray-100 text-sm"
                   >
-                    <option value="set">Set to</option>
-                    <option value="increase">Increase by</option>
-                    <option value="decrease">Decrease by</option>
-                    <option value="multiply">Multiply by</option>
+                    <option value="set">{{ t('archimonstres.salesManagement.pending.bulk.setTo') }}</option>
+                    <option value="increase">{{ t('archimonstres.salesManagement.pending.bulk.increaseBy') }}</option>
+                    <option value="decrease">{{ t('archimonstres.salesManagement.pending.bulk.decreaseBy') }}</option>
+                    <option value="multiply">{{ t('archimonstres.salesManagement.pending.bulk.multiplyBy') }}</option>
                   </select>
                   <input
                     v-model.number="bulkPriceValue"
@@ -704,7 +717,7 @@
                     :disabled="!bulkPriceValue || bulkPriceValue <= 0"
                     class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm transition-colors"
                   >
-                    Apply
+                    {{ t('archimonstres.salesManagement.pending.bulk.apply') }}
                   </button>
                 </div>
               </div>
@@ -714,19 +727,19 @@
                   @click="bulkMarkAsSold"
                   class="px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg text-sm font-medium transition-all duration-200"
                 >
-                  Mark as Sold
+                  {{ t('archimonstres.salesManagement.pending.bulk.markAsSold') }}
                 </button>
                 <button
                   @click="bulkDelete"
                   class="px-3 py-1.5 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-lg text-sm font-medium transition-all duration-200"
                 >
-                  Delete
+                  {{ t('archimonstres.salesManagement.pending.bulk.delete') }}
                 </button>
                 <button
                   @click="clearSelection"
                   class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm transition-colors"
                 >
-                  Clear
+                  {{ t('archimonstres.salesManagement.pending.bulk.clear') }}
                 </button>
               </div>
             </div>
@@ -773,8 +786,10 @@
               </div>
             </div>
             <span class="text-sm text-gray-300 group-hover:text-gray-200">
-              {{ isAllSelected ? "Deselect All" : "Select All" }}
-              ({{ filteredAndSortedPendingItems.length }})
+              {{ isAllSelected 
+                ? t('archimonstres.salesManagement.pending.deselectAll', { count: filteredAndSortedPendingItems.length }) 
+                : t('archimonstres.salesManagement.pending.selectAll', { count: filteredAndSortedPendingItems.length }) 
+              }}
             </span>
           </label>
 
@@ -783,13 +798,13 @@
               @click="selectByPriceRange"
               class="text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Select by price
+              {{ t('archimonstres.salesManagement.pending.selectByPrice') }}
             </button>
             <button
               @click="selectByMonsterType"
               class="text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Select by type
+              {{ t('archimonstres.salesManagement.pending.selectByType') }}
             </button>
           </div>
         </div>
@@ -810,7 +825,10 @@
           </svg>
         </div>
         <p class="text-gray-400">
-          {{ searchQuery ? "No items match your search" : "No items listed for sale" }}
+          {{ searchQuery 
+            ? t('archimonstres.salesManagement.pending.noMatch') 
+            : t('archimonstres.salesManagement.pending.noItems') 
+          }}
         </p>
       </div>
 
@@ -895,7 +913,7 @@
                   </span>
                 </h4>
                 <p class="text-sm text-gray-500">
-                  Added {{ formatDate(item.dateAdded) }}
+                  {{ t('archimonstres.salesManagement.pending.added') }} {{ formatDate(item.dateAdded) }}
                 </p>
               </div>
             </div>
@@ -986,7 +1004,9 @@
                 <button
                   @click.stop="handleCopyItemPrice(item)"
                   class="p-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 rounded-lg text-gray-100 transition-all duration-200"
-                  :title="copiedPrice[item.id] ? 'Copied!' : 'Copy price'"
+                  :title="copiedPrice[item.id] 
+                    ? t('archimonstres.salesManagement.pending.copied') 
+                    : t('archimonstres.salesManagement.pending.copyPrice')"
                 >
                   <svg
                     v-if="!copiedPrice[item.id]"
@@ -1023,7 +1043,9 @@
 
               <!-- Total -->
               <div class="text-right min-w-20">
-                <p class="text-xs text-gray-500 uppercase tracking-wide">Total</p>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">
+                  {{ t('archimonstres.salesManagement.pending.totalLabel') }}
+                </p>
                 <p class="font-bold text-yellow-300">
                   {{
                     formatKamas(
@@ -1040,13 +1062,13 @@
                   @click="confirmSale(item)"
                   class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-green-500/20"
                 >
-                  Sold!
+                  {{ t('archimonstres.salesManagement.pending.sold') }}
                 </button>
                 <button
                   @click="removeItem(item.id)"
                   class="px-4 py-2 bg-gray-700/50 hover:bg-red-500/20 border border-gray-600/50 hover:border-red-500/50 text-gray-300 hover:text-red-400 rounded-xl text-sm transition-all duration-200"
                 >
-                  Remove
+                  {{ t('archimonstres.salesManagement.pending.remove') }}
                 </button>
               </div>
             </div>
@@ -1080,8 +1102,12 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-xl font-bold text-gray-100">Sales History</h3>
-              <p class="text-sm text-gray-400">Track your completed sales</p>
+              <h3 class="text-xl font-bold text-gray-100">
+                {{ t('archimonstres.salesManagement.history.title') }}
+              </h3>
+              <p class="text-sm text-gray-400">
+                {{ t('archimonstres.salesManagement.history.subtitle') }}
+              </p>
             </div>
           </div>
 
@@ -1090,16 +1116,16 @@
               v-model="historyFilter"
               class="px-4 py-2 bg-gray-800/60 border border-gray-600/50 rounded-xl text-gray-100 text-sm focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all duration-200"
             >
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="all">All Time</option>
+              <option value="today">{{ t('archimonstres.salesManagement.history.filters.today') }}</option>
+              <option value="week">{{ t('archimonstres.salesManagement.history.filters.thisWeek') }}</option>
+              <option value="all">{{ t('archimonstres.salesManagement.history.filters.allTime') }}</option>
             </select>
             <button
               v-if="soldItems.length > 0"
               @click="clearHistory"
               class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 text-red-400 rounded-xl text-sm font-medium transition-all duration-200"
             >
-              Clear History
+              {{ t('archimonstres.salesManagement.history.clearHistory') }}
             </button>
           </div>
         </div>
@@ -1118,7 +1144,9 @@
             />
           </svg>
         </div>
-        <p class="text-gray-400">No sales recorded yet</p>
+        <p class="text-gray-400">
+          {{ t('archimonstres.salesManagement.history.noSales') }}
+        </p>
       </div>
 
       <div
@@ -1167,11 +1195,11 @@
                 <h4 class="font-medium text-gray-100">
                   {{ item.monsterName }}
                   <span v-if="item.quantity > 1" class="text-gray-400 text-sm">
-                    ({{ item.quantity }}x @ {{ formatKamas(item.soldPrice) }} each)
+                    ({{ item.quantity }}x @ {{ formatKamas(item.soldPrice) }} {{ t('archimonstres.salesManagement.history.each') }})
                   </span>
                 </h4>
                 <p class="text-sm text-gray-500">
-                  Sold {{ formatDate(item.dateSold) }}
+                  {{ t('archimonstres.salesManagement.history.sold') }} {{ formatDate(item.dateSold) }}
                 </p>
               </div>
             </div>
@@ -1192,9 +1220,9 @@
               <button
                 @click="undoSale(item)"
                 class="px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 hover:border-orange-500/50 text-orange-400 rounded-lg text-sm font-medium transition-all duration-200"
-                title="Move back to items for sale"
+                :title="t('archimonstres.salesManagement.history.undoTitle')"
               >
-                ↶ Undo
+                ↶ {{ t('archimonstres.salesManagement.history.undo') }}
               </button>
             </div>
           </div>
@@ -1212,11 +1240,13 @@
         <div
           class="bg-gray-800 border border-gray-700/50 rounded-2xl p-6 w-full max-w-md shadow-2xl"
         >
-          <h3 class="text-xl font-bold text-gray-100 mb-6">Select by Price Range</h3>
+          <h3 class="text-xl font-bold text-gray-100 mb-6">
+            {{ t('archimonstres.salesManagement.modals.priceRange.title') }}
+          </h3>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-300 mb-2">
-                Minimum Price
+                {{ t('archimonstres.salesManagement.modals.priceRange.minPrice') }}
               </label>
               <input
                 v-model.number="priceRangeMin"
@@ -1228,7 +1258,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-300 mb-2">
-                Maximum Price
+                {{ t('archimonstres.salesManagement.modals.priceRange.maxPrice') }}
               </label>
               <input
                 v-model.number="priceRangeMax"
@@ -1243,13 +1273,13 @@
                 @click="applyPriceRangeSelection"
                 class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200"
               >
-                Select Items
+                {{ t('archimonstres.salesManagement.modals.priceRange.selectItems') }}
               </button>
               <button
                 @click="showPriceRangeModal = false"
                 class="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200"
               >
-                Cancel
+                {{ t('archimonstres.salesManagement.modals.cancel') }}
               </button>
             </div>
           </div>
@@ -1267,7 +1297,9 @@
         <div
           class="bg-gray-800 border border-gray-700/50 rounded-2xl p-6 w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl"
         >
-          <h3 class="text-xl font-bold text-gray-100 mb-6">Select by Monster Type</h3>
+          <h3 class="text-xl font-bold text-gray-100 mb-6">
+            {{ t('archimonstres.salesManagement.modals.monsterType.title') }}
+          </h3>
           <div class="flex-1 overflow-y-auto space-y-2 mb-4 custom-scrollbar">
             <div
               v-for="monsterType in uniqueMonsterTypes"
@@ -1319,13 +1351,13 @@
               @click="applyMonsterTypeSelection"
               class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200"
             >
-              Select Items
+              {{ t('archimonstres.salesManagement.modals.monsterType.selectItems') }}
             </button>
             <button
               @click="showMonsterTypeModal = false"
               class="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200"
             >
-              Cancel
+              {{ t('archimonstres.salesManagement.modals.cancel') }}
             </button>
           </div>
         </div>
@@ -1336,6 +1368,8 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
+
+const { t } = useI18n();
 
 const props = defineProps({
   server: {

@@ -4,12 +4,9 @@
   >
     <!-- Animated Background Elements -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <!-- Grid pattern -->
       <div
         class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"
       ></div>
-
-      <!-- Floating orbs -->
       <div
         class="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse-slow"
       ></div>
@@ -24,10 +21,7 @@
     <!-- Hero Section -->
     <div class="relative z-10 max-w-7xl mx-auto px-8 pt-20 pb-16">
       <div class="text-center mb-20">
-        <!-- Logo and Title -->
-        <div
-          class="inline-flex items-center gap-4 mb-8 animate-fade-in-down"
-        >
+        <div class="inline-flex items-center gap-4 mb-8 animate-fade-in-down">
           <div
             class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/25 animate-float"
           >
@@ -44,25 +38,26 @@
           <h1
             class="text-7xl font-black bg-gradient-to-r from-orange-400 via-red-500 to-orange-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient"
           >
-            Dofus Stuff
+            {{ $t('home.title') }}
           </h1>
         </div>
 
-        <!-- Subtitle with typing effect style -->
         <p
           class="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed animate-fade-in opacity-0 animation-delay-300"
         >
-          Your ultimate companion for mastering the
-          <span class="text-orange-400 font-semibold">World of Twelve</span>.
-          Track archimonstres, manage your gear, and optimize your Dofus
-          adventure.
+          <i18n-t keypath="home.subtitle" tag="span">
+            <template #highlight>
+              <span class="text-orange-400 font-semibold">{{
+                $t('home.worldOfTwelve')
+              }}</span>
+            </template>
+          </i18n-t>
         </p>
 
-        <!-- CTA hint -->
         <div
           class="mt-8 flex items-center justify-center gap-2 text-gray-500 animate-fade-in opacity-0 animation-delay-500"
         >
-          <span class="text-sm">Explore our tools below</span>
+          <span class="text-sm">{{ $t('home.exploreTools') }}</span>
           <svg
             class="w-4 h-4 animate-bounce"
             fill="none"
@@ -80,19 +75,15 @@
       </div>
 
       <!-- Feature Cards Grid -->
-      <div
-        class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-8xl mx-auto"
-      >
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-8xl mx-auto">
         <!-- Archimonstres Card -->
         <NuxtLink
-          to="/archimonstres"
+          :to="localePath('/archimonstres')"
           class="group relative overflow-hidden bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 hover:border-orange-500/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-orange-500/20 animate-fade-in-up opacity-0 animation-delay-100"
         >
-          <!-- Glow effect -->
           <div
             class="absolute -inset-px bg-gradient-to-r from-orange-500 to-red-600 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"
           ></div>
-
           <div
             class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
           ></div>
@@ -116,7 +107,6 @@
                   />
                 </svg>
               </div>
-
               <div
                 class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-orange-400 group-hover:bg-orange-500/20 transition-all duration-300"
               >
@@ -139,29 +129,25 @@
             <h2
               class="text-2xl font-bold text-gray-100 mb-3 group-hover:text-orange-400 transition-colors duration-300"
             >
-              Archimonstres
+              {{ $t('home.cards.archimonstres.title') }}
             </h2>
-
             <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-2">
-              Master the hunt with comprehensive tracking tools for the Dofus
-              Ocre quest.
+              {{ $t('home.cards.archimonstres.description') }}
             </p>
 
-            <!-- Tags -->
             <div class="flex flex-wrap gap-1.5 mb-4">
               <span
                 class="px-2.5 py-1 bg-orange-500/10 text-orange-300 text-xs font-medium rounded-full border border-orange-500/20"
               >
-                Ocre Quest
+                {{ $t('home.cards.archimonstres.tags[0]') }}
               </span>
               <span
                 class="px-2.5 py-1 bg-green-500/10 text-green-300 text-xs font-medium rounded-full border border-green-500/20"
               >
-                Multi-Char
+                {{ $t('home.cards.archimonstres.tags[1]') }}
               </span>
             </div>
 
-            <!-- Progress bar decoration -->
             <div class="h-1 bg-gray-700/50 rounded-full overflow-hidden">
               <div
                 class="h-full w-0 group-hover:w-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-700 ease-out"
@@ -172,13 +158,12 @@
 
         <!-- Items Card -->
         <NuxtLink
-          to="/items"
+          :to="localePath('/items')"
           class="group relative overflow-hidden bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 hover:border-blue-500/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20 animate-fade-in-up opacity-0 animation-delay-200"
         >
           <div
             class="absolute -inset-px bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"
           ></div>
-
           <div
             class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
           ></div>
@@ -202,7 +187,6 @@
                   />
                 </svg>
               </div>
-
               <div
                 class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-blue-400 group-hover:bg-blue-500/20 transition-all duration-300"
               >
@@ -225,24 +209,22 @@
             <h2
               class="text-2xl font-bold text-gray-100 mb-3 group-hover:text-blue-400 transition-colors duration-300"
             >
-              Items & Gear
+              {{ $t('home.cards.items.title') }}
             </h2>
-
             <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-2">
-              Comprehensive item database with advanced filtering and comparison
-              tools.
+              {{ $t('home.cards.items.description') }}
             </p>
 
             <div class="flex flex-wrap gap-1.5 mb-4">
               <span
                 class="px-2.5 py-1 bg-blue-500/10 text-blue-300 text-xs font-medium rounded-full border border-blue-500/20"
               >
-                Database
+                {{ $t('home.cards.items.tags[0]') }}
               </span>
               <span
                 class="px-2.5 py-1 bg-purple-500/10 text-purple-300 text-xs font-medium rounded-full border border-purple-500/20"
               >
-                Optimizer
+                {{ $t('home.cards.items.tags[1]') }}
               </span>
             </div>
 
@@ -256,13 +238,12 @@
 
         <!-- Crafting Card -->
         <NuxtLink
-          to="/crafting"
+         :to="localePath('/crafting')"
           class="group relative overflow-hidden bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 hover:border-emerald-500/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/20 animate-fade-in-up opacity-0 animation-delay-300"
         >
           <div
             class="absolute -inset-px bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"
           ></div>
-
           <div
             class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
           ></div>
@@ -286,7 +267,6 @@
                   />
                 </svg>
               </div>
-
               <div
                 class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-emerald-400 group-hover:bg-emerald-500/20 transition-all duration-300"
               >
@@ -309,23 +289,22 @@
             <h2
               class="text-2xl font-bold text-gray-100 mb-3 group-hover:text-emerald-400 transition-colors duration-300"
             >
-              Sales Tracker
+              {{ $t('home.cards.crafting.title') }}
             </h2>
-
             <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-2">
-              Track crafted equipment sales, custom stats, and profit margins.
+              {{ $t('home.cards.crafting.description') }}
             </p>
 
             <div class="flex flex-wrap gap-1.5 mb-4">
               <span
                 class="px-2.5 py-1 bg-emerald-500/10 text-emerald-300 text-xs font-medium rounded-full border border-emerald-500/20"
               >
-                Profits
+                {{ $t('home.cards.crafting.tags[0]') }}
               </span>
               <span
                 class="px-2.5 py-1 bg-teal-500/10 text-teal-300 text-xs font-medium rounded-full border border-teal-500/20"
               >
-                Analytics
+                {{ $t('home.cards.crafting.tags[1]') }}
               </span>
             </div>
 
@@ -339,13 +318,12 @@
 
         <!-- Succès Card -->
         <NuxtLink
-          to="/succes"
+          :to="localePath('/succes')"
           class="group relative overflow-hidden bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 hover:border-yellow-500/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-yellow-500/20 animate-fade-in-up opacity-0 animation-delay-400"
         >
           <div
             class="absolute -inset-px bg-gradient-to-r from-yellow-500 to-orange-600 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"
           ></div>
-
           <div
             class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-orange-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"
           ></div>
@@ -369,7 +347,6 @@
                   />
                 </svg>
               </div>
-
               <div
                 class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-yellow-400 group-hover:bg-yellow-500/20 transition-all duration-300"
               >
@@ -392,23 +369,22 @@
             <h2
               class="text-2xl font-bold text-gray-100 mb-3 group-hover:text-yellow-400 transition-colors duration-300"
             >
-              Succès
+              {{ $t('home.cards.succes.title') }}
             </h2>
-
             <p class="text-gray-400 text-sm mb-5 leading-relaxed line-clamp-2">
-              Browse achievements, track progress, and discover rewards.
+              {{ $t('home.cards.succes.description') }}
             </p>
 
             <div class="flex flex-wrap gap-1.5 mb-4">
               <span
                 class="px-2.5 py-1 bg-yellow-500/10 text-yellow-300 text-xs font-medium rounded-full border border-yellow-500/20"
               >
-                Browser
+                {{ $t('home.cards.succes.tags[0]') }}
               </span>
               <span
                 class="px-2.5 py-1 bg-orange-500/10 text-orange-300 text-xs font-medium rounded-full border border-orange-500/20"
               >
-                Rewards
+                {{ $t('home.cards.succes.tags[1]') }}
               </span>
             </div>
 
@@ -425,7 +401,6 @@
       <div
         class="mt-24 relative animate-fade-in opacity-0 animation-delay-600"
       >
-        <!-- Stats background decoration -->
         <div
           class="absolute inset-0 bg-gradient-to-r from-transparent via-gray-800/50 to-transparent rounded-3xl"
         ></div>
@@ -440,7 +415,7 @@
               286
             </div>
             <div class="text-gray-500 text-sm font-medium tracking-wide">
-              Archimonstres
+              {{ $t('home.stats.archimonstres') }}
             </div>
           </div>
           <div class="text-center group">
@@ -450,7 +425,7 @@
               1000+
             </div>
             <div class="text-gray-500 text-sm font-medium tracking-wide">
-              Items Tracked
+              {{ $t('home.stats.itemsTracked') }}
             </div>
           </div>
           <div class="text-center group">
@@ -460,7 +435,7 @@
               100%
             </div>
             <div class="text-gray-500 text-sm font-medium tracking-wide">
-              Local Storage
+              {{ $t('home.stats.localStorage') }}
             </div>
           </div>
           <div class="text-center group">
@@ -470,7 +445,7 @@
               24/7
             </div>
             <div class="text-gray-500 text-sm font-medium tracking-wide">
-              Available
+              {{ $t('home.stats.available') }}
             </div>
           </div>
         </div>
@@ -494,12 +469,14 @@
               />
             </svg>
           </div>
-          <span class="font-semibold text-gray-400">Dofus Stuff</span>
+          <span class="font-semibold text-gray-400">{{ $t('home.title') }}</span>
         </div>
         <p class="text-gray-600 text-sm">
-          Made with
-          <span class="text-red-500">♥</span>
-          for the Dofus community
+          <i18n-t keypath="home.footer.madeWith" tag="span">
+            <template #heart>
+              <span class="text-red-500">♥</span>
+            </template>
+          </i18n-t>
         </p>
       </footer>
     </div>
@@ -507,13 +484,15 @@
 </template>
 
 <script setup>
+const { t } = useI18n();
+const localePath = useLocalePath();
+
 useHead({
-  title: "Dofus Stuff - Your Ultimate Dofus Companion",
+  title: t('meta.title'),
   meta: [
     {
-      name: "description",
-      content:
-        "Track archimonstres, manage your gear, and optimize your Dofus adventure with our comprehensive tools.",
+      name: 'description',
+      content: t('meta.description'),
     },
   ],
 });

@@ -1,0 +1,467 @@
+{
+  "home": {
+    "title": "Dofus Stuff",
+    "subtitle": "Your ultimate companion for mastering the {highlight}. Track archimonstres, manage your gear, and optimize your Dofus adventure.",
+    "worldOfTwelve": "World of Twelve",
+    "exploreTools": "Explore our tools below",
+    "cards": {
+      "archimonstres": {
+        "title": "Archimonstres",
+        "description": "Master the hunt with comprehensive tracking tools for the Dofus Ocre quest.",
+        "tags": ["Ocre Quest", "Multi-Char"]
+      },
+      "items": {
+        "title": "Items & Gear",
+        "description": "Comprehensive item database with advanced filtering and comparison tools.",
+        "tags": ["Database", "Optimizer"]
+      },
+      "crafting": {
+        "title": "Sales Tracker",
+        "description": "Track crafted equipment sales, custom stats, and profit margins.",
+        "tags": ["Profits", "Analytics"]
+      },
+      "succes": {
+        "title": "Succès",
+        "description": "Browse achievements, track progress, and discover rewards.",
+        "tags": ["Browser", "Rewards"]
+      }
+    },
+    "stats": {
+      "archimonstres": "Archimonstres",
+      "itemsTracked": "Items Tracked",
+      "localStorage": "Local Storage",
+      "available": "Available"
+    },
+    "footer": {
+      "madeWith": "Made with {heart} for the Dofus community"
+    }
+  },
+  "meta": {
+    "title": "Dofus Stuff - Your Ultimate Dofus Companion",
+    "description": "Track archimonstres, manage your gear, and optimize your Dofus adventure with our comprehensive tools."
+  },
+  
+  "archimonstres": {
+    "backToHome": "Back to Home",
+    "title": "Archimonstres",
+    "subtitle": "Track your monster hunting progress across the World of Twelve",
+    "breadcrumb": {
+      "server": "Server",
+      "character": "Character",
+      "tracking": "Tracking"
+    },
+    "serverSelection": {
+      "title": "Choose Your Server",
+      "description": "Select a server to begin tracking your archimonstres progress"
+    },
+    "characterSelection": {
+      "title": "Choose Your Character",
+      "description": "Select or create a character to track progress",
+      "changeServer": "Change Server"
+    },
+    "tracker": {
+      "characterButton": "Character",
+      "serverButton": "Server",
+      "loadingMonsters": "Loading monsters data...",
+      "loadingCharacter": "Loading character data..."
+    },
+    "serverSelector": {
+      "characters": "{count} character | {count} characters",
+      "emptyTitle": "No servers added yet",
+      "emptyDescription": "Add your first server to get started",
+      "addButton": "Add New Server",
+      "formTitle": "Add New Server",
+      "formDescription": "Enter the name of your Dofus server",
+      "placeholder": "Server name (e.g., Draconiros, Imagiro...)",
+      "submitButton": "Add Server",
+      "cancelButton": "Cancel",
+      "deleteTitle": "Delete Server",
+      "deleteMessage": "Are you sure you want to delete \"{name}\"? This will also delete all characters on this server.",
+      "deleteConfirm": "Delete"
+    },
+    "characterSelector": {
+      "emptyTitle": "No characters on this server",
+      "emptyDescription": "Create your first character to start tracking",
+      "addButton": "Add New Character",
+      "formTitle": "Add New Character",
+      "formDescription": "Create a character on {server}",
+      "nameLabel": "Character Name",
+      "namePlaceholder": "Enter character name",
+      "classLabel": "Class",
+      "classPlaceholder": "Select a class",
+      "classSelected": "Class selected",
+      "submitButton": "Add Character",
+      "cancelButton": "Cancel",
+      "deleteTitle": "Delete Character",
+      "deleteMessage": "Are you sure you want to delete \"{name}\" ({class})?",
+      "deleteConfirm": "Delete"
+    },
+    "trackerInterface": {
+      "dofusOcre": {
+        "title": "Dofus Ocre",
+        "description": "Track your progress towards the legendary Ochre Dofus. Monitor archimonstres and collect all souls.",
+        "tag1": "286 Archimonstres",
+        "tag2": "Progress Tracking"
+      },
+      "sellOnly": {
+        "title": "Sell Only Mode",
+        "description": "Track archimonstres for selling purposes. Perfect for hunters focused on kamas.",
+        "tag1": "Sell Tracking",
+        "tag2": "Quick Mode"
+      },
+      "loading": {
+        "title": "Loading Monsters Data",
+        "description": "Please wait while we fetch the latest data..."
+      },
+      "empty": {
+        "title": "Select a Tracking Mode",
+        "description": "Choose how you want to track your archimonstres above"
+      }
+    },
+    "monstersGrid": {
+      "title": "Monsters",
+      "showing": "Showing {displayed} of {total} monsters",
+      "stats": {
+        "missing": "missing",
+        "haveOne": "have 1",
+        "haveMultiple": "have 2+"
+      },
+      "filters": {
+        "searchPlaceholder": "Search monsters...",
+        "allTypes": "All Types",
+        "archimonstres": "Archimonstres",
+        "monstres": "Monstres",
+        "allEtapes": "All Étapes",
+        "etape": "Étape {number}",
+        "allCounts": "All Counts",
+        "missingCount": "Missing ({count})",
+        "haveOneCount": "Have 1 ({count})",
+        "haveMultipleCount": "Have 2+ ({count})",
+        "activeFilters": "Active filters:",
+        "clearAll": "Clear all",
+        "countLabels": {
+          "missing": "Missing",
+          "haveOne": "Have 1",
+          "haveMultiple": "Have 2+"
+        }
+      },
+      "loadingMore": "Loading more monsters...",
+      "loadMoreButton": "Load More Monsters",
+      "noResults": {
+        "title": "No monsters found",
+        "description": "Try adjusting your search or filter criteria",
+        "clearButton": "Clear all filters"
+      },
+      "allLoaded": "All {count} monsters loaded!"
+    },
+    "monsterCard": {
+      "typeArchi": "ARCHI",
+      "typeMob": "MOB",
+      "etape": "Étape {number}",
+      "collected": "Collected",
+      "missing": "Missing",
+      "complete": "Complete"
+    },
+    "sellingInterface": {
+      "salesManagement": {
+        "title": "Sales Management",
+        "description": "Add items to sell, set prices, and manage your inventory. Track pending and sold items.",
+        "pendingTag": "{count} Pending",
+        "bulkActionsTag": "Bulk Actions"
+      },
+      "salesAnalytics": {
+        "title": "Sales Analytics",
+        "description": "View your sales statistics, earnings breakdown, and performance insights.",
+        "soldTag": "{count} Sold",
+        "earnedTag": "{amount} Earned"
+      }
+    },
+    "salesManagement": {
+      "stats": {
+        "itemsForSale": "Items for Sale",
+        "total": "total",
+        "slowMoving": "Slow Moving",
+        "daysOldThreshold": "{days}+ days old",
+        "todaysSales": "Today's Sales",
+        "totalEarned": "Total Earned"
+      },
+      "addForm": {
+        "title": "Add Item for Sale",
+        "subtitle": "List a new archimonstre soul",
+        "monsterName": "Monster Name",
+        "searchPlaceholder": "Search monster...",
+        "suggested": "Suggested",
+        "quantity": "Quantity",
+        "pricePerUnit": "Price per Unit",
+        "totalLabel": "Total",
+        "addButton": "Add to List"
+      },
+      "slowMoving": {
+        "title": "Slow Moving Items",
+        "subtitle": "Items listed for {days}+ days",
+        "itemCount": "{count} item | {count} items",
+        "alertAfter": "Alert after",
+        "days": {
+          "one": "1 day",
+          "three": "3 days",
+          "five": "5 days",
+          "seven": "7 days",
+          "ten": "10 days",
+          "fourteen": "14 days",
+          "twentyOne": "21 days",
+          "thirty": "30 days"
+        },
+        "emptyTitle": "All items moving fast!",
+        "emptyDescription": "No items have been sitting for more than {days} days.",
+        "needAttention": "{count} items need attention",
+        "considerAdjusting": "Consider adjusting prices or removing them",
+        "selectAll": "Select All Slow Items",
+        "daysOld": "{days} days old",
+        "urgent": "URGENT"
+      },
+      "pending": {
+        "title": "Items for Sale",
+        "selected": "{count} selected",
+        "summary": "{count} items • {total} total",
+        "selectedTotal": "{total} selected",
+        "searchPlaceholder": "Search items...",
+        "min": "Min",
+        "max": "Max",
+        "sort": {
+          "dateAdded": "Date Added",
+          "name": "Name",
+          "price": "Price",
+          "totalValue": "Total Value"
+        },
+        "ascending": "Ascending",
+        "descending": "Descending",
+        "bulk": {
+          "setTo": "Set to",
+          "increaseBy": "Increase by",
+          "decreaseBy": "Decrease by",
+          "multiplyBy": "Multiply by",
+          "apply": "Apply",
+          "markAsSold": "Mark as Sold",
+          "delete": "Delete",
+          "clear": "Clear"
+        },
+        "selectAll": "Select All ({count})",
+        "deselectAll": "Deselect All ({count})",
+        "selectByPrice": "Select by price",
+        "selectByType": "Select by type",
+        "noMatch": "No items match your search",
+        "noItems": "No items listed for sale",
+        "added": "Added",
+        "totalLabel": "Total",
+        "copyPrice": "Copy price",
+        "copied": "Copied!",
+        "sold": "Sold!",
+        "remove": "Remove"
+      },
+      "history": {
+        "title": "Sales History",
+        "subtitle": "Track your completed sales",
+        "filters": {
+          "today": "Today",
+          "thisWeek": "This Week",
+          "allTime": "All Time"
+        },
+        "clearHistory": "Clear History",
+        "noSales": "No sales recorded yet",
+        "each": "each",
+        "sold": "Sold",
+        "undo": "Undo",
+        "undoTitle": "Move back to items for sale"
+      },
+      "modals": {
+        "cancel": "Cancel",
+        "priceRange": {
+          "title": "Select by Price Range",
+          "minPrice": "Minimum Price",
+          "maxPrice": "Maximum Price",
+          "selectItems": "Select Items"
+        },
+        "monsterType": {
+          "title": "Select by Monster Type",
+          "selectItems": "Select Items"
+        }
+      }
+    },
+    "salesAnalytics": {
+  "header": {
+    "title": "Sales Analytics",
+    "subtitle": "Track your best-selling monsters and sales performance"
+  },
+  "timeframes": {
+    "all": "All Time",
+    "month": "This Month",
+    "week": "This Week",
+    "today": "Today"
+  },
+  "sortOptions": {
+    "quantity": "Most Sold (Quantity)",
+    "revenue": "Highest Revenue",
+    "avgPrice": "Highest Avg Price",
+    "frequency": "Most Frequent"
+  },
+  "quickStats": {
+    "uniqueMonsters": "Unique Monsters",
+    "typesSold": "Types sold",
+    "bestSeller": "Best Seller",
+    "sold": "{count} sold",
+    "topRevenue": "Top Revenue",
+    "avgPrice": "Avg Price",
+    "perSale": "Per sale"
+  },
+  "tabs": {
+    "salesPerformance": "Sales Performance",
+    "capturePatterns": "Capture Patterns",
+    "priceTrends": "Price Trends",
+    "inconsistencies": "Inconsistencies"
+  },
+  "salesPerformance": {
+    "title": "Monster Sales Ranking",
+    "subtitle": "{count} monsters • Top performers",
+    "emptyTitle": "No sales data available",
+    "emptyDescription": "Start selling monsters to see analytics here!",
+    "quantity": "Quantity",
+    "revenue": "Revenue",
+    "avgPrice": "Avg Price",
+    "range": "Range",
+    "performance": "Performance",
+    "ofTopSeller": "{percent}% of top seller",
+    "sales": "{count} sale | {count} sales",
+    "last": "Last {date}"
+  },
+  "capturePatterns": {
+    "title": "Capture Patterns",
+    "subtitle": "Based on items you've added for sale",
+    "itemsCaptured": "Items Captured",
+    "uniqueMonsters": "{count} unique monsters",
+    "mostCaptured": "Most Captured",
+    "times": "{count} times",
+    "avgPerDay": "Avg per Day",
+    "capturesDaily": "captures daily",
+    "emptyTitle": "No capture data yet",
+    "emptyDescription": "Add items for sale to track your captures!",
+    "captured": "Captured",
+    "percentTotal": "% Total",
+    "daysActive": "Days Active",
+    "firstLast": "First {first} • Last {last}"
+  },
+  "priceTrends": {
+    "title": "Price Trends",
+    "subtitle": "Track how prices change over time",
+    "allMonsters": "All Monsters",
+    "monstersTracked": "Monsters Tracked",
+    "avgPriceChange": "Avg Price Change",
+    "biggestGainer": "Biggest Gainer",
+    "biggestLoser": "Biggest Loser",
+    "emptyTitle": "No price trend data",
+    "emptyDescription": "Sell the same monster at least twice to see price trends!",
+    "salesTracked": "{count} sales tracked",
+    "first": "First",
+    "latest": "Latest",
+    "change": "Change",
+    "avg": "Avg",
+    "priceHistory": "Price History",
+    "dataPoints": "{count} data points",
+    "rising": "Rising",
+    "falling": "Falling",
+    "stable": "Stable"
+  },
+  "inconsistencies": {
+    "title": "Price Inconsistencies",
+    "subtitle": "Monsters with different prices in your current listings",
+    "count": "{count} inconsistency | {count} inconsistencies",
+    "perfectTitle": "Perfect pricing!",
+    "perfectDescription": "All your monsters have consistent pricing across listings.",
+    "itemsAndPrices": "{items} items • {prices} different prices",
+    "range": "Range",
+    "variation": "+{percent}% var",
+    "average": "Average",
+    "lowest": "Lowest",
+    "highest": "Highest",
+    "selectAll": "Select All"
+  }
+}
+    
+},
+"items": {
+    "backToHome": "Back to Home",
+    "title": "Equipment Statistics",
+    "subtitle": "Analyze equipment usage patterns and meta trends",
+    "loading": "Loading statistics...",
+    "noData": "No data available for this slot",
+    "filters": {
+      "title": "FILTERS",
+      "elements": {
+        "title": "Elements",
+        "all": "All Elements",
+        "eau": "Water",
+        "feu": "Fire",
+        "terre": "Earth",
+        "air": "Air",
+        "multi": "Multi",
+        "tank": "Tank",
+        "doPou": "Do Pou",
+        "pp": "Prospection"
+      },
+      "mode": {
+        "title": "Mode",
+        "all": "All Modes",
+        "pvm": "PVM",
+        "pvp": "PVP"
+      },
+      "classes": {
+        "title": "Classes",
+        "all": "All Classes"
+      },
+      "level": {
+        "title": "Level",
+        "all": "All Levels"
+      },
+      "budget": {
+        "title": "Budget",
+        "all": "All Budgets",
+        "low": "Low",
+        "mid": "Mid",
+        "high": "High"
+      }
+    },
+    "stats": {
+      "totalEquipment": "Total Equipment",
+      "uniqueItems": "Unique Items",
+      "mostVariedSlot": "Most Varied Slot",
+      "avgItemsPerSet": "Avg Items/Set",
+      "na": "N/A"
+    },
+    "slots": {
+      "ar": "Weapon",
+      "ch": "Hat",
+      "ca": "Cloak",
+      "am": "Amulet",
+      "br": "Shield",
+      "ce": "Belt",
+      "bo": "Boots",
+      "a1": "Ring 1",
+      "a2": "Ring 2",
+      "fa": "Pet",
+      "d1": "Dofus 1",
+      "d2": "Dofus 2",
+      "d3": "Dofus 3",
+      "d4": "Dofus 4",
+      "d5": "Dofus 5",
+      "d6": "Dofus 6"
+    },
+    "mostUsed": "Most Used {slot}",
+    "usedTimes": "Used {count} times ({percent}%)",
+    "usageDistribution": "Usage Distribution",
+    "globalAnalysis": {
+      "title": "Global Analysis",
+      "mostDiverse": "Most Diverse Slots",
+      "mostStandardized": "Most Standardized Slots",
+      "itemsCount": "{count} items"
+    }
+  }
+}

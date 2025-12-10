@@ -18,8 +18,8 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 - [x] Better design for some areas (TBD)
 - [x] Better filters flow/design
 - [ ] More filters (TBD)
-- [ ] Whatever I feel like is missing on the way (aka, TBD)
-- [ ] different themes for the app
+- [ ] different themes for the app (tried it, but the the whole layout of the app has to change)
+- [ ] French language support
 
 ## Archimonstres:
 
@@ -28,7 +28,7 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 #### Ocre Mode:
 
 - [ ] Completion %
-- [ ] Show monsters left in total
+- [x] Show monsters left in total
 - [ ] Show how many and what monsters are left in each step
 
 #### Sell Mode:
@@ -53,3 +53,7 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 - [x] Search for equipments
 - [x] Fetch effects and link the effectId to its name
 - [x] Be able to change the stats so i can match them to what i have in game.
+
+## Succes
+
+- [x] well I already added everything before typing it so, idk man.

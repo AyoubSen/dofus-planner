@@ -28,9 +28,11 @@
               </svg>
             </div>
             <div>
-              <h2 class="text-2xl font-bold text-gray-100">Sales Analytics</h2>
+              <h2 class="text-2xl font-bold text-gray-100">
+                {{ t('archimonstres.salesAnalytics.header.title') }}
+              </h2>
               <p class="text-gray-400 mt-1">
-                Track your best-selling monsters and sales performance
+                {{ t('archimonstres.salesAnalytics.header.subtitle') }}
               </p>
             </div>
           </div>
@@ -39,18 +41,18 @@
               v-model="analyticsTimeframe"
               class="px-4 py-2.5 bg-gray-800/80 border border-gray-600/50 rounded-xl text-gray-100 text-sm font-medium focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-200"
             >
-              <option value="all">All Time</option>
-              <option value="month">This Month</option>
-              <option value="week">This Week</option>
+              <option value="all">{{ t('archimonstres.salesAnalytics.timeframes.all') }}</option>
+              <option value="month">{{ t('archimonstres.salesAnalytics.timeframes.month') }}</option>
+              <option value="week">{{ t('archimonstres.salesAnalytics.timeframes.week') }}</option>
             </select>
             <select
               v-model="analyticsSortBy"
               class="px-4 py-2.5 bg-gray-800/80 border border-gray-600/50 rounded-xl text-gray-100 text-sm font-medium focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-200"
             >
-              <option value="quantity">Most Sold (Quantity)</option>
-              <option value="revenue">Highest Revenue</option>
-              <option value="avgPrice">Highest Avg Price</option>
-              <option value="frequency">Most Frequent</option>
+              <option value="quantity">{{ t('archimonstres.salesAnalytics.sortOptions.quantity') }}</option>
+              <option value="revenue">{{ t('archimonstres.salesAnalytics.sortOptions.revenue') }}</option>
+              <option value="avgPrice">{{ t('archimonstres.salesAnalytics.sortOptions.avgPrice') }}</option>
+              <option value="frequency">{{ t('archimonstres.salesAnalytics.sortOptions.frequency') }}</option>
             </select>
           </div>
         </div>
@@ -84,13 +86,15 @@
                   </svg>
                 </div>
                 <h3 class="text-sm font-medium text-blue-200/80">
-                  Unique Monsters
+                  {{ t('archimonstres.salesAnalytics.quickStats.uniqueMonsters') }}
                 </h3>
               </div>
               <p class="text-3xl font-bold text-blue-300">
                 {{ analyticsData.uniqueMonsters }}
               </p>
-              <p class="text-sm text-blue-200/60 mt-1">Types sold</p>
+              <p class="text-sm text-blue-200/60 mt-1">
+                {{ t('archimonstres.salesAnalytics.quickStats.typesSold') }}
+              </p>
             </div>
           </div>
 
@@ -116,13 +120,15 @@
                     />
                   </svg>
                 </div>
-                <h3 class="text-sm font-medium text-green-200/80">Best Seller</h3>
+                <h3 class="text-sm font-medium text-green-200/80">
+                  {{ t('archimonstres.salesAnalytics.quickStats.bestSeller') }}
+                </h3>
               </div>
               <p class="text-xl font-bold text-green-300 truncate">
                 {{ analyticsData.bestSeller?.name || "N/A" }}
               </p>
               <p class="text-sm text-green-200/60 mt-1">
-                {{ analyticsData.bestSeller?.quantity || 0 }} sold
+                {{ t('archimonstres.salesAnalytics.quickStats.sold', { count: analyticsData.bestSeller?.quantity || 0 }) }}
               </p>
             </div>
           </div>
@@ -154,7 +160,7 @@
                   </svg>
                 </div>
                 <h3 class="text-sm font-medium text-yellow-200/80">
-                  Top Revenue
+                  {{ t('archimonstres.salesAnalytics.quickStats.topRevenue') }}
                 </h3>
               </div>
               <p class="text-xl font-bold text-yellow-300 truncate">
@@ -192,12 +198,16 @@
                     />
                   </svg>
                 </div>
-                <h3 class="text-sm font-medium text-purple-200/80">Avg Price</h3>
+                <h3 class="text-sm font-medium text-purple-200/80">
+                  {{ t('archimonstres.salesAnalytics.quickStats.avgPrice') }}
+                </h3>
               </div>
               <p class="text-3xl font-bold text-purple-300">
                 {{ formatKamasShort(analyticsData.avgSalePrice) }}
               </p>
-              <p class="text-sm text-purple-200/60 mt-1">Per sale</p>
+              <p class="text-sm text-purple-200/60 mt-1">
+                {{ t('archimonstres.salesAnalytics.quickStats.perSale') }}
+              </p>
             </div>
           </div>
         </div>
@@ -226,7 +236,7 @@
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
-          Sales Performance
+          {{ t('archimonstres.salesAnalytics.tabs.salesPerformance') }}
         </button>
         <button
           @click="analyticsSubTab = 'capture-patterns'"
@@ -251,7 +261,7 @@
               d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          Capture Patterns
+          {{ t('archimonstres.salesAnalytics.tabs.capturePatterns') }}
         </button>
         <button
           @click="analyticsSubTab = 'price-trends'"
@@ -270,7 +280,7 @@
               d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
             />
           </svg>
-          Price Trends
+          {{ t('archimonstres.salesAnalytics.tabs.priceTrends') }}
         </button>
         <button
           @click="analyticsSubTab = 'pricing-inconsistencies'"
@@ -289,7 +299,7 @@
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          Inconsistencies
+          {{ t('archimonstres.salesAnalytics.tabs.inconsistencies') }}
           <span
             v-if="pricingInconsistencies.length > 0"
             class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse"
@@ -326,9 +336,11 @@
                 </svg>
               </div>
               <div>
-                <h3 class="text-xl font-bold text-gray-100">Monster Sales Ranking</h3>
+                <h3 class="text-xl font-bold text-gray-100">
+                  {{ t('archimonstres.salesAnalytics.salesPerformance.title') }}
+                </h3>
                 <p class="text-sm text-gray-400">
-                  {{ filteredAnalyticsData.length }} monsters • Top performers
+                  {{ t('archimonstres.salesAnalytics.salesPerformance.subtitle', { count: filteredAnalyticsData.length }) }}
                 </p>
               </div>
             </div>
@@ -354,8 +366,12 @@
                   />
                 </svg>
               </div>
-              <p class="text-lg font-medium text-gray-300 mb-2">No sales data available</p>
-              <p class="text-gray-500">Start selling monsters to see analytics here!</p>
+              <p class="text-lg font-medium text-gray-300 mb-2">
+                {{ t('archimonstres.salesAnalytics.salesPerformance.emptyTitle') }}
+              </p>
+              <p class="text-gray-500">
+                {{ t('archimonstres.salesAnalytics.salesPerformance.emptyDescription') }}
+              </p>
             </div>
           </div>
 
@@ -419,8 +435,8 @@
                         {{ monster.name }}
                       </h4>
                       <p class="text-sm text-gray-500">
-                        {{ monster.salesCount }} sale{{ monster.salesCount > 1 ? "s" : "" }}
-                        • Last {{ formatDateShort(monster.lastSold) }}
+                        {{ t('archimonstres.salesAnalytics.salesPerformance.sales', monster.salesCount) }}
+                        • {{ t('archimonstres.salesAnalytics.salesPerformance.last', { date: formatDateShort(monster.lastSold) }) }}
                       </p>
                     </div>
                   </div>
@@ -429,23 +445,31 @@
                 <!-- Stats -->
                 <div class="flex items-center gap-6">
                   <div class="text-center">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Quantity</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.salesPerformance.quantity') }}
+                    </p>
                     <p class="font-bold text-blue-400 text-lg">{{ monster.quantity }}</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Revenue</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.salesPerformance.revenue') }}
+                    </p>
                     <p class="font-bold text-green-400 text-lg">
                       {{ formatKamasShort(monster.revenue) }}
                     </p>
                   </div>
                   <div class="text-center">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Avg Price</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.salesPerformance.avgPrice') }}
+                    </p>
                     <p class="font-bold text-yellow-400 text-lg">
                       {{ formatKamasShort(monster.avgPrice) }}
                     </p>
                   </div>
                   <div class="text-center min-w-24">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Range</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.salesPerformance.range') }}
+                    </p>
                     <p class="text-sm text-gray-400">
                       {{ formatKamasShort(monster.minPrice) }} -
                       {{ formatKamasShort(monster.maxPrice) }}
@@ -457,13 +481,11 @@
               <!-- Progress Bar -->
               <div class="mt-4">
                 <div class="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-                  <span>Performance</span>
+                  <span>{{ t('archimonstres.salesAnalytics.salesPerformance.performance') }}</span>
                   <span>
-                    {{
-                      Math.round(
-                        (monster.quantity / (filteredAnalyticsData[0]?.quantity || 1)) * 100
-                      )
-                    }}% of top seller
+                    {{ t('archimonstres.salesAnalytics.salesPerformance.ofTopSeller', {
+                      percent: Math.round((monster.quantity / (filteredAnalyticsData[0]?.quantity || 1)) * 100)
+                    }) }}
                   </span>
                 </div>
                 <div class="w-full bg-gray-700/50 rounded-full h-2.5 overflow-hidden">
@@ -529,9 +551,11 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-purple-200">Capture Patterns</h3>
+                  <h3 class="text-xl font-bold text-purple-200">
+                    {{ t('archimonstres.salesAnalytics.capturePatterns.title') }}
+                  </h3>
                   <p class="text-sm text-purple-200/60">
-                    Based on items you've added for sale
+                    {{ t('archimonstres.salesAnalytics.capturePatterns.subtitle') }}
                   </p>
                 </div>
               </div>
@@ -539,10 +563,10 @@
                 v-model="captureTimeframe"
                 class="px-4 py-2 bg-gray-800/80 border border-purple-500/30 rounded-xl text-purple-100 text-sm font-medium focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400/50 transition-all duration-200"
               >
-                <option value="all">All Time</option>
-                <option value="month">This Month</option>
-                <option value="week">This Week</option>
-                <option value="today">Today</option>
+                <option value="all">{{ t('archimonstres.salesAnalytics.timeframes.all') }}</option>
+                <option value="month">{{ t('archimonstres.salesAnalytics.timeframes.month') }}</option>
+                <option value="week">{{ t('archimonstres.salesAnalytics.timeframes.week') }}</option>
+                <option value="today">{{ t('archimonstres.salesAnalytics.timeframes.today') }}</option>
               </select>
             </div>
 
@@ -551,33 +575,41 @@
               <div
                 class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 text-center"
               >
-                <h3 class="text-sm font-medium text-purple-300/80">Items Captured</h3>
+                <h3 class="text-sm font-medium text-purple-300/80">
+                  {{ t('archimonstres.salesAnalytics.capturePatterns.itemsCaptured') }}
+                </h3>
                 <p class="text-3xl font-bold text-purple-300">
                   {{ captureStats.totalItems }}
                 </p>
                 <p class="text-xs text-purple-200/60">
-                  {{ captureStats.uniqueMonsters }} unique monsters
+                  {{ t('archimonstres.salesAnalytics.capturePatterns.uniqueMonsters', { count: captureStats.uniqueMonsters }) }}
                 </p>
               </div>
               <div
                 class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 text-center"
               >
-                <h3 class="text-sm font-medium text-purple-300/80">Most Captured</h3>
+                <h3 class="text-sm font-medium text-purple-300/80">
+                  {{ t('archimonstres.salesAnalytics.capturePatterns.mostCaptured') }}
+                </h3>
                 <p class="text-xl font-bold text-green-400 truncate">
                   {{ captureStats.mostCaptured?.name || "N/A" }}
                 </p>
                 <p class="text-xs text-purple-200/60">
-                  {{ captureStats.mostCaptured?.count || 0 }} times
+                  {{ t('archimonstres.salesAnalytics.capturePatterns.times', { count: captureStats.mostCaptured?.count || 0 }) }}
                 </p>
               </div>
               <div
                 class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 text-center"
               >
-                <h3 class="text-sm font-medium text-purple-300/80">Avg per Day</h3>
+                <h3 class="text-sm font-medium text-purple-300/80">
+                  {{ t('archimonstres.salesAnalytics.capturePatterns.avgPerDay') }}
+                </h3>
                 <p class="text-3xl font-bold text-blue-400">
                   {{ captureStats.avgPerDay }}
                 </p>
-                <p class="text-xs text-purple-200/60">captures daily</p>
+                <p class="text-xs text-purple-200/60">
+                  {{ t('archimonstres.salesAnalytics.capturePatterns.capturesDaily') }}
+                </p>
               </div>
             </div>
           </div>
@@ -605,8 +637,12 @@
                   />
                 </svg>
               </div>
-              <p class="text-lg font-medium text-gray-300 mb-2">No capture data yet</p>
-              <p class="text-gray-500">Add items for sale to track your captures!</p>
+              <p class="text-lg font-medium text-gray-300 mb-2">
+                {{ t('archimonstres.salesAnalytics.capturePatterns.emptyTitle') }}
+              </p>
+              <p class="text-gray-500">
+                {{ t('archimonstres.salesAnalytics.capturePatterns.emptyDescription') }}
+              </p>
             </div>
           </div>
 
@@ -666,8 +702,10 @@
                         {{ monster.name }}
                       </h4>
                       <p class="text-sm text-purple-200/60">
-                        First {{ formatDateShort(monster.firstCapture) }} • Last
-                        {{ formatDateShort(monster.lastCapture) }}
+                        {{ t('archimonstres.salesAnalytics.capturePatterns.firstLast', {
+                          first: formatDateShort(monster.firstCapture),
+                          last: formatDateShort(monster.lastCapture)
+                        }) }}
                       </p>
                     </div>
                   </div>
@@ -676,17 +714,23 @@
                 <!-- Stats -->
                 <div class="flex items-center gap-6">
                   <div class="text-center">
-                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">Captured</p>
+                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.capturePatterns.captured') }}
+                    </p>
                     <p class="font-bold text-purple-300 text-lg">{{ monster.count }}</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">% Total</p>
+                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.capturePatterns.percentTotal') }}
+                    </p>
                     <p class="font-bold text-blue-400 text-lg">
                       {{ Math.round((monster.count / captureStats.totalItems) * 100) }}%
                     </p>
                   </div>
                   <div class="text-center">
-                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">Days Active</p>
+                    <p class="text-xs text-purple-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.capturePatterns.daysActive') }}
+                    </p>
                     <p class="text-gray-400">{{ monster.daysActive }}</p>
                   </div>
                 </div>
@@ -742,9 +786,11 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-blue-200">Price Trends</h3>
+                  <h3 class="text-xl font-bold text-blue-200">
+                    {{ t('archimonstres.salesAnalytics.priceTrends.title') }}
+                  </h3>
                   <p class="text-sm text-blue-200/60">
-                    Track how prices change over time
+                    {{ t('archimonstres.salesAnalytics.priceTrends.subtitle') }}
                   </p>
                 </div>
               </div>
@@ -753,15 +799,15 @@
                   v-model="trendTimeframe"
                   class="px-4 py-2 bg-gray-800/80 border border-blue-500/30 rounded-xl text-blue-100 text-sm font-medium focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-200"
                 >
-                  <option value="all">All Time</option>
-                  <option value="month">Last Month</option>
-                  <option value="week">Last Week</option>
+                  <option value="all">{{ t('archimonstres.salesAnalytics.timeframes.all') }}</option>
+                  <option value="month">{{ t('archimonstres.salesAnalytics.timeframes.month') }}</option>
+                  <option value="week">{{ t('archimonstres.salesAnalytics.timeframes.week') }}</option>
                 </select>
                 <select
                   v-model="selectedTrendMonster"
                   class="px-4 py-2 bg-gray-800/80 border border-blue-500/30 rounded-xl text-blue-100 text-sm font-medium focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-200"
                 >
-                  <option value="">All Monsters</option>
+                  <option value="">{{ t('archimonstres.salesAnalytics.priceTrends.allMonsters') }}</option>
                   <option
                     v-for="monster in monstersWithPriceData"
                     :key="monster"
@@ -778,7 +824,9 @@
               <div
                 class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-center"
               >
-                <h3 class="text-sm font-medium text-blue-300/80">Monsters Tracked</h3>
+                <h3 class="text-sm font-medium text-blue-300/80">
+                  {{ t('archimonstres.salesAnalytics.priceTrends.monstersTracked') }}
+                </h3>
                 <p class="text-3xl font-bold text-blue-300">
                   {{ priceTrendStats.monstersCount }}
                 </p>
@@ -786,7 +834,9 @@
               <div
                 class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-center"
               >
-                <h3 class="text-sm font-medium text-blue-300/80">Avg Price Change</h3>
+                <h3 class="text-sm font-medium text-blue-300/80">
+                  {{ t('archimonstres.salesAnalytics.priceTrends.avgPriceChange') }}
+                </h3>
                 <p
                   :class="[
                     'text-3xl font-bold',
@@ -804,7 +854,9 @@
               <div
                 class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center"
               >
-                <h3 class="text-sm font-medium text-green-300/80">Biggest Gainer</h3>
+                <h3 class="text-sm font-medium text-green-300/80">
+                  {{ t('archimonstres.salesAnalytics.priceTrends.biggestGainer') }}
+                </h3>
                 <p class="text-xl font-bold text-green-400 truncate">
                   {{ priceTrendStats.biggestGainer?.name || "N/A" }}
                 </p>
@@ -815,7 +867,9 @@
               <div
                 class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-center"
               >
-                <h3 class="text-sm font-medium text-red-300/80">Biggest Loser</h3>
+                <h3 class="text-sm font-medium text-red-300/80">
+                  {{ t('archimonstres.salesAnalytics.priceTrends.biggestLoser') }}
+                </h3>
                 <p class="text-xl font-bold text-red-400 truncate">
                   {{ priceTrendStats.biggestLoser?.name || "N/A" }}
                 </p>
@@ -849,9 +903,11 @@
                   />
                 </svg>
               </div>
-              <p class="text-lg font-medium text-gray-300 mb-2">No price trend data</p>
+              <p class="text-lg font-medium text-gray-300 mb-2">
+                {{ t('archimonstres.salesAnalytics.priceTrends.emptyTitle') }}
+              </p>
               <p class="text-gray-500">
-                Sell the same monster at least twice to see price trends!
+                {{ t('archimonstres.salesAnalytics.priceTrends.emptyDescription') }}
               </p>
             </div>
           </div>
@@ -885,15 +941,14 @@
                     >
                       <path
                         fill-rule="evenodd"
-                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                        d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2ha1 1 0 100-2H7z"
+                        clip-rule="evenodd"/>
+                        </svg>
                   </div>
                   <div>
                     <h4 class="font-semibold text-blue-100">{{ trend.name }}</h4>
                     <p class="text-sm text-blue-200/60">
-                      {{ trend.salesCount }} sales tracked
+                      {{ t('archimonstres.salesAnalytics.priceTrends.salesTracked', { count: trend.salesCount }) }}
                     </p>
                   </div>
                 </div>
@@ -901,19 +956,25 @@
                 <!-- Stats -->
                 <div class="flex items-center gap-6">
                   <div class="text-center">
-                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">First</p>
+                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.priceTrends.first') }}
+                    </p>
                     <p class="font-bold text-blue-400">{{ formatKamasShort(trend.firstPrice) }}</p>
                     <p class="text-xs text-gray-500">{{ formatDateShort(trend.firstDate) }}</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">Latest</p>
+                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.priceTrends.latest') }}
+                    </p>
                     <p class="font-bold text-yellow-400">
                       {{ formatKamasShort(trend.latestPrice) }}
                     </p>
                     <p class="text-xs text-gray-500">{{ formatDateShort(trend.latestDate) }}</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">Change</p>
+                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.priceTrends.change') }}
+                    </p>
                     <p
                       :class="[
                         'font-bold text-xl',
@@ -928,7 +989,9 @@
                     </p>
                   </div>
                   <div class="text-center">
-                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">Avg</p>
+                    <p class="text-xs text-blue-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.priceTrends.avg') }}
+                    </p>
                     <p class="font-bold text-purple-400">{{ formatKamasShort(trend.avgPrice) }}</p>
                   </div>
                 </div>
@@ -937,8 +1000,8 @@
               <!-- Mini Chart -->
               <div class="mt-4">
                 <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
-                  <span>Price History</span>
-                  <span>{{ trend.salesCount }} data points</span>
+                  <span>{{ t('archimonstres.salesAnalytics.priceTrends.priceHistory') }}</span>
+                  <span>{{ t('archimonstres.salesAnalytics.priceTrends.dataPoints', { count: trend.salesCount }) }}</span>
                 </div>
                 <div
                   class="relative h-14 bg-gray-700/50 rounded-xl p-2 flex items-end justify-between gap-0.5"
@@ -1016,7 +1079,13 @@
                         d="M20 12H4"
                       />
                     </svg>
-                    {{ trend.priceChange > 5 ? "Rising" : trend.priceChange < -5 ? "Falling" : "Stable" }}
+                    {{
+                      trend.priceChange > 5
+                        ? t('archimonstres.salesAnalytics.priceTrends.rising')
+                        : trend.priceChange < -5
+                          ? t('archimonstres.salesAnalytics.priceTrends.falling')
+                          : t('archimonstres.salesAnalytics.priceTrends.stable')
+                    }}
                   </div>
                 </div>
               </div>
@@ -1063,9 +1132,11 @@
                   ></div>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-orange-200">Price Inconsistencies</h3>
+                  <h3 class="text-xl font-bold text-orange-200">
+                    {{ t('archimonstres.salesAnalytics.inconsistencies.title') }}
+                  </h3>
                   <p class="text-sm text-orange-200/60">
-                    Monsters with different prices in your current listings
+                    {{ t('archimonstres.salesAnalytics.inconsistencies.subtitle') }}
                   </p>
                 </div>
               </div>
@@ -1078,9 +1149,7 @@
                     : 'bg-gray-700/50 text-gray-400 border border-gray-600/50',
                 ]"
               >
-                {{ pricingInconsistencies.length }} inconsistenc{{
-                  pricingInconsistencies.length !== 1 ? "ies" : "y"
-                }}
+                {{ t('archimonstres.salesAnalytics.inconsistencies.count', pricingInconsistencies.length) }}
               </span>
             </div>
           </div>
@@ -1112,9 +1181,11 @@
                 <div class="absolute -top-1 -right-4 text-2xl animate-bounce">🎉</div>
                 <div class="absolute -bottom-1 -left-4 text-xl animate-bounce delay-150">⭐</div>
               </div>
-              <p class="text-xl font-bold text-green-300 mb-2">Perfect pricing! ✨</p>
+              <p class="text-xl font-bold text-green-300 mb-2">
+                {{ t('archimonstres.salesAnalytics.inconsistencies.perfectTitle') }} ✨
+              </p>
               <p class="text-green-200/70 text-sm">
-                All your monsters have consistent pricing across listings.
+                {{ t('archimonstres.salesAnalytics.inconsistencies.perfectDescription') }}
               </p>
             </div>
           </div>
@@ -1164,8 +1235,10 @@
                   <div>
                     <h4 class="font-semibold text-orange-100">{{ inconsistency.name }}</h4>
                     <p class="text-sm text-orange-200/60">
-                      {{ inconsistency.items.length }} items •
-                      {{ inconsistency.priceGroups.length }} different prices
+                      {{ t('archimonstres.salesAnalytics.inconsistencies.itemsAndPrices', {
+                        items: inconsistency.items.length,
+                        prices: inconsistency.priceGroups.length
+                      }) }}
                     </p>
                   </div>
                 </div>
@@ -1173,15 +1246,21 @@
                 <!-- Stats -->
                 <div class="flex items-center gap-6">
                   <div class="text-center">
-                    <p class="text-xs text-orange-300/60 uppercase tracking-wide">Range</p>
+                    <p class="text-xs text-orange-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.inconsistencies.range') }}
+                    </p>
                     <p class="font-bold text-orange-300">
                       {{ formatKamasShort(inconsistency.minPrice) }} -
                       {{ formatKamasShort(inconsistency.maxPrice) }}
                     </p>
-                    <p class="text-xs text-red-400">+{{ inconsistency.priceVariation }}% var</p>
+                    <p class="text-xs text-red-400">
+                      {{ t('archimonstres.salesAnalytics.inconsistencies.variation', { percent: inconsistency.priceVariation }) }}
+                    </p>
                   </div>
                   <div class="text-center">
-                    <p class="text-xs text-orange-300/60 uppercase tracking-wide">Average</p>
+                    <p class="text-xs text-orange-300/60 uppercase tracking-wide">
+                      {{ t('archimonstres.salesAnalytics.inconsistencies.average') }}
+                    </p>
                     <p class="font-bold text-blue-400 text-lg">
                       {{ formatKamasShort(inconsistency.avgPrice) }}
                     </p>
@@ -1215,7 +1294,7 @@
                       d="M19 14l-7 7m0 0l-7-7m7 7V3"
                     />
                   </svg>
-                  Lowest ({{ formatKamasShort(inconsistency.minPrice) }})
+                  {{ t('archimonstres.salesAnalytics.inconsistencies.lowest') }} ({{ formatKamasShort(inconsistency.minPrice) }})
                 </button>
                 <button
                   @click="standardizeToHighest(inconsistency.name)"
@@ -1229,7 +1308,7 @@
                       d="M5 10l7-7m0 0l7 7m-7-7v18"
                     />
                   </svg>
-                  Highest ({{ formatKamasShort(inconsistency.maxPrice) }})
+                  {{ t('archimonstres.salesAnalytics.inconsistencies.highest') }} ({{ formatKamasShort(inconsistency.maxPrice) }})
                 </button>
                 <button
                   @click="standardizeToAverage(inconsistency.name)"
@@ -1243,7 +1322,7 @@
                       d="M20 12H4"
                     />
                   </svg>
-                  Average ({{ formatKamasShort(inconsistency.avgPrice) }})
+                  {{ t('archimonstres.salesAnalytics.inconsistencies.average') }} ({{ formatKamasShort(inconsistency.avgPrice) }})
                 </button>
                 <button
                   @click="selectMonsterItems(inconsistency.name)"
@@ -1257,7 +1336,7 @@
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                     />
                   </svg>
-                  Select All
+                  {{ t('archimonstres.salesAnalytics.inconsistencies.selectAll') }}
                 </button>
               </div>
             </div>
@@ -1267,9 +1346,12 @@
     </Transition>
   </div>
 </template>
+                   
 
 <script setup>
 import { ref, computed } from "vue";
+
+const { t } = useI18n();
 
 const props = defineProps({
   pendingItems: {

@@ -1177,12 +1177,10 @@ const fetchAchievements = async () => {
       const categoryId = parseInt(selectedCategory.value);
       const childIds = getChildCategoryIds(categoryId);
       if (childIds.length > 0) {
-        // It's a parent category, include all children
         childIds.forEach((id) => {
           params.append("categoryId[$in][]", String(id));
         });
       } else {
-        // It's a child category or has no children
         params.append("categoryId", String(selectedCategory.value));
       }
     }
@@ -1226,7 +1224,6 @@ watch(
 );
 
 onMounted(() => {
-  // Load data for any pre-selected characters
   selectedCharacters.value.forEach((char) => {
     loadCharacterData(char);
   });

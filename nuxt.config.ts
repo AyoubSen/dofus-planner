@@ -13,11 +13,21 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  modules: ["@nuxt/fonts", "@nuxtjs/tailwindcss", "@vueuse/nuxt"],
+  modules: ["@nuxt/fonts", "@nuxtjs/tailwindcss", "@vueuse/nuxt", "@nuxtjs/i18n"],
 
   runtimeConfig: {
     metamobApiKey: process.env.METAMOB_API_KEY,
     equipmentsApiBase: process.env.EQUIPMENTS_API_BASE,
     public: {},
   },
+
+  i18n: {
+  locales: [
+    { code: 'en', file: 'en.json' },
+    { code: 'fr', file: 'fr.json' }
+  ],
+  defaultLocale: 'en',
+  langDir: 'locales',
+  strategy: 'prefix_except_default'
+ }
 });

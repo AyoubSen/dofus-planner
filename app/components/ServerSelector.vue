@@ -55,11 +55,12 @@
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                       />
                     </svg>
-                    <span>
-                      {{ server.characters.length }} character{{
-                        server.characters.length !== 1 ? "s" : ""
-                      }}
-                    </span>
+                    <span>{{
+                      t(
+                        'archimonstres.serverSelector.characters',
+                        server.characters.length
+                      )
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -68,7 +69,7 @@
                 <button
                   @click.stop="showDeleteConfirmation(server)"
                   class="p-2.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300"
-                  title="Delete server"
+                  :title="t('archimonstres.serverSelector.deleteTitle')"
                 >
                   <svg
                     class="w-5 h-5"
@@ -128,9 +129,11 @@
               />
             </svg>
           </div>
-          <p class="text-gray-400 mb-2">No servers added yet</p>
+          <p class="text-gray-400 mb-2">
+            {{ t('archimonstres.serverSelector.emptyTitle') }}
+          </p>
           <p class="text-gray-500 text-sm">
-            Add your first server to get started
+            {{ t('archimonstres.serverSelector.emptyDescription') }}
           </p>
         </div>
 
@@ -160,7 +163,7 @@
             <span
               class="font-medium text-gray-400 group-hover:text-blue-300 transition-colors duration-300"
             >
-              Add New Server
+              {{ t('archimonstres.serverSelector.addButton') }}
             </span>
           </div>
         </button>
@@ -191,9 +194,11 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-xl font-bold text-gray-100">Add New Server</h3>
+            <h3 class="text-xl font-bold text-gray-100">
+              {{ t('archimonstres.serverSelector.formTitle') }}
+            </h3>
             <p class="text-sm text-gray-400">
-              Enter the name of your Dofus server
+              {{ t('archimonstres.serverSelector.formDescription') }}
             </p>
           </div>
         </div>
@@ -203,7 +208,7 @@
             <input
               v-model="serverName"
               type="text"
-              placeholder="Server name (e.g., Draconiros, Imagiro...)"
+              :placeholder="t('archimonstres.serverSelector.placeholder')"
               class="w-full px-5 py-4 border border-gray-600/50 rounded-xl bg-gray-900/50 text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300"
               @keyup.enter="handleAddServer"
               autofocus
@@ -232,13 +237,13 @@
                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
-              Add Server
+              {{ t('archimonstres.serverSelector.submitButton') }}
             </button>
             <button
               @click="cancelAdd"
               class="px-6 py-3.5 bg-gray-700/50 hover:bg-gray-700 text-gray-300 font-medium rounded-xl border border-gray-600/50 hover:border-gray-500 transition-all duration-300"
             >
-              Cancel
+              {{ t('archimonstres.serverSelector.cancelButton') }}
             </button>
           </div>
         </div>
@@ -258,6 +263,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n();
+
 defineProps({
   servers: {
     type: Array,
@@ -265,44 +272,46 @@ defineProps({
   },
 });
 
-const $emit = defineEmits(["serverSelected", "serverAdded", "serverDeleted"]);
+const $emit = defineEmits(['serverSelected', 'serverAdded', 'serverDeleted']);
 
 const showAddForm = ref(false);
-const serverName = ref("");
+const serverName = ref('');
 
 const confirmationModal = ref({
   show: false,
-  title: "",
-  message: "",
-  confirmText: "",
+  title: '',
+  message: '',
+  confirmText: '',
   serverId: null,
 });
 
 const handleAddServer = () => {
   if (!serverName.value.trim()) return;
 
-  $emit("serverAdded", serverName.value);
-  serverName.value = "";
+  $emit('serverAdded', serverName.value);
+  serverName.value = '';
   showAddForm.value = false;
 };
 
 const cancelAdd = () => {
-  serverName.value = "";
+  serverName.value = '';
   showAddForm.value = false;
 };
 
 const showDeleteConfirmation = (server) => {
   confirmationModal.value = {
     show: true,
-    title: "Delete Server",
-    message: `Are you sure you want to delete "${server.name}"? This will also delete all characters on this server.`,
-    confirmText: "Delete",
+    title: t('archimonstres.serverSelector.deleteTitle'),
+    message: t('archimonstres.serverSelector.deleteMessage', {
+      name: server.name,
+    }),
+    confirmText: t('archimonstres.serverSelector.deleteConfirm'),
     serverId: server.id,
   };
 };
 
 const handleDeleteConfirmation = () => {
-  $emit("serverDeleted", confirmationModal.value.serverId);
+  $emit('serverDeleted', confirmationModal.value.serverId);
   hideDeleteConfirmation();
 };
 

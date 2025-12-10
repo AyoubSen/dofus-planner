@@ -45,7 +45,7 @@
                 <button
                   @click.stop="showDeleteConfirmation(character)"
                   class="p-2.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300"
-                  title="Delete character"
+                  :title="t('archimonstres.characterSelector.deleteTitle')"
                 >
                   <svg
                     class="w-5 h-5"
@@ -105,9 +105,11 @@
               />
             </svg>
           </div>
-          <p class="text-gray-400 mb-2">No characters on this server</p>
+          <p class="text-gray-400 mb-2">
+            {{ t('archimonstres.characterSelector.emptyTitle') }}
+          </p>
           <p class="text-gray-500 text-sm">
-            Create your first character to start tracking
+            {{ t('archimonstres.characterSelector.emptyDescription') }}
           </p>
         </div>
 
@@ -137,7 +139,7 @@
             <span
               class="font-medium text-gray-400 group-hover:text-emerald-300 transition-colors duration-300"
             >
-              Add New Character
+              {{ t('archimonstres.characterSelector.addButton') }}
             </span>
           </div>
         </button>
@@ -168,9 +170,15 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-xl font-bold text-gray-100">Add New Character</h3>
+            <h3 class="text-xl font-bold text-gray-100">
+              {{ t('archimonstres.characterSelector.formTitle') }}
+            </h3>
             <p class="text-sm text-gray-400">
-              Create a character on {{ server.name }}
+              {{
+                t('archimonstres.characterSelector.formDescription', {
+                  server: server.name,
+                })
+              }}
             </p>
           </div>
         </div>
@@ -178,12 +186,12 @@
         <div class="space-y-5">
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">
-              Character Name
+              {{ t('archimonstres.characterSelector.nameLabel') }}
             </label>
             <input
               v-model="characterName"
               type="text"
-              placeholder="Enter character name"
+              :placeholder="t('archimonstres.characterSelector.namePlaceholder')"
               class="w-full px-5 py-4 border border-gray-600/50 rounded-xl bg-gray-900/50 text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-300"
               autofocus
             />
@@ -191,14 +199,16 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">
-              Class
+              {{ t('archimonstres.characterSelector.classLabel') }}
             </label>
             <div class="relative">
               <select
                 v-model="characterClass"
                 class="w-full px-5 py-4 border border-gray-600/50 rounded-xl bg-gray-900/50 text-gray-100 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-300 appearance-none cursor-pointer"
               >
-                <option value="" disabled>Select a class</option>
+                <option value="" disabled>
+                  {{ t('archimonstres.characterSelector.classPlaceholder') }}
+                </option>
                 <option
                   v-for="className in characterClasses"
                   :key="className"
@@ -244,7 +254,9 @@
                 <div class="text-emerald-300 font-medium">
                   {{ characterClass }}
                 </div>
-                <div class="text-emerald-400/60 text-sm">Class selected</div>
+                <div class="text-emerald-400/60 text-sm">
+                  {{ t('archimonstres.characterSelector.classSelected') }}
+                </div>
               </div>
             </div>
           </Transition>
@@ -268,13 +280,13 @@
                   d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
                 />
               </svg>
-              Add Character
+              {{ t('archimonstres.characterSelector.submitButton') }}
             </button>
             <button
               @click="cancelAdd"
               class="px-6 py-3.5 bg-gray-700/50 hover:bg-gray-700 text-gray-300 font-medium rounded-xl border border-gray-600/50 hover:border-gray-500 transition-all duration-300"
             >
-              Cancel
+              {{ t('archimonstres.characterSelector.cancelButton') }}
             </button>
           </div>
         </div>
@@ -294,6 +306,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n();
+
 defineProps({
   server: {
     type: Object,
@@ -302,78 +316,81 @@ defineProps({
 });
 
 const $emit = defineEmits([
-  "characterSelected",
-  "characterAdded",
-  "characterDeleted",
-  "backToServers",
+  'characterSelected',
+  'characterAdded',
+  'characterDeleted',
+  'backToServers',
 ]);
 
 const showAddForm = ref(false);
-const characterName = ref("");
-const characterClass = ref("");
+const characterName = ref('');
+const characterClass = ref('');
 
 const confirmationModal = ref({
   show: false,
-  title: "",
-  message: "",
-  confirmText: "",
+  title: '',
+  message: '',
+  confirmText: '',
   characterId: null,
 });
 
 const characterClasses = [
-  "Iop",
-  "Cra",
-  "Enutrof",
-  "Sram",
-  "Xelor",
-  "Sacrieur",
-  "Sadida",
-  "Osamodas",
-  "Eniripsa",
-  "Feca",
-  "Ecaflip",
-  "Pandawa",
-  "Roublard",
-  "Zobal",
-  "Steamer",
-  "Eliotrope",
-  "Huppermage",
-  "Ouginak",
-  "Forgelance",
-  "Croum",
+  'Iop',
+  'Cra',
+  'Enutrof',
+  'Sram',
+  'Xelor',
+  'Sacrieur',
+  'Sadida',
+  'Osamodas',
+  'Eniripsa',
+  'Feca',
+  'Ecaflip',
+  'Pandawa',
+  'Roublard',
+  'Zobal',
+  'Steamer',
+  'Eliotrope',
+  'Huppermage',
+  'Ouginak',
+  'Forgelance',
+  'Croum',
 ];
 
 const handleAddCharacter = () => {
   if (!characterName.value.trim() || !characterClass.value) return;
 
-  $emit("characterAdded", {
+  $emit('characterAdded', {
     name: characterName.value,
     class: characterClass.value,
   });
 
-  characterName.value = "";
-  characterClass.value = "";
+  characterName.value = '';
+  characterClass.value = '';
   showAddForm.value = false;
 };
 
 const cancelAdd = () => {
-  characterName.value = "";
-  characterClass.value = "";
+  characterName.value = '';
+  characterClass.value = '';
   showAddForm.value = false;
 };
 
 const showDeleteConfirmation = (character) => {
   confirmationModal.value = {
     show: true,
-    title: "Delete Character",
-    message: `Are you sure you want to delete "${character.name}" (${character.class})?`,
-    confirmText: "Delete",
+    title: t('archimonstres.characterSelector.deleteTitle'),
+    message: t('archimonstres.characterSelector.deleteMessage', {
+      name: character.name,
+      class: character.class,
+    }),
+    confirmText: t('archimonstres.characterSelector.deleteConfirm'),
     characterId: character.id,
   };
 };
 
 const handleDeleteConfirmation = () => {
-  $emit("characterDeleted", confirmationModal.value.characterId);
+  $emit('characterDeleted', confirmationModal.value.characterId);
   hideDeleteConfirmation();
 };
 

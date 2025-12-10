@@ -1,0 +1,467 @@
+{
+  "home": {
+    "title": "Dofus Stuff",
+    "subtitle": "Votre compagnon ultime pour maîtriser le {highlight}. Suivez les archimonstres, gérez votre équipement et optimisez votre aventure Dofus.",
+    "worldOfTwelve": "Monde des Douze",
+    "exploreTools": "Découvrez nos outils ci-dessous",
+    "cards": {
+      "archimonstres": {
+        "title": "Archimonstres",
+        "description": "Maîtrisez la chasse avec des outils de suivi complets pour la quête du Dofus Ocre.",
+        "tags": ["Quête Ocre", "Multi-Perso"]
+      },
+      "items": {
+        "title": "Objets & Équipement",
+        "description": "Base de données complète avec des outils de filtrage et de comparaison avancés.",
+        "tags": ["Base de données", "Optimiseur"]
+      },
+      "crafting": {
+        "title": "Suivi des Ventes",
+        "description": "Suivez les ventes d'équipements craftés, les stats personnalisées et les marges de profit.",
+        "tags": ["Profits", "Analytiques"]
+      },
+      "succes": {
+        "title": "Succès",
+        "description": "Parcourez les succès, suivez votre progression et découvrez les récompenses.",
+        "tags": ["Navigateur", "Récompenses"]
+      }
+    },
+    "stats": {
+      "archimonstres": "Archimonstres",
+      "itemsTracked": "Objets Suivis",
+      "localStorage": "Stockage Local",
+      "available": "Disponible"
+    },
+    "footer": {
+      "madeWith": "Fait avec {heart} pour la communauté Dofus"
+    }
+  },
+  "meta": {
+    "title": "Dofus Stuff - Votre Compagnon Dofus Ultime",
+    "description": "Suivez les archimonstres, gérez votre équipement et optimisez votre aventure Dofus avec nos outils complets."
+  },
+  "archimonstres": {
+    "backToHome": "Retour à l'accueil",
+    "title": "Archimonstres",
+    "subtitle": "Suivez votre progression de chasse aux monstres à travers le Monde des Douze",
+    "breadcrumb": {
+      "server": "Serveur",
+      "character": "Personnage",
+      "tracking": "Suivi"
+    },
+    "serverSelection": {
+      "title": "Choisissez Votre Serveur",
+      "description": "Sélectionnez un serveur pour commencer à suivre vos archimonstres"
+    },
+    "characterSelection": {
+      "title": "Choisissez Votre Personnage",
+      "description": "Sélectionnez ou créez un personnage pour suivre la progression",
+      "changeServer": "Changer de Serveur"
+    },
+    "tracker": {
+      "characterButton": "Personnage",
+      "serverButton": "Serveur",
+      "loadingMonsters": "Chargement des données des monstres...",
+      "loadingCharacter": "Chargement des données du personnage..."
+    },
+    "serverSelector": {
+      "characters": "{count} personnage | {count} personnages",
+      "emptyTitle": "Aucun serveur ajouté",
+      "emptyDescription": "Ajoutez votre premier serveur pour commencer",
+      "addButton": "Ajouter un Serveur",
+      "formTitle": "Ajouter un Serveur",
+      "formDescription": "Entrez le nom de votre serveur Dofus",
+      "placeholder": "Nom du serveur (ex: Draconiros, Imagiro...)",
+      "submitButton": "Ajouter",
+      "cancelButton": "Annuler",
+      "deleteTitle": "Supprimer le Serveur",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cela supprimera également tous les personnages sur ce serveur.",
+      "deleteConfirm": "Supprimer"
+    },
+    "characterSelector": {
+      "emptyTitle": "Aucun personnage sur ce serveur",
+      "emptyDescription": "Créez votre premier personnage pour commencer le suivi",
+      "addButton": "Ajouter un Personnage",
+      "formTitle": "Ajouter un Personnage",
+      "formDescription": "Créer un personnage sur {server}",
+      "nameLabel": "Nom du Personnage",
+      "namePlaceholder": "Entrez le nom du personnage",
+      "classLabel": "Classe",
+      "classPlaceholder": "Sélectionnez une classe",
+      "classSelected": "Classe sélectionnée",
+      "submitButton": "Ajouter",
+      "cancelButton": "Annuler",
+      "deleteTitle": "Supprimer le Personnage",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer \"{name}\" ({class}) ?",
+      "deleteConfirm": "Supprimer"
+    },
+    "trackerInterface": {
+      "dofusOcre": {
+        "title": "Dofus Ocre",
+        "description": "Suivez votre progression vers le légendaire Dofus Ocre. Surveillez les archimonstres et collectez toutes les âmes.",
+        "tag1": "286 Archimonstres",
+        "tag2": "Suivi de Progression"
+      },
+      "sellOnly": {
+        "title": "Mode Vente",
+        "description": "Suivez les archimonstres à des fins de vente. Parfait pour les chasseurs focalisés sur les kamas.",
+        "tag1": "Suivi des Ventes",
+        "tag2": "Mode Rapide"
+      },
+      "loading": {
+        "title": "Chargement des Monstres",
+        "description": "Veuillez patienter pendant que nous récupérons les dernières données..."
+      },
+      "empty": {
+        "title": "Sélectionnez un Mode de Suivi",
+        "description": "Choisissez comment vous voulez suivre vos archimonstres ci-dessus"
+      }
+    },
+    "monstersGrid": {
+      "title": "Monstres",
+      "showing": "Affichage de {displayed} sur {total} monstres",
+      "stats": {
+        "missing": "manquants",
+        "haveOne": "ont 1",
+        "haveMultiple": "ont 2+"
+      },
+      "filters": {
+        "searchPlaceholder": "Rechercher des monstres...",
+        "allTypes": "Tous les Types",
+        "archimonstres": "Archimonstres",
+        "monstres": "Monstres",
+        "allEtapes": "Toutes les Étapes",
+        "etape": "Étape {number}",
+        "allCounts": "Tous les Comptages",
+        "missingCount": "Manquants ({count})",
+        "haveOneCount": "Ont 1 ({count})",
+        "haveMultipleCount": "Ont 2+ ({count})",
+        "activeFilters": "Filtres actifs :",
+        "clearAll": "Tout effacer",
+        "countLabels": {
+          "missing": "Manquants",
+          "haveOne": "Ont 1",
+          "haveMultiple": "Ont 2+"
+        }
+      },
+      "loadingMore": "Chargement de plus de monstres...",
+      "loadMoreButton": "Charger Plus de Monstres",
+      "noResults": {
+        "title": "Aucun monstre trouvé",
+        "description": "Essayez d'ajuster votre recherche ou vos critères de filtre",
+        "clearButton": "Effacer tous les filtres"
+      },
+      "allLoaded": "Les {count} monstres sont chargés !"
+    },
+    "monsterCard": {
+      "typeArchi": "ARCHI",
+      "typeMob": "MOB",
+      "etape": "Étape {number}",
+      "collected": "Collectés",
+      "missing": "Manquant",
+      "complete": "Complet"
+    },
+    "sellingInterface": {
+      "salesManagement": {
+        "title": "Gestion des Ventes",
+        "description": "Ajoutez des objets à vendre, définissez les prix et gérez votre inventaire. Suivez les objets en attente et vendus.",
+        "pendingTag": "{count} En attente",
+        "bulkActionsTag": "Actions groupées"
+      },
+      "salesAnalytics": {
+        "title": "Statistiques de Ventes",
+        "description": "Consultez vos statistiques de ventes, la répartition des gains et les performances.",
+        "soldTag": "{count} Vendus",
+        "earnedTag": "{amount} Gagnés"
+      }
+    },
+    "salesManagement": {
+      "stats": {
+        "itemsForSale": "Objets en vente",
+        "total": "total",
+        "slowMoving": "Ventes lentes",
+        "daysOldThreshold": "{days}+ jours",
+        "todaysSales": "Ventes du jour",
+        "totalEarned": "Total gagné"
+      },
+      "addForm": {
+        "title": "Ajouter un objet à vendre",
+        "subtitle": "Lister une nouvelle âme d'archimonstre",
+        "monsterName": "Nom du monstre",
+        "searchPlaceholder": "Rechercher un monstre...",
+        "suggested": "Suggéré",
+        "quantity": "Quantité",
+        "pricePerUnit": "Prix unitaire",
+        "totalLabel": "Total",
+        "addButton": "Ajouter à la liste"
+      },
+      "slowMoving": {
+        "title": "Objets à vente lente",
+        "subtitle": "Objets listés depuis {days}+ jours",
+        "itemCount": "{count} objet | {count} objets",
+        "alertAfter": "Alerter après",
+        "days": {
+          "one": "1 jour",
+          "three": "3 jours",
+          "five": "5 jours",
+          "seven": "7 jours",
+          "ten": "10 jours",
+          "fourteen": "14 jours",
+          "twentyOne": "21 jours",
+          "thirty": "30 jours"
+        },
+        "emptyTitle": "Tous les objets se vendent bien !",
+        "emptyDescription": "Aucun objet n'est listé depuis plus de {days} jours.",
+        "needAttention": "{count} objets nécessitent attention",
+        "considerAdjusting": "Pensez à ajuster les prix ou à les retirer",
+        "selectAll": "Sélectionner tous les objets lents",
+        "daysOld": "{days} jours",
+        "urgent": "URGENT"
+      },
+      "pending": {
+        "title": "Objets en vente",
+        "selected": "{count} sélectionné(s)",
+        "summary": "{count} objets • {total} total",
+        "selectedTotal": "{total} sélectionné",
+        "searchPlaceholder": "Rechercher des objets...",
+        "min": "Min",
+        "max": "Max",
+        "sort": {
+          "dateAdded": "Date d'ajout",
+          "name": "Nom",
+          "price": "Prix",
+          "totalValue": "Valeur totale"
+        },
+        "ascending": "Croissant",
+        "descending": "Décroissant",
+        "bulk": {
+          "setTo": "Définir à",
+          "increaseBy": "Augmenter de",
+          "decreaseBy": "Diminuer de",
+          "multiplyBy": "Multiplier par",
+          "apply": "Appliquer",
+          "markAsSold": "Marquer vendu",
+          "delete": "Supprimer",
+          "clear": "Effacer"
+        },
+        "selectAll": "Tout sélectionner ({count})",
+        "deselectAll": "Tout désélectionner ({count})",
+        "selectByPrice": "Sélectionner par prix",
+        "selectByType": "Sélectionner par type",
+        "noMatch": "Aucun objet ne correspond à votre recherche",
+        "noItems": "Aucun objet en vente",
+        "added": "Ajouté",
+        "totalLabel": "Total",
+        "copyPrice": "Copier le prix",
+        "copied": "Copié !",
+        "sold": "Vendu !",
+        "remove": "Retirer"
+      },
+      "history": {
+        "title": "Historique des ventes",
+        "subtitle": "Suivez vos ventes terminées",
+        "filters": {
+          "today": "Aujourd'hui",
+          "thisWeek": "Cette semaine",
+          "allTime": "Tout le temps"
+        },
+        "clearHistory": "Effacer l'historique",
+        "noSales": "Aucune vente enregistrée",
+        "each": "chacun",
+        "sold": "Vendu",
+        "undo": "Annuler",
+        "undoTitle": "Remettre dans les objets en vente"
+      },
+      "modals": {
+        "cancel": "Annuler",
+        "priceRange": {
+          "title": "Sélectionner par fourchette de prix",
+          "minPrice": "Prix minimum",
+          "maxPrice": "Prix maximum",
+          "selectItems": "Sélectionner les objets"
+        },
+        "monsterType": {
+          "title": "Sélectionner par type de monstre",
+          "selectItems": "Sélectionner les objets"
+        }
+      }
+    },
+    "salesAnalytics": {
+  "header": {
+    "title": "Statistiques de Ventes",
+    "subtitle": "Suivez vos monstres les plus vendus et vos performances de vente"
+  },
+  "timeframes": {
+    "all": "Tout le temps",
+    "month": "Ce mois",
+    "week": "Cette semaine",
+    "today": "Aujourd'hui"
+  },
+  "sortOptions": {
+    "quantity": "Plus vendus (Quantité)",
+    "revenue": "Meilleur revenu",
+    "avgPrice": "Prix moyen le plus élevé",
+    "frequency": "Plus fréquents"
+  },
+  "quickStats": {
+    "uniqueMonsters": "Monstres Uniques",
+    "typesSold": "Types vendus",
+    "bestSeller": "Meilleure Vente",
+    "sold": "{count} vendu | {count} vendus",
+    "topRevenue": "Top Revenu",
+    "avgPrice": "Prix Moyen",
+    "perSale": "Par vente"
+  },
+  "tabs": {
+    "salesPerformance": "Performance des Ventes",
+    "capturePatterns": "Schémas de Capture",
+    "priceTrends": "Tendances des Prix",
+    "inconsistencies": "Incohérences"
+  },
+  "salesPerformance": {
+    "title": "Classement des Ventes de Monstres",
+    "subtitle": "{count} monstres • Meilleurs performers",
+    "emptyTitle": "Aucune donnée de vente disponible",
+    "emptyDescription": "Commencez à vendre des monstres pour voir les statistiques ici !",
+    "quantity": "Quantité",
+    "revenue": "Revenu",
+    "avgPrice": "Prix Moy.",
+    "range": "Fourchette",
+    "performance": "Performance",
+    "ofTopSeller": "{percent}% du meilleur vendeur",
+    "sales": "{count} vente | {count} ventes",
+    "last": "Dernier {date}"
+  },
+  "capturePatterns": {
+    "title": "Schémas de Capture",
+    "subtitle": "Basé sur les objets que vous avez ajoutés à la vente",
+    "itemsCaptured": "Objets Capturés",
+    "uniqueMonsters": "{count} monstres uniques",
+    "mostCaptured": "Plus Capturé",
+    "times": "{count} fois",
+    "avgPerDay": "Moy. par Jour",
+    "capturesDaily": "captures par jour",
+    "emptyTitle": "Pas encore de données de capture",
+    "emptyDescription": "Ajoutez des objets à vendre pour suivre vos captures !",
+    "captured": "Capturé",
+    "percentTotal": "% Total",
+    "daysActive": "Jours Actifs",
+    "firstLast": "Premier {first} • Dernier {last}"
+  },
+  "priceTrends": {
+    "title": "Tendances des Prix",
+    "subtitle": "Suivez l'évolution des prix dans le temps",
+    "allMonsters": "Tous les Monstres",
+    "monstersTracked": "Monstres Suivis",
+    "avgPriceChange": "Variation Moy. Prix",
+    "biggestGainer": "Plus Grande Hausse",
+    "biggestLoser": "Plus Grande Baisse",
+    "emptyTitle": "Pas de données de tendance",
+    "emptyDescription": "Vendez le même monstre au moins deux fois pour voir les tendances !",
+    "salesTracked": "{count} ventes suivies",
+    "first": "Premier",
+    "latest": "Dernier",
+    "change": "Variation",
+    "avg": "Moy.",
+    "priceHistory": "Historique des Prix",
+    "dataPoints": "{count} points de données",
+    "rising": "En hausse",
+    "falling": "En baisse",
+    "stable": "Stable"
+  },
+  "inconsistencies": {
+    "title": "Incohérences de Prix",
+    "subtitle": "Monstres avec des prix différents dans vos annonces actuelles",
+    "count": "{count} incohérence | {count} incohérences",
+    "perfectTitle": "Prix parfaits !",
+    "perfectDescription": "Tous vos monstres ont des prix cohérents dans vos annonces.",
+    "itemsAndPrices": "{items} objets • {prices} prix différents",
+    "range": "Fourchette",
+    "variation": "+{percent}% var",
+    "average": "Moyenne",
+    "lowest": "Minimum",
+    "highest": "Maximum",
+    "selectAll": "Tout Sélectionner"
+  }
+}
+  },
+  
+  "items": {
+    "backToHome": "Retour à l'accueil",
+    "title": "Statistiques d'Équipement",
+    "subtitle": "Analysez les tendances d'utilisation et la méta",
+    "loading": "Chargement des statistiques...",
+    "noData": "Aucune donnée disponible pour cet emplacement",
+    "filters": {
+      "title": "FILTRES",
+      "elements": {
+        "title": "Éléments",
+        "all": "Tous les Éléments",
+        "eau": "Eau",
+        "feu": "Feu",
+        "terre": "Terre",
+        "air": "Air",
+        "multi": "Multi",
+        "tank": "Tank",
+        "doPou": "Do Pou",
+        "pp": "Prospection"
+      },
+      "mode": {
+        "title": "Mode",
+        "all": "Tous les Modes",
+        "pvm": "PVM",
+        "pvp": "PVP"
+      },
+      "classes": {
+        "title": "Classes",
+        "all": "Toutes les Classes"
+      },
+      "level": {
+        "title": "Niveau",
+        "all": "Tous les Niveaux"
+      },
+      "budget": {
+        "title": "Budget",
+        "all": "Tous les Budgets",
+        "low": "Bas",
+        "mid": "Moyen",
+        "high": "Élevé"
+      }
+    },
+    "stats": {
+      "totalEquipment": "Équipements Totaux",
+      "uniqueItems": "Objets Uniques",
+      "mostVariedSlot": "Emplacement Plus Varié",
+      "avgItemsPerSet": "Moy. Objets/Set",
+      "na": "N/A"
+    },
+    "slots": {
+      "ar": "Arme",
+      "ch": "Chapeau",
+      "ca": "Cape",
+      "am": "Amulette",
+      "br": "Bouclier",
+      "ce": "Ceinture",
+      "bo": "Bottes",
+      "a1": "Anneau 1",
+      "a2": "Anneau 2",
+      "fa": "Familier",
+      "d1": "Dofus 1",
+      "d2": "Dofus 2",
+      "d3": "Dofus 3",
+      "d4": "Dofus 4",
+      "d5": "Dofus 5",
+      "d6": "Dofus 6"
+    },
+    "mostUsed": "{slot} les Plus Utilisés",
+    "usedTimes": "Utilisé {count} fois ({percent}%)",
+    "usageDistribution": "Distribution d'Utilisation",
+    "globalAnalysis": {
+      "title": "Analyse Globale",
+      "mostDiverse": "Emplacements les Plus Diversifiés",
+      "mostStandardized": "Emplacements les Plus Standardisés",
+      "itemsCount": "{count} objets"
+    }
+  }
+}
+  

@@ -29,7 +29,11 @@
               : 'bg-gray-600 text-gray-200 border-gray-500',
           ]"
         >
-          {{ monster.type === 'archimonstre' ? 'ARCHI' : 'MOB' }}
+          {{
+            monster.type === 'archimonstre'
+              ? t('archimonstres.monsterCard.typeArchi')
+              : t('archimonstres.monsterCard.typeMob')
+          }}
         </div>
       </div>
 
@@ -50,7 +54,9 @@
             <span
               class="px-2 py-0.5 bg-orange-500/10 text-orange-300 text-xs font-medium rounded-md border border-orange-500/20"
             >
-              Étape {{ monster.etape }}
+              {{
+                t('archimonstres.monsterCard.etape', { number: monster.etape })
+              }}
             </span>
           </div>
 
@@ -102,7 +108,9 @@
             class="mt-4 pt-4 border-t border-gray-700/50"
           >
             <div class="flex items-center justify-between">
-              <span class="text-sm text-gray-400">Collected</span>
+              <span class="text-sm text-gray-400">{{
+                t('archimonstres.monsterCard.collected')
+              }}</span>
               <div class="flex items-center gap-3">
                 <button
                   @click="decrementCount"
@@ -129,8 +137,7 @@
                     'min-w-[3rem] h-9 px-3 rounded-xl flex items-center justify-center font-bold text-lg border transition-all duration-300',
                     monsterCount === 0
                       ? 'bg-red-500/10 border-red-500/20 text-red-400'
-                      :
- 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+                      : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
                   ]"
                 >
                   {{ monsterCount }}
@@ -170,8 +177,12 @@
                 ></div>
               </div>
               <div class="flex justify-between mt-1">
-                <span class="text-xs text-gray-500">Missing</span>
-                <span class="text-xs text-gray-500">Complete</span>
+                <span class="text-xs text-gray-500">{{
+                  t('archimonstres.monsterCard.missing')
+                }}</span>
+                <span class="text-xs text-gray-500">{{
+                  t('archimonstres.monsterCard.complete')
+                }}</span>
               </div>
             </div>
           </div>
@@ -182,6 +193,8 @@
 </template>
 
 <script setup>
+const { t } = useI18n();
+
 const props = defineProps({
   monster: {
     type: Object,
@@ -244,8 +257,7 @@ const decrementCount = () => {
 };
 
 const handleImageError = (event) => {
-  event.target.src =
-    "https://via.placeholder.com/80x80/374151/9CA3AF?text=?";
+  event.target.src = 'https://via.placeholder.com/80x80/374151/9CA3AF?text=?';
 };
 </script>
 
