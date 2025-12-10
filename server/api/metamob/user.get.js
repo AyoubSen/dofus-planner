@@ -2,13 +2,12 @@ export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig();
     
-    // Debug: Check if key is loaded
-    console.log("API Key loaded:", !!config.metamobApiKey, "Length:", config.metamobApiKey?.length);
+    console.log("config:", config)
     
     const response = await $fetch(`https://api.metamob.fr/monstres`, {
       method: "GET",
       headers: {
-        "HTTP-X-APIKEY": config.metamobApiKey, 
+        "HTTP-X-APIKEY": "8b6111-32b90a-4c12fe-81c4a7-5ed061 ", 
         "Accept": "application/json",
       },
     });
