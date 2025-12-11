@@ -1,4 +1,3 @@
-<!-- pages/succes.vue -->
 <template>
   <div
     class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
@@ -8,7 +7,7 @@
       <div class="mb-12">
         <div class="flex items-center gap-6 mb-6">
           <NuxtLink
-            to="/"
+            :to="localePath('/')"
             class="group flex items-center gap-2 text-gray-400 hover:text-yellow-400 transition-all duration-200 text-lg"
           >
             <svg
@@ -24,7 +23,7 @@
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            Back to Home
+            {{ $t('succes.backToHome') }}
           </NuxtLink>
         </div>
 
@@ -51,10 +50,10 @@
               <h1
                 class="text-5xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent"
               >
-                Succès
+                {{ $t('succes.title') }}
               </h1>
               <p class="text-gray-400 text-lg mt-1">
-                Browse and track your Dofus achievements
+                {{ $t('succes.subtitle') }}
               </p>
             </div>
           </div>
@@ -85,7 +84,7 @@
                   d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                 />
               </svg>
-              <span>Bookmarks</span>
+              <span>{{ $t('succes.bookmarks') }}</span>
               <span
                 v-if="bookmarkedAchievements.length > 0"
                 class="px-2 py-0.5 bg-yellow-500/30 rounded-full text-xs"
@@ -120,7 +119,7 @@
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
-                Browse
+                {{ $t('succes.modes.browse') }}
               </button>
               <button
                 @click="switchMode('track')"
@@ -144,7 +143,7 @@
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                   />
                 </svg>
-                Track
+                {{ $t('succes.modes.track') }}
               </button>
               <button
                 @click="switchMode('multi-track')"
@@ -168,7 +167,7 @@
                     d="M4 6h16M4 10h16M4 14h16M4 18h16"
                   />
                 </svg>
-                Multi-Track
+                {{ $t('succes.modes.multiTrack') }}
               </button>
             </div>
           </div>
@@ -196,15 +195,15 @@
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <p class="text-lg text-gray-400">No characters found</p>
+            <p class="text-lg text-gray-400">{{ $t('succes.multiTrack.noCharacters') }}</p>
             <p class="text-sm text-gray-500 mt-2 mb-6">
-              Create characters in the Track mode first
+              {{ $t('succes.multiTrack.createFirst') }}
             </p>
             <button
               @click="switchMode('track')"
               class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500 rounded-lg font-semibold text-gray-900 transition-all duration-200"
             >
-              Go to Track Mode
+              {{ $t('succes.multiTrack.goToTrack') }}
             </button>
           </div>
 
@@ -219,7 +218,6 @@
 
         <!-- Track Mode (existing) -->
         <div v-else-if="currentMode === 'track'" key="track-mode">
-          <!-- ... existing track mode content ... -->
           <!-- Breadcrumb Navigation -->
           <div class="mb-8">
             <div class="flex items-center gap-2 text-sm">
@@ -231,7 +229,7 @@
                     : 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30',
                 ]"
               >
-                {{ currentServer ? "✓" : "1" }} Server
+                {{ currentServer ? "✓" : "1" }} {{ $t('succes.breadcrumb.server') }}
               </span>
               <svg
                 class="w-4 h-4 text-gray-600"
@@ -256,7 +254,7 @@
                       : 'bg-gray-700/30 text-gray-500 border-gray-600/30',
                 ]"
               >
-                {{ currentCharacter ? "✓" : "2" }} Character
+                {{ currentCharacter ? "✓" : "2" }} {{ $t('succes.breadcrumb.character') }}
               </span>
               <svg
                 class="w-4 h-4 text-gray-600"
@@ -279,7 +277,7 @@
                     : 'bg-gray-700/30 text-gray-500 border-gray-600/30',
                 ]"
               >
-                3 Tracking
+                3 {{ $t('succes.breadcrumb.tracking') }}
               </span>
             </div>
           </div>
@@ -292,10 +290,10 @@
               >
                 <div class="text-center mb-8">
                   <h2 class="text-3xl font-bold text-gray-100 mb-3">
-                    Choose Your Server
+                    {{ $t('succes.serverSelection.title') }}
                   </h2>
                   <p class="text-gray-400 text-lg">
-                    Select a server to track your achievements progress
+                    {{ $t('succes.serverSelection.description') }}
                   </p>
                 </div>
 
@@ -316,10 +314,10 @@
                 <div class="flex items-center justify-between mb-8">
                   <div>
                     <h2 class="text-3xl font-bold text-gray-100 mb-2">
-                      Choose Your Character
+                      {{ $t('succes.characterSelection.title') }}
                     </h2>
                     <p class="text-gray-400 text-lg">
-                      Server:
+                      {{ $t('succes.characterSelection.server') }}
                       <span class="text-yellow-400 font-semibold">{{
                         currentServer.name
                       }}</span>
@@ -342,7 +340,7 @@
                         d="M15 19l-7-7 7-7"
                       />
                     </svg>
-                    Change Server
+                    {{ $t('succes.characterSelection.changeServer') }}
                   </button>
                 </div>
 
@@ -402,7 +400,7 @@
                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                           />
                         </svg>
-                        Change Character
+                        {{ $t('succes.tracker.changeCharacter') }}
                       </button>
                       <button
                         @click="currentServer = null"
@@ -421,7 +419,7 @@
                             d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                        Change Server
+                        {{ $t('succes.tracker.changeServer') }}
                       </button>
                     </div>
                   </div>
@@ -442,7 +440,6 @@
 
         <!-- Browse Mode (existing) -->
         <div v-else key="browse-mode">
-          <!-- ... existing browse mode content stays the same ... -->
           <div class="flex gap-8">
             <!-- Filters Sidebar -->
             <div
@@ -467,19 +464,19 @@
                     />
                   </svg>
                 </div>
-                <h2 class="text-xl font-bold text-gray-100">FILTERS</h2>
+                <h2 class="text-xl font-bold text-gray-100">{{ $t('succes.filters.title') }}</h2>
               </div>
 
               <div class="mb-6">
                 <h3
                   class="text-sm font-semibold mb-3 text-yellow-400 uppercase tracking-wide"
                 >
-                  Search
+                  {{ $t('succes.filters.search') }}
                 </h3>
                 <input
                   v-model="filters.search"
                   type="text"
-                  placeholder="Search achievements..."
+                  :placeholder="$t('succes.filters.searchPlaceholder')"
                   class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50"
                   @input="debouncedSearch"
                 />
@@ -490,7 +487,7 @@
                 <h3
                   class="text-sm font-semibold mb-3 text-yellow-400 uppercase tracking-wide"
                 >
-                  Category
+                  {{ $t('succes.filters.category') }}
                 </h3>
                 <div
                   class="space-y-1 max-h-80 overflow-y-auto custom-scrollbar"
@@ -505,7 +502,7 @@
                       @change="fetchAchievements"
                       class="mr-3 text-yellow-500 focus:ring-yellow-500 focus:ring-2"
                     />
-                    <span class="text-gray-300">All Categories</span>
+                    <span class="text-gray-300">{{ $t('succes.filters.allCategories') }}</span>
                   </label>
 
                   <template
@@ -587,7 +584,7 @@
                 @click="resetFilters"
                 class="w-full px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
               >
-                Reset Filters
+                {{ $t('succes.filters.reset') }}
               </button>
             </div>
 
@@ -602,18 +599,18 @@
                     <span class="text-yellow-400 font-semibold">{{
                       bookmarkedAchievements.length
                     }}</span>
-                    bookmarked achievements
+                    {{ $t('succes.stats.bookmarked', { count: '' }).replace(/^\d*\s*/, '') }}
                   </span>
                   <span v-else class="text-gray-400">
-                    Showing
+                    {{ $t('succes.stats.showing') }}
                     <span class="text-yellow-400 font-semibold">{{
                       achievements.length
                     }}</span>
-                    of
+                    {{ $t('succes.stats.of') }}
                     <span class="text-yellow-400 font-semibold">{{
                       total
                     }}</span>
-                    achievements
+                    {{ $t('succes.stats.achievements') }}
                   </span>
                 </div>
 
@@ -630,7 +627,7 @@
                     <span class="text-yellow-300 font-medium">{{
                       formatNumber(totalBookmarkedKamas)
                     }}</span>
-                    <span class="text-yellow-400/70 text-sm">Kamas</span>
+                    <span class="text-yellow-400/70 text-sm">{{ $t('succes.stats.kamas') }}</span>
                   </div>
                   <div
                     class="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded-lg"
@@ -639,12 +636,12 @@
                     <span class="text-blue-300 font-medium">{{
                       formatNumber(totalBookmarkedXP)
                     }}</span>
-                    <span class="text-blue-400/70 text-sm">XP (Lv.200)</span>
+                    <span class="text-blue-400/70 text-sm">{{ $t('succes.stats.xpAtLevel', { level: 200 }) }}</span>
                   </div>
                 </div>
 
                 <div v-if="!showBookmarksOnly" class="flex items-center gap-2">
-                  <span class="text-gray-400 text-sm">Per page:</span>
+                  <span class="text-gray-400 text-sm">{{ $t('succes.stats.perPage') }}</span>
                   <select
                     v-model="limit"
                     @change="fetchAchievements"
@@ -666,7 +663,7 @@
                   <div
                     class="animate-spin w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full"
                   ></div>
-                  <span class="text-lg">Loading achievements...</span>
+                  <span class="text-lg">{{ $t('succes.loading') }}</span>
                 </div>
               </div>
 
@@ -723,10 +720,10 @@
                       <h3
                         class="font-semibold text-gray-100 group-hover:text-yellow-400 transition-colors truncate"
                       >
-                        {{ achievement.name?.fr || "Unknown" }}
+                        {{ achievement.name?.fr || $t('succes.card.unknown') }}
                       </h3>
                       <p class="text-sm text-gray-400 mt-1 line-clamp-2">
-                        {{ achievement.description?.fr || "No description" }}
+                        {{ achievement.description?.fr || $t('succes.card.noDescription') }}
                       </p>
 
                       <div class="flex items-center gap-2 mt-3 flex-wrap">
@@ -734,7 +731,7 @@
                           v-if="achievement.level"
                           class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-300 text-xs font-medium rounded border border-blue-500/30"
                         >
-                          Lv.{{ achievement.level }}
+                          {{ $t('succes.card.level', { level: achievement.level }) }}
                         </span>
                         <span
                           v-if="achievement.category?.name?.fr"
@@ -795,16 +792,16 @@
                   />
                 </svg>
                 <p v-if="showBookmarksOnly" class="text-lg text-gray-400">
-                  No bookmarked achievements
+                  {{ $t('succes.empty.noBookmarks') }}
                 </p>
                 <p v-else class="text-lg text-gray-400">
-                  No achievements found
+                  {{ $t('succes.empty.noAchievements') }}
                 </p>
                 <p class="text-sm text-gray-500 mt-2">
                   {{
                     showBookmarksOnly
-                      ? "Bookmark some achievements to see them here"
-                      : "Try adjusting your filters"
+                      ? $t('succes.empty.bookmarkHint')
+                      : $t('succes.empty.filterHint')
                   }}
                 </p>
               </div>
@@ -819,7 +816,7 @@
                   :disabled="currentPage === 1"
                   class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
                 >
-                  Previous
+                  {{ $t('succes.pagination.previous') }}
                 </button>
                 <div class="flex items-center gap-1">
                   <button
@@ -841,7 +838,7 @@
                   :disabled="currentPage === totalPages"
                   class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
                 >
-                  Next
+                  {{ $t('succes.pagination.next') }}
                 </button>
               </div>
             </div>
@@ -850,14 +847,13 @@
       </Transition>
     </div>
 
-    <!-- Achievement Detail Modal (keep existing) -->
+    <!-- Achievement Detail Modal -->
     <Teleport to="body">
       <div
         v-if="selectedAchievement"
         class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
         @click.self="selectedAchievement = null"
       >
-        <!-- ... existing modal content ... -->
         <div
           class="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         >
@@ -880,7 +876,7 @@
                   </h2>
                   <p class="text-gray-400 mt-1">
                     {{
-                      selectedAchievement.category?.name?.fr || "No category"
+                      selectedAchievement.category?.name?.fr || $t('succes.modal.noCategory')
                     }}
                   </p>
                 </div>
@@ -938,10 +934,10 @@
               <h3
                 class="text-sm font-semibold text-yellow-400 uppercase mb-2"
               >
-                Description
+                {{ $t('succes.modal.description') }}
               </h3>
               <p class="text-gray-300">
-                {{ selectedAchievement.description?.fr || "No description" }}
+                {{ selectedAchievement.description?.fr || $t('succes.card.noDescription') }}
               </p>
             </div>
 
@@ -950,9 +946,9 @@
                 class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/30"
               >
                 <div class="text-2xl font-bold text-blue-400">
-                  {{ selectedAchievement.level || "N/A" }}
+                  {{ selectedAchievement.level || $t('succes.modal.na') }}
                 </div>
-                <div class="text-sm text-gray-400">Level</div>
+                <div class="text-sm text-gray-400">{{ $t('succes.modal.level') }}</div>
               </div>
               <div
                 class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/30"
@@ -960,7 +956,7 @@
                 <div class="text-2xl font-bold text-purple-400">
                   {{ selectedAchievement.id }}
                 </div>
-                <div class="text-sm text-gray-400">ID</div>
+                <div class="text-sm text-gray-400">{{ $t('succes.modal.id') }}</div>
               </div>
             </div>
 
@@ -974,7 +970,7 @@
               <h3
                 class="text-sm font-semibold text-yellow-400 uppercase mb-3"
               >
-                Rewards
+                {{ $t('succes.modal.rewards') }}
               </h3>
 
               <div class="flex flex-wrap gap-3 mb-4">
@@ -997,17 +993,13 @@
                           )
                         )
                       }}
-                      XP
+                      {{ $t('succes.modal.xp') }}
                     </div>
                     <div class="text-xs text-blue-400/70">
-                      {{
-                        (
-                          getTotalExperienceRatio(
-                            selectedAchievement.rewards
-                          ) * 100
-                        ).toFixed(0)
-                      }}%
-                      ratio (at Lv.200)
+                      {{ $t('succes.modal.ratio', {
+                        percent: (getTotalExperienceRatio(selectedAchievement.rewards) * 100).toFixed(0),
+                        level: 200
+                      }) }}
                     </div>
                   </div>
                 </div>
@@ -1027,16 +1019,13 @@
                           )
                         )
                       }}
-                      Kamas
+                      {{ $t('succes.stats.kamas') }}
                     </div>
                     <div class="text-xs text-yellow-400/70">
-                      {{
-                        (
-                          getTotalKamasRatio(selectedAchievement.rewards) *
-                          100
-                        ).toFixed(0)
-                      }}%
-                      ratio (Lv.{{ selectedAchievement.level }})
+                      {{ $t('succes.modal.kamasRatio', {
+                        percent: (getTotalKamasRatio(selectedAchievement.rewards) * 100).toFixed(0),
+                        level: selectedAchievement.level
+                      }) }}
                     </div>
                   </div>
                 </div>
@@ -1049,7 +1038,7 @@
                   <div>
                     <div class="text-purple-300 font-medium">
                       {{ getTotalGuildPoints(selectedAchievement.rewards) }}
-                      Guild Points
+                      {{ $t('succes.modal.guildPoints') }}
                     </div>
                   </div>
                 </div>
@@ -1061,7 +1050,7 @@
                 <h4
                   class="text-xs font-semibold text-gray-400 uppercase mb-2"
                 >
-                  Item Rewards
+                  {{ $t('succes.modal.itemRewards') }}
                 </h4>
                 <div class="grid grid-cols-1 gap-2">
                   <div
@@ -1083,10 +1072,10 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="text-gray-200 font-medium truncate">
-                        {{ item.name?.fr || "Unknown Item" }}
+                        {{ item.name?.fr || $t('succes.modal.unknownItem') }}
                       </div>
                       <div class="text-xs text-gray-500">
-                        {{ item.type?.name?.fr || "Item" }}
+                        {{ item.type?.name?.fr || $t('succes.modal.item') }}
                       </div>
                     </div>
                     <div class="text-yellow-400 font-bold text-lg">
@@ -1105,7 +1094,7 @@
                 <h4
                   class="text-xs font-semibold text-gray-400 uppercase mb-2"
                 >
-                  Titles
+                  {{ $t('succes.modal.titles') }}
                 </h4>
                 <div class="flex flex-wrap gap-2">
                   <span
@@ -1129,7 +1118,7 @@
                 <h4
                   class="text-xs font-semibold text-gray-400 uppercase mb-2"
                 >
-                  Ornaments
+                  {{ $t('succes.modal.ornaments') }}
                 </h4>
                 <div class="flex flex-wrap gap-2">
                   <span
@@ -1153,7 +1142,7 @@
                 <h4
                   class="text-xs font-semibold text-gray-400 uppercase mb-2"
                 >
-                  Emotes
+                  {{ $t('succes.modal.emotes') }}
                 </h4>
                 <div class="flex flex-wrap gap-2">
                   <span
@@ -1163,7 +1152,7 @@
                     :key="emote"
                     class="px-3 py-1 bg-green-500/10 border border-green-500/30 rounded-lg text-green-300 text-sm"
                   >
-                    😄 Emote #{{ emote }}
+                    😄 {{ $t('succes.modal.emoteNumber', { id: emote }) }}
                   </span>
                 </div>
               </div>
@@ -1172,7 +1161,7 @@
                 v-if="!hasAnyRewards(selectedAchievement.rewards)"
                 class="text-gray-500 text-sm"
               >
-                No rewards for this achievement
+                {{ $t('succes.modal.noRewards') }}
               </div>
             </div>
           </div>
@@ -1182,7 +1171,16 @@
   </div>
 </template>
 
+
+
+
+
+
+
+
 <script setup>
+  const { t } = useI18n();
+const localePath = useLocalePath();
 useHead({
   title: "Succès - Dofus Stuff",
   meta: [

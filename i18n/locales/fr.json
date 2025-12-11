@@ -462,6 +462,203 @@
       "mostStandardized": "Emplacements les Plus Standardisés",
       "itemsCount": "{count} objets"
     }
+  },
+  "succes": {
+    "backToHome": "Retour à l'accueil",
+    "title": "Succès",
+    "subtitle": "Parcourez et suivez vos succès Dofus",
+    "bookmarks": "Favoris",
+    "modes": {
+      "browse": "Parcourir",
+      "track": "Suivre",
+      "multiTrack": "Multi-Suivi"
+    },
+    "breadcrumb": {
+      "server": "Serveur",
+      "character": "Personnage",
+      "tracking": "Suivi"
+    },
+    "multiTrack": {
+      "noCharacters": "Aucun personnage trouvé",
+      "createFirst": "Créez d'abord des personnages dans le mode Suivi",
+      "goToTrack": "Aller au mode Suivi"
+    },
+    "serverSelection": {
+      "title": "Choisissez Votre Serveur",
+      "description": "Sélectionnez un serveur pour suivre vos succès"
+    },
+    "characterSelection": {
+      "title": "Choisissez Votre Personnage",
+      "server": "Serveur :",
+      "changeServer": "Changer de Serveur"
+    },
+    "tracker": {
+      "changeCharacter": "Changer de Personnage",
+      "changeServer": "Changer de Serveur"
+    },
+    "filters": {
+      "title": "FILTRES",
+      "search": "Recherche",
+      "searchPlaceholder": "Rechercher des succès...",
+      "category": "Catégorie",
+      "allCategories": "Toutes les Catégories",
+      "reset": "Réinitialiser"
+    },
+    "stats": {
+      "bookmarked": "{count} succès en favoris",
+      "showing": "Affichage de",
+      "of": "sur",
+      "achievements": "succès",
+      "perPage": "Par page :",
+      "kamas": "Kamas",
+      "xpAtLevel": "XP (Niv.{level})"
+    },
+    "loading": "Chargement des succès...",
+    "card": {
+      "level": "Niv.{level}",
+      "unknown": "Inconnu",
+      "noDescription": "Pas de description"
+    },
+    "empty": {
+      "noBookmarks": "Aucun succès en favoris",
+      "noAchievements": "Aucun succès trouvé",
+      "bookmarkHint": "Ajoutez des succès en favoris pour les voir ici",
+      "filterHint": "Essayez d'ajuster vos filtres"
+    },
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant"
+    },
+    "modal": {
+      "noCategory": "Pas de catégorie",
+      "description": "Description",
+      "level": "Niveau",
+      "id": "ID",
+      "rewards": "Récompenses",
+      "xp": "XP",
+      "ratio": "{percent}% ratio (au Niv.{level})",
+      "kamasRatio": "{percent}% ratio (Niv.{level})",
+      "guildPoints": "Points de Guilde",
+      "itemRewards": "Objets",
+      "unknownItem": "Objet Inconnu",
+      "item": "Objet",
+      "titles": "Titres",
+      "ornaments": "Ornements",
+      "emotes": "Emotes",
+      "emoteNumber": "Emote #{id}",
+      "noRewards": "Pas de récompenses pour ce succès",
+      "na": "N/A"
+    },
+    "serverSelector": {
+      "characters": "{count} personnage | {count} personnages",
+      "placeholder": "Nom du serveur (ex: Draconiros, Tylezia...)",
+      "addButton": "Ajouter",
+      "deleteTitle": "Supprimer le serveur ?",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer",
+      "deleteWarning": "Cela supprimera également tous les personnages et leurs données.",
+      "cancel": "Annuler",
+      "delete": "Supprimer"
+    },
+    "characterSelector": {
+      "nameLabel": "Nom du personnage",
+      "namePlaceholder": "Entrez le nom...",
+      "classLabel": "Classe",
+      "classPlaceholder": "Sélectionner...",
+      "levelLabel": "Niveau",
+      "addButton": "Ajouter",
+      "deleteTitle": "Supprimer le personnage ?",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer",
+      "deleteWarning": "Toutes les données de progression seront perdues.",
+      "cancel": "Annuler",
+      "delete": "Supprimer"
+    },
+    "trackerInterface": {
+  "characterLevel": "Niveau du Personnage",
+  "completed": "Complétés",
+  "percentDone": "{percent}% terminé",
+  "overallProgress": "Progression Globale",
+  "searchPlaceholder": "Rechercher des succès...",
+  "allCategories": "Toutes les Catégories",
+  "statusAll": "Tous",
+  "statusCompleted": "Complétés",
+  "statusRemaining": "Restants",
+  "actions": "Actions",
+  "bulkActions": "Actions groupées :",
+  "markFilteredDone": "Marquer filtrés comme faits",
+  "markFilteredUndone": "Marquer filtrés comme non faits",
+  "export": "Exporter",
+  "import": "Importer",
+  "resetAll": "Réinitialiser",
+  "showing": "Affichage de",
+  "of": "sur",
+  "achievements": "succès",
+  "completedCount": "{count} complétés",
+  "remainingCount": "{count} restants",
+  "loading": "Chargement des succès...",
+  "unknown": "Inconnu",
+  "noDescription": "Pas de description",
+  "levelShort": "Niv.{level}",
+  "noAchievements": "Aucun succès trouvé",
+  "tryAdjusting": "Essayez d'ajuster vos filtres",
+  "previous": "Précédent",
+  "next": "Suivant",
+  "noCategory": "Pas de catégorie",
+  "markNotCompleted": "✗ Marquer comme non complété",
+  "markCompleted": "✓ Marquer comme complété",
+  "description": "Description",
+  "level": "Niveau",
+  "id": "ID",
+  "na": "N/A",
+  "rewardsAtLevel": "Récompenses (au Niv.{level})",
+  "xp": "XP",
+  "kamas": "Kamas",
+  "guildPoints": "Points de Guilde",
+  "itemRewards": "Objets",
+  "unknownItem": "Objet Inconnu",
+  "item": "Objet",
+  "titles": "Titres",
+  "ornaments": "Ornements",
+  "emotes": "Emotes",
+  "emoteNumber": "Emote #{id}",
+  "resetProgressTitle": "Réinitialiser la progression ?",
+  "resetProgressMessage": "Cela supprimera toutes les données de complétion pour ce personnage. Cette action est irréversible.",
+  "cancel": "Annuler"
+},
+"multiTracker": {
+  "selectTitle": "Sélectionnez les Personnages à Comparer",
+  "selectSubtitle": "Choisissez jusqu'à {max} personnages",
+  "selectedCount": "{count} / {max} sélectionnés",
+  "clearAll": "Tout Effacer",
+  "emptyTitle": "Sélectionnez des personnages pour commencer",
+  "emptyDescription": "Cliquez sur les personnages ci-dessus pour les ajouter à la comparaison",
+  "totalCompleted": "Total Complétés",
+  "uniqueAchievements": "Succès Uniques",
+  "searchPlaceholder": "Rechercher des succès...",
+  "allCategories": "Toutes les Catégories",
+  "filterAll": "Tous les Succès",
+  "filterNone": "Aucun Complété",
+  "filterPartial": "Partiellement Complétés",
+  "filterAllCompleted": "Tous les Personnages Complétés",
+  "tableView": "Vue Tableau",
+  "gridView": "Vue Grille",
+  "loading": "Chargement des succès...",
+  "achievement": "Succès",
+  "xpAtLevel": "XP (Niv.{level})",
+  "kamas": "Kamas",
+  "xp": "XP",
+  "unknown": "Inconnu",
+  "levelShort": "Niv.{level}",
+  "completionStatus": "{done}/{total} faits",
+  "noMatch": "Aucun succès ne correspond à vos filtres",
+  "previous": "Précédent",
+  "next": "Suivant",
+  "noCategory": "Pas de catégorie",
+  "characterProgress": "Progression des Personnages",
+  "description": "Description",
+  "noDescription": "Pas de description",
+  "rewards": "Récompenses"
+}
   }
+  
 }
   

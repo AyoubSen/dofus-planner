@@ -1,4 +1,3 @@
-<!-- components/AchievementTrackerInterface.vue -->
 <template>
   <div>
     <!-- Character Stats Header -->
@@ -7,7 +6,7 @@
       <div
         class="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-xl p-4"
       >
-        <label class="block text-sm text-blue-400 mb-2">Character Level</label>
+        <label class="block text-sm text-blue-400 mb-2">{{ $t('succes.trackerInterface.characterLevel') }}</label>
         <input
           v-model.number="characterLevel"
           type="number"
@@ -22,7 +21,7 @@
       <div
         class="bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/30 rounded-xl p-4"
       >
-        <div class="text-sm text-green-400 mb-1">Completed</div>
+        <div class="text-sm text-green-400 mb-1">{{ $t('succes.trackerInterface.completed') }}</div>
         <div class="text-2xl font-bold text-green-300">
           {{ completedCount }}
           <span class="text-sm text-green-400/70"
@@ -30,7 +29,7 @@
           >
         </div>
         <div class="text-xs text-green-400/50 mt-1">
-          {{ completionPercentage }}% done
+          {{ $t('succes.trackerInterface.percentDone', { percent: completionPercentage }) }}
         </div>
       </div>
     </div>
@@ -38,7 +37,7 @@
     <!-- Progress Bar -->
     <div class="mb-6">
       <div class="flex items-center justify-between mb-2">
-        <span class="text-sm text-gray-400">Overall Progress</span>
+        <span class="text-sm text-gray-400">{{ $t('succes.trackerInterface.overallProgress') }}</span>
         <span class="text-sm text-yellow-400 font-medium"
           >{{ completionPercentage }}%</span
         >
@@ -60,7 +59,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search achievements..."
+          :placeholder="$t('succes.trackerInterface.searchPlaceholder')"
           class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-yellow-500/50"
           @input="debouncedSearch"
         />
@@ -73,7 +72,7 @@
           class="flex items-center gap-2 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-yellow-500/50 min-w-48"
         >
           <span class="flex-1 text-left truncate">
-            {{ selectedCategoryName || "All Categories" }}
+            {{ selectedCategoryName || $t('succes.trackerInterface.allCategories') }}
           </span>
           <svg
             class="w-4 h-4 transition-transform duration-200"
@@ -106,7 +105,7 @@
                   : 'text-gray-300 hover:bg-gray-700/50',
               ]"
             >
-              All Categories
+              {{ $t('succes.trackerInterface.allCategories') }}
             </button>
 
             <template
@@ -213,7 +212,7 @@
               d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
             />
           </svg>
-          Actions
+          {{ $t('succes.trackerInterface.actions') }}
         </button>
       </div>
     </div>
@@ -225,18 +224,18 @@
         class="mb-6 bg-gray-800/50 border border-gray-700/50 rounded-xl p-4"
       >
         <div class="flex flex-wrap items-center gap-4">
-          <span class="text-gray-400 text-sm">Bulk Actions:</span>
+          <span class="text-gray-400 text-sm">{{ $t('succes.trackerInterface.bulkActions') }}</span>
           <button
             @click="markAllFiltered(true)"
             class="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 rounded-lg text-green-400 text-sm transition-colors"
           >
-            ✓ Mark Filtered as Done
+            ✓ {{ $t('succes.trackerInterface.markFilteredDone') }}
           </button>
           <button
             @click="markAllFiltered(false)"
             class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 text-sm transition-colors"
           >
-            ✗ Mark Filtered as Undone
+            ✗ {{ $t('succes.trackerInterface.markFilteredUndone') }}
           </button>
           <div class="ml-auto flex items-center gap-2">
             <button
@@ -256,7 +255,7 @@
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
                 />
               </svg>
-              Export
+              {{ $t('succes.trackerInterface.export') }}
             </button>
             <label
               class="flex items-center gap-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg text-purple-400 text-sm transition-colors cursor-pointer"
@@ -274,7 +273,7 @@
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                 />
               </svg>
-              Import
+              {{ $t('succes.trackerInterface.import') }}
               <input
                 type="file"
                 accept=".json"
@@ -299,7 +298,7 @@
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
-              Reset All
+              {{ $t('succes.trackerInterface.resetAll') }}
             </button>
           </div>
         </div>
@@ -311,21 +310,20 @@
       class="mb-6 flex items-center justify-between bg-gray-800/30 border border-gray-700/50 rounded-xl px-4 py-3"
     >
       <span class="text-gray-400">
-        Showing
+        {{ $t('succes.trackerInterface.showing') }}
         <span class="text-yellow-400 font-semibold">{{
           displayedAchievements.length
         }}</span>
-        of
+        {{ $t('succes.trackerInterface.of') }}
         <span class="text-yellow-400 font-semibold">{{ total }}</span>
-        achievements
+        {{ $t('succes.trackerInterface.achievements') }}
       </span>
       <div class="flex items-center gap-4 text-sm">
         <span class="text-green-400"
-          >✓ {{ displayedCompletedCount }} completed</span
+          >✓ {{ $t('succes.trackerInterface.completedCount', { count: displayedCompletedCount }) }}</span
         >
         <span class="text-gray-400"
-          >○ {{ displayedAchievements.length - displayedCompletedCount }}
-          remaining</span
+          >○ {{ $t('succes.trackerInterface.remainingCount', { count: displayedAchievements.length - displayedCompletedCount }) }}</span
         >
       </div>
     </div>
@@ -336,7 +334,7 @@
         <div
           class="animate-spin w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full"
         ></div>
-        <span class="text-lg">Loading achievements...</span>
+        <span class="text-lg">{{ $t('succes.trackerInterface.loading') }}</span>
       </div>
     </div>
 
@@ -438,13 +436,13 @@
                   : 'text-gray-100 group-hover:text-yellow-400',
               ]"
             >
-              {{ achievement.name?.fr || "Unknown" }}
+              {{ achievement.name?.fr || $t('succes.trackerInterface.unknown') }}
             </h3>
             <p
               class="text-sm text-gray-400 mt-1 line-clamp-2"
               :class="{ 'opacity-50': isCompleted(achievement.id) }"
             >
-              {{ achievement.description?.fr || "No description" }}
+              {{ achievement.description?.fr || $t('succes.trackerInterface.noDescription') }}
             </p>
 
             <!-- Meta Info -->
@@ -453,7 +451,7 @@
                 v-if="achievement.level"
                 class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-300 text-xs font-medium rounded border border-blue-500/30"
               >
-                Lv.{{ achievement.level }}
+                {{ $t('succes.trackerInterface.levelShort', { level: achievement.level }) }}
               </span>
               <span
                 v-if="achievement.category?.name?.fr"
@@ -505,8 +503,8 @@
           d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
-      <p class="text-lg text-gray-400">No achievements found</p>
-      <p class="text-sm text-gray-500 mt-2">Try adjusting your filters</p>
+      <p class="text-lg text-gray-400">{{ $t('succes.trackerInterface.noAchievements') }}</p>
+      <p class="text-sm text-gray-500 mt-2">{{ $t('succes.trackerInterface.tryAdjusting') }}</p>
     </div>
 
     <!-- Pagination -->
@@ -519,7 +517,7 @@
         :disabled="currentPage === 1"
         class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
       >
-        Previous
+        {{ $t('succes.trackerInterface.previous') }}
       </button>
       <div class="flex items-center gap-1">
         <button
@@ -541,7 +539,7 @@
         :disabled="currentPage === totalPages"
         class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
       >
-        Next
+        {{ $t('succes.trackerInterface.next') }}
       </button>
     </div>
 
@@ -587,7 +585,7 @@
                   </h2>
                   <p class="text-gray-400 mt-1">
                     {{
-                      selectedAchievement.category?.name?.fr || "No category"
+                      selectedAchievement.category?.name?.fr || $t('succes.trackerInterface.noCategory')
                     }}
                   </p>
                   <div
@@ -605,7 +603,7 @@
                         clip-rule="evenodd"
                       />
                     </svg>
-                    Completed
+                    {{ $t('succes.trackerInterface.completed') }}
                   </div>
                 </div>
               </div>
@@ -641,18 +639,18 @@
             >
               {{
                 isCompleted(selectedAchievement.id)
-                  ? "✗ Mark as Not Completed"
-                  : "✓ Mark as Completed"
+                  ? $t('succes.trackerInterface.markNotCompleted')
+                  : $t('succes.trackerInterface.markCompleted')
               }}
             </button>
 
             <!-- Description -->
             <div class="mb-6">
               <h3 class="text-sm font-semibold text-yellow-400 uppercase mb-2">
-                Description
+                {{ $t('succes.trackerInterface.description') }}
               </h3>
               <p class="text-gray-300">
-                {{ selectedAchievement.description?.fr || "No description" }}
+                {{ selectedAchievement.description?.fr || $t('succes.trackerInterface.noDescription') }}
               </p>
             </div>
 
@@ -662,9 +660,9 @@
                 class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/30"
               >
                 <div class="text-2xl font-bold text-blue-400">
-                  {{ selectedAchievement.level || "N/A" }}
+                  {{ selectedAchievement.level || $t('succes.trackerInterface.na') }}
                 </div>
-                <div class="text-sm text-gray-400">Level</div>
+                <div class="text-sm text-gray-400">{{ $t('succes.trackerInterface.level') }}</div>
               </div>
               <div
                 class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/30"
@@ -672,7 +670,7 @@
                 <div class="text-2xl font-bold text-purple-400">
                   {{ selectedAchievement.id }}
                 </div>
-                <div class="text-sm text-gray-400">ID</div>
+                <div class="text-sm text-gray-400">{{ $t('succes.trackerInterface.id') }}</div>
               </div>
             </div>
 
@@ -684,7 +682,7 @@
               "
             >
               <h3 class="text-sm font-semibold text-yellow-400 uppercase mb-3">
-                Rewards (at Lv.{{ characterLevel }})
+                {{ $t('succes.trackerInterface.rewardsAtLevel', { level: characterLevel }) }}
               </h3>
 
               <div class="flex flex-wrap gap-3 mb-4">
@@ -705,7 +703,7 @@
                           )
                         )
                       }}
-                      XP
+                      {{ $t('succes.trackerInterface.xp') }}
                     </div>
                   </div>
                 </div>
@@ -725,7 +723,7 @@
                           )
                         )
                       }}
-                      Kamas
+                      {{ $t('succes.trackerInterface.kamas') }}
                     </div>
                   </div>
                 </div>
@@ -738,7 +736,7 @@
                   <div>
                     <div class="text-purple-300 font-medium">
                       {{ getTotalGuildPoints(selectedAchievement.rewards) }}
-                      Guild Points
+                      {{ $t('succes.trackerInterface.guildPoints') }}
                     </div>
                   </div>
                 </div>
@@ -749,7 +747,7 @@
                 v-if="getItemRewards(selectedAchievement.rewards).length > 0"
               >
                 <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">
-                  Item Rewards
+                  {{ $t('succes.trackerInterface.itemRewards') }}
                 </h4>
                 <div class="grid grid-cols-1 gap-2">
                   <div
@@ -769,10 +767,10 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="text-gray-200 font-medium truncate">
-                        {{ item.name?.fr || "Unknown Item" }}
+                        {{ item.name?.fr || $t('succes.trackerInterface.unknownItem') }}
                       </div>
                       <div class="text-xs text-gray-500">
-                        {{ item.type?.name?.fr || "Item" }}
+                        {{ item.type?.name?.fr || $t('succes.trackerInterface.item') }}
                       </div>
                     </div>
                     <div class="text-yellow-400 font-bold text-lg">
@@ -788,7 +786,7 @@
                 class="mt-3"
               >
                 <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">
-                  Titles
+                  {{ $t('succes.trackerInterface.titles') }}
                 </h4>
                 <div class="flex flex-wrap gap-2">
                   <span
@@ -811,7 +809,7 @@
                 class="mt-3"
               >
                 <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">
-                  Ornaments
+                  {{ $t('succes.trackerInterface.ornaments') }}
                 </h4>
                 <div class="flex flex-wrap gap-2">
                   <span
@@ -832,7 +830,7 @@
                 class="mt-3"
               >
                 <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">
-                  Emotes
+                  {{ $t('succes.trackerInterface.emotes') }}
                 </h4>
                 <div class="flex flex-wrap gap-2">
                   <span
@@ -842,7 +840,7 @@
                     :key="emote"
                     class="px-3 py-1 bg-green-500/10 border border-green-500/30 rounded-lg text-green-300 text-sm"
                   >
-                    😄 Emote #{{ emote }}
+                    😄 {{ $t('succes.trackerInterface.emoteNumber', { id: emote }) }}
                   </span>
                 </div>
               </div>
@@ -880,23 +878,22 @@
                 />
               </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-100 mb-2">Reset Progress?</h3>
+            <h3 class="text-xl font-bold text-gray-100 mb-2">{{ $t('succes.trackerInterface.resetProgressTitle') }}</h3>
             <p class="text-gray-400 mb-6">
-              This will clear all completion data for this character. This
-              action cannot be undone.
+              {{ $t('succes.trackerInterface.resetProgressMessage') }}
             </p>
             <div class="flex gap-3">
               <button
                 @click="showResetConfirm = false"
                 class="flex-1 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
               >
-                Cancel
+                {{ $t('succes.trackerInterface.cancel') }}
               </button>
               <button
                 @click="resetProgress"
                 class="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 transition-colors"
               >
-                Reset All
+                {{ $t('succes.trackerInterface.resetAll') }}
               </button>
             </div>
           </div>
@@ -907,6 +904,8 @@
 </template>
 
 <script setup>
+
+const { t } = useI18n();
 import { onClickOutside } from "@vueuse/core";
 
 const props = defineProps({
@@ -950,11 +949,11 @@ const searchQuery = ref("");
 const selectedCategory = ref("");
 const selectedStatus = ref("");
 
-const statusFilters = [
-  { label: "All", value: "" },
-  { label: "Completed", value: "completed" },
-  { label: "Remaining", value: "remaining" },
-];
+const statusFilters = computed(() => [
+  { label: t('succes.trackerInterface.statusAll'), value: "" },
+  { label: t('succes.trackerInterface.statusCompleted'), value: "completed" },
+  { label: t('succes.trackerInterface.statusRemaining'), value: "remaining" },
+]);
 
 // Computed
 const organizedCategories = computed(() => {

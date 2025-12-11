@@ -463,5 +463,202 @@
       "mostStandardized": "Most Standardized Slots",
       "itemsCount": "{count} items"
     }
+  },
+  "succes": {
+    "backToHome": "Back to Home",
+    "title": "Succès",
+    "subtitle": "Browse and track your Dofus achievements",
+    "bookmarks": "Bookmarks",
+    "modes": {
+      "browse": "Browse",
+      "track": "Track",
+      "multiTrack": "Multi-Track"
+    },
+    "breadcrumb": {
+      "server": "Server",
+      "character": "Character",
+      "tracking": "Tracking"
+    },
+    "multiTrack": {
+      "noCharacters": "No characters found",
+      "createFirst": "Create characters in the Track mode first",
+      "goToTrack": "Go to Track Mode"
+    },
+    "serverSelection": {
+      "title": "Choose Your Server",
+      "description": "Select a server to track your achievements progress"
+    },
+    "characterSelection": {
+      "title": "Choose Your Character",
+      "server": "Server:",
+      "changeServer": "Change Server"
+    },
+    "tracker": {
+      "changeCharacter": "Change Character",
+      "changeServer": "Change Server"
+    },
+    "filters": {
+      "title": "FILTERS",
+      "search": "Search",
+      "searchPlaceholder": "Search achievements...",
+      "category": "Category",
+      "allCategories": "All Categories",
+      "reset": "Reset Filters"
+    },
+    "stats": {
+      "bookmarked": "{count} bookmarked achievements",
+      "showing": "Showing",
+      "of": "of",
+      "achievements": "achievements",
+      "perPage": "Per page:",
+      "kamas": "Kamas",
+      "xpAtLevel": "XP (Lv.{level})"
+    },
+    "loading": "Loading achievements...",
+    "card": {
+      "level": "Lv.{level}",
+      "unknown": "Unknown",
+      "noDescription": "No description"
+    },
+    "empty": {
+      "noBookmarks": "No bookmarked achievements",
+      "noAchievements": "No achievements found",
+      "bookmarkHint": "Bookmark some achievements to see them here",
+      "filterHint": "Try adjusting your filters"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "modal": {
+      "noCategory": "No category",
+      "description": "Description",
+      "level": "Level",
+      "id": "ID",
+      "rewards": "Rewards",
+      "xp": "XP",
+      "ratio": "{percent}% ratio (at Lv.{level})",
+      "kamasRatio": "{percent}% ratio (Lv.{level})",
+      "guildPoints": "Guild Points",
+      "itemRewards": "Item Rewards",
+      "unknownItem": "Unknown Item",
+      "item": "Item",
+      "titles": "Titles",
+      "ornaments": "Ornaments",
+      "emotes": "Emotes",
+      "emoteNumber": "Emote #{id}",
+      "noRewards": "No rewards for this achievement",
+      "na": "N/A"
+    },
+    "serverSelector": {
+      "characters": "{count} character | {count} characters",
+      "placeholder": "Enter server name (e.g., Draconiros, Tylezia...)",
+      "addButton": "Add Server",
+      "deleteTitle": "Delete Server?",
+      "deleteMessage": "Are you sure you want to delete",
+      "deleteWarning": "This will also delete all characters and their progress data.",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "characterSelector": {
+      "nameLabel": "Character Name",
+      "namePlaceholder": "Enter name...",
+      "classLabel": "Class",
+      "classPlaceholder": "Select class...",
+      "levelLabel": "Level",
+      "addButton": "Add Character",
+      "deleteTitle": "Delete Character?",
+      "deleteMessage": "Are you sure you want to delete",
+      "deleteWarning": "All achievement progress data will be lost.",
+      "cancel": "Cancel",
+      "delete": "Delete"
+  },
+  "trackerInterface": {
+  "characterLevel": "Character Level",
+  "completed": "Completed",
+  "percentDone": "{percent}% done",
+  "overallProgress": "Overall Progress",
+  "searchPlaceholder": "Search achievements...",
+  "allCategories": "All Categories",
+  "statusAll": "All",
+  "statusCompleted": "Completed",
+  "statusRemaining": "Remaining",
+  "actions": "Actions",
+  "bulkActions": "Bulk Actions:",
+  "markFilteredDone": "Mark Filtered as Done",
+  "markFilteredUndone": "Mark Filtered as Undone",
+  "export": "Export",
+  "import": "Import",
+  "resetAll": "Reset All",
+  "showing": "Showing",
+  "of": "of",
+  "achievements": "achievements",
+  "completedCount": "{count} completed",
+  "remainingCount": "{count} remaining",
+  "loading": "Loading achievements...",
+  "unknown": "Unknown",
+  "noDescription": "No description",
+  "levelShort": "Lv.{level}",
+  "noAchievements": "No achievements found",
+  "tryAdjusting": "Try adjusting your filters",
+  "previous": "Previous",
+  "next": "Next",
+  "noCategory": "No category",
+  "markNotCompleted": "✗ Mark as Not Completed",
+  "markCompleted": "✓ Mark as Completed",
+  "description": "Description",
+  "level": "Level",
+  "id": "ID",
+  "na": "N/A",
+  "rewardsAtLevel": "Rewards (at Lv.{level})",
+  "xp": "XP",
+  "kamas": "Kamas",
+  "guildPoints": "Guild Points",
+  "itemRewards": "Item Rewards",
+  "unknownItem": "Unknown Item",
+  "item": "Item",
+  "titles": "Titles",
+  "ornaments": "Ornaments",
+  "emotes": "Emotes",
+  "emoteNumber": "Emote #{id}",
+  "resetProgressTitle": "Reset Progress?",
+  "resetProgressMessage": "This will clear all completion data for this character. This action cannot be undone.",
+  "cancel": "Cancel"
+},
+"multiTracker": {
+  "selectTitle": "Select Characters to Compare",
+  "selectSubtitle": "Choose up to {max} characters",
+  "selectedCount": "{count} / {max} selected",
+  "clearAll": "Clear All",
+  "emptyTitle": "Select characters to start comparing",
+  "emptyDescription": "Click on characters above to add them to the comparison",
+  "totalCompleted": "Total Completed",
+  "uniqueAchievements": "Unique Achievements",
+  "searchPlaceholder": "Search achievements...",
+  "allCategories": "All Categories",
+  "filterAll": "All Achievements",
+  "filterNone": "None Completed",
+  "filterPartial": "Partially Completed",
+  "filterAllCompleted": "All Characters Completed",
+  "tableView": "Table View",
+  "gridView": "Grid View",
+  "loading": "Loading achievements...",
+  "achievement": "Achievement",
+  "xpAtLevel": "XP (Lv.{level})",
+  "kamas": "Kamas",
+  "xp": "XP",
+  "unknown": "Unknown",
+  "levelShort": "Lv.{level}",
+  "completionStatus": "{done}/{total} done",
+  "noMatch": "No achievements match your filters",
+  "previous": "Previous",
+  "next": "Next",
+  "noCategory": "No category",
+  "characterProgress": "Character Progress",
+  "description": "Description",
+  "noDescription": "No description",
+  "rewards": "Rewards"
+}
   }
+
 }

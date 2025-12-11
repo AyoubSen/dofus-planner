@@ -1,4 +1,3 @@
-<!-- components/AchievementMultiTrackerInterface.vue -->
 <template>
   <div>
     <!-- Character Selection Header -->
@@ -26,24 +25,24 @@
           </div>
           <div>
             <h2 class="text-xl font-bold text-gray-100">
-              Select Characters to Compare
+              {{ $t('succes.multiTracker.selectTitle') }}
             </h2>
             <p class="text-sm text-gray-400">
-              Choose up to {{ maxCharacters }} characters
+              {{ $t('succes.multiTracker.selectSubtitle', { max: maxCharacters }) }}
             </p>
           </div>
         </div>
 
         <div class="flex items-center gap-3">
           <span class="text-gray-400 text-sm">
-            {{ selectedCharacters.length }} / {{ maxCharacters }} selected
+            {{ $t('succes.multiTracker.selectedCount', { count: selectedCharacters.length, max: maxCharacters }) }}
           </span>
           <button
             v-if="selectedCharacters.length > 0"
             @click="clearSelection"
             class="px-3 py-1.5 text-sm bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
           >
-            Clear All
+            {{ $t('succes.multiTracker.clearAll') }}
           </button>
         </div>
       </div>
@@ -119,9 +118,9 @@
           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
         />
       </svg>
-      <p class="text-lg text-gray-400">Select characters to start comparing</p>
+      <p class="text-lg text-gray-400">{{ $t('succes.multiTracker.emptyTitle') }}</p>
       <p class="text-sm text-gray-500 mt-2">
-        Click on characters above to add them to the comparison
+        {{ $t('succes.multiTracker.emptyDescription') }}
       </p>
     </div>
 
@@ -152,7 +151,7 @@
               </svg>
             </div>
             <div>
-              <div class="text-sm text-green-400">Total Completed</div>
+              <div class="text-sm text-green-400">{{ $t('succes.multiTracker.totalCompleted') }}</div>
               <div class="text-2xl font-bold text-green-300">
                 {{ aggregatedStats.totalCompleted }}
               </div>
@@ -183,7 +182,7 @@
               </svg>
             </div>
             <div>
-              <div class="text-sm text-blue-400">Unique Achievements</div>
+              <div class="text-sm text-blue-400">{{ $t('succes.multiTracker.uniqueAchievements') }}</div>
               <div class="text-2xl font-bold text-blue-300">
                 {{ aggregatedStats.uniqueCompleted }}
               </div>
@@ -201,7 +200,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search achievements..."
+            :placeholder="$t('succes.multiTracker.searchPlaceholder')"
             class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-yellow-500/50"
             @input="debouncedSearch"
           />
@@ -214,7 +213,7 @@
             class="flex items-center gap-2 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-yellow-500/50 min-w-48"
           >
             <span class="flex-1 text-left truncate">
-              {{ selectedCategoryName || "All Categories" }}
+              {{ selectedCategoryName || $t('succes.multiTracker.allCategories') }}
             </span>
             <svg
               class="w-4 h-4 transition-transform duration-200"
@@ -247,7 +246,7 @@
                     : 'text-gray-300 hover:bg-gray-700/50',
                 ]"
               >
-                All Categories
+                {{ $t('succes.multiTracker.allCategories') }}
               </button>
 
               <template
@@ -323,10 +322,10 @@
           v-model="completionFilter"
           class="bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-yellow-500/50"
         >
-          <option value="all">All Achievements</option>
-          <option value="none-completed">None Completed</option>
-          <option value="some-completed">Partially Completed</option>
-          <option value="all-completed">All Characters Completed</option>
+          <option value="all">{{ $t('succes.multiTracker.filterAll') }}</option>
+          <option value="none-completed">{{ $t('succes.multiTracker.filterNone') }}</option>
+          <option value="some-completed">{{ $t('succes.multiTracker.filterPartial') }}</option>
+          <option value="all-completed">{{ $t('succes.multiTracker.filterAllCompleted') }}</option>
         </select>
 
         <!-- View Toggle -->
@@ -339,6 +338,7 @@
                 ? 'bg-yellow-500/20 text-yellow-400'
                 : 'text-gray-400 hover:text-gray-300',
             ]"
+            :title="$t('succes.multiTracker.tableView')"
           >
             <svg
               class="w-5 h-5"
@@ -362,6 +362,7 @@
                 ? 'bg-yellow-500/20 text-yellow-400'
                 : 'text-gray-400 hover:text-gray-300',
             ]"
+            :title="$t('succes.multiTracker.gridView')"
           >
             <svg
               class="w-5 h-5"
@@ -386,7 +387,7 @@
           <div
             class="animate-spin w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full"
           ></div>
-          <span class="text-lg">Loading achievements...</span>
+          <span class="text-lg">{{ $t('succes.multiTracker.loading') }}</span>
         </div>
       </div>
 
@@ -402,7 +403,7 @@
                 <th
                   class="sticky left-0 bg-gray-800/90 backdrop-blur-sm px-4 py-3 text-left text-sm font-semibold text-yellow-400 min-w-64"
                 >
-                  Achievement
+                  {{ $t('succes.multiTracker.achievement') }}
                 </th>
                 <th
                   v-for="char in selectedCharacters"
@@ -428,12 +429,12 @@
                 <th
                   class="px-4 py-3 text-center text-sm font-semibold text-gray-300 min-w-24"
                 >
-                  XP (Lv.200)
+                  {{ $t('succes.multiTracker.xpAtLevel', { level: 200 }) }}
                 </th>
                 <th
                   class="px-4 py-3 text-center text-sm font-semibold text-gray-300 min-w-24"
                 >
-                  Kamas
+                  {{ $t('succes.multiTracker.kamas') }}
                 </th>
               </tr>
             </thead>
@@ -463,14 +464,14 @@
                         class="font-medium text-gray-200 truncate cursor-pointer hover:text-yellow-400"
                         @click="openAchievementDetail(achievement)"
                       >
-                        {{ achievement.name?.fr || "Unknown" }}
+                        {{ achievement.name?.fr || $t('succes.multiTracker.unknown') }}
                       </div>
                       <div class="flex items-center gap-2 mt-0.5">
                         <span
                           v-if="achievement.level"
                           class="text-xs text-blue-400"
                         >
-                          Lv.{{ achievement.level }}
+                          {{ $t('succes.multiTracker.levelShort', { level: achievement.level }) }}
                         </span>
                         <span
                           v-if="achievement.category?.name?.fr"
@@ -546,7 +547,7 @@
           v-if="filteredAchievements.length === 0"
           class="text-center py-12"
         >
-          <p class="text-gray-400">No achievements match your filters</p>
+          <p class="text-gray-400">{{ $t('succes.multiTracker.noMatch') }}</p>
         </div>
       </div>
 
@@ -578,17 +579,14 @@
                 class="font-semibold text-gray-200 truncate cursor-pointer hover:text-yellow-400"
                 @click="openAchievementDetail(achievement)"
               >
-                {{ achievement.name?.fr || "Unknown" }}
+                {{ achievement.name?.fr || $t('succes.multiTracker.unknown') }}
               </h3>
               <div class="flex items-center gap-2 mt-1">
                 <span v-if="achievement.level" class="text-xs text-blue-400">
-                  Lv.{{ achievement.level }}
+                  {{ $t('succes.multiTracker.levelShort', { level: achievement.level }) }}
                 </span>
                 <span class="text-xs text-gray-500">
-                  {{ getCompletionCount(achievement.id) }}/{{
-                    selectedCharacters.length
-                  }}
-                  done
+                  {{ $t('succes.multiTracker.completionStatus', { done: getCompletionCount(achievement.id), total: selectedCharacters.length }) }}
                 </span>
               </div>
             </div>
@@ -646,7 +644,7 @@
               v-if="getAchievementXP(achievement) > 0"
               class="text-xs text-blue-400"
             >
-              ⭐ {{ formatNumber(getAchievementXP(achievement)) }} XP
+              ⭐ {{ formatNumber(getAchievementXP(achievement)) }} {{ $t('succes.multiTracker.xp') }}
             </span>
             <span
               v-if="getAchievementKamas(achievement) > 0"
@@ -663,7 +661,7 @@
         v-if="!isLoading && filteredAchievements.length === 0 && viewMode === 'grid'"
         class="text-center py-16 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl"
       >
-        <p class="text-gray-400">No achievements match your filters</p>
+        <p class="text-gray-400">{{ $t('succes.multiTracker.noMatch') }}</p>
       </div>
 
       <!-- Pagination -->
@@ -676,7 +674,7 @@
           :disabled="currentPage === 1"
           class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
         >
-          Previous
+          {{ $t('succes.multiTracker.previous') }}
         </button>
         <div class="flex items-center gap-1">
           <button
@@ -698,7 +696,7 @@
           :disabled="currentPage === totalPages"
           class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
         >
-          Next
+          {{ $t('succes.multiTracker.next') }}
         </button>
       </div>
     </template>
@@ -732,7 +730,7 @@
                     {{ selectedAchievement.name?.fr }}
                   </h2>
                   <p class="text-gray-400 text-sm mt-1">
-                    {{ selectedAchievement.category?.name?.fr || "No category" }}
+                    {{ selectedAchievement.category?.name?.fr || $t('succes.multiTracker.noCategory') }}
                   </p>
                 </div>
               </div>
@@ -761,7 +759,7 @@
               <h3
                 class="text-sm font-semibold text-yellow-400 uppercase mb-3"
               >
-                Character Progress
+                {{ $t('succes.multiTracker.characterProgress') }}
               </h3>
               <div class="grid grid-cols-2 gap-2">
                 <button
@@ -822,10 +820,10 @@
               <h3
                 class="text-sm font-semibold text-yellow-400 uppercase mb-2"
               >
-                Description
+                {{ $t('succes.multiTracker.description') }}
               </h3>
               <p class="text-gray-300 text-sm">
-                {{ selectedAchievement.description?.fr || "No description" }}
+                {{ selectedAchievement.description?.fr || $t('succes.multiTracker.noDescription') }}
               </p>
             </div>
 
@@ -839,7 +837,7 @@
               <h3
                 class="text-sm font-semibold text-yellow-400 uppercase mb-3"
               >
-                Rewards
+                {{ $t('succes.multiTracker.rewards') }}
               </h3>
               <div class="flex flex-wrap gap-3">
                 <div
@@ -848,7 +846,7 @@
                 >
                   <span class="text-blue-400">⭐</span>
                   <span class="text-blue-300 font-medium">
-                    {{ formatNumber(getAchievementXP(selectedAchievement)) }} XP
+                    {{ formatNumber(getAchievementXP(selectedAchievement)) }} {{ $t('succes.multiTracker.xp') }}
                   </span>
                 </div>
                 <div
@@ -858,7 +856,7 @@
                   <span class="text-yellow-400">💰</span>
                   <span class="text-yellow-300 font-medium">
                     {{ formatNumber(getAchievementKamas(selectedAchievement)) }}
-                    Kamas
+                    {{ $t('succes.multiTracker.kamas') }}
                   </span>
                 </div>
               </div>

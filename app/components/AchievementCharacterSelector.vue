@@ -1,4 +1,3 @@
-<!-- components/AchievementCharacterSelector.vue -->
 <template>
   <div>
     <!-- Existing Characters -->
@@ -64,30 +63,34 @@
       <form @submit.prevent="handleAddCharacter" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm text-gray-400 mb-2"
-              >Character Name</label
-            >
+            <label class="block text-sm text-gray-400 mb-2">
+              {{ $t('succes.characterSelector.nameLabel') }}
+            </label>
             <input
               v-model="newCharacter.name"
               type="text"
-              placeholder="Enter name..."
+              :placeholder="$t('succes.characterSelector.namePlaceholder')"
               class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50"
               required
             />
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-2">Class</label>
+            <label class="block text-sm text-gray-400 mb-2">
+              {{ $t('succes.characterSelector.classLabel') }}
+            </label>
             <select
               v-model="newCharacter.class"
               class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:border-yellow-500/50"
               required
             >
-              <option value="" disabled>Select class...</option>
+              <option value="" disabled>{{ $t('succes.characterSelector.classPlaceholder') }}</option>
               <option v-for="c in classes" :key="c" :value="c">{{ c }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-2">Level</label>
+            <label class="block text-sm text-gray-400 mb-2">
+              {{ $t('succes.characterSelector.levelLabel') }}
+            </label>
             <input
               v-model.number="newCharacter.level"
               type="number"
@@ -104,7 +107,7 @@
             :disabled="!newCharacter.name.trim() || !newCharacter.class"
             class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold text-gray-900 transition-all duration-200"
           >
-            Add Character
+            {{ $t('succes.characterSelector.addButton') }}
           </button>
         </div>
       </form>
@@ -139,30 +142,29 @@
               </svg>
             </div>
             <h3 class="text-xl font-bold text-gray-100 mb-2">
-              Delete Character?
+              {{ $t('succes.characterSelector.deleteTitle') }}
             </h3>
             <p class="text-gray-400 mb-2">
-              Are you sure you want to delete
+              {{ $t('succes.characterSelector.deleteMessage') }}
               <span class="text-yellow-400 font-semibold">{{
                 characterToDelete.name
-              }}</span
-              >?
+              }}</span>?
             </p>
             <p class="text-sm text-red-400 mb-6">
-              All achievement progress data will be lost.
+              {{ $t('succes.characterSelector.deleteWarning') }}
             </p>
             <div class="flex gap-3">
               <button
                 @click="characterToDelete = null"
                 class="flex-1 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
               >
-                Cancel
+                {{ $t('succes.characterSelector.cancel') }}
               </button>
               <button
                 @click="handleDelete"
                 class="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 transition-colors"
               >
-                Delete
+                {{ $t('succes.characterSelector.delete') }}
               </button>
             </div>
           </div>

@@ -1,4 +1,3 @@
-<!-- components/AchievementServerSelector.vue -->
 <template>
   <div>
     <!-- Existing Servers -->
@@ -34,9 +33,7 @@
               {{ server.name }}
             </h3>
             <p class="text-sm text-gray-400">
-              {{ server.characters?.length || 0 }} character{{
-                (server.characters?.length || 0) !== 1 ? "s" : ""
-              }}
+              {{ $t('succes.serverSelector.characters', { count: server.characters?.length || 0 }, server.characters?.length || 0) }}
             </p>
           </div>
         </div>
@@ -72,7 +69,7 @@
           <input
             v-model="newServerName"
             type="text"
-            placeholder="Enter server name (e.g., Draconiros, Tylezia...)"
+            :placeholder="$t('succes.serverSelector.placeholder')"
             class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50"
             required
           />
@@ -82,7 +79,7 @@
           :disabled="!newServerName.trim()"
           class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold text-gray-900 transition-all duration-200"
         >
-          Add Server
+          {{ $t('succes.serverSelector.addButton') }}
         </button>
       </form>
     </div>
@@ -115,29 +112,30 @@
                 />
               </svg>
             </div>
-            <h3 class="text-xl font-bold text-gray-100 mb-2">Delete Server?</h3>
+            <h3 class="text-xl font-bold text-gray-100 mb-2">
+              {{ $t('succes.serverSelector.deleteTitle') }}
+            </h3>
             <p class="text-gray-400 mb-2">
-              Are you sure you want to delete
+              {{ $t('succes.serverSelector.deleteMessage') }}
               <span class="text-yellow-400 font-semibold">{{
                 serverToDelete.name
-              }}</span
-              >?
+              }}</span>?
             </p>
             <p class="text-sm text-red-400 mb-6">
-              This will also delete all characters and their progress data.
+              {{ $t('succes.serverSelector.deleteWarning') }}
             </p>
             <div class="flex gap-3">
               <button
                 @click="serverToDelete = null"
                 class="flex-1 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600/50 rounded-lg text-gray-300 transition-colors"
               >
-                Cancel
+                {{ $t('succes.serverSelector.cancel') }}
               </button>
               <button
                 @click="handleDelete"
                 class="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 transition-colors"
               >
-                Delete
+                {{ $t('succes.serverSelector.delete') }}
               </button>
             </div>
           </div>
@@ -178,3 +176,4 @@ const handleDelete = () => {
   }
 };
 </script>
+
