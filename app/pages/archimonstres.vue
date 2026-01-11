@@ -1,6 +1,7 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden"
+    class="min-h-full relative overflow-hidden"
+    :style="{ background: 'var(--theme-gradient-bg)' }"
   >
     <!-- Animated Background Elements -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
@@ -18,30 +19,6 @@
     <div class="relative z-10 max-w-7xl mx-auto px-8 py-12">
       <!-- Header -->
       <div class="mb-10 animate-fade-in-down">
-        <div class="flex items-center gap-6 mb-8">
-          <NuxtLink
-            :to="localePath('/')"
-            class="group flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-orange-400 bg-gray-800/40 hover:bg-gray-800/60 rounded-xl border border-gray-700/50 hover:border-orange-500/30 transition-all duration-300"
-          >
-            <svg
-              class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform duration-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            <span class="text-sm font-medium">{{
-              $t('archimonstres.backToHome')
-            }}</span>
-          </NuxtLink>
-        </div>
-
         <div class="flex items-center gap-5">
           <div
             class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/25 animate-float"

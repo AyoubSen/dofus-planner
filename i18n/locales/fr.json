@@ -1,4 +1,13 @@
 {
+  "nav": {
+    "archimonstres": "Archimonstres",
+    "items": "Objets",
+    "crafting": "Craft",
+    "succes": "Succès"
+  },
+  "theme": {
+    "title": "Thème"
+  },
   "home": {
     "title": "Dofus Stuff",
     "subtitle": "Votre compagnon ultime pour maîtriser le {highlight}. Suivez les archimonstres, gérez votre équipement et optimisez votre aventure Dofus.",

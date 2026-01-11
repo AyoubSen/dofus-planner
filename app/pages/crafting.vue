@@ -1,32 +1,11 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+    class="min-h-full"
+    :style="{ background: 'var(--theme-gradient-bg)' }"
   >
     <div class="max-w-7xl mx-auto px-8 py-12">
       <!-- Header -->
       <div class="mb-12">
-        <div class="flex items-center gap-6 mb-6">
-          <NuxtLink
-            to="/"
-            class="group flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-all duration-200 text-lg"
-          >
-            <svg
-              class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Back to Home
-          </NuxtLink>
-        </div>
-
         <div class="flex items-center gap-4">
           <div
             class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
