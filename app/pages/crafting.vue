@@ -645,7 +645,10 @@
 </template>
 
 <script setup>
-const servers = ref([]);
+// Use shared accounts composable
+const { servers, initAccounts, addServer: addServerToStore, deleteServer: deleteServerFromStore, addCharacter: addCharacterToStore, deleteCharacter: deleteCharacterFromStore } = useAccounts();
+
+// Local UI state for current selection
 const currentServer = ref(null);
 const currentCharacter = ref(null);
 
@@ -677,7 +680,7 @@ const totalSoldValue = computed(() => {
 });
 
 onMounted(async () => {
-  loadServersData();
+  initAccounts();
   loadEffectsCache();
   loadSoldItems();
 
@@ -703,17 +706,6 @@ const handleInputBlur = () => {
   setTimeout(() => {
     showDropdown.value = false;
   }, 150);
-};
-
-const loadServersData = () => {
-  const savedServers = localStorage.getItem("archimonstres-servers");
-  if (savedServers) {
-    servers.value = JSON.parse(savedServers);
-  }
-};
-
-const saveServersData = () => {
-  localStorage.setItem("archimonstres-servers", JSON.stringify(servers.value));
 };
 
 const loadEffectsCache = () => {
@@ -743,15 +735,10 @@ watch(
 );
 
 const addServer = (serverName) => {
-  const newServer = {
-    id: Date.now().toString(),
-    name: serverName.trim(),
-    characters: [],
-  };
-
-  servers.value.push(newServer);
-  saveServersData();
-  selectServer(newServer);
+  const result = addServerToStore(serverName);
+  if (result.success && result.data) {
+    selectServer(result.data);
+  }
 };
 
 const selectServer = (server) => {
@@ -760,28 +747,19 @@ const selectServer = (server) => {
 };
 
 const deleteServer = (serverId) => {
-  const index = servers.value.findIndex((server) => server.id === serverId);
-  if (index !== -1) {
-    servers.value.splice(index, 1);
-    saveServersData();
-
-    if (currentServer.value && currentServer.value.id === serverId) {
-      currentServer.value = null;
-      currentCharacter.value = null;
-    }
+  deleteServerFromStore(serverId);
+  if (currentServer.value && currentServer.value.id === serverId) {
+    currentServer.value = null;
+    currentCharacter.value = null;
   }
 };
 
 const addCharacter = (characterData) => {
-  const newCharacter = {
-    id: Date.now().toString(),
-    name: characterData.name.trim(),
-    class: characterData.class,
-  };
-
-  currentServer.value.characters.push(newCharacter);
-  saveServersData();
-  selectCharacter(newCharacter);
+  if (!currentServer.value) return;
+  const result = addCharacterToStore(currentServer.value.id, characterData);
+  if (result.success && result.data) {
+    selectCharacter(result.data);
+  }
 };
 
 const selectCharacter = (character) => {
@@ -789,16 +767,10 @@ const selectCharacter = (character) => {
 };
 
 const deleteCharacter = (characterId) => {
-  const characterIndex = currentServer.value.characters.findIndex(
-    (char) => char.id === characterId
-  );
-  if (characterIndex !== -1) {
-    currentServer.value.characters.splice(characterIndex, 1);
-    saveServersData();
-
-    if (currentCharacter.value && currentCharacter.value.id === characterId) {
-      currentCharacter.value = null;
-    }
+  if (!currentServer.value) return;
+  deleteCharacterFromStore(currentServer.value.id, characterId);
+  if (currentCharacter.value && currentCharacter.value.id === characterId) {
+    currentCharacter.value = null;
   }
 };
 

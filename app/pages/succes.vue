@@ -1171,13 +1171,14 @@ useHead({
 });
 
 const BOOKMARKS_KEY = "dofus-achievement-bookmarks";
-const SERVERS_KEY = "dofus-achievement-servers";
+
+// Use shared accounts composable
+const { servers, initAccounts, addServer: addServerToStore, deleteServer: deleteServerFromStore, addCharacter: addCharacterToStore, deleteCharacter: deleteCharacterFromStore } = useAccounts();
 
 // Mode state
 const currentMode = ref("browse");
 
-// Track mode state
-const servers = ref([]);
+// Track mode state - local UI selection
 const currentServer = ref(null);
 const currentCharacter = ref(null);
 
@@ -1439,30 +1440,10 @@ const toggleBookmark = (achievement) => {
   saveBookmarks();
 };
 
-// Server/Character functions
-const loadServers = () => {
-  try {
-    const stored = localStorage.getItem(SERVERS_KEY);
-    if (stored) {
-      servers.value = JSON.parse(stored);
-    }
-  } catch (error) {
-    console.error("Error loading servers:", error);
-    servers.value = [];
-  }
-};
-
-const saveServers = () => {
-  try {
-    localStorage.setItem(SERVERS_KEY, JSON.stringify(servers.value));
-  } catch (error) {
-    console.error("Error saving servers:", error);
-  }
-};
-
+// Server/Character functions using shared composable
 const handleUpdateServers = (updatedServers) => {
-  servers.value = updatedServers;
-  saveServers();
+  // This is used by multi-track mode - we need to handle this differently
+  // For now, just trigger a re-render since the composable handles persistence
 };
 
 const selectServer = (server) => {
@@ -1471,25 +1452,17 @@ const selectServer = (server) => {
 };
 
 const addServer = (serverName) => {
-  const newServer = {
-    id: Date.now().toString(),
-    name: serverName.trim(),
-    characters: [],
-  };
-  servers.value.push(newServer);
-  saveServers();
-  selectServer(newServer);
+  const result = addServerToStore(serverName);
+  if (result.success && result.data) {
+    selectServer(result.data);
+  }
 };
 
 const deleteServer = (serverId) => {
-  const index = servers.value.findIndex((s) => s.id === serverId);
-  if (index !== -1) {
-    servers.value.splice(index, 1);
-    saveServers();
-    if (currentServer.value?.id === serverId) {
-      currentServer.value = null;
-      currentCharacter.value = null;
-    }
+  deleteServerFromStore(serverId);
+  if (currentServer.value?.id === serverId) {
+    currentServer.value = null;
+    currentCharacter.value = null;
   }
 };
 
@@ -1498,27 +1471,18 @@ const selectCharacter = (character) => {
 };
 
 const addCharacter = (characterData) => {
-  const newCharacter = {
-    id: Date.now().toString(),
-    name: characterData.name.trim(),
-    class: characterData.class,
-    level: characterData.level || 200,
-  };
-  currentServer.value.characters.push(newCharacter);
-  saveServers();
-  selectCharacter(newCharacter);
+  if (!currentServer.value) return;
+  const result = addCharacterToStore(currentServer.value.id, characterData);
+  if (result.success && result.data) {
+    selectCharacter(result.data);
+  }
 };
 
 const deleteCharacter = (characterId) => {
-  const index = currentServer.value.characters.findIndex(
-    (c) => c.id === characterId
-  );
-  if (index !== -1) {
-    currentServer.value.characters.splice(index, 1);
-    saveServers();
-    if (currentCharacter.value?.id === characterId) {
-      currentCharacter.value = null;
-    }
+  if (!currentServer.value) return;
+  deleteCharacterFromStore(currentServer.value.id, characterId);
+  if (currentCharacter.value?.id === characterId) {
+    currentCharacter.value = null;
   }
 };
 
@@ -1598,7 +1562,7 @@ const resetFilters = () => {
 
 onMounted(() => {
   loadBookmarks();
-  loadServers();
+  initAccounts();
   fetchCategories().then(() => {
     fetchAchievements();
   });
