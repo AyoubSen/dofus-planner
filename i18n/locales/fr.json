@@ -401,6 +401,19 @@
     "subtitle": "Analysez les tendances d'utilisation et la méta",
     "loading": "Chargement des statistiques...",
     "noData": "Aucune donnée disponible pour cet emplacement",
+    "uses": "utilisations",
+    "viewModes": {
+      "list": "Vue liste",
+      "grid": "Vue grille",
+      "table": "Vue tableau"
+    },
+    "table": {
+      "image": "Image",
+      "name": "Nom",
+      "count": "Nombre",
+      "percentage": "%",
+      "distribution": "Distribution"
+    },
     "filters": {
       "title": "FILTRES",
       "elements": {

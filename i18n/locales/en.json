@@ -402,6 +402,19 @@
     "subtitle": "Analyze equipment usage patterns and meta trends",
     "loading": "Loading statistics...",
     "noData": "No data available for this slot",
+    "uses": "uses",
+    "viewModes": {
+      "list": "List view",
+      "grid": "Grid view",
+      "table": "Table view"
+    },
+    "table": {
+      "image": "Image",
+      "name": "Name",
+      "count": "Count",
+      "percentage": "%",
+      "distribution": "Distribution"
+    },
     "filters": {
       "title": "FILTERS",
       "elements": {

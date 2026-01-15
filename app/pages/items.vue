@@ -403,47 +403,192 @@
               class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden"
             >
               <div
-                class="flex flex-wrap border-b border-gray-700/50 bg-gray-800/30"
+                class="flex flex-wrap items-center border-b border-gray-700/50 bg-gray-800/30"
               >
-                <button
-                  v-for="slot in equipmentSlots"
-                  :key="slot.key"
-                  @click="activeSlot = slot.key"
-                  :class="[
-                    'px-4 py-3 text-sm font-medium transition-all duration-200 flex items-center gap-2 border-b-2',
-                    activeSlot === slot.key
-                      ? 'bg-blue-600/20 text-blue-300 border-blue-400 shadow-lg'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50 border-transparent',
-                  ]"
-                >
-                  <span class="text-lg">{{ slot.icon }}</span>
-                  {{ $t(`items.slots.${slot.key}`) }}
-                  <span
-                    class="bg-gray-600/50 px-2 py-1 rounded-full text-xs border border-gray-500/50"
+                <div class="flex flex-wrap flex-1">
+                  <button
+                    v-for="slot in equipmentSlots"
+                    :key="slot.key"
+                    @click="activeSlot = slot.key"
+                    :class="[
+                      'px-4 py-3 text-sm font-medium transition-all duration-200 flex items-center gap-2 border-b-2',
+                      activeSlot === slot.key
+                        ? 'bg-blue-600/20 text-blue-300 border-blue-400 shadow-lg'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700/50 border-transparent',
+                    ]"
                   >
-                    {{ getSlotStats(slot.key)?.totalItems || 0 }}
-                  </span>
-                </button>
+                    <span class="text-lg">{{ slot.icon }}</span>
+                    {{ $t(`items.slots.${slot.key}`) }}
+                    <span
+                      class="bg-gray-600/50 px-2 py-1 rounded-full text-xs border border-gray-500/50"
+                    >
+                      {{ getSlotStats(slot.key)?.totalItems || 0 }}
+                    </span>
+                  </button>
+                </div>
+
+                <!-- View Mode Toggle -->
+                <div class="flex items-center gap-1 px-4">
+                  <button
+                    @click="viewMode = 'list'"
+                    :class="[
+                      'p-2 rounded-lg transition-colors',
+                      viewMode === 'list'
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'text-gray-400 hover:text-gray-300',
+                    ]"
+                    :title="$t('items.viewModes.list')"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="viewMode = 'grid'"
+                    :class="[
+                      'p-2 rounded-lg transition-colors',
+                      viewMode === 'grid'
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'text-gray-400 hover:text-gray-300',
+                    ]"
+                    :title="$t('items.viewModes.grid')"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                  </button>
+                  <button
+                    @click="viewMode = 'table'"
+                    :class="[
+                      'p-2 rounded-lg transition-colors',
+                      viewMode === 'table'
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'text-gray-400 hover:text-gray-300',
+                    ]"
+                    :title="$t('items.viewModes.table')"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <!-- Slot Statistics -->
               <div class="p-8">
-                <div v-if="getSlotStats(activeSlot)" class="space-y-8">
-                  <!-- Top Items for Selected Slot -->
-                  <div>
+                <template v-if="getSlotStats(activeSlot)">
+                  <!-- LIST VIEW -->
+                  <div v-if="viewMode === 'list'" class="space-y-8">
+                    <!-- Top Items for Selected Slot -->
+                    <div>
+                      <h3 class="text-2xl font-bold mb-6 text-gray-100">
+                        {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
+                      </h3>
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div
+                          v-for="(item, index) in getSlotStats(activeSlot).topItems.slice(0, 10)"
+                          :key="item.name"
+                          class="bg-gradient-to-r from-gray-700/50 to-gray-800/50 rounded-xl p-4 flex items-center gap-4 border border-gray-600/30 hover:border-gray-500/50 transition-all duration-200"
+                        >
+                          <div class="flex-shrink-0">
+                            <div
+                              class="w-12 h-12 bg-gray-600/50 rounded-lg border-2 border-gray-500/50 p-1"
+                            >
+                              <img
+                                v-if="item.image_url"
+                                :src="item.image_url"
+                                :alt="item.name"
+                                class="w-full h-full object-cover rounded"
+                                @error="handleImageError"
+                              />
+                              <div
+                                v-else
+                                class="w-full h-full bg-gray-500/50 rounded"
+                              ></div>
+                            </div>
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <div class="font-medium text-white truncate">
+                              {{ item.name }}
+                            </div>
+                            <div class="text-sm text-gray-400">
+                              {{ $t('items.usedTimes', {
+                                count: item.count,
+                                percent: ((item.count / totalEquipments) * 100).toFixed(1)
+                              }) }}
+                            </div>
+                          </div>
+                          <div class="flex-shrink-0">
+                            <span class="text-lg font-bold text-blue-400">#{{ index + 1 }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Usage Distribution Chart -->
+                    <div>
+                      <h3 class="text-2xl font-bold mb-6 text-gray-100">
+                        {{ $t('items.usageDistribution') }}
+                      </h3>
+                      <div class="space-y-3">
+                        <div
+                          v-for="item in getSlotStats(activeSlot).topItems.slice(0, 5)"
+                          :key="item.name"
+                          class="flex items-center gap-4"
+                        >
+                          <div
+                            class="w-32 text-sm text-gray-300 truncate font-medium"
+                          >
+                            {{ item.name }}
+                          </div>
+                          <div
+                            class="flex-1 bg-gray-700/50 rounded-full h-6 relative overflow-hidden"
+                          >
+                            <div
+                              class="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full transition-all duration-1000 ease-out"
+                              :style="{
+                                width: `${
+                                  (item.count /
+                                    getSlotStats(activeSlot).topItems[0].count) *
+                                  100
+                                }%`,
+                              }"
+                            ></div>
+                          </div>
+                          <div
+                            class="w-16 text-sm text-white text-right font-medium"
+                          >
+                            {{ item.count }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- GRID VIEW -->
+                  <div v-else-if="viewMode === 'grid'">
                     <h3 class="text-2xl font-bold mb-6 text-gray-100">
                       {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
                     </h3>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       <div
-                        v-for="(item, index) in getSlotStats(activeSlot).topItems.slice(0, 10)"
+                        v-for="(item, index) in getSlotStats(activeSlot).topItems.slice(0, 20)"
                         :key="item.name"
-                        class="bg-gradient-to-r from-gray-700/50 to-gray-800/50 rounded-xl p-4 flex items-center gap-4 border border-gray-600/30 hover:border-gray-500/50 transition-all duration-200"
+                        class="bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-xl p-4 border border-gray-600/30 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 group"
                       >
-                        <div class="flex-shrink-0">
-                          <div
-                            class="w-12 h-12 bg-gray-600/50 rounded-lg border-2 border-gray-500/50 p-1"
-                          >
+                        <!-- Rank Badge -->
+                        <div class="flex justify-between items-start mb-3">
+                          <span class="text-xs font-bold text-blue-400 bg-blue-500/20 px-2 py-1 rounded-full">
+                            #{{ index + 1 }}
+                          </span>
+                          <span class="text-xs text-gray-500">
+                            {{ ((item.count / totalEquipments) * 100).toFixed(1) }}%
+                          </span>
+                        </div>
+
+                        <!-- Item Image -->
+                        <div class="flex justify-center mb-3">
+                          <div class="w-16 h-16 bg-gray-600/50 rounded-lg border-2 border-gray-500/50 p-1 group-hover:border-blue-500/50 transition-colors">
                             <img
                               v-if="item.image_url"
                               :src="item.image_url"
@@ -453,67 +598,106 @@
                             />
                             <div
                               v-else
-                              class="w-full h-full bg-gray-500/50 rounded"
-                            ></div>
+                              class="w-full h-full bg-gray-500/50 rounded flex items-center justify-center"
+                            >
+                              <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
-                        <div class="flex-1 min-w-0">
-                          <div class="font-medium text-white truncate">
+
+                        <!-- Item Name -->
+                        <div class="text-center mb-3">
+                          <div class="font-medium text-white text-sm truncate" :title="item.name">
                             {{ item.name }}
                           </div>
-                          <div class="text-sm text-gray-400">
-                            {{ $t('items.usedTimes', { 
-                              count: item.count, 
-                              percent: ((item.count / totalEquipments) * 100).toFixed(1) 
-                            }) }}
+                          <div class="text-xs text-gray-400 mt-1">
+                            {{ item.count }} {{ $t('items.uses') }}
                           </div>
                         </div>
-                        <div class="flex-shrink-0">
-                          <span class="text-lg font-bold text-blue-400">#{{ index + 1 }}</span>
+
+                        <!-- Usage Bar -->
+                        <div class="bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                          <div
+                            class="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full transition-all duration-500"
+                            :style="{
+                              width: `${(item.count / getSlotStats(activeSlot).topItems[0].count) * 100}%`,
+                            }"
+                          ></div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Usage Distribution Chart -->
-                  <div>
+                  <!-- TABLE VIEW -->
+                  <div v-else-if="viewMode === 'table'">
                     <h3 class="text-2xl font-bold mb-6 text-gray-100">
-                      {{ $t('items.usageDistribution') }}
+                      {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
                     </h3>
-                    <div class="space-y-3">
-                      <div
-                        v-for="item in getSlotStats(activeSlot).topItems.slice(0, 5)"
-                        :key="item.name"
-                        class="flex items-center gap-4"
-                      >
-                        <div
-                          class="w-32 text-sm text-gray-300 truncate font-medium"
-                        >
-                          {{ item.name }}
-                        </div>
-                        <div
-                          class="flex-1 bg-gray-700/50 rounded-full h-6 relative overflow-hidden"
-                        >
-                          <div
-                            class="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full transition-all duration-1000 ease-out"
-                            :style="{
-                              width: `${
-                                (item.count /
-                                  getSlotStats(activeSlot).topItems[0].count) *
-                                100
-                              }%`,
-                            }"
-                          ></div>
-                        </div>
-                        <div
-                          class="w-16 text-sm text-white text-right font-medium"
-                        >
-                          {{ item.count }}
-                        </div>
-                      </div>
+                    <div class="overflow-x-auto">
+                      <table class="w-full">
+                        <thead>
+                          <tr class="border-b border-gray-700/50">
+                            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">#</th>
+                            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">{{ $t('items.table.image') }}</th>
+                            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">{{ $t('items.table.name') }}</th>
+                            <th class="text-right py-3 px-4 text-gray-400 font-semibold text-sm">{{ $t('items.table.count') }}</th>
+                            <th class="text-right py-3 px-4 text-gray-400 font-semibold text-sm">{{ $t('items.table.percentage') }}</th>
+                            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm w-48">{{ $t('items.table.distribution') }}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="(item, index) in getSlotStats(activeSlot).topItems.slice(0, 20)"
+                            :key="item.name"
+                            class="border-b border-gray-700/30 hover:bg-gray-700/20 transition-colors"
+                          >
+                            <td class="py-3 px-4">
+                              <span class="text-blue-400 font-bold">{{ index + 1 }}</span>
+                            </td>
+                            <td class="py-3 px-4">
+                              <div class="w-10 h-10 bg-gray-600/50 rounded-lg border border-gray-500/50 p-0.5">
+                                <img
+                                  v-if="item.image_url"
+                                  :src="item.image_url"
+                                  :alt="item.name"
+                                  class="w-full h-full object-cover rounded"
+                                  @error="handleImageError"
+                                />
+                                <div
+                                  v-else
+                                  class="w-full h-full bg-gray-500/50 rounded"
+                                ></div>
+                              </div>
+                            </td>
+                            <td class="py-3 px-4">
+                              <span class="text-white font-medium">{{ item.name }}</span>
+                            </td>
+                            <td class="py-3 px-4 text-right">
+                              <span class="text-gray-300">{{ item.count }}</span>
+                            </td>
+                            <td class="py-3 px-4 text-right">
+                              <span class="text-purple-400 font-medium">
+                                {{ ((item.count / totalEquipments) * 100).toFixed(1) }}%
+                              </span>
+                            </td>
+                            <td class="py-3 px-4">
+                              <div class="bg-gray-700/50 rounded-full h-3 overflow-hidden">
+                                <div
+                                  class="bg-gradient-to-r from-blue-500 to-purple-500 h-full rounded-full"
+                                  :style="{
+                                    width: `${(item.count / getSlotStats(activeSlot).topItems[0].count) * 100}%`,
+                                  }"
+                                ></div>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                </div>
+                </template>
 
                 <div v-else class="text-center py-12 text-gray-400">
                   <svg
@@ -632,6 +816,7 @@ const localePath = useLocalePath();
 const statistics = ref(null);
 const isLoading = ref(false);
 const activeSlot = ref("ar");
+const viewMode = ref("list"); // 'list' | 'grid' | 'table'
 
 // Equipment slots configuration (icons only, names come from i18n)
 const equipmentSlots = [
