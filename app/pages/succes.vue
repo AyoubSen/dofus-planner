@@ -1527,9 +1527,7 @@ const fetchAchievements = async () => {
 
 const fetchCategories = async () => {
   try {
-    const response = await $fetch(
-      "https://api.dofusdb.fr/achievement-categories?$limit=200"
-    );
+    const response = await $fetch("/api/achievements/categories?$limit=200");
     categories.value = response.data || [];
   } catch (error) {
     console.error("Error fetching categories:", error);

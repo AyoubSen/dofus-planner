@@ -56,6 +56,9 @@
 
           <!-- Right side actions -->
           <div class="flex items-center gap-2">
+            <!-- Data Backup Controls -->
+            <DataBackupControls />
+
             <!-- Theme Switcher -->
             <ThemeSwitcher />
 

@@ -111,7 +111,9 @@ const selectTheme = (themeId: (typeof themes)[number]['id']) => {
 
 const getThemePreviewClass = (themeId: string) => {
   switch (themeId) {
-    case 'shadcn':
+    case 'graphite':
+      return 'border-zinc-700';
+    case 'minimal':
       return 'border-zinc-700';
     default:
       return 'border-gray-600';
@@ -120,7 +122,9 @@ const getThemePreviewClass = (themeId: string) => {
 
 const getThemePreviewTopClass = (themeId: string) => {
   switch (themeId) {
-    case 'shadcn':
+    case 'graphite':
+      return 'bg-zinc-950';
+    case 'minimal':
       return 'bg-zinc-900';
     default:
       return 'bg-gradient-to-r from-gray-800 to-gray-900';
@@ -129,7 +133,9 @@ const getThemePreviewTopClass = (themeId: string) => {
 
 const getThemePreviewBottomClass = (themeId: string) => {
   switch (themeId) {
-    case 'shadcn':
+    case 'graphite':
+      return 'bg-zinc-800';
+    case 'minimal':
       return 'bg-zinc-800';
     default:
       return 'bg-gradient-to-r from-orange-500/20 to-blue-500/20';

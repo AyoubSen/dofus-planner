@@ -2,48 +2,21 @@
 
 import type { SoldItem } from '~/types/game'
 
-const STORAGE_KEY = 'dofus-sold-items'
-
 export const useSoldItems = () => {
-  const soldItems = useState<SoldItem[]>('sold-items', () => [])
+  const { data, init } = useAppDataStore()
+  const soldItems = computed(() => data.value.sales.items)
   const isInitialized = useState<boolean>('sold-items-initialized', () => false)
 
   const ensureInitialized = () => {
     if (isInitialized.value) return
     if (!import.meta.client) return
     
-    loadFromStorage()
+    init()
     isInitialized.value = true
-  }
-
-  const loadFromStorage = () => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        soldItems.value = JSON.parse(stored)
-      }
-    } catch (error) {
-      console.error('Failed to load sold items:', error)
-    }
-  }
-
-  const saveToStorage = () => {
-    if (!import.meta.client) return
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(soldItems.value))
-    } catch (error) {
-      console.error('Failed to save sold items:', error)
-    }
   }
 
   // Auto-initialize
   ensureInitialized()
-
-  watch(soldItems, () => {
-    if (isInitialized.value) {
-      saveToStorage()
-    }
-  }, { deep: true })
 
   const getItemsForCharacter = (serverId: string, characterId: string) => {
     return computed(() => 
@@ -65,14 +38,14 @@ export const useSoldItems = () => {
       id: crypto.randomUUID(),
       dateSold: new Date().toISOString(),
     }
-    soldItems.value.unshift(newItem)
+    data.value.sales.items.unshift(newItem)
     return newItem
   }
 
   const deleteSoldItem = (itemId: string) => {
-    const index = soldItems.value.findIndex(i => i.id === itemId)
+    const index = data.value.sales.items.findIndex(i => i.id === itemId)
     if (index !== -1) {
-      soldItems.value.splice(index, 1)
+      data.value.sales.items.splice(index, 1)
     }
   }
 
@@ -92,7 +65,7 @@ export const useSoldItems = () => {
   }
 
   return {
-    soldItems: readonly(soldItems),
+    soldItems,
     getItemsForCharacter,
     getItemsForServer,
     addSoldItem,

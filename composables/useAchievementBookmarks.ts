@@ -1,42 +1,24 @@
 // composables/useAchievementBookmarks.ts
 
-const STORAGE_KEY = 'dofus-achievement-bookmarks'
-
 const bookmarks = ref<any[]>([]) // Achievement objects
 const isInitialized = ref(false)
 
 export const useAchievementBookmarks = () => {
+  const { data, init } = useAppDataStore()
+
   const initialize = () => {
     if (isInitialized.value) return
     
     if (import.meta.client) {
-      loadFromStorage()
+      init()
+      bookmarks.value = data.value.achievements.bookmarks
       isInitialized.value = true
-    }
-  }
-
-  const loadFromStorage = () => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        bookmarks.value = JSON.parse(stored)
-      }
-    } catch (error) {
-      console.error('Failed to load bookmarks:', error)
-    }
-  }
-
-  const saveToStorage = () => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks.value))
-    } catch (error) {
-      console.error('Failed to save bookmarks:', error)
     }
   }
 
   watch(bookmarks, () => {
     if (isInitialized.value) {
-      saveToStorage()
+      data.value.achievements.bookmarks = bookmarks.value
     }
   }, { deep: true })
 

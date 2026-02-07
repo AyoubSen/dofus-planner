@@ -1,7 +1,6 @@
 import type { Server, Character } from '~/types/game'
 
-const STORAGE_KEY = 'dofus-game-accounts'
-const OLD_KEYS = ['archimonstres-servers', 'dofus-achievement-servers']
+const LEGACY_KEYS = ['archimonstres-servers', 'dofus-achievement-servers']
 
 interface AddResult {
   success: boolean
@@ -10,27 +9,26 @@ interface AddResult {
 }
 
 export const useAccounts = () => {
-  const servers = useState<Server[]>('game-servers', () => [])
+  const { data, init } = useAppDataStore()
+  const servers = computed({
+    get: () => data.value.accounts.servers,
+    set: (value) => {
+      data.value.accounts.servers = value
+    },
+  })
   const isInitialized = useState<boolean>('accounts-initialized', () => false)
 
   const initAccounts = () => {
-    if (import.meta.server) return
+    if (!import.meta.client) return
     if (isInitialized.value) return
 
-    // Try to load from new unified key first
-    const savedData = localStorage.getItem(STORAGE_KEY)
-    if (savedData) {
-      try {
-        servers.value = JSON.parse(savedData)
-        isInitialized.value = true
-        return
-      } catch (error) {
-        console.error('Error parsing accounts data:', error)
-      }
+    init()
+
+    // Keep this compatibility migration for old account keys until dedicated migration work.
+    if (servers.value.length === 0) {
+      migrateFromOldKeys()
     }
 
-    // Migration: merge data from old keys
-    migrateFromOldKeys()
     isInitialized.value = true
   }
 
@@ -38,7 +36,7 @@ export const useAccounts = () => {
     const allServers: Server[] = []
     const seenServerNames = new Set<string>()
 
-    for (const oldKey of OLD_KEYS) {
+    for (const oldKey of LEGACY_KEYS) {
       const oldData = localStorage.getItem(oldKey)
       if (oldData) {
         try {
@@ -76,19 +74,8 @@ export const useAccounts = () => {
 
     if (allServers.length > 0) {
       servers.value = allServers
-      saveData()
     }
   }
-
-  const saveData = () => {
-    if (import.meta.server) return
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(servers.value))
-  }
-
-  // Watch for changes and auto-save
-  watch(servers, () => {
-    saveData()
-  }, { deep: true })
 
   const getServerById = (serverId: string): Server | undefined => {
     return servers.value.find(s => s.id === serverId)

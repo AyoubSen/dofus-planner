@@ -18,6 +18,7 @@
             :alt="monster.nom"
             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             @error="handleImageError"
+            loading="lazy"
           />
         </div>
         <!-- Type badge -->
@@ -257,7 +258,10 @@ const decrementCount = () => {
 };
 
 const handleImageError = (event) => {
-  event.target.src = 'https://via.placeholder.com/80x80/374151/9CA3AF?text=?';
+  const img = event.target;
+  if (img.dataset.fallbackApplied === '1') return;
+  img.dataset.fallbackApplied = '1';
+  img.src = '/monster-fallback.svg';
 };
 </script>
 

@@ -57,3 +57,42 @@ On a serious note, I'll be mostly focusing on polishing the app for now, Plan go
 ## Succes
 
 - [x] well I already added everything before typing it so, idk man.
+
+---
+
+## Roadmap TODO (Agreed)
+
+### V1 - Foundation
+
+- [ ] Unified data store (single canonical local schema + shared access layer)
+- [x] Migration layer (versioned migrations from legacy keys)
+- [x] Global backup / restore (single JSON for the full app state)
+- [x] Standardize API access through server routes (no direct third-party client fetch)
+- [ ] Data health checks (consistency validation + repair report)
+
+### V2 - Product
+
+- [ ] Command dashboard (single actionable overview page)
+- [ ] Next best actions (as a dedicated section of the dashboard)
+- [ ] Saved views and filter presets
+- [ ] Snapshot and period compare (weekly/monthly comparisons)
+
+### V3 - Performance / Infra
+
+- [ ] IndexedDB migration for heavier datasets
+- [ ] List virtualization for large tables/lists
+- [ ] Background caching strategy (TTL, stale-while-revalidate, manual refresh)
+
+### V4 - Quality
+
+- [ ] Shared domain utilities (remove duplicated feature logic)
+- [ ] Type hardening (strict models + runtime validation)
+- [ ] Test coverage (unit + integration + quick local workflow)
+- [ ] Local observability panel (debug/status dashboard, with access/security review)
+- [ ] UX consistency pass
+
+### Postponed / Rejected
+
+- [ ] (Potential later) Cross-character insights, keep as optional future item.
+- [x] Session mode (rejected for now)
+- [x] Advanced anomaly detection beyond current analytics (rejected for now)

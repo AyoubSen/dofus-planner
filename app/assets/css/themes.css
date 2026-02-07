@@ -1,124 +1,163 @@
 /* Theme CSS Variables */
 
-/* Default Theme - Current dark gradient style */
+/* Minimal Theme - default */
 :root,
-[data-theme="default"] {
-  /* Background colors */
-  --theme-bg-primary: #111827;
-  --theme-bg-secondary: #1f2937;
-  --theme-bg-tertiary: #374151;
-  --theme-bg-card: rgba(31, 41, 55, 0.4);
-  --theme-bg-card-hover: rgba(31, 41, 55, 0.6);
+[data-theme="minimal"] {
+  --theme-bg-primary: #0d1117;
+  --theme-bg-secondary: #141a24;
+  --theme-bg-tertiary: #1b2330;
+  --theme-bg-card: #141a24;
+  --theme-bg-card-hover: #1a2230;
 
-  /* Text colors */
-  --theme-text-primary: #f3f4f6;
-  --theme-text-secondary: #9ca3af;
-  --theme-text-muted: #6b7280;
+  --theme-text-primary: #f8fafc;
+  --theme-text-secondary: #b0bccf;
+  --theme-text-muted: #8693a8;
 
-  /* Border colors */
-  --theme-border: rgba(75, 85, 99, 0.5);
-  --theme-border-hover: rgba(107, 114, 128, 0.5);
+  --theme-border: #263245;
+  --theme-border-hover: #34445d;
 
-  /* Accent colors */
-  --theme-accent-orange: #f97316;
-  --theme-accent-orange-hover: #ea580c;
-  --theme-accent-blue: #3b82f6;
-  --theme-accent-blue-hover: #2563eb;
-  --theme-accent-emerald: #10b981;
-  --theme-accent-emerald-hover: #059669;
-  --theme-accent-yellow: #eab308;
-  --theme-accent-yellow-hover: #ca8a04;
-  --theme-accent-purple: #8b5cf6;
-  --theme-accent-red: #ef4444;
+  --theme-accent-orange: #fb923c;
+  --theme-accent-orange-hover: #fdba74;
+  --theme-accent-blue: #60a5fa;
+  --theme-accent-blue-hover: #93c5fd;
+  --theme-accent-emerald: #34d399;
+  --theme-accent-emerald-hover: #6ee7b7;
+  --theme-accent-yellow: #fcd34d;
+  --theme-accent-yellow-hover: #fde68a;
+  --theme-accent-purple: #c4b5fd;
+  --theme-accent-red: #fca5a5;
 
-  /* Component specific */
-  --theme-card-backdrop: blur(12px);
-  --theme-card-radius: 1.5rem;
-  --theme-button-radius: 0.75rem;
-  --theme-input-radius: 0.5rem;
-
-  /* Gradients */
-  --theme-gradient-bg: linear-gradient(to bottom right, #111827, #1f2937, #111827);
-  --theme-gradient-orange: linear-gradient(to bottom right, #f97316, #dc2626);
-  --theme-gradient-blue: linear-gradient(to bottom right, #3b82f6, #8b5cf6);
-  --theme-gradient-emerald: linear-gradient(to bottom right, #10b981, #14b8a6);
-  --theme-gradient-yellow: linear-gradient(to bottom right, #eab308, #f97316);
-
-  /* Shadows */
-  --theme-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --theme-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --theme-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --theme-shadow-glow-orange: 0 0 20px rgba(249, 115, 22, 0.25);
-  --theme-shadow-glow-blue: 0 0 20px rgba(59, 130, 246, 0.25);
-
-  /* Header/Footer */
-  --theme-header-bg: rgba(17, 24, 39, 0.8);
-  --theme-footer-bg: rgba(17, 24, 39, 0.9);
-
-  /* Scrollbar */
-  --theme-scrollbar-track: #1f2937;
-  --theme-scrollbar-thumb: #4b5563;
-  --theme-scrollbar-thumb-hover: #6b7280;
-}
-
-/* Slate Theme - Clean, minimal with neutral colors */
-[data-theme="slate"] {
-  /* Background colors - Light neutral base with subtle dark tones */
-  --theme-bg-primary: #09090b;
-  --theme-bg-secondary: #18181b;
-  --theme-bg-tertiary: #27272a;
-  --theme-bg-card: #18181b;
-  --theme-bg-card-hover: #27272a;
-
-  /* Text colors */
-  --theme-text-primary: #fafafa;
-  --theme-text-secondary: #a1a1aa;
-  --theme-text-muted: #71717a;
-
-  /* Border colors */
-  --theme-border: #27272a;
-  --theme-border-hover: #3f3f46;
-
-  /* Accent colors - Slate uses more muted, professional colors */
-  --theme-accent-orange: #f97316;
-  --theme-accent-orange-hover: #fb923c;
-  --theme-accent-blue: #3b82f6;
-  --theme-accent-blue-hover: #60a5fa;
-  --theme-accent-emerald: #22c55e;
-  --theme-accent-emerald-hover: #4ade80;
-  --theme-accent-yellow: #facc15;
-  --theme-accent-yellow-hover: #fde047;
-  --theme-accent-purple: #a855f7;
-  --theme-accent-red: #ef4444;
-
-  /* Component specific - Slate uses smaller border radius */
   --theme-card-backdrop: none;
   --theme-card-radius: 0.5rem;
   --theme-button-radius: 0.375rem;
   --theme-input-radius: 0.375rem;
 
-  /* Gradients - Slate typically uses solid colors, minimal gradients */
-  --theme-gradient-bg: #09090b;
-  --theme-gradient-orange: #f97316;
-  --theme-gradient-blue: #3b82f6;
-  --theme-gradient-emerald: #22c55e;
-  --theme-gradient-yellow: #facc15;
+  --theme-gradient-bg: #0d1117;
+  --theme-gradient-orange: #fb923c;
+  --theme-gradient-blue: #60a5fa;
+  --theme-gradient-emerald: #34d399;
+  --theme-gradient-yellow: #fcd34d;
 
-  /* Shadows - Subtle, minimal shadows */
-  --theme-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --theme-shadow-md: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  --theme-shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --theme-shadow-sm: none;
+  --theme-shadow-md: none;
+  --theme-shadow-lg: none;
   --theme-shadow-glow-orange: none;
   --theme-shadow-glow-blue: none;
 
-  /* Header/Footer */
-  --theme-header-bg: #09090b;
-  --theme-footer-bg: #09090b;
+  --theme-header-bg: #0d1117;
+  --theme-footer-bg: #0d1117;
 
-  /* Scrollbar */
-  --theme-scrollbar-track: #18181b;
-  --theme-scrollbar-thumb: #3f3f46;
-  --theme-scrollbar-thumb-hover: #52525b;
+  --theme-scrollbar-track: #141a24;
+  --theme-scrollbar-thumb: #324057;
+  --theme-scrollbar-thumb-hover: #465a78;
+}
+
+/* Graphite Theme */
+[data-theme="graphite"] {
+  --theme-bg-primary: #0f1012;
+  --theme-bg-secondary: #17191d;
+  --theme-bg-tertiary: #23262c;
+  --theme-bg-card: #17191d;
+  --theme-bg-card-hover: #1d2026;
+
+  --theme-text-primary: #f1f5f9;
+  --theme-text-secondary: #a1aab6;
+  --theme-text-muted: #7d8794;
+
+  --theme-border: #2a2f38;
+  --theme-border-hover: #3a4250;
+
+  --theme-accent-orange: #f59e0b;
+  --theme-accent-orange-hover: #fbbf24;
+  --theme-accent-blue: #60a5fa;
+  --theme-accent-blue-hover: #93c5fd;
+  --theme-accent-emerald: #34d399;
+  --theme-accent-emerald-hover: #6ee7b7;
+  --theme-accent-yellow: #facc15;
+  --theme-accent-yellow-hover: #fde047;
+  --theme-accent-purple: #a78bfa;
+  --theme-accent-red: #f87171;
+
+  --theme-card-backdrop: none;
+  --theme-card-radius: 0.5rem;
+  --theme-button-radius: 0.375rem;
+  --theme-input-radius: 0.375rem;
+
+  --theme-gradient-bg: #0f1012;
+  --theme-gradient-orange: #f59e0b;
+  --theme-gradient-blue: #60a5fa;
+  --theme-gradient-emerald: #34d399;
+  --theme-gradient-yellow: #facc15;
+
+  --theme-shadow-sm: none;
+  --theme-shadow-md: none;
+  --theme-shadow-lg: none;
+  --theme-shadow-glow-orange: none;
+  --theme-shadow-glow-blue: none;
+
+  --theme-header-bg: #0f1012;
+  --theme-footer-bg: #0f1012;
+
+  --theme-scrollbar-track: #17191d;
+  --theme-scrollbar-thumb: #2f3642;
+  --theme-scrollbar-thumb-hover: #444d5c;
+}
+
+/* Global de-gloss for both themes */
+[data-theme="minimal"] .bg-gradient-to-br,
+[data-theme="minimal"] .bg-gradient-to-r,
+[data-theme="graphite"] .bg-gradient-to-br,
+[data-theme="graphite"] .bg-gradient-to-r {
+  background-image: none !important;
+}
+
+[data-theme="minimal"] .backdrop-blur-sm,
+[data-theme="minimal"] .backdrop-blur-md,
+[data-theme="graphite"] .backdrop-blur-sm,
+[data-theme="graphite"] .backdrop-blur-md {
+  backdrop-filter: none !important;
+}
+
+[data-theme="minimal"] .shadow-lg,
+[data-theme="minimal"] .shadow-xl,
+[data-theme="minimal"] .shadow-2xl,
+[data-theme="graphite"] .shadow-lg,
+[data-theme="graphite"] .shadow-xl,
+[data-theme="graphite"] .shadow-2xl {
+  box-shadow: none !important;
+}
+
+/* Make hardcoded utility usage look consistent across all components */
+[data-theme="minimal"] [class*="rounded-2xl"],
+[data-theme="minimal"] [class*="rounded-xl"],
+[data-theme="minimal"] [class*="rounded-lg"],
+[data-theme="minimal"] [class*="rounded-md"] {
+  border-radius: 0.5rem !important;
+}
+
+[data-theme="minimal"] [class*="bg-gray-900"],
+[data-theme="minimal"] [class*="bg-gray-800"],
+[data-theme="minimal"] [class*="bg-gray-700"],
+[data-theme="minimal"] [class*="bg-gray-600"] {
+  background-color: rgba(20, 26, 36, 0.9) !important;
+}
+
+[data-theme="minimal"] [class*="text-gray-100"],
+[data-theme="minimal"] [class*="text-gray-200"],
+[data-theme="minimal"] [class*="text-gray-300"] {
+  color: #f8fafc !important;
+}
+
+[data-theme="minimal"] [class*="text-gray-400"],
+[data-theme="minimal"] [class*="text-gray-500"],
+[data-theme="minimal"] [class*="text-gray-600"] {
+  color: #b0bccf !important;
+}
+
+[data-theme="minimal"] [class*="border-gray-700"],
+[data-theme="minimal"] [class*="border-gray-600"],
+[data-theme="minimal"] [class*="border-gray-500"] {
+  border-color: #34445d !important;
 }
 
 /* Apply theme-aware scrollbar globally */

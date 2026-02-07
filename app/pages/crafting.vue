@@ -784,11 +784,17 @@ const searchItems = async () => {
   isSearching.value = true;
 
   try {
-    const searchQuery = encodeURIComponent(itemSearch.value);
-    const url = `https://api.dofusdb.fr/items?typeId[$ne]=203&$sort=-id&slug.fr[$search]=${searchQuery}&level[$gte]=0&level[$lte]=200&$skip=0&lang=fr`;
-
-    const response = await fetch(url);
-    const data = await response.json();
+    const data = await $fetch("/api/dofusdb/items", {
+      query: {
+        "typeId[$ne]": 203,
+        $sort: "-id",
+        "slug.fr[$search]": itemSearch.value,
+        "level[$gte]": 0,
+        "level[$lte]": 200,
+        $skip: 0,
+        lang: "fr",
+      },
+    });
 
     if (data.data) {
       searchResults.value = data.data.slice(0, 15);
@@ -839,10 +845,7 @@ const processItemEffects = async (item) => {
       });
     } else {
       try {
-        const response = await fetch(
-          `https://api.dofusdb.fr/effects/${effectId}`
-        );
-        const data = await response.json();
+        const data = await $fetch(`/api/dofusdb/effects/${effectId}`);
 
         if (data && data.description) {
           effectsCache.value[effectId] = data;
