@@ -435,6 +435,11 @@
 const localePath = useLocalePath();
 import monstersJson from '@/data/monsters.json';
 
+// Bump this version whenever monsters.json is updated
+const MONSTERS_DATA_VERSION = 1;
+const MONSTERS_STORAGE_KEY = 'archimonstres-monsters';
+const MONSTERS_VERSION_KEY = 'archimonstres-monsters-version';
+
 const { t } = useI18n();
 
 useHead({
@@ -464,7 +469,16 @@ onMounted(() => {
 });
 
 const loadMonstersData = () => {
-  const savedMonsters = localStorage.getItem('archimonstres-monsters');
+  const storedVersion = parseInt(localStorage.getItem(MONSTERS_VERSION_KEY) || '0', 10);
+
+  if (storedVersion < MONSTERS_DATA_VERSION) {
+    // Code data is newer — overwrite localStorage
+    monstersData.value = monstersJson;
+    saveMonstersData(monstersJson);
+    return;
+  }
+
+  const savedMonsters = localStorage.getItem(MONSTERS_STORAGE_KEY);
   if (savedMonsters) {
     try {
       monstersData.value = JSON.parse(savedMonsters);
@@ -475,7 +489,8 @@ const loadMonstersData = () => {
 };
 
 const saveMonstersData = (data) => {
-  localStorage.setItem('archimonstres-monsters', JSON.stringify(data));
+  localStorage.setItem(MONSTERS_STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem(MONSTERS_VERSION_KEY, String(MONSTERS_DATA_VERSION));
 };
 
 const addServer = (serverName) => {
