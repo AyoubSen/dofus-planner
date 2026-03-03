@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-02-24T09:31:08.318Z",
+  "baseUrl": "https://api.dofusdb.fr",
+  "timeoutMs": 4000,
+  "totals": {
+    "total": 2,
+    "ok": 2,
+    "fail": 0,
+    "skipped": 0
+  },
+  "results": [
+    {
+      "endpoint": "/items",
+      "resolvedEndpoint": "/items?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 332,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "m_flags",
+          "id",
+          "typeId",
+          "iconId",
+          "level",
+          "realWeight",
+          "price"
+        ]
+      }
+    },
+    {
+      "endpoint": "/version",
+      "resolvedEndpoint": "/version?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 45,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "string"
+      }
+    }
+  ]
+}

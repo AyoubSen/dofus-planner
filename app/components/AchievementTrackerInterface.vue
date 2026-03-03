@@ -913,6 +913,10 @@ const props = defineProps({
   character: { type: Object, required: true },
   categories: { type: Array, default: () => [] },
 });
+const {
+  fetchAchievementsPage,
+  fetchAllAchievementsForStats: fetchAllAchievementsForStatsCached,
+} = useAchievementsApi();
 
 // State
 const achievements = ref([]);
@@ -970,8 +974,9 @@ const organizedCategories = computed(() => {
 
 const selectedCategoryName = computed(() => {
   if (!selectedCategory.value) return "";
+  const normalizedCategoryId = Number(selectedCategory.value);
   const category = props.categories.find(
-    (c) => c.id === selectedCategory.value
+    (c) => Number(c.id) === normalizedCategoryId
   );
   return category?.name?.fr || "";
 });
@@ -1052,6 +1057,8 @@ const selectCategory = (categoryId) => {
 
 // Debounced search
 let searchTimeout = null;
+let achievementsAbortController = null;
+let allStatsAbortController = null;
 const debouncedSearch = () => {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
@@ -1067,73 +1074,68 @@ const goToPage = (page) => {
   }
 };
 
-const getChildCategoryIds = (parentId) => {
-  return props.categories
-    .filter((c) => c.parentId === parentId)
-    .map((c) => c.id);
-};
-
 // Fetch achievements with server-side filtering (same as browse mode)
 const fetchAchievements = async () => {
+  if (achievementsAbortController) {
+    achievementsAbortController.abort();
+  }
+  achievementsAbortController = new AbortController();
+  const { signal } = achievementsAbortController;
+
   isLoading.value = true;
   try {
-    const params = new URLSearchParams();
-    params.append("$limit", String(limit.value));
-    params.append("$skip", String((currentPage.value - 1) * limit.value));
+    const response = await fetchAchievementsPage({
+      limit: limit.value,
+      skip: (currentPage.value - 1) * limit.value,
+      search: searchQuery.value,
+      selectedCategoryId: selectedCategory.value,
+      categories: props.categories,
+      signal,
+    });
 
-    // Search filter (server-side)
-    if (searchQuery.value) {
-      params.append("slug.fr[$search]", searchQuery.value);
-    }
-
-    // Category filter
-    if (selectedCategory.value) {
-      const categoryId = parseInt(selectedCategory.value);
-      const childIds = getChildCategoryIds(categoryId);
-
-      if (childIds.length > 0) {
-        // It's a parent category, include all children
-        childIds.forEach((id) => {
-          params.append("categoryId[$in][]", String(id));
-        });
-      } else {
-        // It's a child category or has no children
-        params.append("categoryId", String(selectedCategory.value));
-      }
-    }
-
-    const response = await $fetch(`/api/achievements?${params.toString()}`);
+    if (signal.aborted) return;
     achievements.value = response.data || [];
     total.value = response.total || 0;
   } catch (error) {
+    if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
+      return;
+    }
     console.error("Error fetching achievements:", error);
     achievements.value = [];
   } finally {
-    isLoading.value = false;
+    if (achievementsAbortController?.signal === signal) {
+      isLoading.value = false;
+      achievementsAbortController = null;
+    }
   }
 };
 
 // Fetch all achievements for stats calculation (runs once)
 const fetchAllAchievementsForStats = async () => {
+  if (allStatsAbortController) {
+    allStatsAbortController.abort();
+  }
+  allStatsAbortController = new AbortController();
+  const { signal } = allStatsAbortController;
+
   try {
-    const allAchievements = [];
-    let skip = 0;
-    const batchLimit = 100;
-    let hasMore = true;
+    const response = await fetchAllAchievementsForStatsCached({
+      batchLimit: 50,
+      signal,
+    });
+    if (signal.aborted) return;
 
-    while (hasMore) {
-      const response = await $fetch(
-        `/api/achievements?$limit=${batchLimit}&$skip=${skip}`
-      );
-      allAchievements.push(...(response.data || []));
-      hasMore = response.data?.length === batchLimit;
-      skip += batchLimit;
-    }
-
-    allAchievementsForStats.value = allAchievements;
-    totalAchievements.value = allAchievements.length;
+    allAchievementsForStats.value = response.data || [];
+    totalAchievements.value = response.total || allAchievementsForStats.value.length;
   } catch (error) {
+    if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
+      return;
+    }
     console.error("Error fetching all achievements for stats:", error);
+  } finally {
+    if (allStatsAbortController?.signal === signal) {
+      allStatsAbortController = null;
+    }
   }
 };
 
@@ -1318,6 +1320,16 @@ onMounted(() => {
   loadCharacterData();
   fetchAchievements();
   fetchAllAchievementsForStats();
+});
+
+onUnmounted(() => {
+  clearTimeout(searchTimeout);
+  if (achievementsAbortController) {
+    achievementsAbortController.abort();
+  }
+  if (allStatsAbortController) {
+    allStatsAbortController.abort();
+  }
 });
 </script>
 

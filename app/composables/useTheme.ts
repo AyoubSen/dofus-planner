@@ -1,5 +1,5 @@
 // composables/useTheme.ts
-export type ThemeType = 'minimal' | 'graphite';
+export type ThemeType = 'minimal' | 'graphite' | 'amakna';
 
 export interface Theme {
   id: ThemeType;
@@ -17,6 +17,11 @@ export const themes: Theme[] = [
     id: 'graphite',
     name: 'Graphite',
     description: 'Flat dark UI with reduced visual noise'
+  },
+  {
+    id: 'amakna',
+    name: 'Amakna',
+    description: 'Warm tavern gold — cozy RPG vibes, glows included'
   }
 ];
 
@@ -67,6 +72,7 @@ export const useTheme = () => {
   // Computed properties for theme-specific styling
   const isMinimal = computed(() => currentTheme.value === 'minimal');
   const isGraphite = computed(() => currentTheme.value === 'graphite');
+  const isAmakna = computed(() => currentTheme.value === 'amakna');
 
   return {
     currentTheme,
@@ -75,5 +81,6 @@ export const useTheme = () => {
     themes,
     isMinimal,
     isGraphite,
+    isAmakna,
   };
 };

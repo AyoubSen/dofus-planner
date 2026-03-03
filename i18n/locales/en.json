@@ -1,8 +1,10 @@
 {
   "nav": {
+    "dashboard": "Dashboard",
     "archimonstres": "Archimonstres",
     "items": "Items",
     "crafting": "Crafting",
+    "brisage": "Brisage",
     "succes": "Succès"
   },
   "theme": {

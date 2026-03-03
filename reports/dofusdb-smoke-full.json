@@ -1,0 +1,2220 @@
+{
+  "generatedAt": "2026-02-24T14:57:39.845Z",
+  "baseUrl": "https://api.dofusdb.fr",
+  "timeoutMs": 12000,
+  "totals": {
+    "total": 79,
+    "ok": 77,
+    "fail": 0,
+    "skipped": 2
+  },
+  "results": [
+    {
+      "endpoint": "/achievement-categories",
+      "resolvedEndpoint": "/achievement-categories?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 229,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "parentId",
+          "icon",
+          "order",
+          "color",
+          "achievementIds",
+          "visibilityCriterion"
+        ]
+      }
+    },
+    {
+      "endpoint": "/achievement-objectives",
+      "resolvedEndpoint": "/achievement-objectives?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 149,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "achievementId",
+          "order",
+          "criterion",
+          "name",
+          "className",
+          "m_id"
+        ]
+      }
+    },
+    {
+      "endpoint": "/achievement-rewards",
+      "resolvedEndpoint": "/achievement-rewards?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 66,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "achievementId",
+          "criterions",
+          "kamasRatio",
+          "experienceRatio",
+          "kamasScaleWithPlayerLevel",
+          "itemsReward"
+        ]
+      }
+    },
+    {
+      "endpoint": "/achievements",
+      "resolvedEndpoint": "/achievements?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 56,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "categoryId",
+          "iconId",
+          "points",
+          "level",
+          "order",
+          "accountLinked"
+        ]
+      }
+    },
+    {
+      "endpoint": "/almanax",
+      "resolvedEndpoint": "/almanax?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 51,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "array",
+        "size": 0,
+        "sampleKeys": []
+      }
+    },
+    {
+      "endpoint": "/almanax-calendars",
+      "resolvedEndpoint": "/almanax-calendars?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 55,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "npcId",
+          "categoryId",
+          "bonusesIds",
+          "dates",
+          "objectiveId",
+          "meridiaIllustrationId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/alignment-ranks",
+      "resolvedEndpoint": "/alignment-ranks?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 51,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "orderId",
+          "minimumAlignment",
+          "name",
+          "description",
+          "className",
+          "m_id"
+        ]
+      }
+    },
+    {
+      "endpoint": "/alignment-sides",
+      "resolvedEndpoint": "/alignment-sides?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 44,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "name",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/alliance-rights",
+      "resolvedEndpoint": "/alliance-rights?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 45,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "order",
+          "groupId",
+          "name",
+          "className",
+          "m_id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/alterations",
+      "resolvedEndpoint": "/alterations?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "categoryId",
+          "iconId",
+          "isVisible",
+          "criterions",
+          "isWebDisplay",
+          "possibleEffects"
+        ]
+      }
+    },
+    {
+      "endpoint": "/areas",
+      "resolvedEndpoint": "/areas?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 54,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "superAreaId",
+          "containHouses",
+          "containPaddocks",
+          "bounds",
+          "worldmapId",
+          "subareaIds"
+        ]
+      }
+    },
+    {
+      "endpoint": "/breeds",
+      "resolvedEndpoint": "/breeds?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 50,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "maleLook",
+          "femaleLook",
+          "creatureBonesId",
+          "statsPointsForStrength",
+          "statsPointsForIntelligence",
+          "statsPointsForChance"
+        ]
+      }
+    },
+    {
+      "endpoint": "/challenges",
+      "resolvedEndpoint": "/challenges?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 50,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "incompatibleChallenges",
+          "categoryId",
+          "iconId",
+          "completionCriterion",
+          "activationCriterion",
+          "targetMonsterId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/characteristics",
+      "resolvedEndpoint": "/characteristics?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "keyword",
+          "asset",
+          "categoryId",
+          "visible",
+          "order",
+          "scaleFormulaId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/collectables",
+      "resolvedEndpoint": "/collectables?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "entityId",
+          "name",
+          "typeId",
+          "gfxId",
+          "order",
+          "rarity",
+          "className"
+        ]
+      }
+    },
+    {
+      "endpoint": "/companions",
+      "resolvedEndpoint": "/companions?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 49,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "look",
+          "webDisplay",
+          "startingSpellLevelId",
+          "assetId",
+          "characteristics",
+          "spells"
+        ]
+      }
+    },
+    {
+      "endpoint": "/criterion/{criteria}",
+      "resolvedEndpoint": null,
+      "state": "skipped",
+      "reason": "Missing params: criteria"
+    },
+    {
+      "endpoint": "/custom-mode-breed-spells",
+      "resolvedEndpoint": "/custom-mode-breed-spells?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "pairId",
+          "breedId",
+          "isInitialSpell",
+          "isHidden",
+          "className",
+          "m_id"
+        ]
+      }
+    },
+    {
+      "endpoint": "/documents",
+      "resolvedEndpoint": "/documents?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 59,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "typeId",
+          "showTitle",
+          "showBackgroundImage",
+          "contentCSS",
+          "clientProperties",
+          "title"
+        ]
+      }
+    },
+    {
+      "endpoint": "/dungeons",
+      "resolvedEndpoint": "/dungeons?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 44,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "optimalPlayerLevel",
+          "mapIds",
+          "entranceMapId",
+          "exitMapId",
+          "name",
+          "className"
+        ]
+      }
+    },
+    {
+      "endpoint": "/effects",
+      "resolvedEndpoint": "/effects?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 43,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "iconId",
+          "characteristic",
+          "category",
+          "characteristicOperator",
+          "showInTooltip",
+          "useDice"
+        ]
+      }
+    },
+    {
+      "endpoint": "/emoticons",
+      "resolvedEndpoint": "/emoticons?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 44,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "order",
+          "animName",
+          "persistancy",
+          "persistantAnimName",
+          "eightDirections",
+          "aura"
+        ]
+      }
+    },
+    {
+      "endpoint": "/feature-descriptions",
+      "resolvedEndpoint": "/feature-descriptions?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 44,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "priority",
+          "parentId",
+          "children",
+          "criterion",
+          "images",
+          "name"
+        ]
+      }
+    },
+    {
+      "endpoint": "/finish-moves",
+      "resolvedEndpoint": "/finish-moves?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 44,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "duration",
+          "free",
+          "category",
+          "spellLevel",
+          "name",
+          "className"
+        ]
+      }
+    },
+    {
+      "endpoint": "/guild-rights",
+      "resolvedEndpoint": "/guild-rights?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "order",
+          "groupId",
+          "name",
+          "className",
+          "m_id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/havenbag-furnitures",
+      "resolvedEndpoint": "/havenbag-furnitures?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 50,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "typeId",
+          "themeId",
+          "elementId",
+          "color",
+          "skillId",
+          "layerId",
+          "blocksMovement"
+        ]
+      }
+    },
+    {
+      "endpoint": "/havenbag-themes",
+      "resolvedEndpoint": "/havenbag-themes?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "mapId",
+          "name",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/hints",
+      "resolvedEndpoint": "/hints?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 45,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "categoryId",
+          "gfx",
+          "mapId",
+          "realMapId",
+          "x",
+          "y"
+        ]
+      }
+    },
+    {
+      "endpoint": "/img/maps/{scale}/{mapId}.jpg",
+      "resolvedEndpoint": null,
+      "state": "skipped",
+      "reason": "Missing params: scale, mapId"
+    },
+    {
+      "endpoint": "/info-messages",
+      "resolvedEndpoint": "/info-messages?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 44,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "typeId",
+          "messageId",
+          "text",
+          "className",
+          "m_id",
+          "id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/interactives",
+      "resolvedEndpoint": "/interactives?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 43,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "name",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/item-sets",
+      "resolvedEndpoint": "/item-sets?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 62,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "items",
+          "bonusIsSecret",
+          "isCosmetic",
+          "effects",
+          "name",
+          "className"
+        ]
+      }
+    },
+    {
+      "endpoint": "/items",
+      "resolvedEndpoint": "/items?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 67,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "m_flags",
+          "id",
+          "typeId",
+          "iconId",
+          "level",
+          "realWeight",
+          "price"
+        ]
+      }
+    },
+    {
+      "endpoint": "/item-super-types",
+      "resolvedEndpoint": "/item-super-types?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "className",
+          "m_id",
+          "positions",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/item-types",
+      "resolvedEndpoint": "/item-types?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "superTypeId",
+          "categoryId",
+          "isInEncyclopedia",
+          "rawZone",
+          "craftXpRatio",
+          "evolutiveTypeId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/jobs",
+      "resolvedEndpoint": "/jobs?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 45,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "iconId",
+          "hasLegendaryCraft",
+          "name",
+          "className",
+          "m_id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/legendary-power-categories",
+      "resolvedEndpoint": "/legendary-power-categories?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 46,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "categoryName",
+          "categoryOverridable",
+          "categorySpells",
+          "className",
+          "m_id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/legendary-treasure-hunts",
+      "resolvedEndpoint": "/legendary-treasure-hunts?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "level",
+          "chestId",
+          "monsterId",
+          "mapItemId",
+          "xpRatio",
+          "name"
+        ]
+      }
+    },
+    {
+      "endpoint": "/living-object-skin-jnt-mood",
+      "resolvedEndpoint": "/living-object-skin-jnt-mood?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "skinId",
+          "moods",
+          "className",
+          "m_id",
+          "id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/map-positions",
+      "resolvedEndpoint": "/map-positions?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 59,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "m_flags",
+          "id",
+          "posX",
+          "posY",
+          "subAreaId",
+          "worldMap",
+          "tacticalModeTemplateId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/map-references",
+      "resolvedEndpoint": "/map-references?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "mapId",
+          "cellId",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/modsters",
+      "resolvedEndpoint": "/modsters?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "itemId",
+          "modsterId",
+          "order",
+          "parentsModsterId",
+          "modsterActiveSpells",
+          "modsterPassiveSpells"
+        ]
+      }
+    },
+    {
+      "endpoint": "/monsters",
+      "resolvedEndpoint": "/monsters?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 60,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "m_flags",
+          "id",
+          "gfxId",
+          "race",
+          "grades",
+          "look",
+          "drops"
+        ]
+      }
+    },
+    {
+      "endpoint": "/monster-races",
+      "resolvedEndpoint": "/monster-races?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "superRaceId",
+          "aggressiveZoneSize",
+          "aggressiveLevelDiff",
+          "aggressiveImmunityCriterion",
+          "aggressiveAttackDelay",
+          "monsters"
+        ]
+      }
+    },
+    {
+      "endpoint": "/monster-super-races",
+      "resolvedEndpoint": "/monster-super-races?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "name",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/months",
+      "resolvedEndpoint": "/months?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "name",
+          "className",
+          "m_id",
+          "id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/mount-behaviors",
+      "resolvedEndpoint": "/mount-behaviors?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "name",
+          "description",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/mount-families",
+      "resolvedEndpoint": "/mount-families?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "headUri",
+          "name",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/mounts",
+      "resolvedEndpoint": "/mounts?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 43,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "familyId",
+          "look",
+          "certificateId",
+          "effects",
+          "name",
+          "className"
+        ]
+      }
+    },
+    {
+      "endpoint": "/npc-messages",
+      "resolvedEndpoint": "/npc-messages?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 61,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "messageParams",
+          "messageSkinId",
+          "messageBubblePosition",
+          "messageNpcMoodId",
+          "message",
+          "className"
+        ]
+      }
+    },
+    {
+      "endpoint": "/npcs",
+      "resolvedEndpoint": "/npcs?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "dialogMessages",
+          "dialogReplies",
+          "actions",
+          "gender",
+          "look",
+          "animFunList"
+        ]
+      }
+    },
+    {
+      "endpoint": "/ornaments",
+      "resolvedEndpoint": "/ornaments?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 44,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "visible",
+          "assetId",
+          "iconId",
+          "order",
+          "name",
+          "className"
+        ]
+      }
+    },
+    {
+      "endpoint": "/point-of-interest",
+      "resolvedEndpoint": "/point-of-interest?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 45,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "name",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/quest-categories",
+      "resolvedEndpoint": "/quest-categories?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "order",
+          "questIds",
+          "name",
+          "className",
+          "m_id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/quest-objective-types",
+      "resolvedEndpoint": "/quest-objective-types?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "name",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/quest-objectives",
+      "resolvedEndpoint": "/quest-objectives?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 58,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "stepId",
+          "typeId",
+          "dialogId",
+          "parameters",
+          "coords",
+          "mapId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/quest-step-rewards",
+      "resolvedEndpoint": "/quest-step-rewards?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 58,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "stepId",
+          "levelMin",
+          "levelMax",
+          "kamasRatio",
+          "experienceRatio",
+          "kamasScaleWithPlayerLevel"
+        ]
+      }
+    },
+    {
+      "endpoint": "/quest-steps",
+      "resolvedEndpoint": "/quest-steps?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 45,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "questId",
+          "dialogId",
+          "optimalLevel",
+          "duration",
+          "objectiveIds",
+          "rewardsIds"
+        ]
+      }
+    },
+    {
+      "endpoint": "/quests",
+      "resolvedEndpoint": "/quests?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 52,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "categoryId",
+          "repeatType",
+          "repeatLimit",
+          "isDungeonQuest",
+          "levelMin",
+          "levelMax"
+        ]
+      }
+    },
+    {
+      "endpoint": "/random-drop-groups",
+      "resolvedEndpoint": "/random-drop-groups?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "randomDropItems",
+          "displayChances",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/recipes",
+      "resolvedEndpoint": "/recipes?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 60,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "resultId",
+          "resultTypeId",
+          "resultLevel",
+          "ingredientIds",
+          "quantities",
+          "jobId",
+          "skillId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/server-seasons",
+      "resolvedEndpoint": "/server-seasons?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "uid",
+          "beginning",
+          "closure",
+          "resetDate",
+          "flagObjectId",
+          "name",
+          "className"
+        ]
+      }
+    },
+    {
+      "endpoint": "/servers",
+      "resolvedEndpoint": "/servers?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "language",
+          "populationId",
+          "gameTypeId",
+          "communityId",
+          "monoAccount",
+          "illus"
+        ]
+      }
+    },
+    {
+      "endpoint": "/server-game-types",
+      "resolvedEndpoint": "/server-game-types?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "selectableByPlayer",
+          "name",
+          "rules",
+          "description",
+          "className",
+          "m_id"
+        ]
+      }
+    },
+    {
+      "endpoint": "/skills",
+      "resolvedEndpoint": "/skills?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 45,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "parentJobId",
+          "isForgemagus",
+          "modifiableItemTypeIds",
+          "gatheredRessourceItem",
+          "craftableItemIds",
+          "range"
+        ]
+      }
+    },
+    {
+      "endpoint": "/smiley-packs",
+      "resolvedEndpoint": "/smiley-packs?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 43,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "order",
+          "smileys",
+          "name",
+          "className",
+          "m_id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/spells",
+      "resolvedEndpoint": "/spells?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 51,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "m_flags",
+          "id",
+          "typeId",
+          "order",
+          "scriptParams",
+          "scriptParamsCritical",
+          "scriptId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/spell-levels",
+      "resolvedEndpoint": "/spell-levels?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 76,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "m_flags",
+          "id",
+          "spellId",
+          "grade",
+          "spellBreed",
+          "apCost",
+          "minRange"
+        ]
+      }
+    },
+    {
+      "endpoint": "/spell-pairs",
+      "resolvedEndpoint": "/spell-pairs?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "iconId",
+          "name",
+          "description",
+          "className",
+          "m_id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/spell-states",
+      "resolvedEndpoint": "/spell-states?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 51,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "preventsSpellCast",
+          "preventsFight",
+          "isSilent",
+          "cantBeMoved",
+          "cantBePushed",
+          "cantDealDamage"
+        ]
+      }
+    },
+    {
+      "endpoint": "/spell-types",
+      "resolvedEndpoint": "/spell-types?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 50,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "longName",
+          "shortName",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/spell-variants",
+      "resolvedEndpoint": "/spell-variants?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "breedId",
+          "spellIds",
+          "className",
+          "m_id",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/subareas",
+      "resolvedEndpoint": "/subareas?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 44,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "areaId",
+          "mapIds",
+          "bounds",
+          "shape",
+          "customWorldMapId",
+          "packId"
+        ]
+      }
+    },
+    {
+      "endpoint": "/super-areas",
+      "resolvedEndpoint": "/super-areas?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "worldmapId",
+          "hasWorldMap",
+          "name",
+          "className",
+          "m_id",
+          "createdAt"
+        ]
+      }
+    },
+    {
+      "endpoint": "/titles",
+      "resolvedEndpoint": "/titles?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "visible",
+          "categoryId",
+          "nameMale",
+          "nameFemale",
+          "className",
+          "m_id"
+        ]
+      }
+    },
+    {
+      "endpoint": "/version",
+      "resolvedEndpoint": "/version?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 42,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "string"
+      }
+    },
+    {
+      "endpoint": "/world-events",
+      "resolvedEndpoint": "/world-events?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "categoryId",
+          "level",
+          "areas",
+          "subareas",
+          "globalDrops",
+          "fightScenarios"
+        ]
+      }
+    },
+    {
+      "endpoint": "/world-event-rewards",
+      "resolvedEndpoint": "/world-event-rewards?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 47,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "worldEventRewardId",
+          "objects",
+          "emotes",
+          "spells",
+          "titles",
+          "ornaments",
+          "rankingConditions"
+        ]
+      }
+    },
+    {
+      "endpoint": "/worlds",
+      "resolvedEndpoint": "/worlds?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 48,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "object",
+        "keys": [
+          "total",
+          "limit",
+          "skip",
+          "data"
+        ],
+        "dataArraySize": 1,
+        "dataSampleKeys": [
+          "_id",
+          "id",
+          "origineX",
+          "origineY",
+          "mapWidth",
+          "mapHeight",
+          "minScale",
+          "maxScale"
+        ]
+      }
+    }
+  ]
+}

@@ -1,8 +1,10 @@
 {
   "nav": {
+    "dashboard": "Tableau de bord",
     "archimonstres": "Archimonstres",
     "items": "Objets",
     "crafting": "Craft",
+    "brisage": "Brisage",
     "succes": "Succès"
   },
   "theme": {

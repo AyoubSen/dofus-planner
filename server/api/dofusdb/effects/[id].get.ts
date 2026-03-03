@@ -1,3 +1,5 @@
+import { dofusdbFetch } from "../../../services/dofusdb";
+
 export default defineEventHandler(async (event) => {
   try {
     const id = getRouterParam(event, "id");
@@ -8,7 +10,7 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    return await $fetch(`https://api.dofusdb.fr/effects/${id}`);
+    return await dofusdbFetch(`/effects/${encodeURIComponent(id)}`);
   } catch (error: any) {
     console.error("Error fetching DofusDB effect:", error);
     throw createError({

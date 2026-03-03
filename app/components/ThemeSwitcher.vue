@@ -115,6 +115,8 @@ const getThemePreviewClass = (themeId: string) => {
       return 'border-zinc-700';
     case 'minimal':
       return 'border-zinc-700';
+    case 'amakna':
+      return 'border-amber-800';
     default:
       return 'border-gray-600';
   }
@@ -126,6 +128,8 @@ const getThemePreviewTopClass = (themeId: string) => {
       return 'bg-zinc-950';
     case 'minimal':
       return 'bg-zinc-900';
+    case 'amakna':
+      return 'bg-[#13100b]';
     default:
       return 'bg-gradient-to-r from-gray-800 to-gray-900';
   }
@@ -137,6 +141,8 @@ const getThemePreviewBottomClass = (themeId: string) => {
       return 'bg-zinc-800';
     case 'minimal':
       return 'bg-zinc-800';
+    case 'amakna':
+      return 'bg-gradient-to-r from-amber-700/60 to-yellow-600/40';
     default:
       return 'bg-gradient-to-r from-orange-500/20 to-blue-500/20';
   }

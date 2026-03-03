@@ -633,6 +633,51 @@
                 </div>
               </div>
 
+              <!-- Bookmarks Kamas Potential List -->
+              <div
+                v-if="
+                  showBookmarksOnly &&
+                  bookmarkedAchievementsByKamas.length > 0
+                "
+                class="mb-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4"
+              >
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-sm font-semibold text-yellow-400 uppercase tracking-wide">
+                    Bookmarked Kamas Potential
+                  </h3>
+                  <span class="text-xs text-gray-400">
+                    {{ bookmarkedAchievementsByKamas.length }} achievements
+                  </span>
+                </div>
+
+                <div class="max-h-72 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                  <button
+                    v-for="achievement in bookmarkedAchievementsByKamas"
+                    :key="achievement.id"
+                    @click="handleAchievementClick(achievement)"
+                    class="w-full text-left flex items-center justify-between gap-4 p-3 rounded-lg border border-gray-700/50 bg-gray-800/40 hover:border-yellow-500/40 hover:bg-gray-700/40 transition-colors"
+                  >
+                    <div class="min-w-0">
+                      <p class="text-sm text-gray-100 truncate">
+                        {{ achievement.name?.fr || $t('succes.card.unknown') }}
+                      </p>
+                      <p class="text-xs text-gray-500 mt-0.5">
+                        {{ $t('succes.card.level', { level: achievement.level || 1 }) }}
+                      </p>
+                    </div>
+
+                    <div class="text-right flex-shrink-0">
+                      <p class="text-sm font-semibold text-yellow-300">
+                        {{ formatNumber(achievement.potentialKamas) }} {{ $t('succes.stats.kamas') }}
+                      </p>
+                      <p class="text-xs text-blue-400/80">
+                        {{ formatNumber(achievement.potentialXp) }} {{ $t('succes.modal.xp') }}
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
               <!-- Loading State -->
               <div
                 v-if="isLoading && !showBookmarksOnly"
@@ -1171,6 +1216,7 @@ useHead({
 });
 
 const BOOKMARKS_KEY = "dofus-achievement-bookmarks";
+const { fetchAchievementsPage, fetchAchievementCategories } = useAchievementsApi();
 
 // Use shared accounts composable
 const { servers, initAccounts, addServer: addServerToStore, deleteServer: deleteServerFromStore, addCharacter: addCharacterToStore, deleteCharacter: deleteCharacterFromStore } = useAccounts();
@@ -1233,6 +1279,28 @@ const totalBookmarkedXP = computed(() => {
   }, 0);
 });
 
+const bookmarkedAchievementsByKamas = computed(() => {
+  return bookmarkedAchievements.value
+    .map((achievement) => {
+      const potentialKamas = achievement.rewards
+        ? calculateKamas(
+            achievement.level || 1,
+            getTotalKamasRatio(achievement.rewards)
+          )
+        : 0;
+      const potentialXp = achievement.rewards
+        ? calculateXP(200, getTotalExperienceRatio(achievement.rewards))
+        : 0;
+
+      return {
+        ...achievement,
+        potentialKamas,
+        potentialXp,
+      };
+    })
+    .sort((a, b) => b.potentialKamas - a.potentialKamas);
+});
+
 const displayedAchievements = computed(() => {
   if (showBookmarksOnly.value) {
     return bookmarkedAchievements.value;
@@ -1284,18 +1352,13 @@ const toggleCategory = (categoryId) => {
 };
 
 let searchTimeout = null;
+let achievementsAbortController = null;
 const debouncedSearch = () => {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     currentPage.value = 1;
     fetchAchievements();
   }, 300);
-};
-
-const getChildCategoryIds = (parentId) => {
-  return categories.value
-    .filter((c) => c.parentId === parentId)
-    .map((c) => c.id);
 };
 
 // Reward helpers
@@ -1488,46 +1551,43 @@ const deleteCharacter = (characterId) => {
 
 // Fetch functions
 const fetchAchievements = async () => {
+  if (achievementsAbortController) {
+    achievementsAbortController.abort();
+  }
+  achievementsAbortController = new AbortController();
+  const { signal } = achievementsAbortController;
+
   isLoading.value = true;
   try {
-    const params = new URLSearchParams();
-    params.append("$limit", String(limit.value));
-    params.append("$skip", String((currentPage.value - 1) * limit.value));
+    const response = await fetchAchievementsPage({
+      limit: limit.value,
+      skip: (currentPage.value - 1) * limit.value,
+      search: filters.value.search,
+      selectedCategoryId: filters.value.categoryId,
+      categories: categories.value,
+      signal,
+    });
 
-    if (filters.value.search) {
-      params.append("slug.fr[$search]", filters.value.search);
-    }
-
-    if (filters.value.categoryId) {
-      const selectedCategory = categories.value.find(
-        (c) => c.id === filters.value.categoryId
-      );
-      if (selectedCategory) {
-        const childIds = getChildCategoryIds(selectedCategory.id);
-        if (childIds.length > 0) {
-          childIds.forEach((id) => {
-            params.append("categoryId[$in][]", String(id));
-          });
-        } else {
-          params.append("categoryId", String(filters.value.categoryId));
-        }
-      }
-    }
-
-    const response = await $fetch(`/api/achievements?${params.toString()}`);
+    if (signal.aborted) return;
     achievements.value = response.data || [];
     total.value = response.total || 0;
-    } catch (error) {
+  } catch (error) {
+    if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
+      return;
+    }
     console.error("Error fetching achievements:", error);
     achievements.value = [];
   } finally {
-    isLoading.value = false;
+    if (achievementsAbortController?.signal === signal) {
+      isLoading.value = false;
+      achievementsAbortController = null;
+    }
   }
 };
 
 const fetchCategories = async () => {
   try {
-    const response = await $fetch("/api/achievements/categories?$limit=200");
+    const response = await fetchAchievementCategories(200);
     categories.value = response.data || [];
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -1564,6 +1624,13 @@ onMounted(() => {
   fetchCategories().then(() => {
     fetchAchievements();
   });
+});
+
+onUnmounted(() => {
+  clearTimeout(searchTimeout);
+  if (achievementsAbortController) {
+    achievementsAbortController.abort();
+  }
 });
 </script>
 

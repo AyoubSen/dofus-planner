@@ -875,6 +875,7 @@ const props = defineProps({
   servers: { type: Array, default: () => [] },
   categories: { type: Array, default: () => [] },
 });
+const { fetchAchievementsPage } = useAchievementsApi();
 
 const emit = defineEmits(["update-servers"]);
 
@@ -948,8 +949,9 @@ const organizedCategories = computed(() => {
 
 const selectedCategoryName = computed(() => {
   if (!selectedCategory.value) return "";
+  const normalizedCategoryId = Number(selectedCategory.value);
   const category = props.categories.find(
-    (c) => c.id === selectedCategory.value
+    (c) => Number(c.id) === normalizedCategoryId
   );
   return category?.name?.fr || "";
 });
@@ -1154,43 +1156,39 @@ const selectCategory = (categoryId) => {
 };
 
 // Fetch
-const getChildCategoryIds = (parentId) => {
-  return props.categories
-    .filter((c) => c.parentId === parentId)
-    .map((c) => c.id);
-};
-
+let achievementsAbortController = null;
 const fetchAchievements = async () => {
+  if (achievementsAbortController) {
+    achievementsAbortController.abort();
+  }
+  achievementsAbortController = new AbortController();
+  const { signal } = achievementsAbortController;
+
   isLoading.value = true;
   try {
-    const params = new URLSearchParams();
-    params.append("$limit", String(limit.value));
-    params.append("$skip", String((currentPage.value - 1) * limit.value));
+    const response = await fetchAchievementsPage({
+      limit: limit.value,
+      skip: (currentPage.value - 1) * limit.value,
+      search: searchQuery.value,
+      selectedCategoryId: selectedCategory.value,
+      categories: props.categories,
+      signal,
+    });
 
-    if (searchQuery.value) {
-      params.append("slug.fr[$search]", searchQuery.value);
-    }
-
-    if (selectedCategory.value) {
-      const categoryId = parseInt(selectedCategory.value);
-      const childIds = getChildCategoryIds(categoryId);
-      if (childIds.length > 0) {
-        childIds.forEach((id) => {
-          params.append("categoryId[$in][]", String(id));
-        });
-      } else {
-        params.append("categoryId", String(selectedCategory.value));
-      }
-    }
-
-    const response = await $fetch(`/api/achievements?${params.toString()}`);
+    if (signal.aborted) return;
     achievements.value = response.data || [];
     total.value = response.total || 0;
   } catch (error) {
+    if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
+      return;
+    }
     console.error("Error fetching achievements:", error);
     achievements.value = [];
   } finally {
-    isLoading.value = false;
+    if (achievementsAbortController?.signal === signal) {
+      isLoading.value = false;
+      achievementsAbortController = null;
+    }
   }
 };
 
@@ -1225,6 +1223,13 @@ onMounted(() => {
   selectedCharacters.value.forEach((char) => {
     loadCharacterData(char);
   });
+});
+
+onUnmounted(() => {
+  clearTimeout(searchTimeout);
+  if (achievementsAbortController) {
+    achievementsAbortController.abort();
+  }
 });
 </script>
 

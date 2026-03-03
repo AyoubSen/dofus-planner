@@ -1,20 +1,12 @@
+import { toURLSearchParams } from "../../utils/queryParams";
+
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig();
     const query = getQuery(event);
 
     const baseUrl = String(config.equipmentsApiBase);
-    const searchParams = new URLSearchParams();
-
-    Object.entries(query).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach((item, index) => {
-          searchParams.append(`${key}[${index}]`, item);
-        });
-      } else if (value !== undefined && value !== null) {
-        searchParams.append(key, value);
-      }
-    });
+    const searchParams = toURLSearchParams(query);
 
     const fullUrl = searchParams.toString()
       ? `${baseUrl}?${searchParams.toString()}`

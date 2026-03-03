@@ -160,6 +160,99 @@
   border-color: #34445d !important;
 }
 
+/* Amakna Theme - warm tavern RPG style */
+[data-theme="amakna"] {
+  --theme-bg-primary: #13100b;
+  --theme-bg-secondary: #1d1710;
+  --theme-bg-tertiary: #26200f;
+  --theme-bg-card: #1d1710;
+  --theme-bg-card-hover: #261d13;
+
+  --theme-text-primary: #f5e9cb;
+  --theme-text-secondary: #c9a96e;
+  --theme-text-muted: #8a7354;
+
+  --theme-border: #3b2d18;
+  --theme-border-hover: #6b4e28;
+
+  --theme-accent-orange: #f5a523;
+  --theme-accent-orange-hover: #f7c050;
+  --theme-accent-blue: #7eb8e0;
+  --theme-accent-blue-hover: #a5cfe8;
+  --theme-accent-emerald: #5fbd8b;
+  --theme-accent-emerald-hover: #86d4a8;
+  --theme-accent-yellow: #f5d142;
+  --theme-accent-yellow-hover: #f7e070;
+  --theme-accent-purple: #c77dff;
+  --theme-accent-red: #e86055;
+
+  --theme-card-backdrop: blur(12px);
+  --theme-card-radius: 1rem;
+  --theme-button-radius: 0.75rem;
+  --theme-input-radius: 0.5rem;
+
+  --theme-gradient-bg: #13100b;
+  --theme-gradient-orange: #f5a523;
+  --theme-gradient-blue: #7eb8e0;
+  --theme-gradient-emerald: #5fbd8b;
+  --theme-gradient-yellow: #f5d142;
+
+  --theme-shadow-sm: 0 2px 8px rgba(245, 165, 35, 0.08);
+  --theme-shadow-md: 0 4px 16px rgba(245, 165, 35, 0.14);
+  --theme-shadow-lg: 0 8px 32px rgba(245, 165, 35, 0.18);
+  --theme-shadow-glow-orange: 0 0 24px rgba(245, 165, 35, 0.35);
+  --theme-shadow-glow-blue: 0 0 24px rgba(126, 184, 224, 0.35);
+
+  --theme-header-bg: #0e0c08;
+  --theme-footer-bg: #0e0c08;
+
+  --theme-scrollbar-track: #1d1710;
+  --theme-scrollbar-thumb: #4a3820;
+  --theme-scrollbar-thumb-hover: #6b5530;
+}
+
+/* Amakna: keep gradients and shadows alive (no de-gloss) */
+[data-theme="amakna"] .bg-gray-800\/40,
+[data-theme="amakna"] [class*="bg-gray-800"] {
+  background-color: rgba(29, 23, 16, 0.75) !important;
+}
+
+[data-theme="amakna"] [class*="bg-gray-900"] {
+  background-color: rgba(19, 16, 11, 0.9) !important;
+}
+
+[data-theme="amakna"] [class*="bg-gray-700"] {
+  background-color: rgba(38, 29, 19, 0.8) !important;
+}
+
+[data-theme="amakna"] [class*="border-gray-700"],
+[data-theme="amakna"] [class*="border-gray-600"] {
+  border-color: rgba(107, 78, 40, 0.5) !important;
+}
+
+[data-theme="amakna"] [class*="text-gray-100"],
+[data-theme="amakna"] [class*="text-gray-200"],
+[data-theme="amakna"] [class*="text-gray-300"] {
+  color: #f5e9cb !important;
+}
+
+[data-theme="amakna"] [class*="text-gray-400"],
+[data-theme="amakna"] [class*="text-gray-500"],
+[data-theme="amakna"] [class*="text-gray-600"] {
+  color: #8a7354 !important;
+}
+
+[data-theme="amakna"] [class*="rounded-2xl"],
+[data-theme="amakna"] [class*="rounded-xl"],
+[data-theme="amakna"] [class*="rounded-3xl"] {
+  border-radius: 1rem !important;
+}
+
+[data-theme="amakna"] [class*="rounded-lg"],
+[data-theme="amakna"] [class*="rounded-md"] {
+  border-radius: 0.75rem !important;
+}
+
 /* Apply theme-aware scrollbar globally */
 ::-webkit-scrollbar {
   width: 8px;

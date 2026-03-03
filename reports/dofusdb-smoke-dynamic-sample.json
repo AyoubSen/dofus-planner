@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-02-24T10:15:49.284Z",
+  "baseUrl": "https://api.dofusdb.fr",
+  "timeoutMs": 12000,
+  "totals": {
+    "total": 2,
+    "ok": 2,
+    "fail": 0,
+    "skipped": 0
+  },
+  "results": [
+    {
+      "endpoint": "/criterion/{criteria}",
+      "resolvedEndpoint": "/criterion/CS%3E0?$limit=1",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 290,
+      "contentType": "application/json; charset=utf-8",
+      "summary": {
+        "shape": "array",
+        "size": 1,
+        "sampleKeys": [
+          "0",
+          "1"
+        ]
+      }
+    },
+    {
+      "endpoint": "/img/maps/{scale}/{mapId}.jpg",
+      "resolvedEndpoint": "/img/maps/1/191106048.jpg",
+      "state": "ok",
+      "status": 200,
+      "ok": true,
+      "durationMs": 157,
+      "contentType": "image/jpeg",
+      "summary": {
+        "shape": "text/binary",
+        "preview": "����\u0000\u0010JFIF\u0000\u0001\u0001\u0000\u0000\u0001\u0000\u0001\u0000\u0000��\u0000C\u0000\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001��\u0000C\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001"
+      }
+    }
+  ]
+}
