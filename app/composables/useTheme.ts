@@ -30,7 +30,6 @@ export const useTheme = () => {
   const currentTheme = useState<ThemeType>('theme', () => 'minimal');
 
   const initTheme = () => {
-    // Only run on client
     if (import.meta.server) return;
 
     init();
@@ -55,21 +54,18 @@ export const useTheme = () => {
     currentTheme.value = theme;
     data.value.settings.theme = theme;
 
-    // Only access browser APIs on client
     if (import.meta.client) {
       localStorage.setItem('theme', theme);
       document.documentElement.setAttribute('data-theme', theme);
     }
   };
 
-  // Watch for theme changes (useful if theme changes from another component)
   watch(currentTheme, (newTheme) => {
     if (import.meta.client) {
       document.documentElement.setAttribute('data-theme', newTheme);
     }
   });
 
-  // Computed properties for theme-specific styling
   const isMinimal = computed(() => currentTheme.value === 'minimal');
   const isGraphite = computed(() => currentTheme.value === 'graphite');
   const isAmakna = computed(() => currentTheme.value === 'amakna');

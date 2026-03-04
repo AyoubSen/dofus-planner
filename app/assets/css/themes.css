@@ -253,6 +253,137 @@
   border-radius: 0.75rem !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   V2 THEMES — scoped to .v2-root
+   Defines --v2-* layout variables and overrides --theme-* vars
+   for the topbar dropdown components (ThemeSwitcher etc.)
+═══════════════════════════════════════════════════════════════ */
+
+/* Classic — warm dark gold, current v2 look */
+.v2-root,
+[data-v2-theme="classic"] .v2-root,
+.v2-root[data-v2-theme="classic"] {
+  --v2-bg: #0d0b07;
+  --v2-surface: #110e09;
+  --v2-surface-elevated: #1a1510;
+  --v2-accent: #f5a523;
+  --v2-accent-light: #f7c050;
+  --v2-accent-dark: #b86c08;
+  --v2-text: #f5e9cb;
+  --v2-text-secondary: #8a6940;
+  --v2-text-muted: #6b4e2a;
+  --v2-text-dim: #4a3820;
+  --v2-text-dimmer: #3d2e18;
+  --v2-text-hover: #d4aa70;
+  --v2-border: rgba(245, 165, 35, 0.13);
+  --v2-border-subtle: rgba(245, 165, 35, 0.08);
+  --v2-border-med: rgba(245, 165, 35, 0.18);
+  --v2-border-strong: rgba(245, 165, 35, 0.28);
+  --v2-border-focus: rgba(245, 165, 35, 0.45);
+  --v2-hover: rgba(245, 165, 35, 0.06);
+  --v2-hover-subtle: rgba(245, 165, 35, 0.04);
+  --v2-active: rgba(245, 165, 35, 0.10);
+  --v2-active-strong: rgba(245, 165, 35, 0.15);
+  --v2-glow: rgba(245, 165, 35, 0.07);
+  --v2-glow-strong: rgba(245, 165, 35, 0.28);
+  --v2-glow-focus: rgba(245, 165, 35, 0.08);
+  --v2-scrollbar: rgba(245, 165, 35, 0.15);
+  /* --theme-* overrides for header dropdown components */
+  --theme-bg-secondary: #110e09;
+  --theme-bg-tertiary: #1a1510;
+  --theme-border: rgba(245, 165, 35, 0.18);
+  --theme-border-hover: rgba(245, 165, 35, 0.35);
+  --theme-text-primary: #f5e9cb;
+  --theme-text-secondary: #8a6940;
+  --theme-text-muted: #5a4830;
+  --theme-accent-orange: #f5a523;
+  --theme-shadow-lg: 0 8px 32px rgba(0,0,0,.7), 0 0 40px rgba(245,165,35,.06);
+  --theme-card-radius: 0.75rem;
+  --theme-button-radius: 0.5rem;
+}
+
+/* Royal Green — deep forest emerald */
+[data-v2-theme="royal-green"] .v2-root,
+.v2-root[data-v2-theme="royal-green"] {
+  --v2-bg: #060d08;
+  --v2-surface: #091209;
+  --v2-surface-elevated: #0f1a10;
+  --v2-accent: #4ade80;
+  --v2-accent-light: #86efac;
+  --v2-accent-dark: #16a34a;
+  --v2-text: #e0f5e9;
+  --v2-text-secondary: #4d9e68;
+  --v2-text-muted: #2d6e3e;
+  --v2-text-dim: #1e4d2a;
+  --v2-text-dimmer: #143220;
+  --v2-text-hover: #a7f3c0;
+  --v2-border: rgba(74, 222, 128, 0.13);
+  --v2-border-subtle: rgba(74, 222, 128, 0.08);
+  --v2-border-med: rgba(74, 222, 128, 0.18);
+  --v2-border-strong: rgba(74, 222, 128, 0.28);
+  --v2-border-focus: rgba(74, 222, 128, 0.45);
+  --v2-hover: rgba(74, 222, 128, 0.06);
+  --v2-hover-subtle: rgba(74, 222, 128, 0.04);
+  --v2-active: rgba(74, 222, 128, 0.10);
+  --v2-active-strong: rgba(74, 222, 128, 0.15);
+  --v2-glow: rgba(74, 222, 128, 0.07);
+  --v2-glow-strong: rgba(74, 222, 128, 0.28);
+  --v2-glow-focus: rgba(74, 222, 128, 0.08);
+  --v2-scrollbar: rgba(74, 222, 128, 0.15);
+  --theme-bg-secondary: #091209;
+  --theme-bg-tertiary: #0f1a10;
+  --theme-border: rgba(74, 222, 128, 0.18);
+  --theme-border-hover: rgba(74, 222, 128, 0.35);
+  --theme-text-primary: #e0f5e9;
+  --theme-text-secondary: #4d9e68;
+  --theme-text-muted: #2d6e3e;
+  --theme-accent-orange: #4ade80;
+  --theme-shadow-lg: 0 8px 32px rgba(0,0,0,.7), 0 0 40px rgba(74,222,128,.06);
+  --theme-card-radius: 0.75rem;
+  --theme-button-radius: 0.5rem;
+}
+
+/* Midnight — deep ocean blue */
+[data-v2-theme="midnight"] .v2-root,
+.v2-root[data-v2-theme="midnight"] {
+  --v2-bg: #06090f;
+  --v2-surface: #080d18;
+  --v2-surface-elevated: #0d1525;
+  --v2-accent: #60a5fa;
+  --v2-accent-light: #93c5fd;
+  --v2-accent-dark: #2563eb;
+  --v2-text: #dbeafe;
+  --v2-text-secondary: #5b8fe0;
+  --v2-text-muted: #2e5090;
+  --v2-text-dim: #1e3a6e;
+  --v2-text-dimmer: #172554;
+  --v2-text-hover: #bfdbfe;
+  --v2-border: rgba(96, 165, 250, 0.13);
+  --v2-border-subtle: rgba(96, 165, 250, 0.08);
+  --v2-border-med: rgba(96, 165, 250, 0.18);
+  --v2-border-strong: rgba(96, 165, 250, 0.28);
+  --v2-border-focus: rgba(96, 165, 250, 0.45);
+  --v2-hover: rgba(96, 165, 250, 0.06);
+  --v2-hover-subtle: rgba(96, 165, 250, 0.04);
+  --v2-active: rgba(96, 165, 250, 0.10);
+  --v2-active-strong: rgba(96, 165, 250, 0.15);
+  --v2-glow: rgba(96, 165, 250, 0.07);
+  --v2-glow-strong: rgba(96, 165, 250, 0.28);
+  --v2-glow-focus: rgba(96, 165, 250, 0.08);
+  --v2-scrollbar: rgba(96, 165, 250, 0.15);
+  --theme-bg-secondary: #080d18;
+  --theme-bg-tertiary: #0d1525;
+  --theme-border: rgba(96, 165, 250, 0.18);
+  --theme-border-hover: rgba(96, 165, 250, 0.35);
+  --theme-text-primary: #dbeafe;
+  --theme-text-secondary: #5b8fe0;
+  --theme-text-muted: #2e5090;
+  --theme-accent-orange: #60a5fa;
+  --theme-shadow-lg: 0 8px 32px rgba(0,0,0,.7), 0 0 40px rgba(96,165,250,.06);
+  --theme-card-radius: 0.75rem;
+  --theme-button-radius: 0.5rem;
+}
+
 /* Apply theme-aware scrollbar globally */
 ::-webkit-scrollbar {
   width: 8px;
