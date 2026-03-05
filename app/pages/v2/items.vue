@@ -4,13 +4,13 @@
     <div class="v2-items-filters">
       <!-- Element -->
       <div class="v2-filter-group">
-        <span class="v2-filter-label">Element</span>
+        <span class="v2-filter-label">{{ $t('items.filters.elements.title') }}</span>
         <div class="v2-filter-chips">
           <button
             class="v2-fchip"
             :class="{ 'v2-fchip--on': !filters.element }"
             @click="setFilter('element', '')"
-          >All</button>
+          >{{ $t('items.filters.elements.all') }}</button>
           <button
             v-for="el in ELEMENTS"
             :key="el.name"
@@ -26,9 +26,9 @@
 
       <!-- Mode -->
       <div class="v2-filter-group">
-        <span class="v2-filter-label">Mode</span>
+        <span class="v2-filter-label">{{ $t('items.filters.mode.title') }}</span>
         <div class="v2-filter-chips">
-          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.mode }" @click="setFilter('mode', '')">All</button>
+          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.mode }" @click="setFilter('mode', '')">{{ $t('items.filters.mode.all') }}</button>
           <button
             v-for="m in MODES"
             :key="m"
@@ -41,9 +41,9 @@
 
       <!-- Level -->
       <div class="v2-filter-group">
-        <span class="v2-filter-label">Level</span>
+        <span class="v2-filter-label">{{ $t('items.filters.level.title') }}</span>
         <div class="v2-filter-chips">
-          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.level }" @click="setFilter('level', '')">All</button>
+          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.level }" @click="setFilter('level', '')">{{ $t('items.filters.level.all') }}</button>
           <button
             v-for="lv in LEVELS"
             :key="lv"
@@ -56,9 +56,9 @@
 
       <!-- Budget -->
       <div class="v2-filter-group">
-        <span class="v2-filter-label">Budget</span>
+        <span class="v2-filter-label">{{ $t('items.filters.budget.title') }}</span>
         <div class="v2-filter-chips">
-          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.budget }" @click="setFilter('budget', '')">All</button>
+          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.budget }" @click="setFilter('budget', '')">{{ $t('items.filters.budget.all') }}</button>
           <button
             v-for="b in BUDGETS"
             :key="b"
@@ -71,9 +71,9 @@
 
       <!-- Class -->
       <div class="v2-filter-group">
-        <span class="v2-filter-label">Class</span>
+        <span class="v2-filter-label">{{ $t('items.filters.classes.title') }}</span>
         <div class="v2-filter-chips">
-          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.classe }" @click="setFilter('classe', '')">All</button>
+          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.classe }" @click="setFilter('classe', '')">{{ $t('items.filters.classes.all') }}</button>
           <button
             v-for="cl in CLASSES"
             :key="cl.name"
@@ -92,25 +92,25 @@
     <div class="v2-items-stats" v-if="stats">
       <div class="v2-stat-card">
         <div class="v2-stat-card__val">{{ stats.totalEquipments }}</div>
-        <div class="v2-stat-card__label">Setups</div>
+        <div class="v2-stat-card__label">{{ $t('items.stats.totalEquipment') }}</div>
       </div>
       <div class="v2-stat-card">
         <div class="v2-stat-card__val">{{ stats.uniqueItems }}</div>
-        <div class="v2-stat-card__label">Unique items</div>
+        <div class="v2-stat-card__label">{{ $t('items.stats.uniqueItems') }}</div>
       </div>
       <div class="v2-stat-card">
         <div class="v2-stat-card__val">{{ stats.mostPopularSlot?.slot ?? '—' }}</div>
-        <div class="v2-stat-card__label">Most varied slot</div>
+        <div class="v2-stat-card__label">{{ $t('items.stats.mostVariedSlot') }}</div>
       </div>
       <div class="v2-stat-card">
         <div class="v2-stat-card__val">{{ stats.avgItemsPerSet.toFixed(1) }}</div>
-        <div class="v2-stat-card__label">Avg items / set</div>
+        <div class="v2-stat-card__label">{{ $t('items.stats.avgItemsPerSet') }}</div>
       </div>
     </div>
 
     <!-- Loading -->
     <div v-if="loading" class="v2-center-loader">
-      <div class="v2-spin" /> Loading equipment data…
+      <div class="v2-spin" /> {{ $t('items.loading') }}
     </div>
 
     <template v-else-if="stats">
@@ -134,20 +134,20 @@
         <!-- Header row -->
         <div class="v2-slot-head">
           <span class="v2-slot-head__title">
-            Most used — {{ $t(`items.slots.${activeSlot}`) }}
+            {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
           </span>
           <div class="v2-view-toggle">
-            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'grid' }" @click="viewMode = 'grid'" title="Grid">
+            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'grid' }" @click="viewMode = 'grid'" :title="$t('items.viewModes.grid')">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </button>
-            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'list' }" @click="viewMode = 'list'" title="List">
+            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'list' }" @click="viewMode = 'list'" :title="$t('items.viewModes.list')">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
             </button>
-            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'table' }" @click="viewMode = 'table'" title="Table">
+            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'table' }" @click="viewMode = 'table'" :title="$t('items.viewModes.table')">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
@@ -205,10 +205,10 @@
               <tr>
                 <th>#</th>
                 <th></th>
-                <th>Name</th>
-                <th class="text-right">Count</th>
+                <th>{{ $t('items.table.name') }}</th>
+                <th class="text-right">{{ $t('items.table.count') }}</th>
                 <th class="text-right">%</th>
-                <th>Distribution</th>
+                <th>{{ $t('items.table.distribution') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -234,7 +234,7 @@
         </div>
 
         <div v-if="currentSlotStats.topItems.length === 0" class="v2-empty-full">
-          No data for this slot with the current filters.
+          {{ $t('items.noData') }}
         </div>
       </div>
 
@@ -424,7 +424,7 @@ onMounted(fetchData)
 /* ── Filters ─────────────────────────────────────────────── */
 .v2-items-filters {
   display: flex; flex-direction: column; gap: .625rem;
-  background: rgba(245,165,35,.03); border: 1px solid rgba(245,165,35,.1);
+  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
   border-radius: 14px; padding: .875rem 1rem; margin-bottom: .875rem;
 }
 
@@ -433,7 +433,7 @@ onMounted(fetchData)
 }
 
 .v2-filter-label {
-  font-size: .6875rem; font-weight: 700; color: #7a5c38;
+  font-size: .6875rem; font-weight: 700; color: var(--v2-text-secondary);
   text-transform: uppercase; letter-spacing: .04em;
   min-width: 52px; flex-shrink: 0;
 }
@@ -442,12 +442,12 @@ onMounted(fetchData)
 
 .v2-fchip {
   padding: .25rem .625rem; border-radius: 7px;
-  border: 1px solid rgba(245,165,35,.12); background: transparent;
-  color: #6b4e2a; font-size: .75rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--v2-border); background: transparent;
+  color: var(--v2-text-muted); font-size: .75rem; font-weight: 500; cursor: pointer;
   transition: all .15s; white-space: nowrap;
 }
-.v2-fchip:hover { border-color: rgba(245,165,35,.3); color: #d4aa70; }
-.v2-fchip--on { background: rgba(245,165,35,.18); border-color: rgba(245,165,35,.4); color: #f5e9cb; }
+.v2-fchip:hover { border-color: var(--v2-border-strong); color: var(--v2-text-hover); }
+.v2-fchip--on { background: var(--v2-active-strong); border-color: var(--v2-border-focus); color: var(--v2-text); }
 .v2-fchip--icon { padding: .25rem .375rem; }
 
 /* ── Stats strip ─────────────────────────────────────────── */
@@ -458,76 +458,76 @@ onMounted(fetchData)
 @media (max-width: 640px) { .v2-items-stats { grid-template-columns: repeat(2, 1fr); } }
 
 .v2-stat-card {
-  background: rgba(245,165,35,.04); border: 1px solid rgba(245,165,35,.1);
+  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
   border-radius: 12px; padding: .875rem 1rem; text-align: center;
 }
-.v2-stat-card__val { font-size: 1.375rem; font-weight: 800; color: #f5a523; line-height: 1.2; }
-.v2-stat-card__label { font-size: .6875rem; color: #7a5c38; margin-top: 2px; }
+.v2-stat-card__val { font-size: 1.375rem; font-weight: 800; color: var(--v2-accent); line-height: 1.2; }
+.v2-stat-card__label { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 2px; }
 
 /* ── Loader ──────────────────────────────────────────────── */
 .v2-center-loader {
   display: flex; align-items: center; justify-content: center;
-  gap: .75rem; padding: 5rem; color: #7a5c38; font-size: .9375rem;
+  gap: .75rem; padding: 5rem; color: var(--v2-text-secondary); font-size: .9375rem;
 }
 .v2-spin {
   width: 22px; height: 22px; flex-shrink: 0;
-  border: 2px solid rgba(245,165,35,.15); border-top-color: #f5a523;
+  border: 2px solid var(--v2-border-med); border-top-color: var(--v2-accent);
   border-radius: 50%; animation: vspin .8s linear infinite;
 }
 @keyframes vspin { to { transform: rotate(360deg); } }
 
 .v2-empty-full {
-  text-align: center; color: #5a4830; font-size: .9375rem; padding: 2rem;
+  text-align: center; color: var(--v2-text-dim); font-size: .9375rem; padding: 2rem;
 }
 
 /* ── Slot tabs ───────────────────────────────────────────── */
 .v2-slot-tabs {
   display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: .75rem;
-  background: rgba(0,0,0,.15); border: 1px solid rgba(245,165,35,.08);
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle);
   border-radius: 12px; padding: .375rem;
 }
 .v2-slot-tab {
   display: flex; align-items: center; gap: .375rem;
   padding: .375rem .625rem; border-radius: 8px; border: none;
-  background: transparent; color: #7a5c38; font-size: .8125rem;
+  background: transparent; color: var(--v2-text-secondary); font-size: .8125rem;
   cursor: pointer; transition: all .15s; white-space: nowrap;
 }
-.v2-slot-tab:hover { background: rgba(245,165,35,.08); color: #d4aa70; }
-.v2-slot-tab--on { background: rgba(245,165,35,.18); color: #f5e9cb; font-weight: 600; }
+.v2-slot-tab:hover { background: var(--v2-border-subtle); color: var(--v2-text-hover); }
+.v2-slot-tab--on { background: var(--v2-active-strong); color: var(--v2-text); font-weight: 600; }
 .v2-slot-tab__icon { font-size: .875rem; line-height: 1; }
 .v2-slot-tab__label { font-size: .8125rem; }
 .v2-slot-tab__count {
-  font-size: .625rem; background: rgba(245,165,35,.12); color: #f5a523;
+  font-size: .625rem; background: var(--v2-border); color: var(--v2-accent);
   padding: .0625rem .3125rem; border-radius: 999px; font-weight: 600;
 }
 
 /* ── Slot content header ─────────────────────────────────── */
 .v2-slot-content {
-  background: rgba(245,165,35,.03); border: 1px solid rgba(245,165,35,.1);
+  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
   border-radius: 14px; padding: 1rem;
 }
 .v2-slot-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: .875rem; flex-wrap: wrap; gap: .5rem;
 }
-.v2-slot-head__title { font-size: .9375rem; font-weight: 700; color: #d4aa70; }
+.v2-slot-head__title { font-size: .9375rem; font-weight: 700; color: var(--v2-text-hover); }
 
 .v2-view-toggle { display: flex; gap: 2px; background: rgba(0,0,0,.2); border-radius: 8px; padding: 2px; }
 .v2-view-btn {
   width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-  border-radius: 6px; border: none; background: transparent; color: #5a4830;
+  border-radius: 6px; border: none; background: transparent; color: var(--v2-text-dim);
   cursor: pointer; transition: all .15s;
 }
-.v2-view-btn:hover { color: #d4aa70; }
-.v2-view-btn--on { background: rgba(245,165,35,.18); color: #f5e9cb; }
+.v2-view-btn:hover { color: var(--v2-text-hover); }
+.v2-view-btn--on { background: var(--v2-active-strong); color: var(--v2-text); }
 
 /* ── Progress bar (shared) ───────────────────────────────── */
 .v2-item-bar {
-  height: 5px; background: rgba(245,165,35,.08); border-radius: 999px; overflow: hidden; margin-top: 4px;
+  height: 5px; background: var(--v2-border-subtle); border-radius: 999px; overflow: hidden; margin-top: 4px;
 }
 .v2-item-bar--sm { height: 4px; margin-top: 0; flex: 1; }
 .v2-item-bar__fill {
-  height: 100%; background: linear-gradient(90deg, #f5a523, #f7c050);
+  height: 100%; background: linear-gradient(90deg, var(--v2-accent), var(--v2-accent-light));
   border-radius: 999px; transition: width .4s ease;
 }
 
@@ -538,51 +538,51 @@ onMounted(fetchData)
   gap: .625rem;
 }
 .v2-item-card {
-  background: rgba(0,0,0,.18); border: 1px solid rgba(245,165,35,.08);
+  background: rgba(0,0,0,.18); border: 1px solid var(--v2-border-subtle);
   border-radius: 12px; padding: .75rem .625rem;
   display: flex; flex-direction: column; align-items: center; gap: .25rem;
   transition: border-color .18s;
 }
-.v2-item-card:hover { border-color: rgba(245,165,35,.25); }
+.v2-item-card:hover { border-color: var(--v2-border-strong); }
 .v2-item-card__rank {
-  font-size: .625rem; font-weight: 700; color: #f5a523;
-  background: rgba(245,165,35,.12); padding: .125rem .375rem; border-radius: 999px;
+  font-size: .625rem; font-weight: 700; color: var(--v2-accent);
+  background: var(--v2-border); padding: .125rem .375rem; border-radius: 999px;
   align-self: flex-start;
 }
 .v2-item-card__img-wrap {
   width: 52px; height: 52px; background: rgba(0,0,0,.2);
-  border: 1px solid rgba(245,165,35,.1); border-radius: 8px;
+  border: 1px solid var(--v2-active); border-radius: 8px;
   display: flex; align-items: center; justify-content: center; overflow: hidden;
 }
 .v2-item-card__img { width: 100%; height: 100%; object-fit: cover; }
-.v2-item-card__img-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #3d2e1a; }
+.v2-item-card__img-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--v2-text-dim); }
 .v2-item-card__name {
-  font-size: .75rem; font-weight: 600; color: #f5e9cb;
+  font-size: .75rem; font-weight: 600; color: var(--v2-text);
   text-align: center; line-height: 1.3; width: 100%;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.v2-item-card__usage { font-size: .6875rem; color: #6b4e2a; }
+.v2-item-card__usage { font-size: .6875rem; color: var(--v2-text-muted); }
 
 /* ── List view ───────────────────────────────────────────── */
 .v2-items-list { display: flex; flex-direction: column; gap: 4px; }
 .v2-item-row {
   display: flex; align-items: center; gap: .625rem;
   padding: .5rem .625rem; border-radius: 9px;
-  background: rgba(0,0,0,.15); border: 1px solid rgba(245,165,35,.07);
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-glow);
   transition: border-color .15s;
 }
-.v2-item-row:hover { border-color: rgba(245,165,35,.2); }
-.v2-item-row__rank { font-size: .75rem; font-weight: 700; color: #f5a523; min-width: 28px; }
+.v2-item-row:hover { border-color: var(--v2-border-med); }
+.v2-item-row__rank { font-size: .75rem; font-weight: 700; color: var(--v2-accent); min-width: 28px; }
 .v2-item-row__img-wrap {
   width: 32px; height: 32px; flex-shrink: 0; border-radius: 7px;
   background: rgba(0,0,0,.2); overflow: hidden;
 }
 .v2-item-row__img { width: 100%; height: 100%; object-fit: cover; }
-.v2-item-row__img-ph { width: 100%; height: 100%; background: rgba(245,165,35,.05); }
-.v2-item-row__name { flex: 1; font-size: .875rem; font-weight: 600; color: #f5e9cb; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2-item-row__img-ph { width: 100%; height: 100%; background: var(--v2-hover); }
+.v2-item-row__name { flex: 1; font-size: .875rem; font-weight: 600; color: var(--v2-text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v2-item-row__bar-wrap { flex: 1; min-width: 60px; max-width: 200px; }
-.v2-item-row__count { font-size: .8125rem; color: #d4aa70; font-weight: 600; min-width: 32px; text-align: right; }
-.v2-item-row__pct { font-size: .75rem; color: #7a5c38; min-width: 42px; text-align: right; }
+.v2-item-row__count { font-size: .8125rem; color: var(--v2-text-hover); font-weight: 600; min-width: 32px; text-align: right; }
+.v2-item-row__pct { font-size: .75rem; color: var(--v2-text-secondary); min-width: 42px; text-align: right; }
 
 /* ── Table view ──────────────────────────────────────────── */
 .v2-items-table-wrap { overflow-x: auto; }
@@ -590,26 +590,29 @@ onMounted(fetchData)
   width: 100%; border-collapse: collapse;
 }
 .v2-items-table thead tr {
-  border-bottom: 1px solid rgba(245,165,35,.1);
+  border-bottom: 1px solid var(--v2-active);
 }
 .v2-items-table th {
   padding: .5rem .75rem; font-size: .6875rem; font-weight: 700;
-  color: #7a5c38; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--v2-text-secondary); text-transform: uppercase; letter-spacing: .04em;
   text-align: left; white-space: nowrap;
 }
 .v2-items-table tbody tr {
-  border-bottom: 1px solid rgba(245,165,35,.05); transition: background .12s;
+  border-bottom: 1px solid var(--v2-hover); transition: background .12s;
 }
-.v2-items-table tbody tr:hover { background: rgba(245,165,35,.04); }
+.v2-items-table tbody tr:hover { background: var(--v2-hover-subtle); }
 .v2-items-table td { padding: .5rem .75rem; }
-.v2-table-rank { font-size: .875rem; font-weight: 700; color: #f5a523; }
+.v2-table-rank { font-size: .875rem; font-weight: 700; color: var(--v2-accent); }
 .v2-table-img-wrap {
   width: 36px; height: 36px; border-radius: 7px;
   background: rgba(0,0,0,.2); overflow: hidden;
 }
 .v2-table-img { width: 100%; height: 100%; object-fit: cover; }
-.v2-table-img-ph { width: 100%; height: 100%; background: rgba(245,165,35,.05); }
-.v2-table-name { font-size: .875rem; font-weight: 600; color: #f5e9cb; min-width: 160px; }
-.v2-table-num { font-size: .875rem; color: #d4aa70; font-weight: 600; }
-.v2-table-pct { font-size: .8125rem; color: #f5a523; font-weight: 600; white-space: nowrap; }
+.v2-table-img-ph { width: 100%; height: 100%; background: var(--v2-hover); }
+.v2-table-name { font-size: .875rem; font-weight: 600; color: var(--v2-text); min-width: 160px; }
+.v2-table-num { font-size: .875rem; color: var(--v2-text-hover); font-weight: 600; }
+.v2-table-pct { font-size: .8125rem; color: var(--v2-accent); font-weight: 600; white-space: nowrap; }
 </style>
+
+
+

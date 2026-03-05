@@ -14,16 +14,16 @@
         </div>
         <div>
           <h1 class="v2-dash-hero__title">
-            {{ hasContext ? `Welcome back, ${selectedCharacter?.name}` : 'Welcome to Dofus Tools' }}
+            {{ hasContext ? t('v2.dashboard.welcomeBack', { name: selectedCharacter?.name }) : t('v2.dashboard.welcome') }}
           </h1>
           <p class="v2-dash-hero__sub">
             {{ hasContext
               ? `${selectedCharacter?.class} · ${selectedServer?.name}`
-              : 'Click the character button in the sidebar to get started' }}
+              : t('v2.dashboard.startHint') }}
           </p>
         </div>
       </div>
-      <div class="v2-topbar__badge" style="font-size:0.75rem;padding:0.25rem 0.625rem;">v2 beta</div>
+      <div class="v2-topbar__badge" style="font-size:0.75rem;padding:0.25rem 0.625rem;">{{ t('v2.dashboard.beta') }}</div>
     </div>
 
     <!-- Stats grid -->
@@ -53,8 +53,8 @@
         </div>
         <div class="v2-stat-card__body">
           <div class="v2-stat-card__value">{{ salesCount }}</div>
-          <div class="v2-stat-card__label">Items sold</div>
-          <div class="v2-stat-card__sub">{{ formatKamas(totalKamas) }} kamas earned</div>
+          <div class="v2-stat-card__label">{{ t('v2.dashboard.itemsSold') }}</div>
+          <div class="v2-stat-card__sub">{{ t('v2.dashboard.kamasEarned', { amount: formatKamas(totalKamas) }) }}</div>
         </div>
       </div>
 
@@ -66,8 +66,8 @@
         </div>
         <div class="v2-stat-card__body">
           <div class="v2-stat-card__value">{{ allCharCount }}</div>
-          <div class="v2-stat-card__label">Characters</div>
-          <div class="v2-stat-card__sub">across {{ servers.length }} server{{ servers.length !== 1 ? 's' : '' }}</div>
+          <div class="v2-stat-card__label">{{ t('v2.dashboard.characters') }}</div>
+          <div class="v2-stat-card__sub">{{ t('v2.dashboard.acrossServers', { count: servers.length }) }}</div>
         </div>
       </div>
 
@@ -79,8 +79,8 @@
         </div>
         <div class="v2-stat-card__body">
           <div class="v2-stat-card__value">{{ monstersPercent }}<span style="font-size:1.1rem">%</span></div>
-          <div class="v2-stat-card__label">Overall completion</div>
-          <div class="v2-stat-card__sub">{{ monstersCompleted }} monsters collected</div>
+          <div class="v2-stat-card__label">{{ t('v2.dashboard.overallCompletion') }}</div>
+          <div class="v2-stat-card__sub">{{ t('v2.dashboard.monstersCollected', { count: monstersCompleted }) }}</div>
         </div>
       </div>
     </div>
@@ -90,17 +90,17 @@
       <!-- Recent sales -->
       <div class="v2-card v2-dash-panel">
         <div class="v2-dash-panel__header">
-          <h2 class="v2-dash-panel__title">Recent Sales</h2>
-          <NuxtLink :to="localePath('/v2/items')" class="v2-dash-panel__link">View all →</NuxtLink>
+          <h2 class="v2-dash-panel__title">{{ t('v2.dashboard.recentSales') }}</h2>
+          <NuxtLink :to="localePath('/v2/items')" class="v2-dash-panel__link">{{ t('v2.dashboard.viewAll') }} →</NuxtLink>
         </div>
 
         <div v-if="recentSales.length === 0" class="v2-dash-empty">
           <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.2">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
-          <p>No sales recorded yet</p>
+          <p>{{ t('v2.dashboard.noSales') }}</p>
           <NuxtLink :to="localePath('/v2/items')" class="v2-btn-gold mt-3 px-4 py-2 text-sm font-semibold inline-block">
-            Track first sale →
+            {{ t('v2.dashboard.trackFirstSale') }} →
           </NuxtLink>
         </div>
 
@@ -119,7 +119,7 @@
               </svg>
             </div>
             <div class="v2-dash-sale__info">
-              <div class="v2-dash-sale__name">{{ sale.item?.name?.fr || sale.item?.name?.en || 'Item' }}</div>
+              <div class="v2-dash-sale__name">{{ sale.item?.name?.fr || sale.item?.name?.en || t('v2.dashboard.itemFallback') }}</div>
               <div class="v2-dash-sale__meta">{{ sale.character }} · {{ formatDate(sale.dateSold) }}</div>
             </div>
             <div class="v2-dash-sale__price">{{ formatKamas(sale.price) }}</div>
@@ -129,7 +129,7 @@
 
       <!-- Quick nav -->
       <div>
-        <h2 class="v2-dash-panel__title" style="margin-bottom:0.875rem">Quick Access</h2>
+        <h2 class="v2-dash-panel__title" style="margin-bottom:0.875rem">{{ t('v2.dashboard.quickAccess') }}</h2>
         <div class="v2-dash-quicknav">
           <NuxtLink
             v-for="item in quickItems"
@@ -156,12 +156,13 @@
 definePageMeta({ layout: 'v2' })
 
 const localePath = useLocalePath()
+const { t } = useI18n()
 const { data } = useAppDataStore()
 const { servers, selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 
 const COLORS = ['#b85c38','#3873b8','#38a868','#8838b8','#b89038','#38a8b8','#b8386e','#6888b8']
 const charColor = computed(() => {
-  if (!selectedCharacter.value) return '#5a4830'
+  if (!selectedCharacter.value) return 'var(--v2-text-dim)'
   const h = selectedCharacter.value.id.split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0)
   return COLORS[h % COLORS.length]
 })
@@ -193,9 +194,9 @@ const formatKamas = (n: number) => {
 }
 const formatDate = (d: string) => {
   const diff = Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000)
-  if (diff === 0) return 'Today'
-  if (diff === 1) return 'Yesterday'
-  if (diff < 7) return `${diff}d ago`
+  if (diff === 0) return t('v2.dashboard.today')
+  if (diff === 1) return t('v2.dashboard.yesterday')
+  if (diff < 7) return t('v2.dashboard.daysAgo', { count: diff })
   return new Date(d).toLocaleDateString()
 }
 
@@ -230,8 +231,8 @@ watch([selectedCharacter, selectedServer], loadMonsterStats)
   justify-content: space-between;
   padding: 1.375rem 1.5rem;
   border-radius: 16px;
-  border: 1px solid rgba(245,165,35,.1);
-  background: rgba(245,165,35,.025);
+  border: 1px solid var(--v2-active);
+  background: var(--v2-hover-subtle);
   margin-bottom: 1rem;
   gap: 1rem;
 }
@@ -240,12 +241,12 @@ watch([selectedCharacter, selectedServer], loadMonsterStats)
   width: 52px; height: 52px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.5rem; font-weight: 800; color: white; flex-shrink: 0;
-  background: rgba(245,165,35,.1);
-  border: 1px dashed rgba(245,165,35,.2);
-  color: #7a5c38;
+  background: var(--v2-active);
+  border: 1px dashed var(--v2-border-med);
+  color: var(--v2-text-secondary);
 }
-.v2-dash-hero__title { font-size: 1.375rem; font-weight: 800; color: #f5e9cb; letter-spacing: -.02em; }
-.v2-dash-hero__sub { font-size: .875rem; color: #7a5c38; margin-top: .125rem; }
+.v2-dash-hero__title { font-size: 1.375rem; font-weight: 800; color: var(--v2-text); letter-spacing: -.02em; }
+.v2-dash-hero__sub { font-size: .875rem; color: var(--v2-text-secondary); margin-top: .125rem; }
 
 .v2-dash-stats {
   display: grid;
@@ -259,21 +260,21 @@ watch([selectedCharacter, selectedServer], loadMonsterStats)
 .v2-stat-card {
   display: flex; align-items: flex-start; gap: .875rem;
   padding: 1rem 1.125rem;
-  background: rgba(245,165,35,.03);
-  border: 1px solid rgba(245,165,35,.1);
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-active);
   border-radius: 14px;
   transition: border-color .2s;
 }
-.v2-stat-card:hover { border-color: rgba(245,165,35,.22); }
+.v2-stat-card:hover { border-color: var(--v2-border-strong); }
 .v2-stat-card__icon {
   width: 40px; height: 40px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .v2-stat-card__body { flex: 1; min-width: 0; }
-.v2-stat-card__value { font-size: 1.875rem; font-weight: 800; color: #f5e9cb; line-height: 1; letter-spacing: -.03em; }
-.v2-stat-card__of { font-size: 1rem; font-weight: 500; color: #4a3820; }
-.v2-stat-card__label { font-size: .8125rem; color: #7a5c38; margin-top: .25rem; font-weight: 500; }
-.v2-stat-card__sub { font-size: .75rem; color: #5a4830; margin-top: .125rem; }
+.v2-stat-card__value { font-size: 1.875rem; font-weight: 800; color: var(--v2-text); line-height: 1; letter-spacing: -.03em; }
+.v2-stat-card__of { font-size: 1rem; font-weight: 500; color: var(--v2-text-dimmer); }
+.v2-stat-card__label { font-size: .8125rem; color: var(--v2-text-secondary); margin-top: .25rem; font-weight: 500; }
+.v2-stat-card__sub { font-size: .75rem; color: var(--v2-text-dim); margin-top: .125rem; }
 
 .v2-dash-bottom {
   display: grid;
@@ -285,13 +286,13 @@ watch([selectedCharacter, selectedServer], loadMonsterStats)
 
 .v2-dash-panel { padding: 1.25rem; }
 .v2-dash-panel__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.v2-dash-panel__title { font-size: 1rem; font-weight: 700; color: #f5e9cb; }
-.v2-dash-panel__link { font-size: .8125rem; color: #f5a523; text-decoration: none; opacity: .8; }
+.v2-dash-panel__title { font-size: 1rem; font-weight: 700; color: var(--v2-text); }
+.v2-dash-panel__link { font-size: .8125rem; color: var(--v2-accent); text-decoration: none; opacity: .8; }
 .v2-dash-panel__link:hover { opacity: 1; }
 
 .v2-dash-empty {
   display: flex; flex-direction: column; align-items: center;
-  padding: 2.5rem; color: #5a4830; font-size: .875rem; text-align: center;
+  padding: 2.5rem; color: var(--v2-text-dim); font-size: .875rem; text-align: center;
 }
 
 .v2-dash-sales { display: flex; flex-direction: column; gap: 2px; }
@@ -299,35 +300,38 @@ watch([selectedCharacter, selectedServer], loadMonsterStats)
   display: flex; align-items: center; gap: .75rem;
   padding: .5rem .625rem; border-radius: 10px; transition: background .15s;
 }
-.v2-dash-sale:hover { background: rgba(245,165,35,.05); }
+.v2-dash-sale:hover { background: var(--v2-hover); }
 .v2-dash-sale__img {
   width: 38px; height: 38px; border-radius: 9px;
-  background: rgba(245,165,35,.08); overflow: hidden;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #5a4830;
+  background: var(--v2-border-subtle); overflow: hidden;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--v2-text-dim);
 }
 .v2-dash-sale__info { flex: 1; min-width: 0; }
-.v2-dash-sale__name { font-size: .875rem; font-weight: 600; color: #f5e9cb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.v2-dash-sale__meta { font-size: .6875rem; color: #6b4e2a; }
-.v2-dash-sale__price { font-size: .9375rem; font-weight: 700; color: #f5a523; white-space: nowrap; flex-shrink: 0; }
+.v2-dash-sale__name { font-size: .875rem; font-weight: 600; color: var(--v2-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2-dash-sale__meta { font-size: .6875rem; color: var(--v2-text-muted); }
+.v2-dash-sale__price { font-size: .9375rem; font-weight: 700; color: var(--v2-accent); white-space: nowrap; flex-shrink: 0; }
 
 .v2-dash-quicknav { display: flex; flex-direction: column; gap: .5rem; }
 .v2-dash-quicklink {
   display: flex; align-items: center; gap: .875rem;
   padding: .875rem 1rem; border-radius: 12px;
-  border: 1px solid rgba(245,165,35,.08);
-  background: rgba(245,165,35,.02);
+  border: 1px solid var(--v2-border-subtle);
+  background: var(--v2-hover-subtle);
   text-decoration: none; transition: all .18s;
 }
 .v2-dash-quicklink:hover {
-  border-color: var(--c, rgba(245,165,35,.35));
-  background: rgba(245,165,35,.05);
+  border-color: var(--c, var(--v2-border-strong));
+  background: var(--v2-hover);
   transform: translateX(2px);
 }
 .v2-dash-quicklink__icon {
   width: 38px; height: 38px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.v2-dash-quicklink__label { flex: 1; font-size: .9375rem; font-weight: 600; color: #f5e9cb; text-transform: capitalize; }
-.v2-dash-quicklink__arrow { color: #5a4830; flex-shrink: 0; }
-.v2-dash-quicklink:hover .v2-dash-quicklink__arrow { color: #f5a523; }
+.v2-dash-quicklink__label { flex: 1; font-size: .9375rem; font-weight: 600; color: var(--v2-text); text-transform: capitalize; }
+.v2-dash-quicklink__arrow { color: var(--v2-text-dim); flex-shrink: 0; }
+.v2-dash-quicklink:hover .v2-dash-quicklink__arrow { color: var(--v2-accent); }
 </style>
+
+
+

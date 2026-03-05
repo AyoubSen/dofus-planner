@@ -1,0 +1,216 @@
+{
+  "constants": {
+    "totalXP": 179592,
+    "xpPerKibble": 500
+  },
+  "zones": [
+    {
+      "id": "champs-de-glace",
+      "name": "Champs de Glace",
+      "items": [
+        { "name": "Clavicule de Boufmouth", "xp": 11 },
+        { "name": "Oeil de Boufmouth de guerre", "xp": 11 },
+        { "name": "Cuir de Bouftonmouth", "xp": 10 },
+        { "name": "Queue de Boufmouth Légendaire", "xp": 13 }
+      ]
+    },
+    {
+      "id": "lac-gelee",
+      "name": "Lac Gelée",
+      "items": [
+        { "name": "Huile de Mamansot", "xp": 19 },
+        { "name": "Bec du Timansot", "xp": 16 },
+        { "name": "Oreille du Fu Mansot", "xp": 20 },
+        { "name": "Aile de Mansebèse", "xp": 18 },
+        { "name": "Arête géante du Shamansot", "xp": 19 }
+      ]
+    },
+    {
+      "id": "foret-pins-perdus",
+      "name": "Forêt des Pins Perdus",
+      "items": [
+        { "name": "Oeil torve de Fricochere", "xp": 19 },
+        { "name": "Défense du Sanglacier", "xp": 17 },
+        { "name": "Dent de Smilomouth", "xp": 17 },
+        { "name": "Gland d'Ecumouth", "xp": 16 },
+        { "name": "Etoffe de Kaniglou", "xp": 20 }
+      ]
+    },
+    {
+      "id": "berceau-alma",
+      "name": "Berceau d'Alma",
+      "items": [
+        { "name": "Oeil de Vigie pirate", "xp": 28 },
+        { "name": "Dent de Fantomat", "xp": 33 },
+        { "name": "Coquille de Harpirate", "xp": 24 },
+        { "name": "Corde de Fancrome", "xp": 24 },
+        { "name": "Huile de Fantimonier", "xp": 24 },
+        { "name": "Bouée de Fantomalamare", "xp": 24 },
+        { "name": "Mât de Fantomat", "xp": 4.1 }
+      ]
+    },
+    {
+      "id": "larmes-ouronigride",
+      "name": "Larmes d'Ouronigride",
+      "items": [
+        { "name": "Ulna de Solfataré", "xp": 31 },
+        { "name": "Artefact de Fumrirolle", "xp": 34 },
+        { "name": "Tephra d'Atomystique", "xp": 34 },
+        { "name": "Oeuf de Crapeur", "xp": 36 },
+        { "name": "Tuf de Mofette", "xp": 9 }
+      ]
+    },
+    {
+      "id": "crevasse-perge",
+      "name": "Crevasse Pergé",
+      "items": [
+        { "name": "Cornée de Kami Givrefoux", "xp": 40 },
+        { "name": "Patte de Soryo Givrefoux", "xp": 40 },
+        { "name": "Crâne de Yokai Givrefoux", "xp": 40 },
+        { "name": "Cuir de Maho Givrefoux", "xp": 40 },
+        { "name": "Queue de Yomi Givrefoux", "xp": 40 }
+      ]
+    },
+    {
+      "id": "foret-petrifiee",
+      "name": "Forêt Pétrifiée",
+      "items": [
+        { "name": "Patte de Korriandre", "xp": 48 },
+        { "name": "Oreille de Fistulor", "xp": 51 },
+        { "name": "Pédoncule de Fongeur", "xp": 51 },
+        { "name": "Pédoncule de Merulette", "xp": 51 },
+        { "name": "Oeil de Dramanite", "xp": 51 },
+        { "name": "Racine d'Abrazif", "xp": 51 }
+      ]
+    },
+    {
+      "id": "croc-de-verre",
+      "name": "Croc de Verre",
+      "items": [
+        { "name": "Griffe de Kolosso", "xp": 61 },
+        { "name": "Manubrium de Wolvero", "xp": 67 },
+        { "name": "Etoffe de Croleur", "xp": 67 },
+        { "name": "Oreille de Blerice", "xp": 67 },
+        { "name": "Poil de Blérauve", "xp": 67 },
+        { "name": "Queue de Blerom", "xp": 67 },
+        { "name": "Oeil de Fleuro", "xp": 69 }
+      ]
+    },
+    {
+      "id": "mont-torrideau",
+      "name": "Mont Torrideau",
+      "items": [
+        { "name": "Calcaneus de Meliglours", "xp": 75 },
+        { "name": "Aile de Gloursaya", "xp": 75 },
+        { "name": "Laine de Glouragan", "xp": 75 },
+        { "name": "Etoffe de Glourmand", "xp": 75 },
+        { "name": "Vomer d'Aperiglours", "xp": 75 },
+        { "name": "Iris de Boulglours", "xp": 75 }
+      ]
+    },
+    {
+      "id": "sylargh",
+      "name": "Frigost 3 — Sylargh",
+      "items": [
+        { "name": "Incisive de Sylargh", "xp": 506 },
+        { "name": "Griffe de Kanimate", "xp": 101 },
+        { "name": "Queue de Brikoglours", "xp": 101 },
+        { "name": "Sternum de Mansordide", "xp": 101 },
+        { "name": "Oreille de Mecanofoux", "xp": 101 },
+        { "name": "Laine de Sylargh", "xp": 84 },
+        { "name": "Canine de Kanimate", "xp": 16.8 },
+        { "name": "Maxillaire de Brikoglours", "xp": 16.8 },
+        { "name": "Bec de Mansordide", "xp": 16.8 },
+        { "name": "Astragale de Mecanofoux", "xp": 16.8 },
+        { "name": "Volve de Mérulor", "xp": 16.8 }
+      ]
+    },
+    {
+      "id": "klime",
+      "name": "Frigost 3 — Klime",
+      "items": [
+        { "name": "Scalp de Klime", "xp": 506 },
+        { "name": "Dent de Cuirboule", "xp": 101 },
+        { "name": "Etoffe de Grodruche", "xp": 101 },
+        { "name": "Culotte de Harrogant", "xp": 101 },
+        { "name": "Coeur d'Empaillé", "xp": 101 },
+        { "name": "Cervelle de Peunch", "xp": 101 },
+        { "name": "Moustache de Klime", "xp": 84 },
+        { "name": "Cuir de Cuirboule", "xp": 16.8 },
+        { "name": "Cuir de Grodruche", "xp": 16.8 },
+        { "name": "Oeil de Harrogant", "xp": 16.8 },
+        { "name": "Cuir d'Empaillé", "xp": 16.8 },
+        { "name": "Cuir de Peunch", "xp": 16.8 }
+      ]
+    },
+    {
+      "id": "nileza",
+      "name": "Frigost 3 — Nileza",
+      "items": [
+        { "name": "Braguette de Nileza", "xp": 506 },
+        { "name": "Carapace de Termystique", "xp": 101 },
+        { "name": "Sépale de Droséréle", "xp": 101 },
+        { "name": "Crinière de Krakal", "xp": 101 },
+        { "name": "Bec de Dodox", "xp": 101 },
+        { "name": "Molaire de Nessil", "xp": 101 },
+        { "name": "Broderie de Nileza", "xp": 84 },
+        { "name": "Patte de Termystique", "xp": 16.8 },
+        { "name": "Bracté de Droséréle", "xp": 16.8 },
+        { "name": "Canine de Krakal", "xp": 16.8 },
+        { "name": "Plume de Dodox", "xp": 16.8 },
+        { "name": "Bave de Nessil", "xp": 16.8 }
+      ]
+    },
+    {
+      "id": "missiz-frizz",
+      "name": "Frigost 3 — Missiz Frizz",
+      "items": [
+        { "name": "Moustache de Frimar", "xp": 101 },
+        { "name": "Malleus de Karkanik", "xp": 101 },
+        { "name": "Ethmoide de Stalak", "xp": 101 },
+        { "name": "Molaire de Ventrublion", "xp": 101 },
+        { "name": "Cervelle de Verglasseur", "xp": 101 },
+        { "name": "Poil d'aisselle de Missiz Frizz", "xp": 84 },
+        { "name": "Stapes de Frimar", "xp": 16.8 },
+        { "name": "Sang de Karkanik", "xp": 16.8 },
+        { "name": "Incisive de Stalak", "xp": 16.8 },
+        { "name": "Sang de Ventrublion", "xp": 16.8 },
+        { "name": "Incus de Verglasseur", "xp": 16.8 }
+      ]
+    },
+    {
+      "id": "harebourg",
+      "name": "Frigost 3 — Comte Harebourg",
+      "items": [
+        { "name": "Bec de Strigide", "xp": 101 },
+        { "name": "Bec de Granduk", "xp": 101 },
+        { "name": "Griffe de Strigide", "xp": 16.8 },
+        { "name": "Plume de Granduk", "xp": 16.8 }
+      ]
+    }
+  ],
+  "essences": [
+    { "name": "Essence du Meulou", "xp": 32, "dungeonLevel": 100 },
+    { "name": "Essence du Blop Multi", "xp": 49, "dungeonLevel": 120 },
+    { "name": "Essence de la Haute Truche", "xp": 90, "dungeonLevel": 130 },
+    { "name": "Essence d'el Piko", "xp": 90, "dungeonLevel": 130 },
+    { "name": "Essence de Tanukoui", "xp": 90, "dungeonLevel": 130 },
+    { "name": "Essence du Chêne Mou", "xp": 69, "dungeonLevel": 140 },
+    { "name": "Essence du Mansot Royal", "xp": 111, "dungeonLevel": 140 },
+    { "name": "Essence de Sphincter", "xp": 143, "dungeonLevel": 150 },
+    { "name": "Essence de Ben le Ripate", "xp": 143, "dungeonLevel": 150 },
+    { "name": "Essence de Kanigroula", "xp": 177, "dungeonLevel": 160 },
+    { "name": "Essence de l'Obsidiantre", "xp": 177, "dungeonLevel": 160 },
+    { "name": "Essence du Korriandre", "xp": 290, "dungeonLevel": 180 },
+    { "name": "Essence d'Ougah", "xp": 290, "dungeonLevel": 180 },
+    { "name": "Essence du Kolosso", "xp": 366, "dungeonLevel": 190 },
+    { "name": "Essence du Glourséleste", "xp": 366, "dungeonLevel": 190 },
+    { "name": "Essence de Fuji Givrefoux", "xp": 366, "dungeonLevel": 190 },
+    { "name": "Essence de Sylargh", "xp": 506, "dungeonLevel": 190 },
+    { "name": "Essence de Nileza", "xp": 506, "dungeonLevel": 190 },
+    { "name": "Essence de Klime", "xp": 506, "dungeonLevel": 190 },
+    { "name": "Essence de Missiz Frizz", "xp": 506, "dungeonLevel": 190 },
+    { "name": "Essence de Merkator", "xp": 506, "dungeonLevel": 190 },
+    { "name": "Essence du Roi Nidas", "xp": 506, "dungeonLevel": 200 }
+  ]
+}

@@ -6,8 +6,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       </div>
-      <div class="v2-no-context__title">No character selected</div>
-      <div class="v2-no-context__desc">Select a character in the sidebar to track your crafted items.</div>
+      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
+      <div class="v2-no-context__desc">{{ $t('v2.crafting.noCharacterDesc') }}</div>
     </div>
 
     <template v-else>
@@ -19,14 +19,14 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Find item to craft
+            {{ $t('v2.crafting.findItem') }}
           </div>
 
           <div class="v2-searchbox">
             <svg class="v2-searchbox__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <input v-model="search" type="text" placeholder="Search items…" class="v2-searchbox__input" @input="onSearchInput" />
+            <input v-model="search" type="text" :placeholder="$t('v2.common.searchItems')" class="v2-searchbox__input" @input="onSearchInput" />
             <button v-if="search" class="v2-searchbox__clear" @click="clearSearch">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -35,7 +35,7 @@
           </div>
 
           <div v-if="searching" class="v2-inline-loader">
-            <div class="v2-spin-sm" /> Searching…
+            <div class="v2-spin-sm" /> {{ $t('v2.common.searching') }}
           </div>
 
           <div v-else-if="results.length" class="v2-results-list">
@@ -51,7 +51,7 @@
                 <div class="v2-result-name">{{ item.name?.fr ?? item.id }}</div>
                 <div class="v2-result-sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
               </div>
-              <svg v-if="selectedItem?.id === item.id" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style="color:#34d399">
+              <svg v-if="selectedItem?.id === item.id" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style="color:var(--v2-accent)">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
             </button>
@@ -77,7 +77,7 @@
 
               <!-- Effects -->
               <div v-if="effectsLoading" class="v2-inline-loader" style="padding:.5rem 0">
-                <div class="v2-spin-sm" /> Loading effects…
+                <div class="v2-spin-sm" /> {{ $t('v2.crafting.loadingEffects') }}
               </div>
               <div v-else-if="effects.length" class="v2-effects">
                 <div class="v2-effects-label">Rolled stats</div>
@@ -129,11 +129,11 @@
           </div>
 
           <div v-if="characterCrafts.length === 0" class="v2-empty-full">
-            <svg class="w-10 h-10 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#2d3d2d">
+            <svg class="w-10 h-10 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--v2-text-muted)">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
             No crafted items logged yet.<br />
-            <span style="font-size:.8125rem;color:#3d4a3d">Search for an item and add your first craft.</span>
+            <span style="font-size:.8125rem;color:var(--v2-text-muted)">Search for an item and add your first craft.</span>
           </div>
 
           <div v-else class="v2-crafts-scroll">
@@ -389,58 +389,58 @@ onMounted(() => { initContext(); initStore() })
 }
 
 .v2-panel {
-  background: rgba(52,211,153,.03);
-  border: 1px solid rgba(52,211,153,.1);
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-active);
   border-radius: 14px;
   padding: 1rem;
 }
 
 .v2-panel-title {
   display: flex; align-items: center; gap: .5rem;
-  font-size: .875rem; font-weight: 700; color: #52a880;
+  font-size: .875rem; font-weight: 700; color: var(--v2-accent);
   margin-bottom: .875rem;
 }
 
 .v2-badge-count {
-  background: rgba(52,211,153,.15); color: #34d399;
+  background: var(--v2-active-strong); color: var(--v2-accent);
   font-size: .6875rem; font-weight: 600; padding: .125rem .4375rem;
   border-radius: 999px;
 }
 
 .v2-badge-total {
-  font-size: .75rem; color: #60a5fa; font-weight: 600; margin-left: auto;
+  font-size: .75rem; color: var(--v2-text-hover); font-weight: 600; margin-left: auto;
 }
 
 /* Search */
 .v2-searchbox {
   position: relative; display: flex; align-items: center; margin-bottom: .75rem;
 }
-.v2-searchbox__icon { position: absolute; left: .75rem; color: #2d5e47; pointer-events: none; }
+.v2-searchbox__icon { position: absolute; left: .75rem; color: var(--v2-text-muted); pointer-events: none; }
 .v2-searchbox__input {
-  background: rgba(0,0,0,.3); border: 1px solid rgba(52,211,153,.14); border-radius: 10px;
-  padding: .5rem 2.25rem; color: #c8f5e5; font-size: .875rem;
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border); border-radius: 10px;
+  padding: .5rem 2.25rem; color: var(--v2-text); font-size: .875rem;
   outline: none; width: 100%; transition: border-color .18s;
 }
-.v2-searchbox__input:focus { border-color: rgba(52,211,153,.4); }
-.v2-searchbox__input::placeholder { color: #1a4030; }
+.v2-searchbox__input:focus { border-color: var(--v2-border-focus); }
+.v2-searchbox__input::placeholder { color: var(--v2-text-dim); }
 .v2-searchbox__clear {
   position: absolute; right: .625rem; background: none; border: none;
-  color: #2d5e47; cursor: pointer; display: flex; align-items: center; transition: color .15s;
+  color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center; transition: color .15s;
 }
-.v2-searchbox__clear:hover { color: #34d399; }
+.v2-searchbox__clear:hover { color: var(--v2-accent); }
 
 .v2-inline-loader {
   display: flex; align-items: center; gap: .5rem;
-  font-size: .8125rem; color: #3a7a5a; padding: .375rem 0;
+  font-size: .8125rem; color: var(--v2-text-secondary); padding: .375rem 0;
 }
 .v2-spin-sm {
   width: 16px; height: 16px; flex-shrink: 0;
-  border: 2px solid rgba(52,211,153,.15); border-top-color: #34d399;
+  border: 2px solid var(--v2-border-med); border-top-color: var(--v2-accent);
   border-radius: 50%; animation: vspin .8s linear infinite;
 }
 @keyframes vspin { to { transform: rotate(360deg); } }
 
-.v2-empty-hint { font-size: .8125rem; color: #2d5e47; padding: .375rem 0; }
+.v2-empty-hint { font-size: .8125rem; color: var(--v2-text-muted); padding: .375rem 0; }
 
 /* Results */
 .v2-results-list {
@@ -453,70 +453,70 @@ onMounted(() => { initContext(); initStore() })
   border: 1px solid transparent; background: rgba(0,0,0,.15);
   cursor: pointer; transition: all .15s; text-align: left;
 }
-.v2-result-row:hover { background: rgba(52,211,153,.07); border-color: rgba(52,211,153,.18); }
-.v2-result-row--sel { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.3); }
+.v2-result-row:hover { background: var(--v2-hover); border-color: var(--v2-border-med); }
+.v2-result-row--sel { background: var(--v2-active); border-color: var(--v2-border-strong); }
 .v2-result-img { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
-.v2-result-name { font-size: .8125rem; font-weight: 600; color: #c8f5e5; }
-.v2-result-sub { font-size: .6875rem; color: #2d5e47; margin-top: 1px; }
+.v2-result-name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
+.v2-result-sub { font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px; }
 .v2-result-info { flex: 1; min-width: 0; }
 
 /* Craft form */
 .v2-craft-form {
-  background: rgba(0,0,0,.18); border: 1px solid rgba(52,211,153,.12);
+  background: rgba(0,0,0,.18); border: 1px solid var(--v2-border);
   border-radius: 12px; padding: .875rem;
   display: flex; flex-direction: column; gap: .75rem; margin-top: .5rem;
 }
 .v2-craft-item-header { display: flex; align-items: center; gap: .75rem; }
 .v2-craft-item-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
-.v2-craft-item-name { font-size: .9375rem; font-weight: 700; color: #c8f5e5; }
-.v2-craft-item-sub { font-size: .75rem; color: #3a7a5a; margin-top: 2px; }
+.v2-craft-item-name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
+.v2-craft-item-sub { font-size: .75rem; color: var(--v2-text-secondary); margin-top: 2px; }
 .v2-form-close {
   margin-left: auto; flex-shrink: 0; background: none; border: none;
-  color: #2d5e47; cursor: pointer; display: flex; align-items: center; transition: color .15s;
+  color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center; transition: color .15s;
 }
 .v2-form-close:hover { color: #f87171; }
 
 /* Effects */
 .v2-effects { display: flex; flex-direction: column; gap: 4px; }
-.v2-effects-label { font-size: .6875rem; color: #3a7a5a; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.v2-effects-label { font-size: .6875rem; color: var(--v2-text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
 .v2-effect-row { display: flex; align-items: center; gap: .5rem; }
 .v2-effect-name {
-  flex: 1; font-size: .75rem; color: #6dcfa0;
+  flex: 1; font-size: .75rem; color: var(--v2-text-hover);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.v2-effect-range { font-size: .6875rem; color: #2d5e47; flex-shrink: 0; }
+.v2-effect-range { font-size: .6875rem; color: var(--v2-text-muted); flex-shrink: 0; }
 .v2-effect-input {
   width: 68px; flex-shrink: 0;
-  background: rgba(0,0,0,.3); border: 1px solid rgba(52,211,153,.18); border-radius: 7px;
-  padding: .25rem .5rem; color: #c8f5e5; font-size: .8125rem; text-align: right;
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border-med); border-radius: 7px;
+  padding: .25rem .5rem; color: var(--v2-text); font-size: .8125rem; text-align: right;
   outline: none; transition: border-color .15s;
 }
-.v2-effect-input:focus { border-color: rgba(52,211,153,.45); }
+.v2-effect-input:focus { border-color: var(--v2-border-focus); }
 
 /* Fields */
 .v2-sale-fields { display: flex; flex-direction: column; gap: 6px; }
-.v2-field-label { font-size: .6875rem; color: #3a7a5a; margin-bottom: 3px; display: block; }
+.v2-field-label { font-size: .6875rem; color: var(--v2-text-secondary); margin-bottom: 3px; display: block; }
 .v2-field-input {
   width: 100%;
-  background: rgba(0,0,0,.3); border: 1px solid rgba(52,211,153,.18); border-radius: 8px;
-  padding: .4375rem .75rem; color: #c8f5e5; font-size: .875rem;
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border-med); border-radius: 8px;
+  padding: .4375rem .75rem; color: var(--v2-text); font-size: .875rem;
   outline: none; transition: border-color .15s;
 }
-.v2-field-input:focus { border-color: rgba(52,211,153,.45); }
-.v2-field-input::placeholder { color: #1a4030; }
+.v2-field-input:focus { border-color: var(--v2-border-focus); }
+.v2-field-input::placeholder { color: var(--v2-text-dim); }
 
 .v2-btn-craft {
   display: flex; align-items: center; justify-content: center; gap: .5rem;
   padding: .625rem 1rem; border-radius: 10px;
-  background: rgba(52,211,153,.15); border: 1px solid rgba(52,211,153,.3);
-  color: #c8f5e5; font-size: .875rem; font-weight: 600; cursor: pointer; transition: all .18s;
+  background: var(--v2-active-strong); border: 1px solid var(--v2-border-strong);
+  color: var(--v2-text); font-size: .875rem; font-weight: 600; cursor: pointer; transition: all .18s;
 }
-.v2-btn-craft:hover { background: rgba(52,211,153,.25); border-color: rgba(52,211,153,.5); }
+.v2-btn-craft:hover { background: var(--v2-active); border-color: var(--v2-border-focus); }
 
 /* Empty states */
 .v2-empty-full {
   padding: 2.5rem 1rem; text-align: center;
-  color: #2d5e47; font-size: .9375rem;
+  color: var(--v2-text-muted); font-size: .9375rem;
   display: flex; flex-direction: column; align-items: center; gap: .25rem;
 }
 
@@ -528,27 +528,27 @@ onMounted(() => { initContext(); initStore() })
 .v2-craft-row {
   display: flex; align-items: flex-start; gap: .625rem;
   padding: .625rem .75rem; border-radius: 10px;
-  background: rgba(0,0,0,.15); border: 1px solid rgba(52,211,153,.07);
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle);
   transition: border-color .15s;
 }
-.v2-craft-row:hover { border-color: rgba(52,211,153,.2); }
+.v2-craft-row:hover { border-color: var(--v2-border-med); }
 .v2-craft-img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; margin-top: 2px; }
 .v2-craft-info { flex: 1; min-width: 0; }
-.v2-craft-name { font-size: .8125rem; font-weight: 600; color: #c8f5e5; }
-.v2-craft-meta { font-size: .6875rem; color: #2d5e47; margin-top: 1px; }
-.v2-craft-note { color: #3a7a5a; }
+.v2-craft-name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
+.v2-craft-meta { font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px; }
+.v2-craft-note { color: var(--v2-text-secondary); }
 .v2-craft-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
 .v2-chip {
   font-size: .625rem; padding: .125rem .375rem;
-  background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.15);
-  border-radius: 4px; color: #6dcfa0;
+  background: var(--v2-hover); border: 1px solid var(--v2-border-med);
+  border-radius: 4px; color: var(--v2-text-hover);
 }
-.v2-chip--more { color: #3a7a5a; }
+.v2-chip--more { color: var(--v2-text-secondary); }
 .v2-craft-price {
-  font-size: .875rem; font-weight: 700; color: #34d399; flex-shrink: 0; white-space: nowrap;
+  font-size: .875rem; font-weight: 700; color: var(--v2-accent); flex-shrink: 0; white-space: nowrap;
 }
 .v2-craft-del {
-  flex-shrink: 0; background: none; border: none; color: #1a4030;
+  flex-shrink: 0; background: none; border: none; color: var(--v2-text-dim);
   cursor: pointer; display: flex; align-items: center; transition: color .15s; padding: 2px;
 }
 .v2-craft-del:hover { color: #f87171; }
@@ -557,3 +557,8 @@ onMounted(() => { initContext(); initStore() })
 .v2-slide-fade-enter-active, .v2-slide-fade-leave-active { transition: all .2s ease; }
 .v2-slide-fade-enter-from, .v2-slide-fade-leave-to { opacity: 0; transform: translateY(-6px); }
 </style>
+
+
+
+
+

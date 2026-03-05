@@ -26,12 +26,12 @@
               <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z" />
             </svg>
           </div>
-          <span v-show="!sidebarCollapsed" class="v2-brand__name">Dofus Tools</span>
+          <span v-show="!sidebarCollapsed" class="v2-brand__name">{{ $t('v2.layout.brand') }}</span>
         </NuxtLink>
         <button
           class="v2-brand__collapse hidden lg:flex"
           @click="sidebarCollapsed = !sidebarCollapsed"
-          :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          :title="sidebarCollapsed ? $t('v2.layout.expandSidebar') : $t('v2.layout.collapseSidebar')"
         >
           <svg
             class="w-4 h-4 transition-transform duration-300"
@@ -47,7 +47,7 @@
 
       <!-- Navigation -->
       <nav class="v2-nav">
-        <div v-show="!sidebarCollapsed" class="v2-nav__label">Navigation</div>
+        <div v-show="!sidebarCollapsed" class="v2-nav__label">{{ $t('v2.layout.navigation') }}</div>
         <NuxtLink
           v-for="item in navItems"
           :key="item.path"
@@ -76,7 +76,7 @@
         class="v2-context"
         :class="{ 'v2-context--empty': !hasContext }"
         @click="openPicker"
-        :title="sidebarCollapsed ? (hasContext ? selectedCharacter?.name : 'Select character') : ''"
+        :title="sidebarCollapsed ? (hasContext ? selectedCharacter?.name : $t('v2.layout.selectCharacter')) : ''"
       >
         <div class="v2-context__avatar" :style="hasContext ? { background: charColor } : {}">
           <span v-if="hasContext">{{ selectedCharacter?.name?.[0]?.toUpperCase() }}</span>
@@ -86,10 +86,10 @@
         </div>
         <div v-show="!sidebarCollapsed" class="v2-context__info">
           <div class="v2-context__name">
-            {{ hasContext ? selectedCharacter?.name : 'Select character' }}
+            {{ hasContext ? selectedCharacter?.name : $t('v2.layout.selectCharacter') }}
           </div>
           <div class="v2-context__meta">
-            {{ hasContext ? `${selectedCharacter?.class} · ${selectedServer?.name}` : 'Click to get started' }}
+            {{ hasContext ? `${selectedCharacter?.class} · ${selectedServer?.name}` : $t('v2.layout.clickToStart') }}
           </div>
         </div>
         <svg v-show="!sidebarCollapsed" class="v2-context__chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,14 +104,14 @@
         <NuxtLink
           :to="localePath('/')"
           class="v2-nav__item"
-          :title="sidebarCollapsed ? 'Back to v1' : ''"
+          :title="sidebarCollapsed ? $t('v2.layout.backToV1') : ''"
         >
           <div class="v2-nav__icon">
             <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </div>
-          <span v-show="!sidebarCollapsed" class="v2-nav__label-text text-xs opacity-60">Back to v1</span>
+          <span v-show="!sidebarCollapsed" class="v2-nav__label-text text-xs opacity-60">{{ $t('v2.layout.backToV1') }}</span>
         </NuxtLink>
       </div>
     </aside>
@@ -130,7 +130,7 @@
         <!-- Page title (desktop shows nav item label, mobile shows same) -->
         <div class="v2-topbar__title">
           <span>{{ currentPageTitle }}</span>
-          <span class="v2-topbar__badge">v2</span>
+          <span class="v2-topbar__badge">{{ $t('v2.layout.badge') }}</span>
         </div>
 
         <div class="flex items-center gap-1 ml-auto">
@@ -164,8 +164,8 @@
             <!-- Header -->
             <div class="v2-picker__header">
               <div>
-                <h2 class="v2-picker__title">Characters</h2>
-                <p class="v2-picker__subtitle">Select or manage your characters</p>
+                <h2 class="v2-picker__title">{{ $t('v2.layout.characters') }}</h2>
+                <p class="v2-picker__subtitle">{{ $t('v2.layout.charactersSubtitle') }}</p>
               </div>
               <button class="v2-picker__close" @click="showPicker = false">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +178,7 @@
             <div class="v2-picker__body">
               <!-- Servers column -->
               <div class="v2-picker__col">
-                <div class="v2-picker__col-label">Servers</div>
+                <div class="v2-picker__col-label">{{ $t('v2.layout.servers') }}</div>
                 <div class="v2-picker__list">
                   <button
                     v-for="server in servers"
@@ -191,14 +191,14 @@
                     <div class="v2-picker__server-info">
                       <div class="v2-picker__server-name">{{ server.name }}</div>
                       <div class="v2-picker__server-count">
-                        {{ server.characters.length }} character{{ server.characters.length !== 1 ? 's' : '' }}
+                        {{ server.characters.length }} {{ $t('v2.layout.charactersCount', { count: server.characters.length }) }}
                       </div>
                     </div>
                     <button
                       v-if="server.characters.length === 0"
                       class="v2-picker__delete"
                       @click.stop="deleteServer(server.id)"
-                      title="Delete server"
+                      :title="$t('v2.layout.deleteServer')"
                     >
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
@@ -212,7 +212,7 @@
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                       </svg>
-                      Add server
+                      {{ $t('v2.layout.addServer') }}
                     </button>
                   </div>
                   <div v-else class="v2-picker__add-form mt-2">
@@ -220,14 +220,14 @@
                       ref="serverInputRef"
                       v-model="newServerName"
                       type="text"
-                      placeholder="Server name…"
+                      :placeholder="$t('v2.layout.serverName')"
                       class="v2-picker__input"
                       @keyup.enter="submitServer"
                       @keyup.esc="showAddServer = false; newServerName = ''"
                     />
                     <div class="flex gap-2 mt-2">
-                      <button class="v2-btn-gold text-xs px-3 py-1.5" @click="submitServer">Add</button>
-                      <button class="v2-btn-ghost text-xs px-3 py-1.5" @click="showAddServer = false; newServerName = ''">Cancel</button>
+                      <button class="v2-btn-gold text-xs px-3 py-1.5" @click="submitServer">{{ $t('v2.layout.add') }}</button>
+                      <button class="v2-btn-ghost text-xs px-3 py-1.5" @click="showAddServer = false; newServerName = ''">{{ $t('v2.layout.cancel') }}</button>
                     </div>
                   </div>
                 </div>
@@ -236,14 +236,14 @@
               <!-- Characters column -->
               <div class="v2-picker__col v2-picker__col--chars">
                 <div class="v2-picker__col-label">
-                  {{ pickerServer ? pickerServer.name : 'Select a server →' }}
+                  {{ pickerServer ? pickerServer.name : $t('v2.layout.selectServer') }}
                 </div>
 
                 <div v-if="!pickerServer" class="v2-picker__empty">
                   <svg class="w-8 h-8 mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <p>Select a server first</p>
+                  <p>{{ $t('v2.layout.selectServerFirst') }}</p>
                 </div>
 
                 <div v-else class="v2-picker__list">
@@ -267,7 +267,7 @@
                     <button
                       class="v2-picker__delete"
                       @click.stop="deleteCharacter(pickerServerId!, char.id)"
-                      title="Delete character"
+                      :title="$t('v2.layout.deleteCharacter')"
                     >
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
@@ -281,24 +281,24 @@
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                       </svg>
-                      Add character
+                      {{ $t('v2.layout.addCharacter') }}
                     </button>
                   </div>
                   <div v-else class="v2-picker__add-form mt-2">
                     <input
                       v-model="newCharName"
                       type="text"
-                      placeholder="Character name…"
+                      :placeholder="$t('v2.layout.characterName')"
                       class="v2-picker__input mb-2"
                       @keyup.esc="showAddChar = false; newCharName = ''; newCharClass = ''"
                     />
                     <select v-model="newCharClass" class="v2-picker__input mb-2">
-                      <option value="">Select class…</option>
+                      <option value="">{{ $t('v2.layout.selectClass') }}</option>
                       <option v-for="cls in DOFUS_CLASSES" :key="cls" :value="cls">{{ cls }}</option>
                     </select>
                     <div class="flex gap-2">
-                      <button class="v2-btn-gold text-xs px-3 py-1.5" @click="submitChar">Add</button>
-                      <button class="v2-btn-ghost text-xs px-3 py-1.5" @click="showAddChar = false; newCharName = ''; newCharClass = ''">Cancel</button>
+                      <button class="v2-btn-gold text-xs px-3 py-1.5" @click="submitChar">{{ $t('v2.layout.add') }}</button>
+                      <button class="v2-btn-ghost text-xs px-3 py-1.5" @click="showAddChar = false; newCharName = ''; newCharClass = ''">{{ $t('v2.layout.cancel') }}</button>
                     </div>
                   </div>
                 </div>
@@ -314,6 +314,7 @@
 <script setup lang="ts">
 const localePath = useLocalePath()
 const route = useRoute()
+const { t } = useI18n()
 const { currentV2Theme, initV2Theme } = useV2Theme()
 const {
   servers,
@@ -375,6 +376,7 @@ const navItems = [
   { path: '/v2/crafting', label: 'nav.crafting', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },
   { path: '/v2/brisage', label: 'nav.brisage', icon: resolveComponent('IconsIconBrisage'), color: '#a78bfa' },
   { path: '/v2/succes', label: 'nav.succes', icon: resolveComponent('IconsIconSucces'), color: '#fcd34d' },
+  { path: '/v2/familiers', label: 'nav.familiers', icon: resolveComponent('IconsIconFamiliers'), color: '#fb923c' },
 ]
 
 const isActive = (path: string) => {
@@ -385,7 +387,7 @@ const isActive = (path: string) => {
 
 const currentPageTitle = computed(() => {
   const active = navItems.find((i) => isActive(i.path))
-  return active ? active.label.replace('nav.', '') : 'v2'
+  return active ? t(active.label) : t('v2.layout.badge')
 })
 
 const openPicker = () => {

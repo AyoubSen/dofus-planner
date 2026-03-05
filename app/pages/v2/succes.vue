@@ -6,8 +6,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
         </svg>
       </div>
-      <div class="v2-no-context__title">No character selected</div>
-      <div class="v2-no-context__desc">Select a character in the sidebar to track your achievements.</div>
+      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
+      <div class="v2-no-context__desc">{{ $t('v2.succes.noCharacterDesc') }}</div>
     </div>
 
     <template v-else>
@@ -37,7 +37,7 @@
           </div>
 
           <div v-if="catsLoading" class="v2-inline-loader">
-            <div class="v2-spin-sm" /> Loading…
+            <div class="v2-spin-sm" /> {{ $t('v2.common.loading') }}
           </div>
 
           <div v-else class="v2-cat-list">
@@ -76,7 +76,7 @@
               <svg class="v2-searchbox__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input v-model="search" type="text" placeholder="Search achievements…" class="v2-searchbox__input" @input="onSearchInput" />
+              <input v-model="search" type="text" :placeholder="$t('v2.succes.searchAchievements')" class="v2-searchbox__input" @input="onSearchInput" />
               <button v-if="search" class="v2-searchbox__clear" @click="clearSearch">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -93,13 +93,13 @@
 
           <!-- Loading -->
           <div v-if="loading" class="v2-center-loader">
-            <div class="v2-spin" /> Loading achievements…
+            <div class="v2-spin" /> {{ $t('v2.succes.loadingAchievements') }}
           </div>
 
           <!-- List -->
           <div v-else>
             <div v-if="achievements.length === 0" class="v2-empty-full">
-              <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#3d2e1a">
+              <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--v2-text-dim)">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               No achievements found.
@@ -349,25 +349,25 @@ onMounted(async () => {
 <style scoped>
 /* Progress strip */
 .v2-succ-progress {
-  background: rgba(245,165,35,.03); border: 1px solid rgba(245,165,35,.1);
+  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
   border-radius: 14px; padding: .875rem 1.125rem; margin-bottom: .875rem;
   display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
 }
 .v2-succ-progress__left {
   display: flex; align-items: center; gap: .75rem;
 }
-.v2-succ-progress__label { font-size: .8125rem; color: #7a5c38; font-weight: 500; }
-.v2-succ-progress__count { font-size: .875rem; color: #f5e9cb; font-weight: 600; }
+.v2-succ-progress__label { font-size: .8125rem; color: var(--v2-text-secondary); font-weight: 500; }
+.v2-succ-progress__count { font-size: .875rem; color: var(--v2-text); font-weight: 600; }
 .v2-succ-progress__pct {
-  font-size: .75rem; font-weight: 700; color: #f5a523;
-  background: rgba(245,165,35,.15); padding: .125rem .4375rem; border-radius: 999px;
+  font-size: .75rem; font-weight: 700; color: var(--v2-accent);
+  background: var(--v2-border-med); padding: .125rem .4375rem; border-radius: 999px;
 }
 .v2-progress-bar {
   flex: 1; min-width: 120px; height: 5px;
-  background: rgba(245,165,35,.08); border-radius: 999px; overflow: hidden;
+  background: var(--v2-border-subtle); border-radius: 999px; overflow: hidden;
 }
 .v2-progress-bar__fill {
-  height: 100%; background: linear-gradient(90deg, #f5a523, #f5d680);
+  height: 100%; background: linear-gradient(90deg, var(--v2-accent), var(--v2-accent-light));
   border-radius: 999px; transition: width .4s ease;
 }
 
@@ -384,14 +384,14 @@ onMounted(async () => {
 }
 
 .v2-panel {
-  background: rgba(245,165,35,.03);
-  border: 1px solid rgba(245,165,35,.1);
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-active);
   border-radius: 14px;
   padding: 1rem;
 }
 .v2-panel-title {
   display: flex; align-items: center; gap: .5rem;
-  font-size: .875rem; font-weight: 700; color: #d4aa70;
+  font-size: .875rem; font-weight: 700; color: var(--v2-text-hover);
   margin-bottom: .875rem;
 }
 
@@ -400,11 +400,11 @@ onMounted(async () => {
 .v2-cat-list { display: flex; flex-direction: column; gap: 2px; max-height: 70vh; overflow-y: auto; }
 .v2-cat-btn {
   text-align: left; padding: .375rem .625rem; border-radius: 8px;
-  border: none; background: transparent; color: #7a5c38;
+  border: none; background: transparent; color: var(--v2-text-secondary);
   font-size: .8125rem; cursor: pointer; transition: all .15s; line-height: 1.4;
 }
-.v2-cat-btn:hover { background: rgba(245,165,35,.08); color: #d4aa70; }
-.v2-cat-btn--sel { background: rgba(245,165,35,.15); color: #f5e9cb; font-weight: 600; }
+.v2-cat-btn:hover { background: var(--v2-border-subtle); color: var(--v2-text-hover); }
+.v2-cat-btn--sel { background: var(--v2-border-med); color: var(--v2-text); font-weight: 600; }
 .v2-cat-btn--child { padding-left: 1.25rem; font-size: .75rem; }
 
 /* Toolbar */
@@ -416,47 +416,47 @@ onMounted(async () => {
 .v2-searchbox {
   position: relative; display: flex; align-items: center;
 }
-.v2-searchbox__icon { position: absolute; left: .75rem; color: #5a4830; pointer-events: none; }
+.v2-searchbox__icon { position: absolute; left: .75rem; color: var(--v2-text-dim); pointer-events: none; }
 .v2-searchbox__input {
-  background: rgba(0,0,0,.3); border: 1px solid rgba(245,165,35,.14); border-radius: 10px;
-  padding: .5rem 2.25rem; color: #f5e9cb; font-size: .875rem;
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border); border-radius: 10px;
+  padding: .5rem 2.25rem; color: var(--v2-text); font-size: .875rem;
   outline: none; width: 100%; transition: border-color .18s;
 }
-.v2-searchbox__input:focus { border-color: rgba(245,165,35,.4); }
-.v2-searchbox__input::placeholder { color: #4a3820; }
+.v2-searchbox__input:focus { border-color: var(--v2-border-focus); }
+.v2-searchbox__input::placeholder { color: var(--v2-text-dimmer); }
 .v2-searchbox__clear {
   position: absolute; right: .625rem; background: none; border: none;
-  color: #5a4830; cursor: pointer; display: flex; align-items: center; transition: color .15s;
+  color: var(--v2-text-dim); cursor: pointer; display: flex; align-items: center; transition: color .15s;
 }
-.v2-searchbox__clear:hover { color: #f5a523; }
+.v2-searchbox__clear:hover { color: var(--v2-accent); }
 
 /* Pills */
 .v2-pills { display: flex; gap: 4px; }
 .v2-pill {
   padding: .375rem .875rem; border-radius: 999px;
-  border: 1px solid rgba(245,165,35,.12); background: transparent;
-  color: #7a5c38; font-size: .8125rem; font-weight: 500; cursor: pointer; transition: all .15s;
+  border: 1px solid var(--v2-border); background: transparent;
+  color: var(--v2-text-secondary); font-size: .8125rem; font-weight: 500; cursor: pointer; transition: all .15s;
 }
-.v2-pill:hover { border-color: rgba(245,165,35,.3); color: #d4aa70; }
-.v2-pill--on { background: rgba(245,165,35,.15); border-color: rgba(245,165,35,.35); color: #f5e9cb; }
+.v2-pill:hover { border-color: var(--v2-border-strong); color: var(--v2-text-hover); }
+.v2-pill--on { background: var(--v2-border-med); border-color: var(--v2-border-strong); color: var(--v2-text); }
 
 /* Loaders */
 .v2-inline-loader {
   display: flex; align-items: center; gap: .5rem;
-  font-size: .8125rem; color: #7a5c38; padding: .375rem 0;
+  font-size: .8125rem; color: var(--v2-text-secondary); padding: .375rem 0;
 }
 .v2-spin-sm {
   width: 16px; height: 16px; flex-shrink: 0;
-  border: 2px solid rgba(245,165,35,.15); border-top-color: #f5a523;
+  border: 2px solid var(--v2-border-med); border-top-color: var(--v2-accent);
   border-radius: 50%; animation: vspin .8s linear infinite;
 }
 .v2-center-loader {
   display: flex; align-items: center; justify-content: center;
-  gap: .75rem; padding: 4rem; color: #7a5c38; font-size: .9375rem;
+  gap: .75rem; padding: 4rem; color: var(--v2-text-secondary); font-size: .9375rem;
 }
 .v2-spin {
   width: 22px; height: 22px;
-  border: 2px solid rgba(245,165,35,.15); border-top-color: #f5a523;
+  border: 2px solid var(--v2-border-med); border-top-color: var(--v2-accent);
   border-radius: 50%; animation: vspin .8s linear infinite; flex-shrink: 0;
 }
 @keyframes vspin { to { transform: rotate(360deg); } }
@@ -464,7 +464,7 @@ onMounted(async () => {
 /* Empty state */
 .v2-empty-full {
   padding: 2.5rem 1rem; text-align: center;
-  color: #5a4830; font-size: .9375rem;
+  color: var(--v2-text-dim); font-size: .9375rem;
   display: flex; flex-direction: column; align-items: center; gap: .25rem;
 }
 
@@ -473,17 +473,17 @@ onMounted(async () => {
 .v2-ach-row {
   display: flex; align-items: center; gap: .625rem;
   padding: .5rem .75rem; border-radius: 10px;
-  background: rgba(0,0,0,.15); border: 1px solid rgba(245,165,35,.07);
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-glow);
   transition: all .15s;
 }
-.v2-ach-row:hover { border-color: rgba(245,165,35,.2); }
+.v2-ach-row:hover { border-color: var(--v2-border-med); }
 .v2-ach-row--done {
   background: rgba(52,211,153,.03); border-color: rgba(52,211,153,.15);
 }
 
 .v2-ach-check {
   width: 22px; height: 22px; flex-shrink: 0; border-radius: 6px;
-  border: 2px solid rgba(245,165,35,.2); background: transparent;
+  border: 2px solid var(--v2-border-med); background: transparent;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   color: transparent; transition: all .15s;
 }
@@ -495,23 +495,23 @@ onMounted(async () => {
 }
 .v2-ach-img-placeholder {
   width: 36px; height: 36px; flex-shrink: 0; border-radius: 6px;
-  background: rgba(245,165,35,.05); border: 1px solid rgba(245,165,35,.1);
-  display: flex; align-items: center; justify-content: center; color: #5a4830;
+  background: var(--v2-hover); border: 1px solid var(--v2-active);
+  display: flex; align-items: center; justify-content: center; color: var(--v2-text-dim);
 }
 
 .v2-ach-info { flex: 1; min-width: 0; }
 .v2-ach-name {
-  font-size: .875rem; font-weight: 600; color: #f5e9cb;
+  font-size: .875rem; font-weight: 600; color: var(--v2-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .v2-ach-desc {
-  font-size: .6875rem; color: #6b4e2a; margin-top: 1px;
+  font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .v2-ach-points {
   display: flex; align-items: center; gap: .25rem;
-  font-size: .75rem; font-weight: 600; color: #f5a523; flex-shrink: 0;
+  font-size: .75rem; font-weight: 600; color: var(--v2-accent); flex-shrink: 0;
 }
 
 /* Pagination */
@@ -521,11 +521,14 @@ onMounted(async () => {
 }
 .v2-page-btn {
   width: 32px; height: 32px; border-radius: 8px;
-  border: 1px solid rgba(245,165,35,.15); background: rgba(245,165,35,.05);
-  color: #d4aa70; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--v2-border-med); background: var(--v2-hover);
+  color: var(--v2-text-hover); cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: all .15s;
 }
-.v2-page-btn:hover:not(:disabled) { background: rgba(245,165,35,.15); border-color: rgba(245,165,35,.3); }
+.v2-page-btn:hover:not(:disabled) { background: var(--v2-border-med); border-color: var(--v2-border-strong); }
 .v2-page-btn:disabled { opacity: .3; cursor: not-allowed; }
-.v2-page-info { font-size: .875rem; color: #7a5c38; font-weight: 500; }
+.v2-page-info { font-size: .875rem; color: var(--v2-text-secondary); font-weight: 500; }
 </style>
+
+
+

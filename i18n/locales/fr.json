@@ -5,10 +5,89 @@
     "items": "Objets",
     "crafting": "Craft",
     "brisage": "Brisage",
-    "succes": "Succès"
+    "succes": "Succès",
+    "familiers": "Familiers"
   },
   "theme": {
     "title": "Thème"
+  },
+  "v2": {
+    "layout": {
+      "brand": "Dofus Tools",
+      "expandSidebar": "Déplier la barre latérale",
+      "collapseSidebar": "Replier la barre latérale",
+      "navigation": "Navigation",
+      "selectCharacter": "Sélectionner un personnage",
+      "clickToStart": "Cliquez pour commencer",
+      "backToV1": "Retour vers v1",
+      "badge": "v2",
+      "characters": "Personnages",
+      "charactersSubtitle": "Sélectionnez ou gérez vos personnages",
+      "servers": "Serveurs",
+      "charactersCount": "{count} personnage | {count} personnages",
+      "deleteServer": "Supprimer le serveur",
+      "addServer": "Ajouter un serveur",
+      "serverName": "Nom du serveur...",
+      "add": "Ajouter",
+      "cancel": "Annuler",
+      "selectServer": "Sélectionnez un serveur ->",
+      "selectServerFirst": "Sélectionnez d'abord un serveur",
+      "deleteCharacter": "Supprimer le personnage",
+      "addCharacter": "Ajouter un personnage",
+      "characterName": "Nom du personnage...",
+      "selectClass": "Sélectionner une classe..."
+    },
+    "dashboard": {
+      "welcomeBack": "Bon retour, {name}",
+      "welcome": "Bienvenue sur Dofus Tools",
+      "startHint": "Cliquez sur le bouton personnage dans la barre latérale pour commencer",
+      "beta": "v2 bêta",
+      "itemsSold": "Objets vendus",
+      "kamasEarned": "{amount} kamas gagnés",
+      "characters": "Personnages",
+      "acrossServers": "sur {count} serveur | sur {count} serveurs",
+      "overallCompletion": "Progression globale",
+      "monstersCollected": "{count} monstres collectés",
+      "recentSales": "Ventes récentes",
+      "viewAll": "Voir tout",
+      "noSales": "Aucune vente enregistrée",
+      "trackFirstSale": "Suivre la première vente",
+      "itemFallback": "Objet",
+      "quickAccess": "Accès rapide",
+      "today": "Aujourd'hui",
+      "yesterday": "Hier",
+      "daysAgo": "il y a {count}j"
+    },
+    "common": {
+      "noCharacterTitle": "Aucun personnage sélectionné",
+      "search": "Rechercher...",
+      "searchItems": "Rechercher des objets...",
+      "searching": "Recherche...",
+      "loading": "Chargement..."
+    },
+    "archi": {
+      "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour commencer le suivi des archimonstres.",
+      "loadingMonsters": "Chargement des monstres...",
+      "searchMonster": "Rechercher un monstre...",
+      "addToQueue": "Ajouter à la file",
+      "queue": "File",
+      "history": "Historique",
+      "analytics": "Analytiques",
+      "clearHistory": "Effacer l'historique"
+    },
+    "crafting": {
+      "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos crafts.",
+      "findItem": "Trouver un objet à craft",
+      "loadingEffects": "Chargement des effets..."
+    },
+    "brisage": {
+      "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos sessions de brisage."
+    },
+    "succes": {
+      "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos succès.",
+      "searchAchievements": "Rechercher des succès...",
+      "loadingAchievements": "Chargement des succès..."
+    }
   },
   "home": {
     "title": "Dofus Stuff",

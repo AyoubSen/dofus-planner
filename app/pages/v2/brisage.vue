@@ -6,8 +6,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
         </svg>
       </div>
-      <div class="v2-no-context__title">No character selected</div>
-      <div class="v2-no-context__desc">Select a character in the sidebar to track your brisage sessions.</div>
+      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
+      <div class="v2-no-context__desc">{{ $t('v2.brisage.noCharacterDesc') }}</div>
     </div>
 
     <template v-else>
@@ -82,7 +82,7 @@
               <svg class="br-search__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input v-model="search" type="text" placeholder="Search items…" class="br-search__input" @input="onSearchInput" />
+              <input v-model="search" type="text" :placeholder="$t('v2.common.searchItems')" class="br-search__input" @input="onSearchInput" />
               <button v-if="search" class="br-search__clear" @click="clearSearch">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -90,7 +90,7 @@
               </button>
             </div>
 
-            <div v-if="searching" class="br-inline-loader"><div class="br-spin" /> Searching…</div>
+            <div v-if="searching" class="br-inline-loader"><div class="br-spin" /> {{ $t('v2.common.searching') }}</div>
 
             <div v-else-if="results.length" class="br-results">
               <button
@@ -105,7 +105,7 @@
                   <div class="br-result__name">{{ item.name?.fr ?? item.id }}</div>
                   <div class="br-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
                 </div>
-                <svg v-if="selectedItem?.id === item.id" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style="color:#a78bfa">
+                <svg v-if="selectedItem?.id === item.id" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style="color:var(--v2-accent)">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
               </button>
@@ -372,7 +372,7 @@
                 </div>
                 <div class="br-price-cell br-price-cell--rune">
                   <div class="br-price-cell__lbl">Rune value</div>
-                  <div class="br-price-cell__val" style="color:#a78bfa">{{ formatKamas(entry.runeValue) }}</div>
+                  <div class="br-price-cell__val" style="color:var(--v2-accent)">{{ formatKamas(entry.runeValue) }}</div>
                 </div>
               </div>
 
@@ -688,7 +688,7 @@ watch([selectedServer, selectedCharacter], loadData)
 
 <style scoped>
 /* ── Accent: violet ──────────────────────────────────────────────────────────*/
-/* primary: #a78bfa  bg: rgba(167,139,250,.x)  border: rgba(167,139,250,.x) */
+/* primary: var(--v2-accent)  bg/border follow --v2-* tokens */
 
 /* Stats strip */
 .br-stats {
@@ -700,19 +700,19 @@ watch([selectedServer, selectedCharacter], loadData)
 .br-stat {
   display: flex; align-items: center; gap: .75rem;
   padding: .875rem 1rem; border-radius: 12px;
-  background: rgba(167,139,250,.05); border: 1px solid rgba(167,139,250,.15);
+  background: var(--v2-hover); border: 1px solid var(--v2-border-med);
 }
 .br-stat--green { border-color: rgba(52,211,153,.2); background: rgba(52,211,153,.05); }
 .br-stat--red   { border-color: rgba(248,113,113,.2); background: rgba(248,113,113,.05); }
 .br-stat__icon {
   width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px;
-  background: rgba(167,139,250,.15); color: #a78bfa;
+  background: var(--v2-border-med); color: var(--v2-accent);
   display: flex; align-items: center; justify-content: center;
 }
 .br-stat--green .br-stat__icon { background: rgba(52,211,153,.15); color: #34d399; }
 .br-stat--red   .br-stat__icon { background: rgba(248,113,113,.15); color: #f87171; }
-.br-stat__val { font-size: 1.25rem; font-weight: 800; color: #f5e9cb; line-height: 1.2; }
-.br-stat__lbl { font-size: .6875rem; color: #5a4830; margin-top: 1px; }
+.br-stat__val { font-size: 1.25rem; font-weight: 800; color: var(--v2-text); line-height: 1.2; }
+.br-stat__lbl { font-size: .6875rem; color: var(--v2-text-dim); margin-top: 1px; }
 
 /* Layout */
 .br-layout {
@@ -725,45 +725,45 @@ watch([selectedServer, selectedCharacter], loadData)
 
 /* Panel */
 .br-panel {
-  background: rgba(167,139,250,.03);
-  border: 1px solid rgba(167,139,250,.1);
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-active);
   border-radius: 14px; padding: 1rem;
 }
 .br-panel-title {
   display: flex; align-items: center; gap: .5rem;
-  font-size: .875rem; font-weight: 700; color: #a078d0;
+  font-size: .875rem; font-weight: 700; color: var(--v2-accent);
   margin-bottom: .875rem;
 }
 .br-badge {
-  background: rgba(167,139,250,.18); color: #a78bfa;
+  background: var(--v2-active-strong); color: var(--v2-accent);
   font-size: .6875rem; font-weight: 600; padding: .125rem .4375rem;
   border-radius: 999px;
 }
 
 /* Search */
 .br-search { position: relative; display: flex; align-items: center; margin-bottom: .75rem; }
-.br-search__icon { position: absolute; left: .75rem; color: #3d2a60; pointer-events: none; }
+.br-search__icon { position: absolute; left: .75rem; color: var(--v2-text-muted); pointer-events: none; }
 .br-search__input {
-  background: rgba(0,0,0,.3); border: 1px solid rgba(167,139,250,.14); border-radius: 10px;
-  padding: .5rem 2.25rem; color: #e8d8ff; font-size: .875rem;
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border); border-radius: 10px;
+  padding: .5rem 2.25rem; color: var(--v2-text); font-size: .875rem;
   outline: none; width: 100%; transition: border-color .18s;
 }
-.br-search__input:focus { border-color: rgba(167,139,250,.4); }
-.br-search__input::placeholder { color: #2d1f48; }
+.br-search__input:focus { border-color: var(--v2-border-focus); }
+.br-search__input::placeholder { color: var(--v2-text-dim); }
 .br-search__clear {
   position: absolute; right: .625rem; background: none; border: none;
-  color: #3d2a60; cursor: pointer; display: flex; align-items: center;
+  color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center;
 }
-.br-search__clear:hover { color: #a78bfa; }
+.br-search__clear:hover { color: var(--v2-accent); }
 
-.br-inline-loader { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; color: #4d3a80; padding: .375rem 0; }
+.br-inline-loader { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; color: var(--v2-text-secondary); padding: .375rem 0; }
 .br-spin {
   width: 16px; height: 16px; flex-shrink: 0;
-  border: 2px solid rgba(167,139,250,.15); border-top-color: #a78bfa;
+  border: 2px solid var(--v2-border-med); border-top-color: var(--v2-accent);
   border-radius: 50%; animation: brspin .8s linear infinite;
 }
 @keyframes brspin { to { transform: rotate(360deg); } }
-.br-empty-hint { font-size: .8125rem; color: #3d2a60; padding: .375rem 0; }
+.br-empty-hint { font-size: .8125rem; color: var(--v2-text-muted); padding: .375rem 0; }
 
 /* Results */
 .br-results {
@@ -776,91 +776,91 @@ watch([selectedServer, selectedCharacter], loadData)
   border: 1px solid transparent; background: rgba(0,0,0,.15);
   cursor: pointer; transition: all .15s; text-align: left;
 }
-.br-result:hover { background: rgba(167,139,250,.07); border-color: rgba(167,139,250,.18); }
-.br-result--sel { background: rgba(167,139,250,.1); border-color: rgba(167,139,250,.3); }
+.br-result:hover { background: var(--v2-glow); border-color: var(--v2-active-strong); }
+.br-result--sel { background: var(--v2-active); border-color: var(--v2-border-strong); }
 .br-result__img { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
-.br-result__name { font-size: .8125rem; font-weight: 600; color: #e8d8ff; }
-.br-result__sub { font-size: .6875rem; color: #3d2a60; margin-top: 1px; }
+.br-result__name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
+.br-result__sub { font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px; }
 .br-result__info { flex: 1; min-width: 0; }
 
 /* Entry form */
 .br-form {
-  background: rgba(0,0,0,.18); border: 1px solid rgba(167,139,250,.12);
+  background: rgba(0,0,0,.18); border: 1px solid var(--v2-border);
   border-radius: 12px; padding: .875rem;
   display: flex; flex-direction: column; gap: .75rem; margin-top: .5rem;
 }
 .br-form__item-header { display: flex; align-items: center; gap: .75rem; }
 .br-form__item-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
-.br-form__item-name { font-size: .9375rem; font-weight: 700; color: #e8d8ff; }
-.br-form__item-sub { font-size: .75rem; color: #4d3a80; margin-top: 2px; }
+.br-form__item-name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
+.br-form__item-sub { font-size: .75rem; color: var(--v2-text-secondary); margin-top: 2px; }
 .br-form__close {
   margin-left: auto; flex-shrink: 0; background: none; border: none;
-  color: #3d2a60; cursor: pointer; display: flex; align-items: center; transition: color .15s;
+  color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center; transition: color .15s;
 }
 .br-form__close:hover { color: #f87171; }
 .br-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 .br-form__field { display: flex; flex-direction: column; gap: 3px; }
-.br-field-lbl { font-size: .6875rem; color: #4d3a80; font-weight: 500; }
+.br-field-lbl { font-size: .6875rem; color: var(--v2-text-secondary); font-weight: 500; }
 .br-field-input {
-  background: rgba(0,0,0,.3); border: 1px solid rgba(167,139,250,.18); border-radius: 8px;
-  padding: .4375rem .75rem; color: #e8d8ff; font-size: .875rem;
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong); border-radius: 8px;
+  padding: .4375rem .75rem; color: var(--v2-text); font-size: .875rem;
   outline: none; transition: border-color .15s; width: 100%;
 }
-.br-field-input:focus { border-color: rgba(167,139,250,.45); }
-.br-field-input::placeholder { color: #2d1f48; }
+.br-field-input:focus { border-color: var(--v2-border-focus); }
+.br-field-input::placeholder { color: var(--v2-text-dim); }
 
 /* Runes section */
 .br-runes-section {
-  background: rgba(167,139,250,.04); border: 1px solid rgba(167,139,250,.1);
+  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
   border-radius: 10px; padding: .75rem;
   display: flex; flex-direction: column; gap: .625rem;
 }
 .br-runes-header { display: flex; align-items: center; justify-content: space-between; }
-.br-runes-total { font-size: .75rem; font-weight: 600; color: #a78bfa; }
+.br-runes-total { font-size: .75rem; font-weight: 600; color: var(--v2-accent); }
 
 /* Add-rune form */
 .br-rune-add { display: flex; flex-direction: column; gap: .4375rem; }
 .br-rune-add__row { display: grid; grid-template-columns: 1fr 68px; gap: .375rem; align-items: center; }
 .br-rune-add__name-wrap { position: relative; }
 .br-rune-add__name {
-  width: 100%; background: rgba(0,0,0,.3); border: 1px solid rgba(167,139,250,.18);
-  border-radius: 8px; padding: .4375rem .625rem; color: #e8d8ff; font-size: .8125rem;
+  width: 100%; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong);
+  border-radius: 8px; padding: .4375rem .625rem; color: var(--v2-text); font-size: .8125rem;
   outline: none; transition: border-color .15s;
 }
-.br-rune-add__name:focus { border-color: rgba(167,139,250,.4); }
-.br-rune-add__name::placeholder { color: #2d1f48; }
+.br-rune-add__name:focus { border-color: var(--v2-border-focus); }
+.br-rune-add__name::placeholder { color: var(--v2-text-dim); }
 .br-rune-add__qty {
-  width: 100%; background: rgba(0,0,0,.3); border: 1px solid rgba(167,139,250,.18);
-  border-radius: 8px; padding: .4375rem .5rem; color: #e8d8ff; font-size: .8125rem;
+  width: 100%; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong);
+  border-radius: 8px; padding: .4375rem .5rem; color: var(--v2-text); font-size: .8125rem;
   outline: none; text-align: center; transition: border-color .15s;
 }
-.br-rune-add__qty:focus { border-color: rgba(167,139,250,.4); }
+.br-rune-add__qty:focus { border-color: var(--v2-border-focus); }
 .br-rune-add__preview {
-  font-size: .75rem; color: #7d6fa0;
-  background: rgba(167,139,250,.06); border-radius: 6px; padding: .25rem .5rem;
+  font-size: .75rem; color: var(--v2-text-secondary);
+  background: var(--v2-hover); border-radius: 6px; padding: .25rem .5rem;
 }
-.br-rune-add__preview strong { color: #a78bfa; }
+.br-rune-add__preview strong { color: var(--v2-accent); }
 .br-rune-add__manual-row { display: flex; flex-direction: column; gap: 2px; }
 .br-rune-add__price {
-  width: 100%; background: rgba(0,0,0,.3); border: 1px solid rgba(167,139,250,.18);
-  border-radius: 8px; padding: .4375rem .625rem; color: #e8d8ff; font-size: .8125rem;
+  width: 100%; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong);
+  border-radius: 8px; padding: .4375rem .625rem; color: var(--v2-text); font-size: .8125rem;
   outline: none; transition: border-color .15s;
 }
-.br-rune-add__price:focus { border-color: rgba(167,139,250,.4); }
+.br-rune-add__price:focus { border-color: var(--v2-border-focus); }
 .br-rune-add__btn {
   display: flex; align-items: center; justify-content: center; gap: .375rem;
   padding: .375rem .75rem; border-radius: 8px;
-  background: rgba(167,139,250,.12); border: 1px solid rgba(167,139,250,.22);
-  color: #a78bfa; font-size: .8125rem; font-weight: 600; cursor: pointer; transition: all .15s;
+  background: var(--v2-border); border: 1px solid var(--v2-border-strong);
+  color: var(--v2-accent); font-size: .8125rem; font-weight: 600; cursor: pointer; transition: all .15s;
 }
-.br-rune-add__btn:hover:not(:disabled) { background: rgba(167,139,250,.22); }
+.br-rune-add__btn:hover:not(:disabled) { background: var(--v2-border-strong); }
 .br-rune-add__btn:disabled { opacity: .35; cursor: not-allowed; }
 
 /* Dropdown (shared by add-form) */
 .br-rune-dropdown {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
-  background: #1e1535;
-  border: 1px solid rgba(167,139,250,.18);
+  background: var(--v2-surface-elevated);
+  border: 1px solid var(--v2-active-strong);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.6);
@@ -871,8 +871,8 @@ watch([selectedServer, selectedCharacter], loadData)
   padding: .4375rem .75rem; cursor: pointer; border: none; background: transparent; width: 100%;
   transition: background .1s; text-align: left;
 }
-.br-rune-dropdown__item:hover { background: rgba(167,139,250,.12); }
-.br-rune-dropdown__name { font-size: .8125rem; color: #e8d8ff; font-weight: 500; }
+.br-rune-dropdown__item:hover { background: var(--v2-border); }
+.br-rune-dropdown__name { font-size: .8125rem; color: var(--v2-text); font-weight: 500; }
 .br-rune-dropdown__price { font-size: .6875rem; color: #7a5fa0; }
 
 /* Added runes list */
@@ -880,30 +880,30 @@ watch([selectedServer, selectedCharacter], loadData)
 .br-rune-item {
   display: flex; align-items: center; gap: .5rem;
   padding: .3125rem .5rem; border-radius: 7px;
-  background: rgba(167,139,250,.05); border: 1px solid rgba(167,139,250,.1);
+  background: var(--v2-hover); border: 1px solid var(--v2-active);
 }
 .br-rune-item__label { flex: 1; display: flex; align-items: baseline; gap: .3125rem; min-width: 0; }
 .br-rune-item__qty { font-size: .75rem; color: #6d4fa0; font-weight: 600; flex-shrink: 0; }
 .br-rune-item__name {
-  font-size: .8125rem; color: #c4a8ff; font-weight: 600;
+  font-size: .8125rem; color: var(--v2-text); font-weight: 600;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.br-rune-item__val { font-size: .8125rem; font-weight: 700; color: #a78bfa; flex-shrink: 0; }
+.br-rune-item__val { font-size: .8125rem; font-weight: 700; color: var(--v2-accent); flex-shrink: 0; }
 .br-rune-item__del {
-  background: none; border: none; cursor: pointer; color: #3d2060;
+  background: none; border: none; cursor: pointer; color: var(--v2-text-dim);
   display: flex; align-items: center; padding: 2px; border-radius: 4px; flex-shrink: 0; transition: all .15s;
 }
 .br-rune-item__del:hover { color: #f87171; }
 .br-rune-list__total {
   display: flex; justify-content: space-between; align-items: center;
-  padding: .375rem .5rem; border-top: 1px solid rgba(167,139,250,.1);
+  padding: .375rem .5rem; border-top: 1px solid var(--v2-active);
   margin-top: .125rem; font-size: .8125rem; color: #6d4fa0;
 }
-.br-rune-list__total-val { font-size: .875rem; font-weight: 700; color: #a78bfa; }
+.br-rune-list__total-val { font-size: .875rem; font-weight: 700; color: var(--v2-accent); }
 
 /* Profit preview */
 .br-profit-preview {
-  background: rgba(0,0,0,.2); border: 1px solid rgba(167,139,250,.1);
+  background: rgba(0,0,0,.2); border: 1px solid var(--v2-active);
   border-radius: 8px; padding: .5rem .75rem;
   display: flex; flex-direction: column; gap: .25rem;
 }
@@ -911,16 +911,16 @@ watch([selectedServer, selectedCharacter], loadData)
   display: flex; justify-content: space-between; align-items: center;
   font-size: .8125rem; color: #6d4fa0;
 }
-.br-profit-row strong { color: #f5e9cb; }
+.br-profit-row strong { color: var(--v2-text); }
 
 /* Submit */
 .br-submit-btn {
   display: flex; align-items: center; justify-content: center; gap: .5rem;
   padding: .625rem 1rem; border-radius: 10px;
-  background: rgba(167,139,250,.15); border: 1px solid rgba(167,139,250,.3);
-  color: #e8d8ff; font-size: .875rem; font-weight: 600; cursor: pointer; transition: all .18s;
+  background: var(--v2-border-med); border: 1px solid var(--v2-border-strong);
+  color: var(--v2-text); font-size: .875rem; font-weight: 600; cursor: pointer; transition: all .18s;
 }
-.br-submit-btn:hover:not(:disabled) { background: rgba(167,139,250,.25); }
+.br-submit-btn:hover:not(:disabled) { background: var(--v2-border-strong); }
 .br-submit-btn:disabled { opacity: .35; cursor: not-allowed; }
 
 /* Rune prices manager */
@@ -928,50 +928,50 @@ watch([selectedServer, selectedCharacter], loadData)
 .br-rune-prices__toggle {
   display: flex; align-items: center; gap: .5rem;
   width: 100%; padding: .5rem .75rem; border-radius: 10px;
-  background: rgba(0,0,0,.2); border: 1px solid rgba(167,139,250,.1);
+  background: rgba(0,0,0,.2); border: 1px solid var(--v2-active);
   color: #6d4fa0; font-size: .8125rem; font-weight: 500; cursor: pointer; transition: all .15s;
 }
-.br-rune-prices__toggle:hover { border-color: rgba(167,139,250,.25); color: #c4a8ff; }
+.br-rune-prices__toggle:hover { border-color: var(--v2-border-strong); color: var(--v2-text); }
 .br-rune-prices__count {
-  background: rgba(167,139,250,.15); color: #a78bfa;
+  background: var(--v2-border-med); color: var(--v2-accent);
   font-size: .625rem; padding: .0625rem .375rem; border-radius: 999px; font-weight: 600;
 }
 .br-rune-prices__body {
   margin-top: .5rem; padding: .75rem;
-  background: rgba(0,0,0,.18); border: 1px solid rgba(167,139,250,.1);
+  background: rgba(0,0,0,.18); border: 1px solid var(--v2-active);
   border-radius: 10px; display: flex; flex-direction: column; gap: .5rem;
 }
 .br-rune-prices__add-form { display: flex; gap: .375rem; align-items: center; }
 .br-rune-prices__input {
-  flex: 1; background: rgba(0,0,0,.3); border: 1px solid rgba(167,139,250,.18); border-radius: 7px;
-  padding: .375rem .625rem; color: #e8d8ff; font-size: .8125rem; outline: none; transition: border-color .15s;
+  flex: 1; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong); border-radius: 7px;
+  padding: .375rem .625rem; color: var(--v2-text); font-size: .8125rem; outline: none; transition: border-color .15s;
 }
-.br-rune-prices__input:focus { border-color: rgba(167,139,250,.4); }
-.br-rune-prices__input::placeholder { color: #2d1f48; }
+.br-rune-prices__input:focus { border-color: var(--v2-border-focus); }
+.br-rune-prices__input::placeholder { color: var(--v2-text-dim); }
 .br-rune-prices__input--sm { flex: 0 0 80px; }
 .br-rune-prices__add-btn {
   width: 28px; height: 28px; flex-shrink: 0; border-radius: 7px;
-  background: rgba(167,139,250,.15); border: 1px solid rgba(167,139,250,.25);
-  color: #a78bfa; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .15s;
+  background: var(--v2-border-med); border: 1px solid var(--v2-border-strong);
+  color: var(--v2-accent); font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .15s;
   display: flex; align-items: center; justify-content: center;
 }
-.br-rune-prices__add-btn:hover:not(:disabled) { background: rgba(167,139,250,.25); }
+.br-rune-prices__add-btn:hover:not(:disabled) { background: var(--v2-border-strong); }
 .br-rune-prices__add-btn:disabled { opacity: .35; cursor: not-allowed; }
-.br-rune-prices__empty { font-size: .75rem; color: #3d2a60; text-align: center; padding: .25rem; }
+.br-rune-prices__empty { font-size: .75rem; color: var(--v2-text-muted); text-align: center; padding: .25rem; }
 .br-rune-prices__list { display: flex; flex-direction: column; gap: 2px; }
 .br-rp-row {
   display: flex; align-items: center; gap: .375rem;
   padding: .3125rem .5rem; border-radius: 6px; background: rgba(0,0,0,.15);
 }
-.br-rp-name { font-size: .8125rem; font-weight: 600; color: #c4a8ff; flex: 1; }
+.br-rp-name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); flex: 1; }
 .br-rp-price {
-  font-size: .8125rem; font-weight: 600; color: #a78bfa; cursor: pointer;
+  font-size: .8125rem; font-weight: 600; color: var(--v2-accent); cursor: pointer;
   padding: .125rem .375rem; border-radius: 5px; transition: background .15s;
 }
-.br-rp-price:hover { background: rgba(167,139,250,.1); }
+.br-rp-price:hover { background: var(--v2-active); }
 .br-rp-input {
-  width: 80px; background: rgba(0,0,0,.4); border: 1px solid rgba(167,139,250,.3);
-  border-radius: 5px; padding: .1875rem .375rem; color: #e8d8ff; font-size: .8125rem; outline: none;
+  width: 80px; background: rgba(0,0,0,.4); border: 1px solid var(--v2-border-strong);
+  border-radius: 5px; padding: .1875rem .375rem; color: var(--v2-text); font-size: .8125rem; outline: none;
 }
 .br-rp-ok, .br-rp-cancel {
   background: none; border: none; cursor: pointer; font-size: .8125rem; padding: .125rem .25rem;
@@ -985,35 +985,35 @@ watch([selectedServer, selectedCharacter], loadData)
   background: none; border: none; cursor: pointer;
   display: flex; align-items: center; padding: 2px; border-radius: 4px; transition: all .15s;
 }
-.br-rp-edit { color: #5a4070; }
-.br-rp-edit:hover { color: #a78bfa; }
-.br-rp-del { color: #4a2040; }
+.br-rp-edit { color: var(--v2-text-muted); }
+.br-rp-edit:hover { color: var(--v2-accent); }
+.br-rp-del { color: var(--v2-text-dim); }
 .br-rp-del:hover { color: #f87171; }
 
 /* Log */
 .br-log-empty {
   padding: 2.5rem 1rem; text-align: center;
-  color: #3d2a60; font-size: .9375rem;
+  color: var(--v2-text-muted); font-size: .9375rem;
   display: flex; flex-direction: column; align-items: center; gap: .25rem;
 }
 .br-log-scroll { display: flex; flex-direction: column; gap: .625rem; max-height: calc(100vh - 220px); overflow-y: auto; }
 
 .br-entry {
-  background: rgba(167,139,250,.03); border: 1px solid rgba(167,139,250,.1);
+  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
   border-radius: 12px; padding: .875rem 1rem;
   display: flex; flex-direction: column; gap: .625rem;
   transition: border-color .18s;
 }
-.br-entry:hover { border-color: rgba(167,139,250,.22); }
+.br-entry:hover { border-color: var(--v2-border-strong); }
 
 .br-entry__header { display: flex; align-items: flex-start; gap: .75rem; }
 .br-entry__img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
 .br-entry__meta { flex: 1; min-width: 0; }
-.br-entry__name { font-size: .9375rem; font-weight: 700; color: #e8d8ff; }
-.br-entry__sub { font-size: .6875rem; color: #4d3a80; margin-top: 1px; }
-.br-entry__date { font-size: .6875rem; color: #4d3a80; margin-top: 3px; }
+.br-entry__name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
+.br-entry__sub { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 1px; }
+.br-entry__date { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 3px; }
 .br-entry__del {
-  flex-shrink: 0; background: none; border: none; color: #3d2a60;
+  flex-shrink: 0; background: none; border: none; color: var(--v2-text-muted);
   cursor: pointer; display: flex; align-items: center; padding: 2px; border-radius: 5px; transition: all .15s;
 }
 .br-entry__del:hover { color: #f87171; background: rgba(248,113,113,.1); }
@@ -1024,13 +1024,13 @@ watch([selectedServer, selectedCharacter], loadData)
 .br-price-cell {
   padding: .5rem .625rem; border-radius: 8px; text-align: center;
 }
-.br-price-cell--craft { background: rgba(245,165,35,.06); border: 1px solid rgba(245,165,35,.15); }
+.br-price-cell--craft { background: var(--v2-hover); border: 1px solid var(--v2-border-med); }
 .br-price-cell--hdv   { background: rgba(96,165,250,.06); border: 1px solid rgba(96,165,250,.15); }
-.br-price-cell--rune  { background: rgba(167,139,250,.06); border: 1px solid rgba(167,139,250,.2); }
-.br-price-cell__lbl { font-size: .625rem; color: #5a4830; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.br-price-cell--rune  { background: var(--v2-hover); border: 1px solid var(--v2-border-med); }
+.br-price-cell__lbl { font-size: .625rem; color: var(--v2-text-dim); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
 .br-price-cell--hdv .br-price-cell__lbl   { color: #2d4a70; }
-.br-price-cell--rune .br-price-cell__lbl  { color: #4d3a80; }
-.br-price-cell__val { font-size: .9375rem; font-weight: 700; color: #f5e9cb; }
+.br-price-cell--rune .br-price-cell__lbl  { color: var(--v2-text-secondary); }
+.br-price-cell__val { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
 
 .br-entry__profits { display: flex; flex-wrap: wrap; gap: .375rem; }
 .br-profit-pill {
@@ -1045,14 +1045,17 @@ watch([selectedServer, selectedCharacter], loadData)
 .br-rune-chip {
   display: flex; align-items: center; gap: .3125rem;
   font-size: .6875rem; padding: .125rem .5rem;
-  background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.18);
-  border-radius: 5px; color: #c4a8ff;
+  background: var(--v2-border-subtle); border: 1px solid var(--v2-active-strong);
+  border-radius: 5px; color: var(--v2-text);
 }
-.br-rune-chip__val { color: #a78bfa; font-weight: 600; }
+.br-rune-chip__val { color: var(--v2-accent); font-weight: 600; }
 
-.br-entry__notes { font-size: .75rem; color: #4d3a80; font-style: italic; }
+.br-entry__notes { font-size: .75rem; color: var(--v2-text-secondary); font-style: italic; }
 
 /* Transition */
 .br-slide-enter-active, .br-slide-leave-active { transition: all .2s ease; }
 .br-slide-enter-from, .br-slide-leave-to { opacity: 0; transform: translateY(-6px); }
 </style>
+
+
+
