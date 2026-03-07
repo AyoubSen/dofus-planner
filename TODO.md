@@ -25,6 +25,10 @@ Focused shortlist grouped by delivery priority.
 - [ ] Type Hardening With Runtime Validation
 - [ ] Items Page Data Context Subtitle
 - [ ] Items Export Current View CSV
+- [x] Items Recipe Pressure View (POC done in V2)
+- [ ] Items Recipe Pressure Follow-Up (single-item jump, confidence, richer metrics)
+- [ ] Items Resource Pressure Filters
+- [ ] Items Aggregate Sort/Metric Controls
 - [ ] Crafting Filter/Sort by Margin
 - [ ] Brisage P/L Over Time Chart
 - [ ] Familiers Budget Persistence
@@ -35,11 +39,13 @@ Focused shortlist grouped by delivery priority.
 - [ ] Archimonstres Export Missing List (Clipboard/CSV)
 - [ ] Succes Category Progress Bars
 - [ ] Succes Sort by Reward Value
+- [ ] Items DofusDB ID Cache / Mapping (persist resolved item -> dofusdb id locally)
+- [ ] Items Recipe Cost Overlay (craft cost vs entered market price)
+- [ ] Items Resource Source Context
+- [ ] Items Aggregate Diff Between Filters
+- [ ] Items Confidence / Match Quality Indicator
 
 ## Heavy
-- [ ] Items Compare Two Items Side by Side
-- [ ] Items Build Finder
-- [ ] Items Trending Usage (Time-Based)
 - [ ] Archimonstres Zone Map Filter
 - [ ] Archimonstres Sort by Rarity/Difficulty
 - [ ] Crafting Ingredient Cost Breakdown

@@ -151,6 +151,14 @@
               <div class="min-w-0">
                 <div class="v2-recipe-item__name">{{ selectedRecipeItem.name }}</div>
                 <div class="v2-recipe-item__meta">{{ $t(`items.slots.${activeSlot}`) }} · {{ selectedRecipeItem.count }} uses</div>
+                <div class="v2-recipe-item__actions">
+                  <button class="v2-recipe-refresh" @click="refetchSelectedRecipe">
+                    Refetch recipe
+                  </button>
+                  <span v-if="recipeLookupState.source" class="v2-recipe-cache-hint">
+                    {{ recipeLookupState.source === 'cache' ? 'Loaded from cache' : 'Fresh fetch' }}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -207,13 +215,145 @@
           </div>
         </template>
 
+        <template v-else-if="aggregateRecipeState.isOpen">
+          <div class="v2-recipe-shell">
+            <div class="v2-recipe-top">
+              <button class="v2-recipe-back" @click="resetAggregateRecipeView">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
+              <span class="v2-recipe-kicker">Aggregate recipe proof of concept</span>
+            </div>
+
+            <div class="v2-recipe-item">
+              <div class="min-w-0 flex-1">
+                <div class="v2-recipe-item__name">
+                  {{ $t(`items.slots.${activeSlot}`) }} recipe pressure
+                </div>
+                <div class="v2-recipe-item__meta">
+                  Top {{ aggregateRecipeState.limit }} items from current filters · counts ingredient presence per item recipe
+                </div>
+              </div>
+              <div class="v2-bulk-limit">
+                <button
+                  v-for="limit in aggregateLimits"
+                  :key="limit"
+                  class="v2-bulk-limit__btn"
+                  :class="{ 'v2-bulk-limit__btn--on': aggregateRecipeState.limit === limit }"
+                  @click="openAggregateRecipeView(limit)"
+                >
+                  {{ limit }}
+                </button>
+              </div>
+            </div>
+
+            <div v-if="aggregateRecipeState.isLoading" class="v2-center-loader">
+              <div class="v2-spin" /> Loading aggregate recipes...
+            </div>
+
+            <div v-else-if="aggregateRecipeState.error" class="v2-recipe-error">
+              {{ aggregateRecipeState.error }}
+            </div>
+
+            <template v-else>
+              <div class="v2-recipe-stats">
+                <div class="v2-rstat">
+                  <div class="v2-rstat__label">Selected items</div>
+                  <div class="v2-rstat__val">{{ aggregateRecipeState.selectedItems.length }}</div>
+                </div>
+                <div class="v2-rstat">
+                  <div class="v2-rstat__label">Unique resources</div>
+                  <div class="v2-rstat__val">{{ aggregateIngredients.length }}</div>
+                </div>
+                <div class="v2-rstat">
+                  <div class="v2-rstat__label">Metric</div>
+                  <div class="v2-rstat__val">{{ aggregateSortMode === 'items' ? 'Items first' : 'Qty first' }}</div>
+                </div>
+              </div>
+
+              <div class="v2-aggregate-sort">
+                <span class="v2-aggregate-sort__label">Sort by</span>
+                <div class="v2-bulk-limit">
+                  <button
+                    class="v2-bulk-limit__btn"
+                    :class="{ 'v2-bulk-limit__btn--on': aggregateSortMode === 'items' }"
+                    @click="aggregateSortMode = 'items'"
+                  >
+                    Items
+                  </button>
+                  <button
+                    class="v2-bulk-limit__btn"
+                    :class="{ 'v2-bulk-limit__btn--on': aggregateSortMode === 'quantity' }"
+                    @click="aggregateSortMode = 'quantity'"
+                  >
+                    Qty
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="aggregateRecipeState.selectedItems.length" class="v2-selected-items">
+                <span class="v2-selected-items__label">Selected items</span>
+                <div class="v2-selected-items__list">
+                  <span v-for="item in aggregateRecipeState.selectedItems" :key="item.name" class="v2-selected-items__chip">
+                    {{ item.name }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="v2-recipe-list">
+                <div class="v2-recipe-list__head">Resources ranked by recipe presence</div>
+                <div v-if="aggregateIngredients.length" class="v2-recipe-lines">
+                  <div v-for="ingredient in aggregateIngredients" :key="ingredient.id" class="v2-recipe-line">
+                      <div class="v2-recipe-line__img-wrap">
+                        <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" class="v2-recipe-line__img" @error="noImg" />
+                        <div v-else class="v2-recipe-line__img-ph" />
+                      </div>
+                      <div class="v2-recipe-line__body">
+                        <div class="v2-recipe-line__name">{{ ingredient.name }}</div>
+                        <div class="v2-recipe-line__meta">
+                        <span v-if="ingredient.typeName">{{ ingredient.typeName }}</span>
+                        <span v-if="ingredient.level !== null"> · Level {{ ingredient.level }}</span>
+                      </div>
+                      <div v-if="ingredient.items.length" class="v2-recipe-line__links">
+                      <span class="v2-recipe-line__links-label">Used in</span>
+                      <button
+                        v-for="item in ingredient.items"
+                        :key="item.name"
+                        class="v2-recipe-item-chip"
+                        @click="openRecipeView(item)"
+                      >
+                        {{ item.name }}
+                      </button>
+                    </div>
+                    </div>
+                    <div class="v2-recipe-line__qty">
+                      <span class="v2-recipe-line__qty-label">Items</span>
+                      <strong>{{ ingredient.usageCount }}</strong>
+                      <span class="v2-recipe-line__qty-sub">Qty {{ ingredient.totalQuantity }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="v2-empty-full">
+                  No aggregate recipe data found.
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+
         <template v-else>
           <!-- Header row -->
           <div class="v2-slot-head">
             <span class="v2-slot-head__title">
               {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
             </span>
-            <div class="v2-view-toggle">
+            <div class="v2-slot-head__actions">
+              <button class="v2-bulk-open" @click="openAggregateRecipeView(aggregateRecipeState.limit)">
+                Recipe pressure
+              </button>
+              <div class="v2-view-toggle">
               <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'grid' }" @click="viewMode = 'grid'" :title="$t('items.viewModes.grid')">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -229,6 +369,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
               </button>
+              </div>
             </div>
           </div>
 
@@ -395,10 +536,39 @@ const activeSlot = ref('ar')
 const viewMode = ref<'grid' | 'list' | 'table'>('grid')
 const stats = ref<any>(null)
 const selectedRecipeItem = ref<any>(null)
-const recipeLookupState = ref<{ isLoading: boolean; error: string; data: any | null }>({
+type RecipeLookupSource = 'cache' | 'network' | ''
+type CachedDofusdbRecipeEntry = {
+  normalizedName: string
+  dofusdbId: number
+  matchedName: string
+  recipe: any
+  updatedAt: string
+}
+
+const DOFUSDB_RECIPE_CACHE_KEY = 'dofus-items-dofusdb-recipe-cache-v1'
+
+const recipeLookupState = ref<{ isLoading: boolean; error: string; data: any | null; source: RecipeLookupSource }>({
   isLoading: false,
   error: '',
   data: null,
+  source: '',
+})
+const aggregateLimits = [3, 5, 10, 20]
+const aggregateSortMode = ref<'items' | 'quantity'>('items')
+const aggregateRecipeState = ref<{
+  isOpen: boolean
+  isLoading: boolean
+  error: string
+  data: any[]
+  limit: number
+  selectedItems: Array<{ name: string; image_url?: string | null; count: number }>
+}>({
+  isOpen: false,
+  isLoading: false,
+  error: '',
+  data: [],
+  limit: 5,
+  selectedItems: [],
 })
 
 const setFilter = (key: keyof typeof filters, val: string) => {
@@ -418,6 +588,83 @@ const normalizeDofusdbSearch = (value: string) =>
     .toLowerCase()
     .trim()
 
+const readRecipeCache = (): Record<string, CachedDofusdbRecipeEntry> => {
+  if (!import.meta.client) return {}
+
+  try {
+    const raw = localStorage.getItem(DOFUSDB_RECIPE_CACHE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+const writeRecipeCache = (cache: Record<string, CachedDofusdbRecipeEntry>) => {
+  if (!import.meta.client) return
+  localStorage.setItem(DOFUSDB_RECIPE_CACHE_KEY, JSON.stringify(cache))
+}
+
+const fetchResolvedRecipe = async (item: { name: string }, options: { forceRefresh?: boolean } = {}) => {
+  const normalizedName = normalizeDofusdbSearch(item.name)
+  const cache = readRecipeCache()
+  const cachedEntry = cache[normalizedName]
+
+  if (cachedEntry && !options.forceRefresh) {
+    return {
+      recipe: cachedEntry.recipe,
+      dofusdbId: cachedEntry.dofusdbId,
+      source: 'cache' as const,
+    }
+  }
+
+  let dofusdbId = cachedEntry?.dofusdbId
+  let matchedName = cachedEntry?.matchedName || item.name
+
+  if (!dofusdbId || options.forceRefresh) {
+    const searchResponse = await $fetch<any>('/api/dofusdb/items', {
+      query: {
+        'typeId[$ne]': 203,
+        '$sort': '-id',
+        'slug.fr[$search]': normalizedName,
+        'level[$gte]': 0,
+        'level[$lte]': 200,
+        '$skip': 0,
+        lang: 'fr',
+      },
+    })
+
+    const matchedItem = searchResponse?.data?.[0]
+
+    if (!matchedItem?.id) {
+      throw new Error(`Could not resolve DofusDB item for "${item.name}"`)
+    }
+
+    dofusdbId = matchedItem.id
+    matchedName = matchedItem?.name?.fr || matchedItem?.name?.en || item.name
+  }
+
+  const recipe = await $fetch(`/api/dofusdb/recipes/${dofusdbId}`, {
+    query: { lang: 'fr' },
+  })
+
+  cache[normalizedName] = {
+    normalizedName,
+    dofusdbId,
+    matchedName,
+    recipe,
+    updatedAt: new Date().toISOString(),
+  }
+  writeRecipeCache(cache)
+
+  return {
+    recipe,
+    dofusdbId,
+    source: 'network' as const,
+  }
+}
+
 const recipeIngredients = computed(() => {
   const recipe = recipeLookupState.value.data
 
@@ -434,6 +681,68 @@ const recipeIngredients = computed(() => {
       level: ingredient?.level ?? null,
       typeName: ingredient?.type?.name?.fr || ingredient?.type?.name?.en || null,
     }
+  })
+})
+
+const aggregateIngredients = computed(() => {
+  const source = aggregateRecipeState.value.data
+  if (!source.length) return []
+
+  const ingredientMap = new Map<number, {
+    id: number
+    name: string
+    image: string | null
+    level: number | null
+    typeName: string | null
+    usageCount: number
+    totalQuantity: number
+    items: Array<{ name: string; image_url?: string | null; count: number }>
+  }>()
+
+  source.forEach((entry: any) => {
+    const itemRef = entry.item
+    const seenInThisRecipe = new Set<number>()
+
+    entry.recipe?.ingredientIds?.forEach((ingredientId: number, index: number) => {
+      const quantity = entry.recipe?.quantities?.[index] ?? 0
+      const wasSeen = seenInThisRecipe.has(ingredientId)
+      if (!wasSeen) seenInThisRecipe.add(ingredientId)
+
+      const ingredient = entry.recipe.ingredients?.find((candidate: any) => candidate.id === ingredientId)
+      const existing = ingredientMap.get(ingredientId)
+
+      if (existing) {
+        if (!wasSeen) {
+          existing.usageCount += 1
+          existing.items.push(itemRef)
+        }
+        existing.totalQuantity += quantity
+        return
+      }
+
+      ingredientMap.set(ingredientId, {
+        id: ingredientId,
+        name: ingredient?.name?.fr || ingredient?.name?.en || `Ingredient #${ingredientId}`,
+        image: ingredient?.img || null,
+        level: ingredient?.level ?? null,
+        typeName: ingredient?.type?.name?.fr || ingredient?.type?.name?.en || null,
+        usageCount: 1,
+        totalQuantity: quantity,
+        items: [itemRef],
+      })
+    })
+  })
+
+  return Array.from(ingredientMap.values()).sort((a, b) => {
+    if (aggregateSortMode.value === 'quantity') {
+      if (b.totalQuantity !== a.totalQuantity) return b.totalQuantity - a.totalQuantity
+      if (b.usageCount !== a.usageCount) return b.usageCount - a.usageCount
+      return a.name.localeCompare(b.name)
+    }
+
+    if (b.usageCount !== a.usageCount) return b.usageCount - a.usageCount
+    if (b.totalQuantity !== a.totalQuantity) return b.totalQuantity - a.totalQuantity
+    return a.name.localeCompare(b.name)
   })
 })
 
@@ -464,44 +773,42 @@ const resetRecipeView = () => {
     isLoading: false,
     error: '',
     data: null,
+    source: '',
   }
 }
 
-const openRecipeView = async (item: { name: string; image_url?: string | null; count: number }) => {
+const resetAggregateRecipeView = () => {
+  aggregateRecipeState.value = {
+    ...aggregateRecipeState.value,
+    isOpen: false,
+    isLoading: false,
+    error: '',
+    data: [],
+    selectedItems: [],
+  }
+}
+
+const loadRecipeIntoView = async (
+  item: { name: string; image_url?: string | null; count: number },
+  options: { forceRefresh?: boolean } = {}
+) => {
+  resetAggregateRecipeView()
   selectedRecipeItem.value = item
   recipeLookupState.value = {
     isLoading: true,
     error: '',
     data: null,
+    source: '',
   }
 
   try {
-    const searchResponse = await $fetch<any>('/api/dofusdb/items', {
-      query: {
-        'typeId[$ne]': 203,
-        '$sort': '-id',
-        'slug.fr[$search]': normalizeDofusdbSearch(item.name),
-        'level[$gte]': 0,
-        'level[$lte]': 200,
-        '$skip': 0,
-        lang: 'fr',
-      },
-    })
-
-    const matchedItem = searchResponse?.data?.[0]
-
-    if (!matchedItem?.id) {
-      throw new Error(`Could not resolve DofusDB item for "${item.name}"`)
-    }
-
-    const recipe = await $fetch(`/api/dofusdb/recipes/${matchedItem.id}`, {
-      query: { lang: 'fr' },
-    })
+    const result = await fetchResolvedRecipe(item, options)
 
     recipeLookupState.value = {
       isLoading: false,
       error: '',
-      data: recipe,
+      data: result.recipe,
+      source: result.source,
     }
   } catch (error) {
     console.error('Error fetching recipe:', error)
@@ -509,6 +816,68 @@ const openRecipeView = async (item: { name: string; image_url?: string | null; c
       isLoading: false,
       error: 'Failed to load recipe for this item.',
       data: null,
+      source: '',
+    }
+  }
+}
+
+const openRecipeView = async (item: { name: string; image_url?: string | null; count: number }) => {
+  await loadRecipeIntoView(item)
+}
+
+const refetchSelectedRecipe = async () => {
+  if (!selectedRecipeItem.value) return
+  await loadRecipeIntoView(selectedRecipeItem.value, { forceRefresh: true })
+}
+
+const openAggregateRecipeView = async (limit: number) => {
+  resetRecipeView()
+
+  const selectedItems = (currentSlotStats.value?.topItems ?? []).slice(0, limit)
+
+  aggregateRecipeState.value = {
+    ...aggregateRecipeState.value,
+    isOpen: true,
+    isLoading: true,
+    error: '',
+    data: [],
+    limit,
+    selectedItems,
+  }
+
+  if (!selectedItems.length) {
+    aggregateRecipeState.value = {
+      ...aggregateRecipeState.value,
+      isLoading: false,
+      error: 'No items available for this selection.',
+    }
+    return
+  }
+
+  try {
+    const recipes = await Promise.all(
+      selectedItems.map(async (item) => {
+        const result = await fetchResolvedRecipe(item)
+
+        return {
+          item,
+          recipe: result.recipe,
+        }
+      })
+    )
+
+    aggregateRecipeState.value = {
+      ...aggregateRecipeState.value,
+      isLoading: false,
+      data: recipes,
+    }
+  } catch (error) {
+    console.error('Error fetching aggregate recipes:', error)
+    aggregateRecipeState.value = {
+      ...aggregateRecipeState.value,
+      isLoading: false,
+      error: 'Failed to load aggregate recipe data.',
+      data: [],
     }
   }
 }
@@ -567,6 +936,7 @@ const fetchData = async () => {
   loading.value = true
   stats.value = null
   resetRecipeView()
+  resetAggregateRecipeView()
   try {
     const qs = buildQuery()
     const res = await $fetch<any>(`/api/items/items${qs ? '?' + qs : ''}`)
@@ -587,6 +957,7 @@ onMounted(fetchData)
 
 watch(activeSlot, () => {
   resetRecipeView()
+  resetAggregateRecipeView()
 })
 </script>
 
@@ -681,6 +1052,12 @@ watch(activeSlot, () => {
   margin-bottom: .875rem; flex-wrap: wrap; gap: .5rem;
 }
 .v2-slot-head__title { font-size: .9375rem; font-weight: 700; color: var(--v2-text-hover); }
+.v2-slot-head__actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.v2-bulk-open {
+  border: 1px solid var(--v2-border); background: rgba(0,0,0,.18); color: var(--v2-text);
+  border-radius: 8px; padding: .45rem .7rem; font-size: .75rem; font-weight: 700; cursor: pointer;
+}
+.v2-bulk-open:hover { border-color: var(--v2-border-strong); background: var(--v2-hover-subtle); }
 
 .v2-view-toggle { display: flex; gap: 2px; background: rgba(0,0,0,.2); border-radius: 8px; padding: 2px; }
 .v2-view-btn {
@@ -800,6 +1177,13 @@ watch(activeSlot, () => {
 .v2-recipe-kicker {
   font-size: .6875rem; text-transform: uppercase; letter-spacing: .08em; color: var(--v2-text-dim); font-weight: 700;
 }
+.v2-bulk-limit { display: flex; gap: .25rem; flex-wrap: wrap; }
+.v2-bulk-limit__btn {
+  border: 1px solid var(--v2-border); background: rgba(0,0,0,.18); color: var(--v2-text-secondary);
+  border-radius: 8px; padding: .375rem .55rem; font-size: .75rem; font-weight: 700; cursor: pointer; min-width: 34px;
+}
+.v2-bulk-limit__btn:hover { border-color: var(--v2-border-strong); color: var(--v2-text); }
+.v2-bulk-limit__btn--on { background: var(--v2-active-strong); border-color: var(--v2-border-focus); color: var(--v2-text); }
 .v2-recipe-item {
   display: flex; align-items: center; gap: .875rem;
   padding: .875rem; border-radius: 12px; background: rgba(0,0,0,.18); border: 1px solid var(--v2-active);
@@ -813,6 +1197,15 @@ watch(activeSlot, () => {
 .v2-recipe-item__img-ph, .v2-recipe-line__img-ph { width: 100%; height: 100%; background: var(--v2-hover); }
 .v2-recipe-item__name { font-size: 1.05rem; font-weight: 700; color: var(--v2-text-hover); }
 .v2-recipe-item__meta { margin-top: .2rem; font-size: .8125rem; color: var(--v2-text-secondary); }
+.v2-recipe-item__actions {
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-top: .5rem;
+}
+.v2-recipe-refresh {
+  border: 1px solid var(--v2-border); background: rgba(0,0,0,.18); color: var(--v2-text);
+  border-radius: 999px; padding: .28rem .6rem; font-size: .75rem; font-weight: 700; cursor: pointer;
+}
+.v2-recipe-refresh:hover { border-color: var(--v2-border-focus); background: var(--v2-hover-subtle); }
+.v2-recipe-cache-hint { font-size: .6875rem; color: var(--v2-text-dim); font-weight: 600; }
 .v2-recipe-error {
   border: 1px solid rgba(239,68,68,.35); background: rgba(239,68,68,.12); color: #fecaca;
   border-radius: 12px; padding: .875rem 1rem; font-size: .875rem;
@@ -826,6 +1219,23 @@ watch(activeSlot, () => {
 }
 .v2-rstat__label { font-size: .6875rem; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-dim); font-weight: 700; }
 .v2-rstat__val { margin-top: .25rem; font-size: 1rem; color: var(--v2-text); font-weight: 700; }
+.v2-selected-items {
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle); border-radius: 12px; padding: .875rem 1rem;
+}
+.v2-aggregate-sort {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle); border-radius: 12px; padding: .75rem 1rem;
+}
+.v2-aggregate-sort__label {
+  font-size: .6875rem; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-dim); font-weight: 700;
+}
+.v2-selected-items__label {
+  display: block; font-size: .6875rem; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-dim); font-weight: 700; margin-bottom: .5rem;
+}
+.v2-selected-items__list { display: flex; flex-wrap: wrap; gap: .375rem; }
+.v2-selected-items__chip {
+  border-radius: 999px; background: var(--v2-active-strong); color: var(--v2-text); padding: .25rem .55rem; font-size: .75rem; font-weight: 600;
+}
 .v2-recipe-list {
   background: rgba(0,0,0,.15); border: 1px solid var(--v2-active); border-radius: 12px; overflow: hidden;
 }
@@ -842,11 +1252,25 @@ watch(activeSlot, () => {
   font-size: .875rem; font-weight: 600; color: var(--v2-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .v2-recipe-line__meta { margin-top: .15rem; font-size: .75rem; color: var(--v2-text-secondary); }
+.v2-recipe-line__links {
+  display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; margin-top: .35rem;
+}
+.v2-recipe-line__links-label {
+  font-size: .6875rem; color: var(--v2-text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+}
+.v2-recipe-item-chip {
+  border: 1px solid var(--v2-border); background: var(--v2-active-strong); color: var(--v2-text);
+  border-radius: 999px; padding: .2rem .5rem; font-size: .75rem; font-weight: 600; cursor: pointer;
+}
+.v2-recipe-item-chip:hover { border-color: var(--v2-border-focus); color: var(--v2-text-hover); }
 .v2-recipe-line__qty {
   text-align: right; min-width: 56px; color: var(--v2-accent); display: flex; flex-direction: column; gap: .1rem;
 }
 .v2-recipe-line__qty-label {
   font-size: .625rem; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-dim); font-weight: 700;
+}
+.v2-recipe-line__qty-sub {
+  font-size: .6875rem; color: var(--v2-text-secondary); font-weight: 600;
 }
 </style>
 
