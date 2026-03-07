@@ -131,111 +131,188 @@
 
       <!-- Slot content -->
       <div v-if="currentSlotStats" class="v2-slot-content">
-        <!-- Header row -->
-        <div class="v2-slot-head">
-          <span class="v2-slot-head__title">
-            {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
-          </span>
-          <div class="v2-view-toggle">
-            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'grid' }" @click="viewMode = 'grid'" :title="$t('items.viewModes.grid')">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </button>
-            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'list' }" @click="viewMode = 'list'" :title="$t('items.viewModes.list')">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-            </button>
-            <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'table' }" @click="viewMode = 'table'" :title="$t('items.viewModes.table')">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <template v-if="selectedRecipeItem">
+          <div class="v2-recipe-shell">
+            <div class="v2-recipe-top">
+              <button class="v2-recipe-back" @click="resetRecipeView">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
+              <span class="v2-recipe-kicker">Recipe proof of concept</span>
+            </div>
 
-        <!-- GRID VIEW -->
-        <div v-if="viewMode === 'grid'" class="v2-items-grid">
-          <div
-            v-for="(item, i) in currentSlotStats.topItems.slice(0, 20)"
-            :key="item.name"
-            class="v2-item-card"
-          >
-            <div class="v2-item-card__rank">#{{ i + 1 }}</div>
-            <div class="v2-item-card__img-wrap">
-              <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-item-card__img" @error="noImg" />
-              <div v-else class="v2-item-card__img-ph">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01" /></svg>
+            <div class="v2-recipe-item">
+              <div class="v2-recipe-item__img-wrap">
+                <img v-if="selectedRecipeItem.image_url" :src="selectedRecipeItem.image_url" :alt="selectedRecipeItem.name" class="v2-recipe-item__img" @error="noImg" />
+                <div v-else class="v2-recipe-item__img-ph" />
+              </div>
+              <div class="min-w-0">
+                <div class="v2-recipe-item__name">{{ selectedRecipeItem.name }}</div>
+                <div class="v2-recipe-item__meta">{{ $t(`items.slots.${activeSlot}`) }} · {{ selectedRecipeItem.count }} uses</div>
               </div>
             </div>
-            <div class="v2-item-card__name" :title="item.name">{{ item.name }}</div>
-            <div class="v2-item-card__usage">{{ item.count }} · {{ pct(item.count) }}%</div>
-            <div class="v2-item-bar"><div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" /></div>
-          </div>
-        </div>
 
-        <!-- LIST VIEW -->
-        <div v-else-if="viewMode === 'list'" class="v2-items-list">
-          <div
-            v-for="(item, i) in currentSlotStats.topItems.slice(0, 15)"
-            :key="item.name"
-            class="v2-item-row"
-          >
-            <span class="v2-item-row__rank">#{{ i + 1 }}</span>
-            <div class="v2-item-row__img-wrap">
-              <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-item-row__img" @error="noImg" />
-              <div v-else class="v2-item-row__img-ph" />
+            <div v-if="recipeLookupState.isLoading" class="v2-center-loader">
+              <div class="v2-spin" /> Loading recipe...
             </div>
-            <span class="v2-item-row__name">{{ item.name }}</span>
-            <div class="v2-item-row__bar-wrap">
-              <div class="v2-item-bar v2-item-bar--sm">
-                <div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" />
+
+            <div v-else-if="recipeLookupState.error" class="v2-recipe-error">
+              {{ recipeLookupState.error }}
+            </div>
+
+            <template v-else-if="recipeLookupState.data">
+              <div class="v2-recipe-stats">
+                <div class="v2-rstat">
+                  <div class="v2-rstat__label">Profession</div>
+                  <div class="v2-rstat__val">{{ recipeLookupState.data.job?.name?.fr || recipeLookupState.data.job?.name?.en || 'Unknown' }}</div>
+                </div>
+                <div class="v2-rstat">
+                  <div class="v2-rstat__label">Ingredients</div>
+                  <div class="v2-rstat__val">{{ recipeIngredients.length }}</div>
+                </div>
+                <div class="v2-rstat">
+                  <div class="v2-rstat__label">Recipe ID</div>
+                  <div class="v2-rstat__val">{{ recipeLookupState.data.id }}</div>
+                </div>
               </div>
-            </div>
-            <span class="v2-item-row__count">{{ item.count }}</span>
-            <span class="v2-item-row__pct">{{ pct(item.count) }}%</span>
+
+              <div class="v2-recipe-list">
+                <div class="v2-recipe-list__head">Ingredients</div>
+                <div v-if="recipeIngredients.length" class="v2-recipe-lines">
+                  <div v-for="ingredient in recipeIngredients" :key="ingredient.id" class="v2-recipe-line">
+                    <div class="v2-recipe-line__img-wrap">
+                      <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" class="v2-recipe-line__img" @error="noImg" />
+                      <div v-else class="v2-recipe-line__img-ph" />
+                    </div>
+                    <div class="v2-recipe-line__body">
+                      <div class="v2-recipe-line__name">{{ ingredient.name }}</div>
+                      <div class="v2-recipe-line__meta">
+                        <span v-if="ingredient.typeName">{{ ingredient.typeName }}</span>
+                        <span v-if="ingredient.level !== null"> · Level {{ ingredient.level }}</span>
+                      </div>
+                    </div>
+                    <div class="v2-recipe-line__qty">
+                      <span class="v2-recipe-line__qty-label">Qty</span>
+                      <strong>{{ ingredient.quantity }}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="v2-empty-full">
+                  No ingredients found for this recipe.
+                </div>
+              </div>
+            </template>
           </div>
-        </div>
+        </template>
 
-        <!-- TABLE VIEW -->
-        <div v-else-if="viewMode === 'table'" class="v2-items-table-wrap">
-          <table class="v2-items-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th></th>
-                <th>{{ $t('items.table.name') }}</th>
-                <th class="text-right">{{ $t('items.table.count') }}</th>
-                <th class="text-right">%</th>
-                <th>{{ $t('items.table.distribution') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, i) in currentSlotStats.topItems.slice(0, 20)" :key="item.name">
-                <td class="v2-table-rank">{{ i + 1 }}</td>
-                <td>
-                  <div class="v2-table-img-wrap">
-                    <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-table-img" @error="noImg" />
-                    <div v-else class="v2-table-img-ph" />
-                  </div>
-                </td>
-                <td class="v2-table-name">{{ item.name }}</td>
-                <td class="v2-table-num text-right">{{ item.count }}</td>
-                <td class="v2-table-pct text-right">{{ pct(item.count) }}%</td>
-                <td>
-                  <div class="v2-item-bar v2-item-bar--sm">
-                    <div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" />
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <template v-else>
+          <!-- Header row -->
+          <div class="v2-slot-head">
+            <span class="v2-slot-head__title">
+              {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
+            </span>
+            <div class="v2-view-toggle">
+              <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'grid' }" @click="viewMode = 'grid'" :title="$t('items.viewModes.grid')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </button>
+              <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'list' }" @click="viewMode = 'list'" :title="$t('items.viewModes.list')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+              </button>
+              <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'table' }" @click="viewMode = 'table'" :title="$t('items.viewModes.table')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
 
-        <div v-if="currentSlotStats.topItems.length === 0" class="v2-empty-full">
-          {{ $t('items.noData') }}
-        </div>
+          <div v-if="viewMode === 'grid'" class="v2-items-grid">
+            <div
+              v-for="(item, i) in currentSlotStats.topItems.slice(0, 20)"
+              :key="item.name"
+              class="v2-item-card"
+              @click="openRecipeView(item)"
+            >
+              <div class="v2-item-card__rank">#{{ i + 1 }}</div>
+              <div class="v2-item-card__img-wrap">
+                <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-item-card__img" @error="noImg" />
+                <div v-else class="v2-item-card__img-ph">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01" /></svg>
+                </div>
+              </div>
+              <div class="v2-item-card__name" :title="item.name">{{ item.name }}</div>
+              <div class="v2-item-card__usage">{{ item.count }} · {{ pct(item.count) }}%</div>
+              <div class="v2-item-bar"><div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" /></div>
+            </div>
+          </div>
+
+          <div v-else-if="viewMode === 'list'" class="v2-items-list">
+            <div
+              v-for="(item, i) in currentSlotStats.topItems.slice(0, 15)"
+              :key="item.name"
+              class="v2-item-row"
+              @click="openRecipeView(item)"
+            >
+              <span class="v2-item-row__rank">#{{ i + 1 }}</span>
+              <div class="v2-item-row__img-wrap">
+                <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-item-row__img" @error="noImg" />
+                <div v-else class="v2-item-row__img-ph" />
+              </div>
+              <span class="v2-item-row__name">{{ item.name }}</span>
+              <div class="v2-item-row__bar-wrap">
+                <div class="v2-item-bar v2-item-bar--sm">
+                  <div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" />
+                </div>
+              </div>
+              <span class="v2-item-row__count">{{ item.count }}</span>
+              <span class="v2-item-row__pct">{{ pct(item.count) }}%</span>
+            </div>
+          </div>
+
+          <div v-else-if="viewMode === 'table'" class="v2-items-table-wrap">
+            <table class="v2-items-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th></th>
+                  <th>{{ $t('items.table.name') }}</th>
+                  <th class="text-right">{{ $t('items.table.count') }}</th>
+                  <th class="text-right">%</th>
+                  <th>{{ $t('items.table.distribution') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, i) in currentSlotStats.topItems.slice(0, 20)" :key="item.name" @click="openRecipeView(item)">
+                  <td class="v2-table-rank">{{ i + 1 }}</td>
+                  <td>
+                    <div class="v2-table-img-wrap">
+                      <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-table-img" @error="noImg" />
+                      <div v-else class="v2-table-img-ph" />
+                    </div>
+                  </td>
+                  <td class="v2-table-name">{{ item.name }}</td>
+                  <td class="v2-table-num text-right">{{ item.count }}</td>
+                  <td class="v2-table-pct text-right">{{ pct(item.count) }}%</td>
+                  <td>
+                    <div class="v2-item-bar v2-item-bar--sm">
+                      <div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" />
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-if="currentSlotStats.topItems.length === 0" class="v2-empty-full">
+            {{ $t('items.noData') }}
+          </div>
+        </template>
       </div>
 
       <div v-else class="v2-empty-full" style="padding:3rem">
@@ -317,6 +394,12 @@ const loading = ref(false)
 const activeSlot = ref('ar')
 const viewMode = ref<'grid' | 'list' | 'table'>('grid')
 const stats = ref<any>(null)
+const selectedRecipeItem = ref<any>(null)
+const recipeLookupState = ref<{ isLoading: boolean; error: string; data: any | null }>({
+  isLoading: false,
+  error: '',
+  data: null,
+})
 
 const setFilter = (key: keyof typeof filters, val: string) => {
   filters[key] = val
@@ -326,6 +409,33 @@ const setFilter = (key: keyof typeof filters, val: string) => {
 const getSlotStats = (slotKey: string) => stats.value?.slotStats?.[slotKey] ?? null
 
 const currentSlotStats = computed(() => getSlotStats(activeSlot.value))
+
+const normalizeDofusdbSearch = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[’`]/g, "'")
+    .toLowerCase()
+    .trim()
+
+const recipeIngredients = computed(() => {
+  const recipe = recipeLookupState.value.data
+
+  if (!recipe?.ingredientIds?.length || !recipe?.quantities?.length) return []
+
+  return recipe.ingredientIds.map((ingredientId: number, index: number) => {
+    const ingredient = recipe.ingredients?.find((entry: any) => entry.id === ingredientId)
+
+    return {
+      id: ingredientId,
+      quantity: recipe.quantities[index] ?? 0,
+      name: ingredient?.name?.fr || ingredient?.name?.en || `Ingredient #${ingredientId}`,
+      image: ingredient?.img || null,
+      level: ingredient?.level ?? null,
+      typeName: ingredient?.type?.name?.fr || ingredient?.type?.name?.en || null,
+    }
+  })
+})
 
 const pct = (count: number) =>
   stats.value?.totalEquipments > 0
@@ -348,6 +458,61 @@ const buildQuery = () => {
   return params.toString()
 }
 
+const resetRecipeView = () => {
+  selectedRecipeItem.value = null
+  recipeLookupState.value = {
+    isLoading: false,
+    error: '',
+    data: null,
+  }
+}
+
+const openRecipeView = async (item: { name: string; image_url?: string | null; count: number }) => {
+  selectedRecipeItem.value = item
+  recipeLookupState.value = {
+    isLoading: true,
+    error: '',
+    data: null,
+  }
+
+  try {
+    const searchResponse = await $fetch<any>('/api/dofusdb/items', {
+      query: {
+        'typeId[$ne]': 203,
+        '$sort': '-id',
+        'slug.fr[$search]': normalizeDofusdbSearch(item.name),
+        'level[$gte]': 0,
+        'level[$lte]': 200,
+        '$skip': 0,
+        lang: 'fr',
+      },
+    })
+
+    const matchedItem = searchResponse?.data?.[0]
+
+    if (!matchedItem?.id) {
+      throw new Error(`Could not resolve DofusDB item for "${item.name}"`)
+    }
+
+    const recipe = await $fetch(`/api/dofusdb/recipes/${matchedItem.id}`, {
+      query: { lang: 'fr' },
+    })
+
+    recipeLookupState.value = {
+      isLoading: false,
+      error: '',
+      data: recipe,
+    }
+  } catch (error) {
+    console.error('Error fetching recipe:', error)
+    recipeLookupState.value = {
+      isLoading: false,
+      error: 'Failed to load recipe for this item.',
+      data: null,
+    }
+  }
+}
+
 const processData = (equipments: any[]) => {
   const slotStats: Record<string, { items: Record<string, number>; itemDetails: Record<string, any> }> = {}
   SLOTS.forEach(s => { slotStats[s.key] = { items: {}, itemDetails: {} } })
@@ -358,7 +523,7 @@ const processData = (equipments: any[]) => {
       if (!item?.name || !slotStats[slotKey]) return
       slotStats[slotKey].items[item.name] = (slotStats[slotKey].items[item.name] ?? 0) + 1
       if (!slotStats[slotKey].itemDetails[item.name]) {
-        slotStats[slotKey].itemDetails[item.name] = { image_url: item.image_url ?? null }
+        slotStats[slotKey].itemDetails[item.name] = { image_url: item.image_url ?? null, item }
       }
     })
   })
@@ -368,7 +533,7 @@ const processData = (equipments: any[]) => {
   SLOTS.forEach(s => {
     const raw = slotStats[s.key]
     const topItems = Object.entries(raw.items)
-      .map(([name, count]) => ({ name, count, image_url: raw.itemDetails[name]?.image_url ?? null }))
+      .map(([name, count]) => ({ name, count, image_url: raw.itemDetails[name]?.image_url ?? null, rawItem: raw.itemDetails[name]?.item ?? null }))
       .sort((a, b) => b.count - a.count)
     processedSlots[s.key] = { topItems, totalItems: topItems.length }
   })
@@ -401,6 +566,7 @@ const processData = (equipments: any[]) => {
 const fetchData = async () => {
   loading.value = true
   stats.value = null
+  resetRecipeView()
   try {
     const qs = buildQuery()
     const res = await $fetch<any>(`/api/items/items${qs ? '?' + qs : ''}`)
@@ -418,6 +584,10 @@ const noImg = (e: Event) => {
 }
 
 onMounted(fetchData)
+
+watch(activeSlot, () => {
+  resetRecipeView()
+})
 </script>
 
 <style scoped>
@@ -542,6 +712,7 @@ onMounted(fetchData)
   border-radius: 12px; padding: .75rem .625rem;
   display: flex; flex-direction: column; align-items: center; gap: .25rem;
   transition: border-color .18s;
+  cursor: pointer;
 }
 .v2-item-card:hover { border-color: var(--v2-border-strong); }
 .v2-item-card__rank {
@@ -570,6 +741,7 @@ onMounted(fetchData)
   padding: .5rem .625rem; border-radius: 9px;
   background: rgba(0,0,0,.15); border: 1px solid var(--v2-glow);
   transition: border-color .15s;
+  cursor: pointer;
 }
 .v2-item-row:hover { border-color: var(--v2-border-med); }
 .v2-item-row__rank { font-size: .75rem; font-weight: 700; color: var(--v2-accent); min-width: 28px; }
@@ -599,6 +771,7 @@ onMounted(fetchData)
 }
 .v2-items-table tbody tr {
   border-bottom: 1px solid var(--v2-hover); transition: background .12s;
+  cursor: pointer;
 }
 .v2-items-table tbody tr:hover { background: var(--v2-hover-subtle); }
 .v2-items-table td { padding: .5rem .75rem; }
@@ -612,6 +785,69 @@ onMounted(fetchData)
 .v2-table-name { font-size: .875rem; font-weight: 600; color: var(--v2-text); min-width: 160px; }
 .v2-table-num { font-size: .875rem; color: var(--v2-text-hover); font-weight: 600; }
 .v2-table-pct { font-size: .8125rem; color: var(--v2-accent); font-weight: 600; white-space: nowrap; }
+
+/* ── Recipe view ─────────────────────────────────────────── */
+.v2-recipe-shell { display: flex; flex-direction: column; gap: .875rem; }
+.v2-recipe-top {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
+}
+.v2-recipe-back {
+  display: inline-flex; align-items: center; gap: .375rem;
+  padding: .5rem .75rem; border-radius: 9px; border: 1px solid var(--v2-border);
+  background: rgba(0,0,0,.18); color: var(--v2-text); font-size: .8125rem; font-weight: 600; cursor: pointer;
+}
+.v2-recipe-back:hover { border-color: var(--v2-border-strong); background: var(--v2-hover-subtle); }
+.v2-recipe-kicker {
+  font-size: .6875rem; text-transform: uppercase; letter-spacing: .08em; color: var(--v2-text-dim); font-weight: 700;
+}
+.v2-recipe-item {
+  display: flex; align-items: center; gap: .875rem;
+  padding: .875rem; border-radius: 12px; background: rgba(0,0,0,.18); border: 1px solid var(--v2-active);
+}
+.v2-recipe-item__img-wrap, .v2-recipe-line__img-wrap {
+  background: rgba(0,0,0,.2); border: 1px solid var(--v2-active); border-radius: 10px; overflow: hidden; flex-shrink: 0;
+}
+.v2-recipe-item__img-wrap { width: 64px; height: 64px; }
+.v2-recipe-line__img-wrap { width: 48px; height: 48px; }
+.v2-recipe-item__img, .v2-recipe-line__img { width: 100%; height: 100%; object-fit: cover; }
+.v2-recipe-item__img-ph, .v2-recipe-line__img-ph { width: 100%; height: 100%; background: var(--v2-hover); }
+.v2-recipe-item__name { font-size: 1.05rem; font-weight: 700; color: var(--v2-text-hover); }
+.v2-recipe-item__meta { margin-top: .2rem; font-size: .8125rem; color: var(--v2-text-secondary); }
+.v2-recipe-error {
+  border: 1px solid rgba(239,68,68,.35); background: rgba(239,68,68,.12); color: #fecaca;
+  border-radius: 12px; padding: .875rem 1rem; font-size: .875rem;
+}
+.v2-recipe-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: .625rem;
+}
+@media (max-width: 760px) { .v2-recipe-stats { grid-template-columns: 1fr; } }
+.v2-rstat {
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle); border-radius: 12px; padding: .875rem 1rem;
+}
+.v2-rstat__label { font-size: .6875rem; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-dim); font-weight: 700; }
+.v2-rstat__val { margin-top: .25rem; font-size: 1rem; color: var(--v2-text); font-weight: 700; }
+.v2-recipe-list {
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-active); border-radius: 12px; overflow: hidden;
+}
+.v2-recipe-list__head {
+  padding: .875rem 1rem; border-bottom: 1px solid var(--v2-border-subtle); font-size: .875rem; font-weight: 700; color: var(--v2-text-hover);
+}
+.v2-recipe-lines { display: flex; flex-direction: column; }
+.v2-recipe-line {
+  display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border-top: 1px solid var(--v2-hover);
+}
+.v2-recipe-line:first-child { border-top: none; }
+.v2-recipe-line__body { flex: 1; min-width: 0; }
+.v2-recipe-line__name {
+  font-size: .875rem; font-weight: 600; color: var(--v2-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.v2-recipe-line__meta { margin-top: .15rem; font-size: .75rem; color: var(--v2-text-secondary); }
+.v2-recipe-line__qty {
+  text-align: right; min-width: 56px; color: var(--v2-accent); display: flex; flex-direction: column; gap: .1rem;
+}
+.v2-recipe-line__qty-label {
+  font-size: .625rem; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-dim); font-weight: 700;
+}
 </style>
 
 

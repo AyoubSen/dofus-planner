@@ -476,7 +476,136 @@
 
               <!-- Slot Statistics -->
               <div class="p-8">
-                <template v-if="getSlotStats(activeSlot)">
+                <template v-if="selectedRecipeItem">
+                  <div class="space-y-8">
+                    <div class="flex items-center justify-between gap-4">
+                      <button
+                        @click="resetRecipeView"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-600/50 bg-gray-800/60 text-gray-200 hover:bg-gray-700/60 hover:border-gray-500/60 transition-all duration-200"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Go back
+                      </button>
+
+                      <div class="text-sm text-gray-500">
+                        Recipe proof of concept
+                      </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-gray-700/40 to-gray-800/40 border border-gray-600/30 rounded-2xl p-6">
+                      <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-gray-700/60 rounded-xl border border-gray-600/50 p-2">
+                          <img
+                            v-if="selectedRecipeItem.image_url"
+                            :src="selectedRecipeItem.image_url"
+                            :alt="selectedRecipeItem.name"
+                            class="w-full h-full object-cover rounded"
+                            @error="handleImageError"
+                          />
+                          <div v-else class="w-full h-full bg-gray-600/50 rounded"></div>
+                        </div>
+
+                        <div class="min-w-0">
+                          <h3 class="text-2xl font-bold text-white truncate">
+                            {{ selectedRecipeItem.name }}
+                          </h3>
+                          <p class="text-gray-400 mt-1">
+                            {{ $t(`items.slots.${activeSlot}`) }} • {{ selectedRecipeItem.count }} uses
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      v-if="recipeLookupState.isLoading"
+                      class="flex items-center justify-center py-16 text-gray-300"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin"></div>
+                        Loading recipe...
+                      </div>
+                    </div>
+
+                    <div
+                      v-else-if="recipeLookupState.error"
+                      class="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-200"
+                    >
+                      {{ recipeLookupState.error }}
+                    </div>
+
+                    <div
+                      v-else-if="recipeLookupState.data"
+                      class="space-y-6"
+                    >
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-5">
+                          <div class="text-sm text-gray-400 mb-1">Profession</div>
+                          <div class="text-lg font-semibold text-white">
+                            {{ recipeLookupState.data.job?.name?.fr || recipeLookupState.data.job?.name?.en || 'Unknown' }}
+                          </div>
+                        </div>
+                        <div class="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-5">
+                          <div class="text-sm text-gray-400 mb-1">Ingredients</div>
+                          <div class="text-lg font-semibold text-white">
+                            {{ recipeIngredients.length }}
+                          </div>
+                        </div>
+                        <div class="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-5">
+                          <div class="text-sm text-gray-400 mb-1">Recipe ID</div>
+                          <div class="text-lg font-semibold text-white">
+                            {{ recipeLookupState.data.id }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-2xl overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-700/50">
+                          <h4 class="text-xl font-bold text-gray-100">Ingredients</h4>
+                        </div>
+
+                        <div v-if="recipeIngredients.length" class="divide-y divide-gray-700/40">
+                          <div
+                            v-for="ingredient in recipeIngredients"
+                            :key="ingredient.id"
+                            class="flex items-center gap-4 px-6 py-4"
+                          >
+                            <div class="w-14 h-14 bg-gray-700/60 rounded-xl border border-gray-600/50 p-1.5">
+                              <img
+                                v-if="ingredient.image"
+                                :src="ingredient.image"
+                                :alt="ingredient.name"
+                                class="w-full h-full object-cover rounded"
+                                @error="handleImageError"
+                              />
+                              <div v-else class="w-full h-full bg-gray-600/50 rounded"></div>
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+                              <div class="text-white font-medium truncate">{{ ingredient.name }}</div>
+                              <div class="text-sm text-gray-400">
+                                <span v-if="ingredient.typeName">{{ ingredient.typeName }}</span>
+                                <span v-if="ingredient.level !== null"> • Level {{ ingredient.level }}</span>
+                              </div>
+                            </div>
+
+                            <div class="text-right">
+                              <div class="text-xs uppercase tracking-wide text-gray-500">Quantity</div>
+                              <div class="text-xl font-bold text-blue-400">{{ ingredient.quantity }}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div v-else class="px-6 py-8 text-gray-400">
+                          No ingredients found for this recipe.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <template v-else-if="getSlotStats(activeSlot)">
                   <!-- LIST VIEW -->
                   <div v-if="viewMode === 'list'" class="space-y-8">
                     <!-- Top Items for Selected Slot -->
@@ -488,7 +617,8 @@
                         <div
                           v-for="(item, index) in getSlotStats(activeSlot).topItems.slice(0, 10)"
                           :key="item.name"
-                          class="bg-gradient-to-r from-gray-700/50 to-gray-800/50 rounded-xl p-4 flex items-center gap-4 border border-gray-600/30 hover:border-gray-500/50 transition-all duration-200"
+                          @click="openRecipeView(item)"
+                          class="bg-gradient-to-r from-gray-700/50 to-gray-800/50 rounded-xl p-4 flex items-center gap-4 border border-gray-600/30 hover:border-gray-500/50 transition-all duration-200 cursor-pointer"
                         >
                           <div class="flex-shrink-0">
                             <div
@@ -574,7 +704,8 @@
                       <div
                         v-for="(item, index) in getSlotStats(activeSlot).topItems.slice(0, 20)"
                         :key="item.name"
-                        class="bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-xl p-4 border border-gray-600/30 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 group"
+                        @click="openRecipeView(item)"
+                        class="bg-gradient-to-br from-gray-700/50 to-gray-800/50 rounded-xl p-4 border border-gray-600/30 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 group cursor-pointer"
                       >
                         <!-- Rank Badge -->
                         <div class="flex justify-between items-start mb-3">
@@ -651,7 +782,8 @@
                           <tr
                             v-for="(item, index) in getSlotStats(activeSlot).topItems.slice(0, 20)"
                             :key="item.name"
-                            class="border-b border-gray-700/30 hover:bg-gray-700/20 transition-colors"
+                            @click="openRecipeView(item)"
+                            class="border-b border-gray-700/30 hover:bg-gray-700/20 transition-colors cursor-pointer"
                           >
                             <td class="py-3 px-4">
                               <span class="text-blue-400 font-bold">{{ index + 1 }}</span>
@@ -817,6 +949,12 @@ const statistics = ref(null);
 const isLoading = ref(false);
 const activeSlot = ref("ar");
 const viewMode = ref("list"); // 'list' | 'grid' | 'table'
+const selectedRecipeItem = ref(null);
+const recipeLookupState = ref({
+  isLoading: false,
+  error: "",
+  data: null,
+});
 
 // Equipment slots configuration (icons only, names come from i18n)
 const equipmentSlots = [
@@ -971,6 +1109,7 @@ const getSlotStats = (slotKey) => {
       name,
       count,
       image_url: slotData.itemDetails[name]?.image_url || null,
+      rawItem: slotData.itemDetails[name]?.item || null,
     }))
     .sort((a, b) => b.count - a.count);
 
@@ -1011,8 +1150,94 @@ const buildQueryString = () => {
   return params.toString();
 };
 
+const normalizeDofusdbSearch = (value) => {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’`]/g, "'")
+    .toLowerCase()
+    .trim();
+};
+
+const resetRecipeView = () => {
+  selectedRecipeItem.value = null;
+  recipeLookupState.value = {
+    isLoading: false,
+    error: "",
+    data: null,
+  };
+};
+
+const openRecipeView = async (item) => {
+  selectedRecipeItem.value = item;
+  recipeLookupState.value = {
+    isLoading: true,
+    error: "",
+    data: null,
+  };
+
+  try {
+    const searchResponse = await $fetch("/api/dofusdb/items", {
+      query: {
+        "typeId[$ne]": 203,
+        "$sort": "-id",
+        "slug.fr[$search]": normalizeDofusdbSearch(item.name),
+        "level[$gte]": 0,
+        "level[$lte]": 200,
+        "$skip": 0,
+        lang: "fr",
+      },
+    });
+
+    const matchedItem = searchResponse?.data?.[0];
+
+    if (!matchedItem?.id) {
+      throw new Error(`Could not resolve DofusDB item for "${item.name}"`);
+    }
+
+    const recipe = await $fetch(`/api/dofusdb/recipes/${matchedItem.id}`, {
+      query: { lang: "fr" },
+    });
+
+    recipeLookupState.value = {
+      isLoading: false,
+      error: "",
+      data: recipe,
+    };
+  } catch (error) {
+    console.error("Error fetching recipe:", error);
+    recipeLookupState.value = {
+      isLoading: false,
+      error: "Failed to load recipe for this item.",
+      data: null,
+    };
+  }
+};
+
+const recipeIngredients = computed(() => {
+  const recipe = recipeLookupState.value.data;
+
+  if (!recipe?.ingredientIds?.length || !recipe?.quantities?.length) {
+    return [];
+  }
+
+  return recipe.ingredientIds.map((ingredientId, index) => {
+    const ingredient = recipe.ingredients?.find((entry) => entry.id === ingredientId);
+
+    return {
+      id: ingredientId,
+      quantity: recipe.quantities[index] ?? 0,
+      name: ingredient?.name?.fr || ingredient?.name?.en || `Ingredient #${ingredientId}`,
+      image: ingredient?.img || null,
+      level: ingredient?.level ?? null,
+      typeName: ingredient?.type?.name?.fr || ingredient?.type?.name?.en || null,
+    };
+  });
+});
+
 const fetchStatistics = async () => {
   isLoading.value = true;
+  resetRecipeView();
   try {
     const queryString = buildQueryString();
     const url = `/api/items/items${queryString ? "?" + queryString : ""}`;
@@ -1044,6 +1269,7 @@ const processStatistics = (equipments) => {
             slotStats[slotKey].items[item.name] = 0;
             slotStats[slotKey].itemDetails[item.name] = {
               image_url: item.image_url,
+              item,
             };
           }
           slotStats[slotKey].items[item.name]++;
@@ -1064,6 +1290,10 @@ const handleImageError = (event) => {
 
 onMounted(() => {
   fetchStatistics();
+});
+
+watch(activeSlot, () => {
+  resetRecipeView();
 });
 </script>
 
