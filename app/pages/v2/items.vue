@@ -107,6 +107,10 @@
         <div class="v2-stat-card__label">{{ $t('items.stats.avgItemsPerSet') }}</div>
       </div>
     </div>
+    <div v-if="stats" class="v2-context-strip">
+      <div class="v2-context-strip__title">Current data slice</div>
+      <div class="v2-context-strip__subtitle">{{ itemsDataContextSubtitle }}</div>
+    </div>
 
     <!-- Loading -->
     <div v-if="loading" class="v2-center-loader">
@@ -131,6 +135,10 @@
 
       <!-- Slot content -->
       <div v-if="currentSlotStats" class="v2-slot-content">
+        <div v-if="!selectedRecipeItem && !aggregateRecipeState.isOpen" class="v2-slot-context">
+          <div class="v2-slot-context__title">{{ $t(`items.slots.${activeSlot}`) }}</div>
+          <div class="v2-slot-context__subtitle">{{ activeSlotContextSubtitle }}</div>
+        </div>
         <template v-if="selectedRecipeItem">
           <div class="v2-recipe-shell">
             <div class="v2-recipe-top">
@@ -157,6 +165,9 @@
                   </button>
                   <button class="v2-recipe-refresh" @click="openOcrPicker">
                     OCR screenshot
+                  </button>
+                  <button class="v2-recipe-refresh" @click="pasteMarketScreenshot">
+                    Paste screenshot
                   </button>
                   <input
                     ref="ocrFileInput"
@@ -366,6 +377,9 @@
                     <button class="v2-recipe-refresh" @click="openStatsScreenshotPicker(selectedObservationDetail.id)">
                       {{ selectedObservationDetail.statsScreenshotDataUrl ? 'Replace stats screenshot' : 'Upload stats screenshot' }}
                     </button>
+                    <button class="v2-recipe-refresh" @click="pasteStatsScreenshot(selectedObservationDetail.id)">
+                      Paste screenshot
+                    </button>
                   </div>
                 </div>
 
@@ -383,6 +397,110 @@
                     alt="Observed stats screenshot"
                     class="v2-observation-detail__image"
                   />
+                </div>
+
+                <div
+                  v-if="selectedObservationStatsHealth.missing.length || selectedObservationStatsHealth.unmatchedOfficial.length || selectedObservationStatsHealth.unexpected.length || selectedObservationStatsHealth.duplicates.length || selectedObservationStatsHealth.incomplete.length"
+                  class="v2-stats-health"
+                >
+                  <div class="v2-price-manager__head">
+                    <span class="v2-rstat__label">Stats health</span>
+                    <div class="v2-observation-summary-actions">
+                      <span v-if="selectedObservationStatsHealth.missing.length" class="v2-observed-badge v2-observed-badge--warn">
+                        {{ selectedObservationStatsHealth.missing.length }} missing
+                      </span>
+                      <span v-if="selectedObservationStatsHealth.unmatchedOfficial.length" class="v2-observed-badge v2-observed-badge--neutral">
+                        {{ selectedObservationStatsHealth.unmatchedOfficial.length }} unmatched official
+                      </span>
+                      <span v-if="selectedObservationStatsHealth.unexpected.length" class="v2-observed-badge v2-observed-badge--neutral">
+                        {{ selectedObservationStatsHealth.unexpected.length }} unexpected
+                      </span>
+                      <span v-if="selectedObservationStatsHealth.duplicates.length" class="v2-observed-badge v2-observed-badge--neutral">
+                        {{ selectedObservationStatsHealth.duplicates.length }} duplicate keys
+                      </span>
+                      <span v-if="selectedObservationStatsHealth.incomplete.length" class="v2-observed-badge v2-observed-badge--warn">
+                        {{ selectedObservationStatsHealth.incomplete.length }} incomplete
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="selectedObservationStatsHealth.unmatchedOfficial.length" class="v2-stats-health__group">
+                    <div class="v2-stats-health__title">Unmatched official DofusDB stats</div>
+                    <div class="v2-stats-health__list">
+                      <div
+                        v-for="entry in selectedObservationStatsHealth.unmatchedOfficial"
+                        :key="`official-unmatched-${entry.effectId}-${entry.rawLabel}`"
+                        class="v2-stats-health__row"
+                      >
+                        <div class="v2-stats-health__label">
+                          {{ entry.rawLabel }}
+                          <span v-if="entry.rangeText" class="v2-stats-health__range">{{ entry.rangeText }}</span>
+                        </div>
+                        <span class="v2-recipe-cache-hint">effect {{ entry.effectId }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="selectedObservationStatsHealth.missing.length" class="v2-stats-health__group">
+                    <div class="v2-stats-health__title">Missing expected stats</div>
+                    <div class="v2-stats-health__list">
+                      <div
+                        v-for="entry in selectedObservationStatsHealth.missing"
+                        :key="`missing-${entry.key}`"
+                        class="v2-stats-health__row"
+                      >
+                        <div class="v2-stats-health__label">
+                          {{ entry.label }}
+                          <span v-if="entry.rangeText" class="v2-stats-health__range">{{ entry.rangeText }}</span>
+                        </div>
+                        <button class="v2-recipe-refresh" @click="addExpectedObservationStat(entry.key)">
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="selectedObservationStatsHealth.unexpected.length" class="v2-stats-health__group">
+                    <div class="v2-stats-health__title">Unexpected parsed stats</div>
+                    <div class="v2-stats-health__list">
+                      <div
+                        v-for="entry in selectedObservationStatsHealth.unexpected"
+                        :key="`unexpected-${entry.index}`"
+                        class="v2-stats-health__row"
+                      >
+                        <div class="v2-stats-health__label">{{ entry.label }}</div>
+                        <span class="v2-recipe-cache-hint">Review or remove</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="selectedObservationStatsHealth.duplicates.length" class="v2-stats-health__group">
+                    <div class="v2-stats-health__title">Duplicate stat keys</div>
+                    <div class="v2-stats-health__list">
+                      <div
+                        v-for="entry in selectedObservationStatsHealth.duplicates"
+                        :key="`duplicate-${entry.key}`"
+                        class="v2-stats-health__row"
+                      >
+                        <div class="v2-stats-health__label">{{ entry.label }}</div>
+                        <span class="v2-recipe-cache-hint">{{ entry.count }} entries</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="selectedObservationStatsHealth.incomplete.length" class="v2-stats-health__group">
+                    <div class="v2-stats-health__title">Incomplete stat rows</div>
+                    <div class="v2-stats-health__list">
+                      <div
+                        v-for="entry in selectedObservationStatsHealth.incomplete"
+                        :key="`incomplete-${entry.index}`"
+                        class="v2-stats-health__row"
+                      >
+                        <div class="v2-stats-health__label">{{ entry.label }}</div>
+                        <span class="v2-recipe-cache-hint">Missing value</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="v2-observation-detail__stats">
@@ -451,6 +569,24 @@
                   <span class="v2-rstat__label">Observed prices</span>
                   <div class="v2-observation-summary-actions">
                     <span class="v2-recipe-cache-hint">{{ selectedItemObservations.length }} saved</span>
+                    <div class="v2-observed-sort">
+                      <span class="v2-recipe-cache-hint">Sort</span>
+                      <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'newest' }" @click="observedSortMode = 'newest'">
+                        Newest
+                      </button>
+                      <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'price_asc' }" @click="observedSortMode = 'price_asc'">
+                        Price ↑
+                      </button>
+                      <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'price_desc' }" @click="observedSortMode = 'price_desc'">
+                        Price ↓
+                      </button>
+                      <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'delta' }" @click="observedSortMode = 'delta'">
+                        Delta
+                      </button>
+                      <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'best_buy' }" @click="observedSortMode = 'best_buy'">
+                        Best buy
+                      </button>
+                    </div>
                     <button class="v2-recipe-refresh" @click="selectAllObservedPrices">
                       Select all
                     </button>
@@ -478,9 +614,38 @@
                     >
                       {{ formatKamasFull(observation.price) }}
                     </button>
-                    <span class="v2-observed-prices__meta">
-                      {{ formatPriceFreshness(observation.createdAt) }}
-                    </span>
+                    <div class="v2-observed-prices__meta-wrap">
+                      <span class="v2-observed-prices__meta">
+                        {{ formatPriceFreshness(observation.createdAt) }}
+                      </span>
+                      <div v-if="getObservationBadges(observation).length" class="v2-observed-prices__badges">
+                        <span
+                          v-for="badge in getObservationBadges(observation)"
+                          :key="`${observation.id}-${badge.label}`"
+                          class="v2-observed-badge"
+                          :class="{
+                            'v2-observed-badge--good': badge.tone === 'good',
+                            'v2-observed-badge--bad': badge.tone === 'bad',
+                            'v2-observed-badge--warn': badge.tone === 'warn',
+                            'v2-observed-badge--neutral': badge.tone === 'neutral',
+                          }"
+                        >
+                          {{ badge.label }}
+                        </span>
+                      </div>
+                      <div v-if="allObservedValuationMap[observation.id]" class="v2-observed-prices__relist">
+                        <span class="v2-observed-prices__relist-label">Relist</span>
+                        <span class="v2-observed-prices__relist-value">
+                          Quick {{ formatKamasFull(allObservedValuationMap[observation.id].quickRelist) }}
+                        </span>
+                        <span class="v2-observed-prices__relist-value">
+                          Fair {{ formatKamasFull(allObservedValuationMap[observation.id].fairRelist) }}
+                        </span>
+                        <span class="v2-observed-prices__relist-value">
+                          Greedy {{ formatKamasFull(allObservedValuationMap[observation.id].greedyRelist) }}
+                        </span>
+                      </div>
+                    </div>
                     <div class="v2-observed-prices__actions">
                       <button
                         class="v2-recipe-refresh"
@@ -531,8 +696,19 @@
                         />
                         Buy candidates only
                       </label>
+                      <label class="v2-recipe-cache-hint">
+                        <input
+                          type="checkbox"
+                          :checked="useComparableOnlyValuation"
+                          @change="useComparableOnlyValuation = !useComparableOnlyValuation"
+                        />
+                        Comparable only
+                      </label>
                       <span class="v2-recipe-cache-hint">
-                        {{ selectedObservedValuations.length }} selected · leave-one-out model
+                        {{ selectedObservedValuations.length }} selected · leave-one-out {{ useComparableOnlyValuation ? 'nearest-neighbor comps' : 'all-peer comps' }}
+                      </span>
+                      <span class="v2-recipe-cache-hint">
+                        {{ valuationConfidence.details }}
                       </span>
                     </div>
                   </div>
@@ -788,9 +964,14 @@
               <div v-if="aggregateRecipeState.selectedItems.length" class="v2-selected-items">
                 <span class="v2-selected-items__label">Selected items</span>
                 <div class="v2-selected-items__list">
-                  <span v-for="item in aggregateRecipeState.selectedItems" :key="item.name" class="v2-selected-items__chip">
+                  <button
+                    v-for="item in aggregateRecipeState.selectedItems"
+                    :key="item.name"
+                    class="v2-selected-items__chip v2-selected-items__chip--btn"
+                    @click="openRecipeView(item)"
+                  >
                     {{ item.name }}
-                  </span>
+                  </button>
                 </div>
               </div>
 
@@ -835,6 +1016,8 @@
                       <span class="v2-recipe-line__qty-label">Items</span>
                       <strong>{{ ingredient.usageCount }}</strong>
                       <span class="v2-recipe-line__qty-sub">Qty {{ ingredient.totalQuantity }}</span>
+                      <span class="v2-recipe-line__qty-sub">Builds {{ ingredient.buildUsageCount }}</span>
+                      <span class="v2-recipe-line__qty-sub">Pressure {{ ingredient.pressureScore }}</span>
                     </div>
                   </div>
                 </div>
@@ -1157,7 +1340,9 @@ const statsOcrState = ref({
   error: '',
 })
 const selectedObservedPriceIds = ref<string[]>([])
+const observedSortMode = ref<'newest' | 'price_asc' | 'price_desc' | 'delta' | 'best_buy'>('newest')
 const showOnlyUndervaluedListings = ref(false)
+const useComparableOnlyValuation = ref(true)
 const effectCache = ref<Record<string, CachedEffectEntry>>({})
 const itemStatPriorities = ref<Record<string, Record<string, number>>>({})
 const observationStatOptions = [
@@ -1230,6 +1415,32 @@ const setFilter = (key: keyof typeof filters, val: string) => {
 const getSlotStats = (slotKey: string) => stats.value?.slotStats?.[slotKey] ?? null
 
 const currentSlotStats = computed(() => getSlotStats(activeSlot.value))
+
+const titleCase = (value: string) =>
+  value ? value.charAt(0).toUpperCase() + value.slice(1) : value
+
+const itemsDataContextSubtitle = computed(() => {
+  const parts = [
+    filters.mode ? filters.mode.toUpperCase() : 'All modes',
+    filters.level ? `Level ${filters.level}` : 'All levels',
+    filters.classe ? titleCase(filters.classe) : 'All classes',
+    filters.element ? titleCase(filters.element) : 'All elements',
+    filters.budget ? `${titleCase(filters.budget)} budget` : 'All budgets',
+  ]
+
+  const count = stats.value?.totalEquipments ?? 0
+  return `${parts.join(' · ')} · ${count} matching builds`
+})
+
+const activeSlotContextSubtitle = computed(() => {
+  const slot = currentSlotStats.value
+  if (!slot) return ''
+
+  const topCount = slot.topItems?.[0]?.count ?? 0
+  const totalItems = slot.totalItems ?? 0
+  const slotName = t(`items.slots.${activeSlot.value}`)
+  return `${totalItems} unique items in ${slotName.toLowerCase()} · top pick appears in ${topCount} builds`
+})
 
 const normalizeDofusdbSearch = (value: string) =>
   value
@@ -1418,12 +1629,10 @@ const selectedObservationKey = computed(() =>
   selectedRecipeItem.value?.name ? normalizeDofusdbSearch(selectedRecipeItem.value.name) : ''
 )
 
-const selectedItemObservations = computed(() => {
+const baseSelectedItemObservations = computed(() => {
   const key = selectedObservationKey.value
   if (!key) return []
-  return (observedPrices.value[key] || []).slice().sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+  return (observedPrices.value[key] || []).slice()
 })
 
 const parseObservationRange = (rangeText: string) => {
@@ -1441,43 +1650,89 @@ const normalizeLabelForStatKey = (value: string) =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replace(/[{}[\]()]/g, ' ')
+    .replace(/[^a-z0-9%+\-\s]/g, ' ')
+    .replace(/\bdommage\b/g, 'dommages')
+    .replace(/\bresistance\b/g, 'resistance')
     .replace(/\s+/g, ' ')
     .trim()
 
 const findStatOptionByLabel = (label: string) => {
   const normalized = normalizeLabelForStatKey(label)
-  return observationStatOptions.find((option) => normalized.includes(normalizeLabelForStatKey(option.label)))
+  return observationStatOptions
+    .map((option) => ({
+      option,
+      normalizedOption: normalizeLabelForStatKey(option.label),
+    }))
+    .filter(({ normalizedOption }) =>
+      normalized.includes(normalizedOption) || normalizedOption.includes(normalized)
+    )
+    .sort((a, b) => b.normalizedOption.length - a.normalizedOption.length)[0]?.option
 }
 
 const currentItemKey = computed(() =>
   selectedRecipeItem.value?.name ? normalizeDofusdbSearch(selectedRecipeItem.value.name) : ''
 )
 
-const currentItemPriorityOptions = computed(() => {
+const shouldIgnoreOfficialObservationEffect = (rawLabel: string) => {
+  const normalized = normalizeLabelForStatKey(rawLabel)
+  return normalized.startsWith('vol ') || normalized.includes(' vol ')
+}
+
+const currentItemEffectMappings = computed(() => {
   const effects = recipeLookupState.value.data?.result?.effects
   if (!Array.isArray(effects)) return []
 
-  const seen = new Set<string>()
   return effects
     .map((effect: any) => {
       const cached = effectCache.value[String(effect.effectId)]?.data
       if (!cached) return null
       const label = formatEffectLabel(cached, effect)
       const option = findStatOptionByLabel(label)
-      if (!option) return null
-      if (seen.has(option.key)) return null
-      seen.add(option.key)
       const range = effect.from === effect.to
         ? `[${effect.from}]`
         : `[${effect.from} à ${effect.to}]`
       return {
-        key: option.key,
-        label: option.label,
+        effectId: effect.effectId,
+        rawLabel: label,
+        matchedKey: option?.key || '',
+        matchedLabel: option?.label || '',
         rangeText: range,
+        matched: Boolean(option),
+        ignoredForObservation: shouldIgnoreOfficialObservationEffect(label),
       }
     })
     .filter(Boolean)
 })
+
+const currentItemPriorityOptions = computed(() => {
+  const seen = new Set<string>()
+  return currentItemEffectMappings.value
+    .filter((entry) => !entry.ignoredForObservation)
+    .filter((entry) => entry.matched && entry.matchedKey)
+    .filter((entry) => {
+      if (seen.has(entry.matchedKey)) return false
+      seen.add(entry.matchedKey)
+      return true
+    })
+    .map((entry) => ({
+      key: entry.matchedKey,
+      label: entry.matchedLabel,
+      rangeText: entry.rangeText,
+    }))
+})
+
+const currentExpectedObservationStats = computed(() =>
+  currentItemPriorityOptions.value.map((option) => {
+    const statOption = observationStatOptions.find((entry) => entry.key === option.key)
+    return {
+      key: option.key,
+      label: option.label,
+      rangeText: option.rangeText,
+      suffix: statOption?.suffix || '',
+    }
+  })
+)
 
 const getItemStatMultiplier = (statKey: string) => {
   const itemKey = currentItemKey.value
@@ -1522,6 +1777,9 @@ const computeObservationScore = (observation: StoredObservedPriceEntry) => {
   }, 0)
 }
 
+const observationHasUsableStats = (observation: StoredObservedPriceEntry) =>
+  computeObservationScore(observation) > 0
+
 const medianOf = (values: number[]) => {
   if (!values.length) return 0
   const sorted = values.slice().sort((a, b) => a - b)
@@ -1538,12 +1796,24 @@ const roundRelistPrice = (value: number) => {
   return rounded - 1
 }
 
-const selectedObservedValuations = computed(() => {
-  const selected = selectedItemObservations.value.filter((entry) =>
-    selectedObservedPriceIds.value.includes(entry.id)
-  )
+const pickComparablePeers = <
+  T extends { id: string; score: number }
+>(entry: T, peers: T[]) => {
+  if (!useComparableOnlyValuation.value || peers.length <= 3) return peers
 
-  const withScores = selected
+  return peers
+    .slice()
+    .sort((a, b) => {
+      const distanceA = Math.abs(a.score - entry.score)
+      const distanceB = Math.abs(b.score - entry.score)
+      if (distanceA !== distanceB) return distanceA - distanceB
+      return b.score - a.score
+    })
+    .slice(0, 3)
+}
+
+const allObservedValuations = computed(() => {
+  const withScores = baseSelectedItemObservations.value
     .map((entry) => ({
       ...entry,
       score: computeObservationScore(entry),
@@ -1553,7 +1823,8 @@ const selectedObservedValuations = computed(() => {
   if (withScores.length < 2) return []
 
   return withScores.map((entry) => {
-    const peers = withScores.filter((candidate) => candidate.id !== entry.id && candidate.score > 0)
+    const allPeers = withScores.filter((candidate) => candidate.id !== entry.id && candidate.score > 0)
+    const peers = pickComparablePeers(entry, allPeers)
     if (!peers.length) {
       return {
         id: entry.id,
@@ -1565,6 +1836,7 @@ const selectedObservedValuations = computed(() => {
         fairRelist: entry.price,
         greedyRelist: entry.price,
         referencePricePerPoint: 0,
+        comparableCount: 0,
       }
     }
 
@@ -1598,7 +1870,59 @@ const selectedObservedValuations = computed(() => {
       fairRelist,
       greedyRelist,
       referencePricePerPoint,
+      comparableCount: peers.length,
     }
+  })
+})
+
+const allObservedValuationMap = computed(() =>
+  Object.fromEntries(allObservedValuations.value.map((row) => [row.id, row]))
+)
+
+const bestBuyObservationId = computed(() => {
+  const undervalued = allObservedValuations.value.filter((row) => row.delta < 0)
+  if (!undervalued.length) return ''
+  return undervalued.slice().sort((a, b) => a.delta - b.delta)[0]?.id || ''
+})
+
+const selectedObservedValuations = computed(() => {
+  const selectedIds = new Set(selectedObservedPriceIds.value)
+  return allObservedValuations.value.filter((row) => selectedIds.has(row.id))
+})
+
+const selectedItemObservations = computed(() => {
+  const rows = baseSelectedItemObservations.value.slice()
+
+  return rows.sort((a, b) => {
+    if (observedSortMode.value === 'price_asc') {
+      if (a.price !== b.price) return a.price - b.price
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    }
+
+    if (observedSortMode.value === 'price_desc') {
+      if (b.price !== a.price) return b.price - a.price
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    }
+
+    if (observedSortMode.value === 'delta') {
+      const deltaA = allObservedValuationMap.value[a.id]?.delta ?? Number.POSITIVE_INFINITY
+      const deltaB = allObservedValuationMap.value[b.id]?.delta ?? Number.POSITIVE_INFINITY
+      if (deltaA !== deltaB) return deltaA - deltaB
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    }
+
+    if (observedSortMode.value === 'best_buy') {
+      const bestId = bestBuyObservationId.value
+      if (a.id === bestId && b.id !== bestId) return -1
+      if (b.id === bestId && a.id !== bestId) return 1
+
+      const deltaA = allObservedValuationMap.value[a.id]?.delta ?? Number.POSITIVE_INFINITY
+      const deltaB = allObservedValuationMap.value[b.id]?.delta ?? Number.POSITIVE_INFINITY
+      if (deltaA !== deltaB) return deltaA - deltaB
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    }
+
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
 })
 
@@ -1623,20 +1947,168 @@ const valuationSummary = computed(() => {
   }
 })
 
+const medianAbsoluteDeviation = (values: number[]) => {
+  if (!values.length) return 0
+  const center = medianOf(values)
+  const deviations = values.map((value) => Math.abs(value - center))
+  return medianOf(deviations)
+}
+
 const valuationConfidence = computed(() => {
-  const sample = selectedObservedValuations.value.length
-  if (sample >= 6) {
-    return { level: 'high', label: 'High confidence' }
+  const rows = allObservedValuations.value
+  const sample = rows.length
+  const expectedStats = currentItemPriorityOptions.value.length || 0
+
+  if (!sample) {
+    return {
+      level: 'low' as const,
+      label: 'Low confidence',
+      details: 'No usable listings yet',
+    }
   }
-  if (sample >= 4) {
-    return { level: 'medium', label: 'Medium confidence' }
+
+  const completenessScores = selectedItemObservations.value
+    .map((observation) => {
+      if (!observationHasUsableStats(observation)) return 0
+      if (!expectedStats) return 1
+
+      const matchedStats = observation.statsEntries.filter((entry) =>
+        currentItemPriorityOptions.value.some((option) => option.key === entry.key) &&
+        entry.value !== null &&
+        entry.value !== undefined
+      ).length
+
+      return Math.min(1, matchedStats / expectedStats)
+    })
+    .filter((value) => value > 0)
+
+  const avgCompleteness = completenessScores.length
+    ? completenessScores.reduce((sum, value) => sum + value, 0) / completenessScores.length
+    : 0
+
+  const avgComparableCount = rows.reduce((sum, row) => sum + (row.comparableCount ?? 0), 0) / sample
+  const priceRatios = rows
+    .map((row) => row.referencePricePerPoint)
+    .filter((value) => Number.isFinite(value) && value > 0)
+
+  const priceSpreadRatio = priceRatios.length > 1
+    ? medianAbsoluteDeviation(priceRatios) / Math.max(medianOf(priceRatios), 1)
+    : 1
+
+  let score = 0
+
+  if (sample >= 6) score += 2
+  else if (sample >= 4) score += 1
+
+  if (avgComparableCount >= 3) score += 2
+  else if (avgComparableCount >= 2) score += 1
+
+  if (avgCompleteness >= 0.9) score += 2
+  else if (avgCompleteness >= 0.7) score += 1
+
+  if (priceSpreadRatio <= 0.08) score += 2
+  else if (priceSpreadRatio <= 0.18) score += 1
+
+  const level =
+    score >= 7 ? 'high'
+      : score >= 4 ? 'medium'
+        : 'low'
+
+  const completenessPct = Math.round(avgCompleteness * 100)
+  const spreadPct = Math.round(priceSpreadRatio * 100)
+
+  return {
+    level,
+    label: level === 'high' ? 'High confidence' : level === 'medium' ? 'Medium confidence' : 'Low confidence',
+    details: `${sample} usable · ${avgComparableCount.toFixed(1)} comps avg · ${completenessPct}% stats coverage · ${spreadPct}% spread`,
   }
-  return { level: 'low', label: 'Low confidence' }
 })
+
+const getObservationBadges = (observation: StoredObservedPriceEntry) => {
+  const badges: Array<{ label: string; tone: 'good' | 'bad' | 'warn' | 'neutral' }> = []
+  const valuation = allObservedValuationMap.value[observation.id]
+
+  if (!observationHasUsableStats(observation)) {
+    badges.push({ label: 'Missing stats', tone: 'warn' })
+  }
+
+  if (valuation) {
+    if (valuation.delta < 0) {
+      badges.push({ label: 'Underpriced', tone: 'good' })
+    } else if (valuation.delta > 0) {
+      badges.push({ label: 'Overpriced', tone: 'bad' })
+    }
+
+    if (bestBuyObservationId.value === observation.id) {
+      badges.push({ label: 'Best buy', tone: 'good' })
+    }
+  }
+
+  if (valuationConfidence.value.level === 'low') {
+    badges.push({ label: 'Low confidence', tone: 'neutral' })
+  }
+
+  return badges
+}
 
 const selectedObservationDetail = computed(() => {
   if (!selectedObservationId.value) return null
   return selectedItemObservations.value.find((entry) => entry.id === selectedObservationId.value) || null
+})
+
+const selectedObservationStatsHealth = computed(() => {
+  const observation = selectedObservationDetail.value
+  if (!observation) {
+    return {
+      missing: [] as Array<{ key: string; label: string; rangeText: string; suffix: string }>,
+      unmatchedOfficial: [] as Array<{ effectId: number; rawLabel: string; rangeText: string }>,
+      unexpected: [] as Array<{ index: number; label: string }>,
+      duplicates: [] as Array<{ key: string; label: string; count: number }>,
+      incomplete: [] as Array<{ index: number; label: string }>,
+    }
+  }
+
+  const expected = currentExpectedObservationStats.value
+  const expectedKeys = new Set(expected.map((entry) => entry.key))
+  const keyCounts = new Map<string, number>()
+
+  observation.statsEntries.forEach((entry) => {
+    keyCounts.set(entry.key, (keyCounts.get(entry.key) || 0) + 1)
+  })
+
+  const missing = expected.filter((entry) => !observation.statsEntries.some((line) => line.key === entry.key))
+  const unmatchedOfficial = currentItemEffectMappings.value
+    .filter((entry) => !entry.ignoredForObservation && !entry.matched)
+    .map((entry) => ({
+      effectId: entry.effectId,
+      rawLabel: entry.rawLabel,
+      rangeText: entry.rangeText,
+    }))
+  const unexpected = observation.statsEntries
+    .map((entry, index) => ({ entry, index }))
+    .filter(({ entry }) => !expectedKeys.has(entry.key))
+    .map(({ entry, index }) => ({ index, label: entry.label || entry.key || `Line ${index + 1}` }))
+
+  const duplicates = Array.from(keyCounts.entries())
+    .filter(([, count]) => count > 1)
+    .map(([key, count]) => ({
+      key,
+      label: observation.statsEntries.find((entry) => entry.key === key)?.label || key,
+      count,
+    }))
+
+  const incomplete = observation.statsEntries
+    .map((entry, index) => ({ entry, index }))
+    .filter(({ entry }) => entry.value === null || entry.value === undefined || Number.isNaN(Number(entry.value)))
+    .map(({ entry, index }) => ({ index, label: entry.label || entry.key || `Line ${index + 1}` }))
+
+  return {
+    missing,
+    unmatchedOfficial,
+    unexpected,
+    duplicates,
+    incomplete,
+  }
 })
 
 const fetchResolvedRecipe = async (item: { name: string }, options: { forceRefresh?: boolean } = {}) => {
@@ -1787,6 +2259,8 @@ const aggregateIngredients = computed(() => {
     isSpecial: boolean
     usageCount: number
     totalQuantity: number
+    buildUsageCount: number
+    pressureScore: number
     items: Array<{ name: string; image_url?: string | null; count: number }>
   }>()
 
@@ -1808,8 +2282,10 @@ const aggregateIngredients = computed(() => {
         if (!wasSeen) {
           existing.usageCount += 1
           existing.items.push(itemRef)
+          existing.buildUsageCount += itemRef.count ?? 0
         }
         existing.totalQuantity += quantity
+        existing.pressureScore += quantity * (itemRef.count ?? 0)
         return
       }
 
@@ -1827,6 +2303,8 @@ const aggregateIngredients = computed(() => {
           ['subtrat', 'substrat', 'concentrado', 'galet'].some((token) => normalizedTypeName.includes(token)),
         usageCount: 1,
         totalQuantity: quantity,
+        buildUsageCount: itemRef.count ?? 0,
+        pressureScore: quantity * (itemRef.count ?? 0),
         items: [itemRef],
       })
     })
@@ -1843,11 +2321,15 @@ const aggregateIngredients = computed(() => {
   return filtered.sort((a, b) => {
     if (aggregateSortMode.value === 'quantity') {
       if (b.totalQuantity !== a.totalQuantity) return b.totalQuantity - a.totalQuantity
+      if (b.pressureScore !== a.pressureScore) return b.pressureScore - a.pressureScore
+      if (b.buildUsageCount !== a.buildUsageCount) return b.buildUsageCount - a.buildUsageCount
       if (b.usageCount !== a.usageCount) return b.usageCount - a.usageCount
       return a.name.localeCompare(b.name)
     }
 
     if (b.usageCount !== a.usageCount) return b.usageCount - a.usageCount
+    if (b.buildUsageCount !== a.buildUsageCount) return b.buildUsageCount - a.buildUsageCount
+    if (b.pressureScore !== a.pressureScore) return b.pressureScore - a.pressureScore
     if (b.totalQuantity !== a.totalQuantity) return b.totalQuantity - a.totalQuantity
     return a.name.localeCompare(b.name)
   })
@@ -1926,11 +2408,7 @@ const readFileAsDataUrl = (file: File) =>
     reader.readAsDataURL(file)
   })
 
-const handleOcrFileChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-
+const processMarketScreenshotImage = async (imageBase64: string) => {
   ocrState.value = {
     isLoading: true,
     error: '',
@@ -1942,7 +2420,6 @@ const handleOcrFileChange = async (event: Event) => {
   }
 
   try {
-    const imageBase64 = await readFileAsDataUrl(file)
     const result = await $fetch<{
       text: string
       candidates: number[]
@@ -1983,6 +2460,165 @@ const handleOcrFileChange = async (event: Event) => {
   }
 }
 
+const processStatsScreenshotImage = async (imageBase64: string, observationId: string) => {
+  const itemKey = selectedObservationKey.value
+  if (!itemKey || !observationId) return
+
+  try {
+    statsOcrState.value = {
+      isLoading: true,
+      error: '',
+    }
+
+    const result = await $fetch<{
+      text: string
+      entries: Array<{
+        key: string
+        label: string
+        value: number | null
+        suffix: string
+        rangeText: string
+        raw: string
+      }>
+    }>('/api/ocr/item-stats', {
+      method: 'POST',
+      body: { imageBase64 },
+    })
+
+    updateObservationEntries(itemKey, (entry) =>
+      entry.id === observationId
+        ? {
+            ...entry,
+            statsScreenshotDataUrl: imageBase64,
+            statsRawText: result.text,
+            statsEntries: result.entries,
+          }
+        : entry
+    )
+
+    selectedObservationId.value = observationId
+    statsOcrState.value = {
+      isLoading: false,
+      error: '',
+    }
+  } catch (error) {
+    console.error('Error running stats OCR:', error)
+    statsOcrState.value = {
+      isLoading: false,
+      error: 'Failed to run OCR on the stats screenshot.',
+    }
+  } finally {
+    pendingStatsObservationId.value = ''
+    if (statsScreenshotInput.value) {
+      statsScreenshotInput.value.value = ''
+    }
+  }
+}
+
+const readClipboardImageDataUrl = async () => {
+  if (!import.meta.client || !navigator.clipboard?.read) {
+    throw new Error('Clipboard image reading is not supported here.')
+  }
+
+  const clipboardItems = await navigator.clipboard.read()
+  for (const item of clipboardItems) {
+    const imageType = item.types.find((type) => type.startsWith('image/'))
+    if (!imageType) continue
+    const blob = await item.getType(imageType)
+    return await readFileAsDataUrl(new File([blob], `clipboard.${imageType.split('/')[1] || 'png'}`, { type: imageType }))
+  }
+
+  throw new Error('No image found in clipboard.')
+}
+
+const pasteMarketScreenshot = async () => {
+  try {
+    const imageBase64 = await readClipboardImageDataUrl()
+    await processMarketScreenshotImage(imageBase64)
+  } catch (error) {
+    console.error('Error pasting market screenshot:', error)
+    ocrState.value = {
+      ...ocrState.value,
+      isLoading: false,
+      error: 'Failed to paste an image from the clipboard.',
+    }
+  }
+}
+
+const pasteStatsScreenshot = async (observationId: string) => {
+  try {
+    const imageBase64 = await readClipboardImageDataUrl()
+    await processStatsScreenshotImage(imageBase64, observationId)
+  } catch (error) {
+    console.error('Error pasting stats screenshot:', error)
+    statsOcrState.value = {
+      isLoading: false,
+      error: 'Failed to paste an image from the clipboard.',
+    }
+  }
+}
+
+const handleGlobalPaste = async (event: ClipboardEvent) => {
+  if (!import.meta.client) return
+
+  const target = event.target as HTMLElement | null
+  const tagName = target?.tagName?.toLowerCase()
+  if (tagName === 'input' || tagName === 'textarea' || target?.isContentEditable) {
+    return
+  }
+
+  const item = Array.from(event.clipboardData?.items || []).find((entry) => entry.type.startsWith('image/'))
+  if (!item) return
+
+  const file = item.getAsFile()
+  if (!file) return
+
+  event.preventDefault()
+  const imageBase64 = await readFileAsDataUrl(file)
+
+  if (selectedObservationDetail.value) {
+    await processStatsScreenshotImage(imageBase64, selectedObservationDetail.value.id)
+    return
+  }
+
+  if (selectedRecipeItem.value) {
+    await processMarketScreenshotImage(imageBase64)
+  }
+}
+
+const buildObservationStatsSignature = (statsEntries: StoredObservedPriceEntry['statsEntries']) =>
+  statsEntries
+    .filter((entry) => entry.key && entry.value !== null && entry.value !== undefined)
+    .map((entry) => `${entry.key}:${entry.value}`)
+    .sort((a, b) => a.localeCompare(b))
+    .join('|')
+
+const isDuplicateObservedEntry = (
+  candidate: Pick<StoredObservedPriceEntry, 'price' | 'statsEntries' | 'createdAt'>,
+  existing: StoredObservedPriceEntry
+) => {
+  if (candidate.price !== existing.price) return false
+
+  const candidateSignature = buildObservationStatsSignature(candidate.statsEntries)
+  const existingSignature = buildObservationStatsSignature(existing.statsEntries)
+
+  if (candidateSignature !== existingSignature) return false
+
+  const candidateTime = new Date(candidate.createdAt).getTime()
+  const existingTime = new Date(existing.createdAt).getTime()
+  const diffMs = Math.abs(candidateTime - existingTime)
+
+  return diffMs <= 15 * 60 * 1000
+}
+
+const handleOcrFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  const imageBase64 = await readFileAsDataUrl(file)
+  await processMarketScreenshotImage(imageBase64)
+}
+
 const saveOcrSnapshotPrices = () => {
   const item = selectedRecipeItem.value
   const itemKey = selectedObservationKey.value
@@ -1993,7 +2629,7 @@ const saveOcrSnapshotPrices = () => {
 
   const existing = observedPrices.value[itemKey] || []
   const createdAt = new Date().toISOString()
-  const additions = ocrState.value.candidates.map((price) => ({
+  const candidateEntries = ocrState.value.candidates.map((price) => ({
     id: `${itemKey}-${price}-${createdAt}-${Math.random().toString(36).slice(2, 8)}`,
     itemKey,
     itemName: item.name,
@@ -2006,6 +2642,14 @@ const saveOcrSnapshotPrices = () => {
     statsEntries: [],
   }))
 
+  const additions = candidateEntries.filter((candidate) =>
+    !existing.some((entry) => isDuplicateObservedEntry(candidate, entry))
+  )
+
+  if (!additions.length) {
+    return
+  }
+
   const nextObserved = {
     ...observedPrices.value,
     [itemKey]: [...additions, ...existing],
@@ -2013,7 +2657,7 @@ const saveOcrSnapshotPrices = () => {
 
   observedPrices.value = nextObserved
   writeObservedPrices(nextObserved)
-  selectedObservedPriceIds.value = [...new Set([...ocrState.value.candidates.map((price, index) => additions[index].id), ...selectedObservedPriceIds.value])]
+  selectedObservedPriceIds.value = [...new Set([...additions.map((entry) => entry.id), ...selectedObservedPriceIds.value])]
 }
 
 const removeObservation = (observationId: string) => {
@@ -2145,6 +2789,35 @@ const addObservationStatEntry = () => {
   })
 }
 
+const addExpectedObservationStat = (expectedKey: string) => {
+  const itemKey = selectedObservationKey.value
+  const observationId = selectedObservationId.value
+  if (!itemKey || !observationId) return
+
+  const expected = currentExpectedObservationStats.value.find((entry) => entry.key === expectedKey)
+  if (!expected) return
+
+  updateObservationEntries(itemKey, (entry) => {
+    if (entry.id !== observationId) return entry
+    if (entry.statsEntries.some((line) => line.key === expected.key)) return entry
+
+    return {
+      ...entry,
+      statsEntries: [
+        ...entry.statsEntries,
+        {
+          key: expected.key,
+          label: expected.label,
+          value: null,
+          suffix: expected.suffix,
+          rangeText: expected.rangeText,
+          isManual: true,
+        },
+      ],
+    }
+  })
+}
+
 const removeObservationStatEntry = (index: number) => {
   const itemKey = selectedObservationKey.value
   const observationId = selectedObservationId.value
@@ -2162,61 +2835,11 @@ const removeObservationStatEntry = (index: number) => {
 const handleStatsScreenshotChange = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
-  const itemKey = selectedObservationKey.value
   const observationId = pendingStatsObservationId.value
 
-  if (!file || !itemKey || !observationId) return
-
-  try {
-    const imageBase64 = await readFileAsDataUrl(file)
-    statsOcrState.value = {
-      isLoading: true,
-      error: '',
-    }
-
-    const result = await $fetch<{
-      text: string
-      entries: Array<{
-        key: string
-        label: string
-        value: number | null
-        suffix: string
-        rangeText: string
-        raw: string
-      }>
-    }>('/api/ocr/item-stats', {
-      method: 'POST',
-      body: { imageBase64 },
-    })
-
-    updateObservationEntries(itemKey, (entry) =>
-      entry.id === observationId
-          ? {
-            ...entry,
-            statsScreenshotDataUrl: imageBase64,
-            statsRawText: result.text,
-            statsEntries: result.entries,
-          }
-        : entry
-    )
-
-    selectedObservationId.value = observationId
-    statsOcrState.value = {
-      isLoading: false,
-      error: '',
-    }
-  } catch (error) {
-    console.error('Error running stats OCR:', error)
-    statsOcrState.value = {
-      isLoading: false,
-      error: 'Failed to run OCR on the stats screenshot.',
-    }
-  } finally {
-    pendingStatsObservationId.value = ''
-    if (statsScreenshotInput.value) {
-      statsScreenshotInput.value.value = ''
-    }
-  }
+  if (!file || !observationId) return
+  const imageBase64 = await readFileAsDataUrl(file)
+  await processStatsScreenshotImage(imageBase64, observationId)
 }
 
 const formatPriceFreshness = (iso: string) => {
@@ -2435,7 +3058,13 @@ onMounted(() => {
   observedPrices.value = readObservedPrices()
   effectCache.value = readEffectCache()
   itemStatPriorities.value = readItemStatPriorities()
+  window.addEventListener('paste', handleGlobalPaste)
   fetchData()
+})
+
+onBeforeUnmount(() => {
+  if (!import.meta.client) return
+  window.removeEventListener('paste', handleGlobalPaste)
 })
 
 watch(activeSlot, () => {
@@ -2452,6 +3081,27 @@ watch(
   () => recipeLookupState.value.data?.result?.effects,
   async (effects) => {
     await ensureEffectLabels(effects)
+  },
+  { immediate: true }
+)
+
+watch(
+  () => [selectedRecipeItem.value?.name, currentItemEffectMappings.value],
+  ([itemName, mappings]) => {
+    if (!import.meta.client || !itemName || !mappings.length) return
+    console.groupCollapsed(`[items:v2] DofusDB effect mapping for ${itemName}`)
+    mappings.forEach((entry) => {
+      console.log({
+        effectId: entry.effectId,
+        rawLabel: entry.rawLabel,
+        rangeText: entry.rangeText,
+        matched: entry.matched,
+        ignoredForObservation: entry.ignoredForObservation,
+        matchedKey: entry.matchedKey || null,
+        matchedLabel: entry.matchedLabel || null,
+      })
+    })
+    console.groupEnd()
   },
   { immediate: true }
 )
@@ -2490,6 +3140,34 @@ watch(
 /* ── Stats strip ─────────────────────────────────────────── */
 .v2-items-stats {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: .625rem; margin-bottom: .875rem;
+}
+
+.v2-context-strip,
+.v2-slot-context {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding: .85rem 1rem;
+  margin-bottom: .875rem;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-active);
+  border-radius: 12px;
+}
+
+.v2-context-strip__title,
+.v2-slot-context__title {
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--v2-text-secondary);
+}
+
+.v2-context-strip__subtitle,
+.v2-slot-context__subtitle {
+  color: var(--v2-text);
+  font-size: .875rem;
+  font-weight: 600;
 }
 
 @media (max-width: 640px) { .v2-items-stats { grid-template-columns: repeat(2, 1fr); } }
@@ -2587,6 +3265,12 @@ watch(
   gap: .5rem;
   flex-wrap: wrap;
 }
+.v2-observed-sort {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+}
 .v2-observed-prices__price {
   border: 1px solid var(--v2-border);
   background: transparent;
@@ -2603,6 +3287,71 @@ watch(
   color: var(--v2-text-secondary);
   font-size: .75rem;
   white-space: nowrap;
+}
+.v2-observed-prices__meta-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  min-width: 0;
+}
+.v2-observed-prices__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+.v2-observed-prices__relist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  align-items: center;
+}
+.v2-observed-prices__relist-label {
+  color: var(--v2-text-dim);
+  font-size: .6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.v2-observed-prices__relist-value {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: .2rem .5rem;
+  border: 1px solid var(--v2-border-subtle);
+  background: rgba(255,255,255,.03);
+  color: var(--v2-text);
+  font-size: .6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.v2-observed-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: .2rem .5rem;
+  border: 1px solid var(--v2-border-subtle);
+  font-size: .6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.v2-observed-badge--good {
+  color: #86efac;
+  background: rgba(34,197,94,.12);
+  border-color: rgba(34,197,94,.22);
+}
+.v2-observed-badge--bad {
+  color: #fca5a5;
+  background: rgba(239,68,68,.12);
+  border-color: rgba(239,68,68,.22);
+}
+.v2-observed-badge--warn {
+  color: #fcd34d;
+  background: rgba(245,158,11,.12);
+  border-color: rgba(245,158,11,.22);
+}
+.v2-observed-badge--neutral {
+  color: var(--v2-text-secondary);
+  background: rgba(255,255,255,.04);
 }
 .v2-observed-prices__actions {
   display: flex;
@@ -2716,6 +3465,52 @@ watch(
   border: 1px solid var(--v2-border-subtle);
   background: rgba(0,0,0,.2);
 }
+.v2-stats-health {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: .875rem 1rem;
+  border: 1px solid var(--v2-active);
+  border-radius: 14px;
+  background: rgba(255,255,255,.02);
+}
+.v2-stats-health__group {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+.v2-stats-health__title {
+  color: var(--v2-text);
+  font-size: .8rem;
+  font-weight: 700;
+}
+.v2-stats-health__list {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.v2-stats-health__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .55rem .65rem;
+  border-radius: 10px;
+  border: 1px solid var(--v2-border-subtle);
+  background: rgba(255,255,255,.02);
+}
+.v2-stats-health__label {
+  display: flex;
+  align-items: baseline;
+  gap: .45rem;
+  color: var(--v2-text);
+  font-weight: 600;
+}
+.v2-stats-health__range {
+  color: var(--v2-text-secondary);
+  font-size: .78rem;
+  font-weight: 500;
+}
 .v2-observation-detail__stats {
   display: flex;
   flex-direction: column;
@@ -2772,11 +3567,18 @@ watch(
     grid-template-columns: 1fr;
     justify-items: flex-start;
   }
+  .v2-observed-prices__meta-wrap {
+    width: 100%;
+  }
   .v2-observed-prices__actions {
     justify-content: flex-start;
   }
   .v2-observation-detail__stats-row {
     grid-template-columns: 1fr;
+  }
+  .v2-stats-health__row {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .v2-valuation-table {
     grid-template-columns: 1fr 1fr;

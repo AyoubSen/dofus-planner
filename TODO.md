@@ -23,12 +23,11 @@ Focused shortlist grouped by delivery priority.
 - [ ] Snapshot Compare (Weekly/Monthly)
 - [ ] Data Health Check + Repair Report
 - [ ] Type Hardening With Runtime Validation
-- [ ] Items Page Data Context Subtitle
-- [ ] Items Export Current View CSV
+- [x] Items Page Data Context Subtitle
 - [x] Items Recipe Pressure View (POC done in V2)
-- [ ] Items Recipe Pressure Follow-Up (single-item jump, confidence, richer metrics)
-- [ ] Items Resource Pressure Filters
-- [ ] Items Aggregate Sort/Metric Controls
+- [x] Items Recipe Pressure Follow-Up (single-item jump, richer metrics)
+- [x] Items Resource Pressure Filters
+- [x] Items Aggregate Sort/Metric Controls
 - [ ] Crafting Filter/Sort by Margin
 - [ ] Brisage P/L Over Time Chart
 - [ ] Familiers Budget Persistence
@@ -39,11 +38,19 @@ Focused shortlist grouped by delivery priority.
 - [ ] Archimonstres Export Missing List (Clipboard/CSV)
 - [ ] Succes Category Progress Bars
 - [ ] Succes Sort by Reward Value
-- [ ] Items DofusDB ID Cache / Mapping (persist resolved item -> dofusdb id locally)
-- [ ] Items Recipe Cost Overlay (craft cost vs entered market price)
-- [ ] Items Resource Source Context
+- [x] Items DofusDB ID Cache / Mapping (persist resolved item -> dofusdb id locally)
+- [x] Items Recipe Cost Overlay (craft cost vs entered market price)
+- [x] Items Resource Source Context
 - [ ] Items Aggregate Diff Between Filters
-- [ ] Items Confidence / Match Quality Indicator
+- [x] Items Confidence / Match Quality Indicator
+- [x] Items Observed Listing Badges (underpriced / overpriced / best buy / missing stats / confidence)
+- [x] Items Observed Row Relist Suggestions (quick / fair / greedy directly in the row)
+- [x] Items Smarter Valuation Confidence (sample + completeness + spread)
+- [x] Items Comparable-Only Valuation (score-band-aware comps instead of all selected listings)
+- [ ] Items Buy Target Shortlist
+- [x] Items Observed Listing Dedupe Protection
+- [x] Items Observed Listing Sort Modes (price / delta / best buy / newest)
+- [x] Items OCR Stats Correction Assistant (flag suspicious lines and missing expected stats)
 
 ## Heavy
 - [ ] Archimonstres Zone Map Filter
