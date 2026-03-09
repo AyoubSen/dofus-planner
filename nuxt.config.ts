@@ -13,6 +13,15 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  nitro: {
+    externals: {
+      traceInclude: [
+        "./node_modules/tesseract.js-core/**/*",
+        "./node_modules/.pnpm/tesseract.js-core@*/node_modules/tesseract.js-core/**/*",
+      ],
+    },
+  },
+
   modules: ["@nuxt/fonts", "@nuxtjs/tailwindcss", "@vueuse/nuxt", "@nuxtjs/i18n"],
 
   runtimeConfig: {
