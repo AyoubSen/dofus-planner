@@ -1,6 +1,8 @@
 import { createWorker } from 'tesseract.js'
 import sharp from 'sharp'
 
+export const maxDuration = 60
+
 type ParsedStatEntry = {
   key: string
   label: string

@@ -41,13 +41,12 @@ Focused shortlist grouped by delivery priority.
 - [x] Items DofusDB ID Cache / Mapping (persist resolved item -> dofusdb id locally)
 - [x] Items Recipe Cost Overlay (craft cost vs entered market price)
 - [x] Items Resource Source Context
-- [ ] Items Aggregate Diff Between Filters
+- [ ] Items Aggregate Diff Between Filters (Deprioritized)
 - [x] Items Confidence / Match Quality Indicator
 - [x] Items Observed Listing Badges (underpriced / overpriced / best buy / missing stats / confidence)
 - [x] Items Observed Row Relist Suggestions (quick / fair / greedy directly in the row)
 - [x] Items Smarter Valuation Confidence (sample + completeness + spread)
 - [x] Items Comparable-Only Valuation (score-band-aware comps instead of all selected listings)
-- [ ] Items Buy Target Shortlist
 - [x] Items Observed Listing Dedupe Protection
 - [x] Items Observed Listing Sort Modes (price / delta / best buy / newest)
 - [x] Items OCR Stats Correction Assistant (flag suspicious lines and missing expected stats)

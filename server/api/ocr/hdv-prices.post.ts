@@ -1,6 +1,8 @@
 import { createWorker } from 'tesseract.js'
 import sharp from 'sharp'
 
+export const maxDuration = 60
+
 const normalizeLine = (line: string) =>
   line
     .replace(/\s+/g, ' ')
