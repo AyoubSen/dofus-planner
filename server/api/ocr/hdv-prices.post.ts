@@ -262,6 +262,8 @@ const preprocessImageForPriceOcr = async (imageBase64: string) => {
 }
 
 export default defineEventHandler(async (event) => {
+  const requestId = Math.random().toString(36).slice(2, 8)
+  const startedAt = Date.now()
   const body = await readBody<{ imageBase64?: string }>(event)
   const imageBase64 = body?.imageBase64
 
@@ -272,27 +274,41 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  console.log(`[ocr:hdv:${requestId}] request start`)
   const worker = await createWorker('eng')
+  console.log(`[ocr:hdv:${requestId}] worker created in ${Date.now() - startedAt}ms`)
 
   try {
     let ocrInput = imageBase64
     try {
+      const preprocessStartedAt = Date.now()
       ocrInput = await preprocessImageForPriceOcr(imageBase64)
+      console.log(`[ocr:hdv:${requestId}] preprocess ok in ${Date.now() - preprocessStartedAt}ms`)
     } catch {
       ocrInput = imageBase64
+      console.warn(`[ocr:hdv:${requestId}] preprocess failed, falling back to original image`)
     }
 
+    const paramsStartedAt = Date.now()
     await worker.setParameters({
       tessedit_pageseg_mode: '6',
       tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .,\'-:",
       preserve_interword_spaces: '1',
     })
+    console.log(`[ocr:hdv:${requestId}] params set in ${Date.now() - paramsStartedAt}ms`)
 
+    const recognizeStartedAt = Date.now()
     const result = await worker.recognize(ocrInput)
+    console.log(`[ocr:hdv:${requestId}] recognize ok in ${Date.now() - recognizeStartedAt}ms`)
     const text = result?.data?.text || ''
     const wordResult = extractListingCandidatesFromWords(result?.data?.words || [])
     const fallbackResult = extractListingCandidates(text)
     const useWordCandidates = wordResult.candidates.length > 0
+
+    console.log(
+      `[ocr:hdv:${requestId}] done in ${Date.now() - startedAt}ms ` +
+      `(mode=${useWordCandidates ? 'word' : 'text'}, candidates=${useWordCandidates ? wordResult.candidates.length : fallbackResult.candidates.length})`
+    )
 
     return {
       text,
@@ -302,7 +318,12 @@ export default defineEventHandler(async (event) => {
         rows: useWordCandidates ? wordResult.debugRows : fallbackResult.debugRows,
       },
     }
+  } catch (error) {
+    console.error(`[ocr:hdv:${requestId}] failed after ${Date.now() - startedAt}ms`, error)
+    throw error
   } finally {
+    const terminateStartedAt = Date.now()
     await worker.terminate()
+    console.log(`[ocr:hdv:${requestId}] worker terminated in ${Date.now() - terminateStartedAt}ms`)
   }
 })

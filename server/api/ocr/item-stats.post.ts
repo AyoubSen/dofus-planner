@@ -176,6 +176,8 @@ const extractStatEntries = (rawLines: string[]) => {
 }
 
 export default defineEventHandler(async (event) => {
+  const requestId = Math.random().toString(36).slice(2, 8)
+  const startedAt = Date.now()
   const body = await readBody<{ imageBase64?: string }>(event)
   const imageBase64 = body?.imageBase64
 
@@ -186,23 +188,32 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  console.log(`[ocr:stats:${requestId}] request start`)
   const worker = await createWorker('eng')
+  console.log(`[ocr:stats:${requestId}] worker created in ${Date.now() - startedAt}ms`)
 
   try {
     let ocrInput = imageBase64
     try {
+      const preprocessStartedAt = Date.now()
       ocrInput = await preprocessStatsImage(imageBase64)
+      console.log(`[ocr:stats:${requestId}] preprocess ok in ${Date.now() - preprocessStartedAt}ms`)
     } catch {
       ocrInput = imageBase64
+      console.warn(`[ocr:stats:${requestId}] preprocess failed, falling back to original image`)
     }
 
+    const paramsStartedAt = Date.now()
     await worker.setParameters({
       tessedit_pageseg_mode: '6',
       tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàâäçéèêëîïôöùûüÿœ%+-[]() .,\'-:",
       preserve_interword_spaces: '1',
     })
+    console.log(`[ocr:stats:${requestId}] params set in ${Date.now() - paramsStartedAt}ms`)
 
+    const recognizeStartedAt = Date.now()
     const result = await worker.recognize(ocrInput)
+    console.log(`[ocr:stats:${requestId}] recognize ok in ${Date.now() - recognizeStartedAt}ms`)
     const text = result?.data?.text || ''
     const ocrLines = Array.isArray(result?.data?.lines)
       ? result.data.lines
@@ -213,11 +224,17 @@ export default defineEventHandler(async (event) => {
           .map(normalizeLine)
           .filter(Boolean)
 
+    console.log(`[ocr:stats:${requestId}] done in ${Date.now() - startedAt}ms`)
     return {
       text,
       entries: extractStatEntries(ocrLines),
     }
+  } catch (error) {
+    console.error(`[ocr:stats:${requestId}] failed after ${Date.now() - startedAt}ms`, error)
+    throw error
   } finally {
+    const terminateStartedAt = Date.now()
     await worker.terminate()
+    console.log(`[ocr:stats:${requestId}] worker terminated in ${Date.now() - terminateStartedAt}ms`)
   }
 })

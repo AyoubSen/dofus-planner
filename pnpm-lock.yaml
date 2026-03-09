@@ -32,6 +32,9 @@ importers:
       tesseract.js:
         specifier: ^7.0.0
         version: 7.0.0
+      tesseract.js-core:
+        specifier: ^7.0.0
+        version: 7.0.0
       vue:
         specifier: ^3.5.17
         version: 3.5.17(typescript@5.8.3)
