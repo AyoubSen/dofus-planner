@@ -24,6 +24,7 @@ const STAT_DEFS = [
   { key: 'esquive_pa', label: 'Esquive PA', aliases: ['esquive pa'] },
   { key: 'esquive_pm', label: 'Esquive PM', aliases: ['esquive pm'] },
   { key: 'critique', label: 'Critique', aliases: ['critique'], suffix: '%' as const },
+  { key: 'resistance_critique', label: 'Résistance Critique', aliases: ['resistance critique', 'résistance critique', 'resistances critiques', 'résistances critiques'] },
   { key: 'pa', label: 'PA', aliases: [' pa ', 'pa [', 'pa'] },
   { key: 'pm', label: 'PM', aliases: [' pm ', 'pm [', 'pm'] },
   { key: 'po', label: 'PO', aliases: [' po ', 'portee', 'portée', 'po ['] },
@@ -114,10 +115,16 @@ const cleanStatLine = (line: string) => {
 const parseStatLine = (line: string): ParsedStatEntry | null => {
   const normalized = normalizeSearch(line)
 
-  const matchedDef = STAT_DEFS
+  const exactDef = STAT_DEFS.find((def) =>
+    [def.label, ...def.aliases].some((alias) => normalizeSearch(alias) === normalized),
+  )
+
+  const matchedDef = exactDef || STAT_DEFS
     .map((def) => ({
       def,
-      matchedAlias: def.aliases.find((alias) => normalized.includes(normalizeSearch(alias))) || '',
+      matchedAlias: [def.label, ...def.aliases]
+        .map((alias) => normalizeSearch(alias))
+        .find((alias) => normalized.includes(alias) || alias.includes(normalized)) || '',
     }))
     .filter((entry) => entry.matchedAlias)
     .sort((a, b) => b.matchedAlias.length - a.matchedAlias.length)[0]?.def

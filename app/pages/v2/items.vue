@@ -1377,6 +1377,7 @@ const observationStatOptions = [
   { key: 'agilite', label: 'Agilité', suffix: '' },
   { key: 'sagesse', label: 'Sagesse', suffix: '' },
   { key: 'critique', label: 'Critique', suffix: '%' },
+  { key: 'resistance_critique', label: 'Résistance Critique', suffix: '' },
   { key: 'pa', label: 'PA', suffix: '' },
   { key: 'pm', label: 'PM', suffix: '' },
   { key: 'po', label: 'PO', suffix: '' },
@@ -1407,6 +1408,7 @@ const statsOcrDefs = [
   { key: 'retrait_pa', label: 'Retrait PA', aliases: ['retrait pa'] },
   { key: 'retrait_pm', label: 'Retrait PM', aliases: ['retrait pm'] },
   { key: 'critique', label: 'Critique', aliases: ['critique'], suffix: '%' as const },
+  { key: 'resistance_critique', label: 'Résistance Critique', aliases: ['resistance critique', 'résistance critique', 'resistances critiques', 'résistances critiques'] },
   { key: 'pa', label: 'PA', aliases: [' pa ', 'pa [', 'pa'] },
   { key: 'pm', label: 'PM', aliases: [' pm ', 'pm [', 'pm'] },
   { key: 'po', label: 'PO', aliases: [' po ', 'portee', 'portée', 'po ['] },
@@ -1439,6 +1441,7 @@ const observationStatWeightMap: Record<string, number> = {
   chance: 1,
   agilite: 1,
   critique: 1.5,
+  resistance_critique: 1.8,
   pa: 4,
   pm: 4,
   po: 3,
@@ -1712,15 +1715,26 @@ const normalizeLabelForStatKey = (value: string) =>
 
 const findStatOptionByLabel = (label: string) => {
   const normalized = normalizeLabelForStatKey(label)
-  return observationStatOptions
-    .map((option) => ({
-      option,
-      normalizedOption: normalizeLabelForStatKey(option.label),
+  const exactDef = statsOcrDefs.find((def) =>
+    [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
+  )
+  if (exactDef) {
+    return observationStatOptions.find((option) => option.key === exactDef.key)
+  }
+
+  const partialDef = statsOcrDefs
+    .map((def) => ({
+      def,
+      matchedAlias: [def.label, ...def.aliases]
+        .map((alias) => normalizeLabelForStatKey(alias))
+        .find((alias) => normalized.includes(alias) || alias.includes(normalized)) || '',
     }))
-    .filter(({ normalizedOption }) =>
-      normalized.includes(normalizedOption) || normalizedOption.includes(normalized)
-    )
-    .sort((a, b) => b.normalizedOption.length - a.normalizedOption.length)[0]?.option
+    .filter((entry) => entry.matchedAlias)
+    .sort((a, b) => b.matchedAlias.length - a.matchedAlias.length)[0]?.def
+
+  return partialDef
+    ? observationStatOptions.find((option) => option.key === partialDef.key)
+    : undefined
 }
 
 const currentItemKey = computed(() =>
@@ -2782,10 +2796,15 @@ const cleanStatLine = (line: string) => {
 
 const parseClientStatLine = (line: string) => {
   const normalized = normalizeLabelForStatKey(line)
-  const matchedDef = statsOcrDefs
+  const exactDef = statsOcrDefs.find((def) =>
+    [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
+  )
+  const matchedDef = exactDef || statsOcrDefs
     .map((def) => ({
       def,
-      matchedAlias: def.aliases.find((alias) => normalized.includes(normalizeLabelForStatKey(alias))) || '',
+      matchedAlias: [def.label, ...def.aliases]
+        .map((alias) => normalizeLabelForStatKey(alias))
+        .find((alias) => normalized.includes(alias) || alias.includes(normalized)) || '',
     }))
     .filter((entry) => entry.matchedAlias)
     .sort((a, b) => b.matchedAlias.length - a.matchedAlias.length)[0]?.def
