@@ -35,6 +35,22 @@ const parsePriceFromNumericTokens = (tokens: string[]) => {
   const normalized = tokens
     .map((token) => token.replace(/[^\d]/g, ''))
     .filter(Boolean)
+    .flatMap((token) => {
+      if (token.length <= 3) {
+        return [token]
+      }
+
+      const groups: string[] = []
+      let cursor = token
+      while (cursor.length > 3) {
+        groups.unshift(cursor.slice(-3))
+        cursor = cursor.slice(0, -3)
+      }
+      if (cursor) {
+        groups.unshift(cursor)
+      }
+      return groups
+    })
 
   if (!normalized.length) {
     return null

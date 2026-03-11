@@ -57,6 +57,12 @@ Focused shortlist grouped by delivery priority.
 - [ ] Crafting Ingredient Cost Breakdown
 - [ ] Crafting Sales Chart Over Time
 - [ ] Crafting Goal Tracker
+- [ ] Brisage Planner Mode (separate pre-brisage calculator from the current manual log)
+- [ ] Brisage Parse Selected Item Effects Into Rune Families
+- [ ] Brisage Normalized Rune Catalog (replace free-text rune names)
+- [ ] Brisage Coefficient-Aware EV Model
+- [ ] Brisage EV/Range/Break-Even Panel
+- [ ] Brisage Item History Aggregates (sample count, hit rate, avg realized rune value)
 - [ ] Brisage Best Item Recommendation Panel
 - [ ] Brisage Average Rune Output (Actual vs Theoretical)
 - [ ] Brisage Rune Price Presets

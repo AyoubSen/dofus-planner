@@ -121,7 +121,7 @@
       <!-- Slot tabs -->
       <div class="v2-slot-tabs">
         <button
-          v-for="slot in SLOTS"
+          v-for="slot in SLOT_GROUPS"
           :key="slot.key"
           class="v2-slot-tab"
           :class="{ 'v2-slot-tab--on': activeSlot === slot.key }"
@@ -1197,7 +1197,7 @@ const CLASSES = [
   { name: 'xelor', icon: '/Xelor.png' },
 ]
 
-const SLOTS = [
+const SLOT_GROUPS = [
   { key: 'ar', icon: '⚔️' },
   { key: 'ch', icon: '🎩' },
   { key: 'ca', icon: '🦸' },
@@ -1205,16 +1205,29 @@ const SLOTS = [
   { key: 'br', icon: '🛡️' },
   { key: 'ce', icon: '👑' },
   { key: 'bo', icon: '👢' },
-  { key: 'a1', icon: '💍' },
-  { key: 'a2', icon: '💍' },
+  { key: 'ring', icon: '💍' },
   { key: 'fa', icon: '🐾' },
-  { key: 'd1', icon: '🥚' },
-  { key: 'd2', icon: '🥚' },
-  { key: 'd3', icon: '🥚' },
-  { key: 'd4', icon: '🥚' },
-  { key: 'd5', icon: '🥚' },
-  { key: 'd6', icon: '🥚' },
+  { key: 'dofus', icon: '🥚' },
 ]
+
+const SLOT_GROUP_MEMBERS: Record<string, string[]> = {
+  ar: ['ar'],
+  ch: ['ch'],
+  ca: ['ca'],
+  am: ['am'],
+  br: ['br'],
+  ce: ['ce'],
+  bo: ['bo'],
+  ring: ['a1', 'a2'],
+  fa: ['fa'],
+  dofus: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6'],
+}
+
+const SLOT_KEY_TO_GROUP = Object.fromEntries(
+  Object.entries(SLOT_GROUP_MEMBERS).flatMap(([groupKey, members]) =>
+    members.map(member => [member, groupKey] as const),
+  ),
+)
 
 const filters = reactive({ element: '', mode: '', classe: '', level: '', budget: '' })
 const loading = ref(false)
@@ -1362,6 +1375,7 @@ const observationStatOptions = [
   { key: 'intelligence', label: 'Intelligence', suffix: '' },
   { key: 'chance', label: 'Chance', suffix: '' },
   { key: 'agilite', label: 'Agilité', suffix: '' },
+  { key: 'sagesse', label: 'Sagesse', suffix: '' },
   { key: 'critique', label: 'Critique', suffix: '%' },
   { key: 'pa', label: 'PA', suffix: '' },
   { key: 'pm', label: 'PM', suffix: '' },
@@ -1389,6 +1403,7 @@ const statsOcrDefs = [
   { key: 'intelligence', label: 'Intelligence', aliases: ['intelligence'] },
   { key: 'chance', label: 'Chance', aliases: ['chance'] },
   { key: 'agilite', label: 'Agilité', aliases: ['agilite'] },
+  { key: 'sagesse', label: 'Sagesse', aliases: ['sagesse'] },
   { key: 'retrait_pa', label: 'Retrait PA', aliases: ['retrait pa'] },
   { key: 'retrait_pm', label: 'Retrait PM', aliases: ['retrait pm'] },
   { key: 'critique', label: 'Critique', aliases: ['critique'], suffix: '%' as const },
@@ -1792,6 +1807,21 @@ const setItemStatMultiplier = (statKey: string, multiplier: number) => {
   writeItemStatPriorities(next)
 }
 
+const computeObservationRangeProgress = (value: number, range: { min: number; max: number }) => {
+  if (range.max <= range.min) {
+    return value >= range.max ? 1 + Math.max(0, value - range.max) : Math.max(0, value)
+  }
+
+  if (value <= range.min) {
+    return Math.max(0, (value - range.min) / (range.max - range.min))
+  }
+
+  const span = range.max - range.min
+  const cappedProgress = Math.min(1, (value - range.min) / span)
+  const overmageProgress = value > range.max ? (value - range.max) / span : 0
+  return cappedProgress + overmageProgress
+}
+
 const computeObservationScore = (observation: StoredObservedPriceEntry) => {
   return observation.statsEntries.reduce((sum, entry) => {
     if (entry.value === null || entry.value === undefined) return sum
@@ -1802,14 +1832,7 @@ const computeObservationScore = (observation: StoredObservedPriceEntry) => {
 
     if (!range) return sum + weight
 
-    if (range.max === range.min) {
-      return sum + weight
-    }
-
-    const normalized = Math.max(
-      0,
-      Math.min(1, (entry.value - range.min) / (range.max - range.min))
-    )
+    const normalized = computeObservationRangeProgress(entry.value, range)
 
     return sum + normalized * weight
   }, 0)
@@ -2596,6 +2619,18 @@ const parsePriceFromNumericTokens = (tokens: string[]) => {
   const normalized = tokens
     .map((token) => token.replace(/[^\d]/g, ''))
     .filter(Boolean)
+    .flatMap((token) => {
+      if (token.length <= 3) return [token]
+
+      const groups: string[] = []
+      let cursor = token
+      while (cursor.length > 3) {
+        groups.unshift(cursor.slice(-3))
+        cursor = cursor.slice(0, -3)
+      }
+      if (cursor) groups.unshift(cursor)
+      return groups
+    })
 
   if (!normalized.length) return null
 
@@ -3402,22 +3437,28 @@ const openAggregateRecipeView = async (limit: number) => {
 
 const processData = (equipments: any[]) => {
   const slotStats: Record<string, { items: Record<string, number>; itemDetails: Record<string, any> }> = {}
-  SLOTS.forEach(s => { slotStats[s.key] = { items: {}, itemDetails: {} } })
+  SLOT_GROUPS.forEach(s => { slotStats[s.key] = { items: {}, itemDetails: {} } })
 
   equipments.forEach(eq => {
     if (!eq.items) return
+    const seenItemsByGroup: Record<string, Set<string>> = {}
     Object.entries(eq.items).forEach(([slotKey, item]: [string, any]) => {
-      if (!item?.name || !slotStats[slotKey]) return
-      slotStats[slotKey].items[item.name] = (slotStats[slotKey].items[item.name] ?? 0) + 1
-      if (!slotStats[slotKey].itemDetails[item.name]) {
-        slotStats[slotKey].itemDetails[item.name] = { image_url: item.image_url ?? null, item }
+      const groupKey = SLOT_KEY_TO_GROUP[slotKey] ?? slotKey
+      if (!item?.name || !slotStats[groupKey]) return
+      if (!seenItemsByGroup[groupKey]) seenItemsByGroup[groupKey] = new Set<string>()
+      if (seenItemsByGroup[groupKey].has(item.name)) return
+
+      seenItemsByGroup[groupKey].add(item.name)
+      slotStats[groupKey].items[item.name] = (slotStats[groupKey].items[item.name] ?? 0) + 1
+      if (!slotStats[groupKey].itemDetails[item.name]) {
+        slotStats[groupKey].itemDetails[item.name] = { image_url: item.image_url ?? null, item }
       }
     })
   })
 
   // Build sorted topItems per slot
   const processedSlots: Record<string, any> = {}
-  SLOTS.forEach(s => {
+  SLOT_GROUPS.forEach(s => {
     const raw = slotStats[s.key]
     const topItems = Object.entries(raw.items)
       .map(([name, count]) => ({ name, count, image_url: raw.itemDetails[name]?.image_url ?? null, rawItem: raw.itemDetails[name]?.item ?? null }))
@@ -3426,10 +3467,10 @@ const processData = (equipments: any[]) => {
   })
 
   const allItems = new Set<string>()
-  SLOTS.forEach(s => { Object.keys(slotStats[s.key].items).forEach(n => allItems.add(n)) })
+  SLOT_GROUPS.forEach(s => { Object.keys(slotStats[s.key].items).forEach(n => allItems.add(n)) })
 
   let mostPopularSlot: { slot: string; count: number } | null = null
-  SLOTS.forEach(s => {
+  SLOT_GROUPS.forEach(s => {
     const c = Object.keys(slotStats[s.key].items).length
     if (!mostPopularSlot || c > mostPopularSlot.count) {
       mostPopularSlot = { slot: t(`items.slots.${s.key}`), count: c }
@@ -3437,8 +3478,9 @@ const processData = (equipments: any[]) => {
   })
 
   const total = equipments.length
-  const totalItemsUsed = SLOTS.reduce((sum, s) => {
-    return sum + Object.values(slotStats[s.key].items).reduce((a, b) => a + b, 0)
+  const totalItemsUsed = equipments.reduce((sum, eq) => {
+    if (!eq?.items) return sum
+    return sum + Object.values(eq.items).filter((item: any) => item?.name).length
   }, 0)
 
   stats.value = {

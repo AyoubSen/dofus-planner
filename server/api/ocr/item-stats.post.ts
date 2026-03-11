@@ -18,6 +18,7 @@ const STAT_DEFS = [
   { key: 'intelligence', label: 'Intelligence', aliases: ['intelligence'] },
   { key: 'chance', label: 'Chance', aliases: ['chance'] },
   { key: 'agilite', label: 'Agilité', aliases: ['agilite'] },
+  { key: 'sagesse', label: 'Sagesse', aliases: ['sagesse'] },
   { key: 'retrait_pa', label: 'Retrait PA', aliases: ['retrait pa'] },
   { key: 'retrait_pm', label: 'Retrait PM', aliases: ['retrait pm'] },
   { key: 'esquive_pa', label: 'Esquive PA', aliases: ['esquive pa'] },

@@ -549,13 +549,15 @@
       "bo": "Boots",
       "a1": "Ring 1",
       "a2": "Ring 2",
+      "ring": "Ring",
       "fa": "Pet",
       "d1": "Dofus 1",
       "d2": "Dofus 2",
       "d3": "Dofus 3",
       "d4": "Dofus 4",
       "d5": "Dofus 5",
-      "d6": "Dofus 6"
+      "d6": "Dofus 6",
+      "dofus": "Dofus"
     },
     "mostUsed": "Most Used {slot}",
     "usedTimes": "Used {count} times ({percent}%)",

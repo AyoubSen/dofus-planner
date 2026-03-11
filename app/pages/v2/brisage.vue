@@ -63,6 +63,25 @@
         </div>
       </div>
 
+      <div class="br-mode-switch" role="tablist" aria-label="Brisage workspace mode">
+        <button
+          class="br-mode-switch__btn"
+          :class="{ 'br-mode-switch__btn--on': workspaceMode === 'planner' }"
+          @click="workspaceMode = 'planner'"
+        >
+          Planner
+          <span class="br-mode-switch__hint">Pre-brisage</span>
+        </button>
+        <button
+          class="br-mode-switch__btn"
+          :class="{ 'br-mode-switch__btn--on': workspaceMode === 'log' }"
+          @click="workspaceMode = 'log'"
+        >
+          Log
+          <span class="br-mode-switch__hint">Actual outcomes</span>
+        </button>
+      </div>
+
       <!-- Two-column layout -->
       <div class="br-layout">
 
@@ -74,7 +93,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Find item to break
+            {{ workspaceMode === 'planner' ? 'Find item to evaluate' : 'Find item to log' }}
           </div>
 
           <div ref="searchAreaEl" class="br-search-area">
@@ -115,7 +134,108 @@
 
           <!-- Entry form -->
           <Transition name="br-slide">
-            <div v-if="selectedItem" class="br-form">
+            <div v-if="selectedItem && workspaceMode === 'planner'" class="br-form">
+              <div class="br-form__item-header">
+                <img :src="getItemImg(selectedItem)" :alt="selectedItem.name?.fr ?? ''" class="br-form__item-img" @error="onImgErr" />
+                <div>
+                  <div class="br-form__item-name">{{ selectedItem.name?.fr ?? selectedItem.id }}</div>
+                  <div class="br-form__item-sub">{{ selectedItem.type?.name?.fr ?? '' }} · Lv {{ selectedItem.level ?? '?' }}</div>
+                </div>
+                <button class="br-form__close" @click="selectedItem = null">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="br-planner-kicker">
+                Separate pre-brisage workspace. Use this to decide whether the item is worth breaking before you record actual runes.
+              </div>
+
+              <div class="br-form__row">
+                <div class="br-form__field">
+                  <label class="br-field-lbl">Craft price (kamas)</label>
+                  <input v-model.number="formCraftPrice" type="number" min="0" step="1000" placeholder="0" class="br-field-input" />
+                </div>
+                <div class="br-form__field">
+                  <label class="br-field-lbl">HDV price (kamas)</label>
+                  <input v-model.number="formHdvPrice" type="number" min="0" step="1000" placeholder="0" class="br-field-input" />
+                </div>
+              </div>
+
+              <div class="br-form__field">
+                <label class="br-field-lbl">Date</label>
+                <input v-model="formDate" type="date" class="br-field-input" />
+              </div>
+
+              <div class="br-planner-grid">
+                <div class="br-planner-card">
+                  <div class="br-planner-card__label">Reference cost</div>
+                  <div class="br-planner-card__value">
+                    {{ plannerReferenceCost > 0 ? formatKamas(plannerReferenceCost) : '—' }}
+                  </div>
+                  <div class="br-planner-card__sub">{{ plannerReferenceLabel }}</div>
+                </div>
+                <div class="br-planner-card">
+                  <div class="br-planner-card__label">Market spread</div>
+                  <div class="br-planner-card__value" :class="plannerSpread >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                    {{ formHdvPrice > 0 && formCraftPrice > 0 ? `${plannerSpread > 0 ? '+' : ''}${formatKamas(plannerSpread)}` : '—' }}
+                  </div>
+                  <div class="br-planner-card__sub">HDV minus craft</div>
+                </div>
+                <div class="br-planner-card">
+                  <div class="br-planner-card__label">Item profile</div>
+                  <div class="br-planner-card__value">{{ plannerEffectCount }}</div>
+                  <div class="br-planner-card__sub">Effect lines detected</div>
+                </div>
+              </div>
+
+              <div class="br-planner-section">
+                <div class="br-runes-header">
+                  <span class="br-field-lbl">Planner readiness</span>
+                </div>
+                <div class="br-planner-checklist">
+                  <div class="br-planner-check" :class="{ 'br-planner-check--on': true }">
+                    <span class="br-planner-check__dot" />
+                    Selected item loaded
+                  </div>
+                  <div class="br-planner-check" :class="{ 'br-planner-check--on': plannerReferenceCost > 0 }">
+                    <span class="br-planner-check__dot" />
+                    Cost basis entered
+                  </div>
+                  <div class="br-planner-check" :class="{ 'br-planner-check--on': plannerEffectCount > 0 }">
+                    <span class="br-planner-check__dot" />
+                    Item effects available for rune mapping
+                  </div>
+                  <div class="br-planner-check">
+                    <span class="br-planner-check__dot" />
+                    Rune-family mapping pending next implementation step
+                  </div>
+                  <div class="br-planner-check">
+                    <span class="br-planner-check__dot" />
+                    Coefficient-aware EV pending next implementation step
+                  </div>
+                </div>
+              </div>
+
+              <div class="br-planner-section">
+                <div class="br-runes-header">
+                  <span class="br-field-lbl">Planner notes</span>
+                </div>
+                <input v-model="formNotes" type="text" placeholder="Why this item looks promising, coefficient notes, price assumptions…" class="br-field-input" />
+              </div>
+
+              <div class="br-planner-actions">
+                <button class="br-submit-btn" @click="workspaceMode = 'log'">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L10 18l-7-7" />
+                  </svg>
+                  Use this item in manual log
+                </button>
+              </div>
+            </div>
+
+            <div v-else-if="selectedItem && workspaceMode === 'log'" class="br-form">
               <!-- Item header -->
               <div class="br-form__item-header">
                 <img :src="getItemImg(selectedItem)" :alt="selectedItem.name?.fr ?? ''" class="br-form__item-img" @error="onImgErr" />
@@ -161,7 +281,7 @@
                       <input
                         v-model="addRuneForm.name"
                         type="text"
-                        placeholder="Rune name…"
+                        placeholder="Rune name (e.g. Ra Vi)…"
                         class="br-rune-add__name"
                         @input="onAddRuneNameInput"
                         @focus="addRuneDropOpen = true"
@@ -176,7 +296,9 @@
                           @mousedown.prevent="pickAddRune(s)"
                         >
                           <span class="br-rune-dropdown__name">{{ s.name }}</span>
-                          <span class="br-rune-dropdown__price">{{ formatKamas(s.price) }}/u</span>
+                          <span class="br-rune-dropdown__price">
+                            {{ s.price > 0 ? `${formatKamas(s.price)}/u` : 'No saved price' }}
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -193,8 +315,7 @@
                   <div v-if="addRunePreview > 0" class="br-rune-add__preview">
                     {{ addRuneForm.qty || 1 }}× {{ formatKamas(addRunePreview) }} = <strong>{{ formatKamas((addRuneForm.qty || 1) * addRunePreview) }}</strong>
                   </div>
-                  <!-- Manual price when rune is unknown -->
-                  <div v-else-if="addRuneForm.name.trim() && !addRuneKnown" class="br-rune-add__manual-row">
+                  <div v-else-if="selectedAddRune" class="br-rune-add__manual-row">
                     <label class="br-field-lbl">Price per unit</label>
                     <input
                       v-model.number="addRuneForm.unitPrice"
@@ -205,9 +326,12 @@
                       @keyup.enter="commitAddRune"
                     />
                   </div>
+                  <div v-else-if="addRuneForm.name.trim()" class="br-rune-add__preview">
+                    Select a rune from the catalog to keep names normalized.
+                  </div>
                   <button
                     class="br-rune-add__btn"
-                    :disabled="!addRuneForm.name.trim() || effectiveAddPrice === 0"
+                    :disabled="!selectedAddRune || effectiveAddPrice === 0"
                     @click="commitAddRune"
                   >
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,12 +411,20 @@
               </svg>
             </button>
 
-            <div v-if="showRunePrices" class="br-rune-prices__body">
-              <!-- Add rune price -->
-              <div class="br-rune-prices__add-form">
-                <input v-model="newRuneName" type="text" placeholder="Rune name (e.g. Rvit)" class="br-rune-prices__input" @keyup.enter="addRunePrice" />
+              <div v-if="showRunePrices" class="br-rune-prices__body">
+                <!-- Add rune price -->
+                <div class="br-rune-prices__add-form">
+                <input v-model="newRuneName" type="text" placeholder="Rune name (e.g. Ra Vi)" class="br-rune-prices__input" @keyup.enter="addRunePrice" />
                 <input v-model.number="newRunePrice" type="number" min="0" placeholder="Price" class="br-rune-prices__input br-rune-prices__input--sm" @keyup.enter="addRunePrice" />
-                <button class="br-rune-prices__add-btn" @click="addRunePrice" :disabled="!newRuneName.trim() || newRunePrice <= 0">+</button>
+                <button class="br-rune-prices__add-btn" @click="addRunePrice" :disabled="!resolveRuneCatalogEntry(newRuneName) || newRunePrice <= 0">+</button>
+              </div>
+              <div v-if="newRuneName.trim()" class="br-rune-prices__hint">
+                <template v-if="resolveRuneCatalogEntry(newRuneName)">
+                  Saving as {{ resolveRuneCatalogEntry(newRuneName)?.name }}
+                </template>
+                <template v-else>
+                  Unknown rune. Use a catalog name or alias like `Ra Vi`, `Pa Fo`, `Cri`, `Ga Pa`.
+                </template>
               </div>
 
               <div v-if="runePrices.length === 0" class="br-rune-prices__empty">
@@ -421,8 +553,8 @@ definePageMeta({ layout: 'v2' })
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-interface FormRune { name: string; qty: number; unitPrice: number }
-interface BrisageRune { name: string; qty: number; unitPrice: number }
+interface FormRune { runeId: string; name: string; qty: number; unitPrice: number }
+interface BrisageRune { runeId: string; name: string; qty: number; unitPrice: number }
 interface BrisageEntry {
   id: string
   itemId: string | number
@@ -434,7 +566,124 @@ interface BrisageEntry {
   date: string
   notes: string
 }
-interface RunePrice { id: string; name: string; price: number }
+interface RunePrice { id: string; runeId: string; name: string; price: number }
+interface RuneCatalogEntry { id: string; name: string; aliases: string[] }
+
+const RUNE_CATALOG: RuneCatalogEntry[] = [
+  { id: 'vi', name: 'Vi', aliases: ['vi', 'vitalite', 'vitalité', 'rune vi'] },
+  { id: 'pa_vi', name: 'Pa Vi', aliases: ['pavi', 'pa vi', 'pa vitalite', 'pa vitalité'] },
+  { id: 'ra_vi', name: 'Ra Vi', aliases: ['ravi', 'ra vi', 'ra vitalite', 'ra vitalité'] },
+  { id: 'fo', name: 'Fo', aliases: ['fo', 'force', 'rune fo'] },
+  { id: 'pa_fo', name: 'Pa Fo', aliases: ['pafo', 'pa fo', 'pa force'] },
+  { id: 'ra_fo', name: 'Ra Fo', aliases: ['rafo', 'ra fo', 'ra force'] },
+  { id: 'ine', name: 'Ine', aliases: ['ine', 'intel', 'intelligence', 'rune ine'] },
+  { id: 'pa_ine', name: 'Pa Ine', aliases: ['paine', 'pa ine', 'pa intel', 'pa intelligence'] },
+  { id: 'ra_ine', name: 'Ra Ine', aliases: ['raine', 'ra ine', 'ra intel', 'ra intelligence'] },
+  { id: 'cha', name: 'Cha', aliases: ['cha', 'chance', 'rune cha'] },
+  { id: 'pa_cha', name: 'Pa Cha', aliases: ['pacha', 'pa cha', 'pa chance'] },
+  { id: 'ra_cha', name: 'Ra Cha', aliases: ['racha', 'ra cha', 'ra chance'] },
+  { id: 'age', name: 'Age', aliases: ['age', 'agi', 'agilite', 'agilité', 'rune age'] },
+  { id: 'pa_age', name: 'Pa Age', aliases: ['paage', 'pa age', 'pa agi', 'pa agilite', 'pa agilité'] },
+  { id: 'ra_age', name: 'Ra Age', aliases: ['raage', 'ra age', 'ra agi', 'ra agilite', 'ra agilité'] },
+  { id: 'sa', name: 'Sa', aliases: ['sa', 'sagesse', 'rune sa'] },
+  { id: 'pa_sa', name: 'Pa Sa', aliases: ['pasa', 'pa sa', 'pa sagesse'] },
+  { id: 'ra_sa', name: 'Ra Sa', aliases: ['rasa', 'ra sa', 'ra sagesse'] },
+  { id: 'ini', name: 'Ini', aliases: ['ini', 'initiative', 'rune ini'] },
+  { id: 'pa_ini', name: 'Pa Ini', aliases: ['paini', 'pa ini', 'pa initiative'] },
+  { id: 'ra_ini', name: 'Ra Ini', aliases: ['raini', 'ra ini', 'ra initiative'] },
+  { id: 'do', name: 'Do', aliases: ['do', 'dom', 'dommage', 'dommages', 'rune do'] },
+  { id: 'pa_do', name: 'Pa Do', aliases: ['pado', 'pa do', 'pa dommage', 'pa dommages'] },
+  { id: 'ra_do', name: 'Ra Do', aliases: ['rado', 'ra do', 'ra dommage', 'ra dommages'] },
+  { id: 'cri', name: 'Cri', aliases: ['cri', 'crit', 'critique', 'cri', 'rune cri'] },
+  { id: 'prospe', name: 'Prospe', aliases: ['prospe', 'prospection', 'pp'] },
+  { id: 'tacle', name: 'Tac', aliases: ['tac', 'tacle'] },
+  { id: 'fuite', name: 'Fui', aliases: ['fui', 'fuite'] },
+  { id: 'pui', name: 'Pui', aliases: ['pui', 'puissance'] },
+  { id: 'so', name: 'So', aliases: ['so', 'soin', 'soins'] },
+  { id: 'do_pou', name: 'Do Pou', aliases: ['dopou', 'do pou', 'dommage poussee', 'dommages poussee', 'dommage poussée', 'dommages poussée'] },
+  { id: 'do_per', name: 'Do Per', aliases: ['doper', 'do per', 'dommage piege', 'dommages piege', 'dommage piège', 'dommages piège'] },
+  { id: 'recri', name: 'Ré Cri', aliases: ['recri', 're cri', 'res cri', 'rés cri', 'resistance critique', 'résistance critique'] },
+  { id: 'ga_pa', name: 'Ga Pa', aliases: ['gapa', 'ga pa', 'pa', 'point action'] },
+  { id: 'ga_pme', name: 'Ga Pme', aliases: ['gapme', 'ga pme', 'pme', 'pm', 'point mouvement'] },
+  { id: 'po', name: 'Po', aliases: ['po', 'portee', 'portée'] },
+  { id: 'invo', name: 'Invo', aliases: ['invo', 'invocation'] },
+]
+
+const normalizeRuneToken = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/gi, '')
+    .toLowerCase()
+    .trim()
+
+const RUNE_CATALOG_LOOKUP = new Map<string, RuneCatalogEntry>()
+RUNE_CATALOG.forEach((entry) => {
+  ;[entry.name, ...entry.aliases].forEach((alias) => {
+    const key = normalizeRuneToken(alias)
+    if (key) RUNE_CATALOG_LOOKUP.set(key, entry)
+  })
+})
+
+const resolveRuneCatalogEntry = (value: string): RuneCatalogEntry | null =>
+  RUNE_CATALOG_LOOKUP.get(normalizeRuneToken(value)) ?? null
+
+const getRuneCatalogSuggestions = (query: string, limit = 8) => {
+  const key = normalizeRuneToken(query)
+  const pool = key
+    ? RUNE_CATALOG.filter((entry) =>
+        [entry.name, ...entry.aliases].some((alias) => normalizeRuneToken(alias).includes(key)),
+      )
+    : RUNE_CATALOG
+  return pool.slice(0, limit)
+}
+
+const makeCustomRuneId = (name: string) => `custom:${normalizeRuneToken(name) || 'unknown'}`
+
+const normalizeRunePriceRecord = (record: any): RunePrice | null => {
+  const name = String(record?.name ?? '').trim()
+  const price = Number(record?.price ?? 0)
+  if (!name || price <= 0) return null
+  const match = resolveRuneCatalogEntry(record?.runeId || name)
+  return {
+    id: String(record?.id ?? crypto.randomUUID()),
+    runeId: match?.id ?? makeCustomRuneId(name),
+    name: match?.name ?? name,
+    price,
+  }
+}
+
+const normalizeBrisageRuneRecord = (record: any): BrisageRune | null => {
+  const name = String(record?.name ?? '').trim()
+  const qty = Number(record?.qty ?? 0)
+  const unitPrice = Number(record?.unitPrice ?? 0)
+  if (!name || qty <= 0) return null
+  const match = resolveRuneCatalogEntry(record?.runeId || name)
+  return {
+    runeId: match?.id ?? makeCustomRuneId(name),
+    name: match?.name ?? name,
+    qty,
+    unitPrice,
+  }
+}
+
+const normalizeBrisageEntryRecord = (record: any): BrisageEntry | null => {
+  if (!record?.id || !record?.item) return null
+  const runes = Array.isArray(record?.runes)
+    ? record.runes.map(normalizeBrisageRuneRecord).filter(Boolean) as BrisageRune[]
+    : []
+  return {
+    id: String(record.id),
+    itemId: record.itemId,
+    item: record.item,
+    craftPrice: Number(record.craftPrice ?? 0),
+    hdvPrice: Number(record.hdvPrice ?? 0),
+    runeValue: Number(record.runeValue ?? 0),
+    runes,
+    date: String(record.date ?? todayISO()),
+    notes: String(record.notes ?? ''),
+  }
+}
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
 const entriesKey = computed(() =>
@@ -448,6 +697,7 @@ const runePricesKey = computed(() =>
 const entries = ref<BrisageEntry[]>([])
 const runePrices = ref<RunePrice[]>([])
 const showRunePrices = ref(false)
+const workspaceMode = ref<'planner' | 'log'>('planner')
 
 // Search
 const search = ref('')
@@ -466,7 +716,7 @@ const formRunes = ref<FormRune[]>([])
 const formNotes = ref('')
 
 // Add-rune mini form
-const addRuneForm = ref({ name: '', qty: 1, unitPrice: 0 })
+const addRuneForm = ref({ name: '', selectedRuneId: '', qty: 1, unitPrice: 0 })
 const addRuneDropOpen = ref(false)
 
 // Rune price management
@@ -479,11 +729,31 @@ const loadData = () => {
   if (!hasContext.value) return
   const eRaw = localStorage.getItem(entriesKey.value)
   const rRaw = localStorage.getItem(runePricesKey.value)
-  entries.value = eRaw ? JSON.parse(eRaw) : []
-  runePrices.value = rRaw ? JSON.parse(rRaw) : []
+  const parsedEntries = eRaw ? JSON.parse(eRaw) : []
+  const parsedRunePrices = rRaw ? JSON.parse(rRaw) : []
+
+  entries.value = Array.isArray(parsedEntries)
+    ? parsedEntries.map(normalizeBrisageEntryRecord).filter(Boolean) as BrisageEntry[]
+    : []
+
+  const normalizedPrices = Array.isArray(parsedRunePrices)
+    ? parsedRunePrices.map(normalizeRunePriceRecord).filter(Boolean) as RunePrice[]
+    : []
+
+  const dedupedPrices = new Map<string, RunePrice>()
+  normalizedPrices.forEach((entry) => {
+    dedupedPrices.set(entry.runeId, entry)
+  })
+  runePrices.value = Array.from(dedupedPrices.values()).sort((a, b) => a.name.localeCompare(b.name))
+
+  saveEntries()
+  saveRunePrices()
 }
 const saveEntries = () => localStorage.setItem(entriesKey.value, JSON.stringify(entries.value))
 const saveRunePrices = () => localStorage.setItem(runePricesKey.value, JSON.stringify(runePrices.value))
+
+const getSavedRunePrice = (runeId: string) =>
+  runePrices.value.find(r => r.runeId === runeId)?.price ?? 0
 
 // ── Search ────────────────────────────────────────────────────────────────────
 const onSearchInput = () => {
@@ -520,48 +790,77 @@ const selectItem = (item: any) => {
   formDate.value = todayISO()
   formRunes.value = []
   formNotes.value = ''
-  addRuneForm.value = { name: '', qty: 1, unitPrice: 0 }
+  addRuneForm.value = { name: '', selectedRuneId: '', qty: 1, unitPrice: 0 }
 }
 
 // ── Rune form helpers ─────────────────────────────────────────────────────────
 const addRuneSuggestions = computed(() => {
-  const q = addRuneForm.value.name.toLowerCase()
-  if (!q) return runePrices.value
-  return runePrices.value.filter(r => r.name.toLowerCase().includes(q))
+  return getRuneCatalogSuggestions(addRuneForm.value.name).map((entry) => ({
+    ...entry,
+    price: getSavedRunePrice(entry.id),
+  }))
 })
 
-const addRuneKnown = computed(() =>
-  runePrices.value.some(r => r.name.toLowerCase() === addRuneForm.value.name.toLowerCase())
+const selectedAddRune = computed(() =>
+  addRuneForm.value.selectedRuneId
+    ? RUNE_CATALOG.find(entry => entry.id === addRuneForm.value.selectedRuneId) ?? null
+    : resolveRuneCatalogEntry(addRuneForm.value.name),
 )
 
 const addRunePreview = computed(() => {
-  const match = runePrices.value.find(r => r.name.toLowerCase() === addRuneForm.value.name.toLowerCase())
-  return match?.price ?? 0
+  if (!selectedAddRune.value) return 0
+  return getSavedRunePrice(selectedAddRune.value.id)
 })
 
 const effectiveAddPrice = computed(() => addRunePreview.value || addRuneForm.value.unitPrice || 0)
 
 const onAddRuneNameInput = () => {
   addRuneForm.value.unitPrice = 0
+  addRuneForm.value.selectedRuneId = resolveRuneCatalogEntry(addRuneForm.value.name)?.id ?? ''
 }
 
-const pickAddRune = (rp: RunePrice) => {
-  addRuneForm.value.name = rp.name
+const pickAddRune = (entry: RuneCatalogEntry) => {
+  addRuneForm.value.name = entry.name
+  addRuneForm.value.selectedRuneId = entry.id
   addRuneDropOpen.value = false
 }
 
 const commitAddRune = () => {
-  const name = addRuneForm.value.name.trim()
+  const rune = selectedAddRune.value
+  const name = rune?.name ?? addRuneForm.value.name.trim()
   const qty = addRuneForm.value.qty || 1
   const price = effectiveAddPrice.value
-  if (!name || price === 0) return
-  formRunes.value.push({ name, qty, unitPrice: price })
-  addRuneForm.value = { name: '', qty: 1, unitPrice: 0 }
+  if (!rune || !name || price === 0) return
+  formRunes.value.push({ runeId: rune.id, name, qty, unitPrice: price })
+  addRuneForm.value = { name: '', selectedRuneId: '', qty: 1, unitPrice: 0 }
 }
 
 const formRuneTotal = computed(() =>
   formRunes.value.reduce((s, r) => s + (r.qty ?? 0) * (r.unitPrice ?? 0), 0)
 )
+
+const plannerReferenceCost = computed(() => {
+  const craft = formCraftPrice.value > 0 ? formCraftPrice.value : 0
+  const hdv = formHdvPrice.value > 0 ? formHdvPrice.value : 0
+  if (craft && hdv) return Math.min(craft, hdv)
+  return craft || hdv || 0
+})
+
+const plannerReferenceLabel = computed(() => {
+  const craft = formCraftPrice.value > 0
+  const hdv = formHdvPrice.value > 0
+  if (craft && hdv) return formCraftPrice.value <= formHdvPrice.value ? 'Using craft as cheaper basis' : 'Using HDV as cheaper basis'
+  if (craft) return 'Using craft cost'
+  if (hdv) return 'Using HDV price'
+  return 'Enter craft or HDV price'
+})
+
+const plannerSpread = computed(() => (formHdvPrice.value || 0) - (formCraftPrice.value || 0))
+
+const plannerEffectCount = computed(() => {
+  const effects = selectedItem.value?.effects
+  return Array.isArray(effects) ? effects.length : 0
+})
 
 // ── Add entry ─────────────────────────────────────────────────────────────────
 const addEntry = () => {
@@ -586,7 +885,7 @@ const addEntry = () => {
   formDate.value = todayISO()
   formRunes.value = []
   formNotes.value = ''
-  addRuneForm.value = { name: '', qty: 1, unitPrice: 0 }
+  addRuneForm.value = { name: '', selectedRuneId: '', qty: 1, unitPrice: 0 }
   search.value = ''
   results.value = []
 }
@@ -598,11 +897,16 @@ const deleteEntry = (id: string) => {
 
 // ── Rune price management ─────────────────────────────────────────────────────
 const addRunePrice = () => {
-  const name = newRuneName.value.trim()
-  if (!name || newRunePrice.value <= 0) return
-  const existing = runePrices.value.find(r => r.name.toLowerCase() === name.toLowerCase())
-  if (existing) { existing.price = newRunePrice.value }
-  else { runePrices.value.push({ id: crypto.randomUUID(), name, price: newRunePrice.value }) }
+  const match = resolveRuneCatalogEntry(newRuneName.value)
+  if (!match || newRunePrice.value <= 0) return
+  const existing = runePrices.value.find(r => r.runeId === match.id)
+  if (existing) {
+    existing.price = newRunePrice.value
+    existing.name = match.name
+  }
+  else {
+    runePrices.value.push({ id: crypto.randomUUID(), runeId: match.id, name: match.name, price: newRunePrice.value })
+  }
   runePrices.value.sort((a, b) => a.name.localeCompare(b.name))
   saveRunePrices()
   newRuneName.value = ''
@@ -690,6 +994,42 @@ watch([selectedServer, selectedCharacter], loadData)
 /* ── Accent: violet ──────────────────────────────────────────────────────────*/
 /* primary: var(--v2-accent)  bg/border follow --v2-* tokens */
 
+/* Workspace mode */
+.br-mode-switch {
+  display: inline-flex;
+  gap: .375rem;
+  padding: .25rem;
+  border-radius: 14px;
+  border: 1px solid var(--v2-border-med);
+  background: var(--v2-hover-subtle);
+  margin-bottom: .875rem;
+}
+.br-mode-switch__btn {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .625rem .875rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--v2-text-dim);
+  font-size: .8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .18s ease;
+}
+.br-mode-switch__btn:hover { color: var(--v2-text); }
+.br-mode-switch__btn--on {
+  background: var(--v2-hover);
+  border-color: var(--v2-border-med);
+  color: var(--v2-text);
+}
+.br-mode-switch__hint {
+  font-size: .6875rem;
+  font-weight: 600;
+  color: var(--v2-text-muted);
+}
+
 /* Stats strip */
 .br-stats {
   display: grid;
@@ -755,6 +1095,79 @@ watch([selectedServer, selectedCharacter], loadData)
   color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center;
 }
 .br-search__clear:hover { color: var(--v2-accent); }
+
+/* Planner */
+.br-planner-kicker {
+  font-size: .75rem;
+  line-height: 1.45;
+  color: var(--v2-text-secondary);
+  margin-bottom: .875rem;
+}
+.br-planner-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+  margin-bottom: .875rem;
+}
+@media (max-width: 540px) {
+  .br-planner-grid { grid-template-columns: 1fr; }
+}
+.br-planner-card {
+  padding: .75rem;
+  border-radius: 12px;
+  border: 1px solid var(--v2-border-med);
+  background: rgba(0,0,0,.22);
+}
+.br-planner-card__label {
+  font-size: .6875rem;
+  color: var(--v2-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.br-planner-card__value {
+  margin-top: .25rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--v2-text);
+}
+.br-planner-card__sub {
+  margin-top: .1875rem;
+  font-size: .75rem;
+  color: var(--v2-text-secondary);
+}
+.br-planner-section {
+  margin-bottom: .875rem;
+}
+.br-planner-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: .4375rem;
+}
+.br-planner-check {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .8125rem;
+  color: var(--v2-text-dim);
+}
+.br-planner-check--on { color: var(--v2-text); }
+.br-planner-check__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--v2-border-strong);
+  flex-shrink: 0;
+}
+.br-planner-check--on .br-planner-check__dot {
+  background: #34d399;
+  box-shadow: 0 0 0 4px rgba(52,211,153,.12);
+}
+.br-planner-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+.br-profit--up { color: #86efac; }
+.br-profit--down { color: #fca5a5; }
 
 .br-inline-loader { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; color: var(--v2-text-secondary); padding: .375rem 0; }
 .br-spin {
@@ -942,6 +1355,7 @@ watch([selectedServer, selectedCharacter], loadData)
   border-radius: 10px; display: flex; flex-direction: column; gap: .5rem;
 }
 .br-rune-prices__add-form { display: flex; gap: .375rem; align-items: center; }
+.br-rune-prices__hint { font-size: .75rem; color: var(--v2-text-secondary); }
 .br-rune-prices__input {
   flex: 1; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong); border-radius: 7px;
   padding: .375rem .625rem; color: var(--v2-text); font-size: .8125rem; outline: none; transition: border-color .15s;
