@@ -150,7 +150,6 @@ const extractListingCandidatesFromWords = (words: OcrWord[]) => {
     rows.push([word])
   }
 
-  const seen = new Set<number>()
   const candidates: number[] = []
   const debugRows: OcrDebugRow[] = []
 
@@ -174,8 +173,6 @@ const extractListingCandidatesFromWords = (words: OcrWord[]) => {
     })
 
     if (!numeric) continue
-    if (seen.has(numeric)) continue
-    seen.add(numeric)
     candidates.push(numeric)
   }
 
@@ -191,7 +188,6 @@ const extractListingCandidates = (text: string) => {
     .map(normalizeLine)
     .filter(Boolean)
 
-  const seen = new Set<number>()
   const candidates: number[] = []
   const debugRows: OcrDebugRow[] = []
 
@@ -218,8 +214,6 @@ const extractListingCandidates = (text: string) => {
     })
 
     if (!numeric) continue
-    if (seen.has(numeric)) continue
-    seen.add(numeric)
     candidates.push(numeric)
   }
 

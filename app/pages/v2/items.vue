@@ -217,8 +217,8 @@
               </div>
               <div class="v2-selected-items__list">
                 <button
-                  v-for="candidate in ocrState.candidates"
-                  :key="candidate"
+                  v-for="(candidate, index) in ocrState.candidates"
+                  :key="`${candidate}-${index}`"
                   class="v2-selected-items__chip v2-selected-items__chip--btn"
                   @click="selectedRecipeSellPrice = candidate"
                 >
@@ -2705,7 +2705,6 @@ const extractListingCandidatesFromWords = (words: OcrWord[]) => {
     }
   }
 
-  const seen = new Set<number>()
   const candidates: number[] = []
   const debugRows: typeof ocrState.value.debugRows = []
 
@@ -2726,8 +2725,7 @@ const extractListingCandidatesFromWords = (words: OcrWord[]) => {
       candidate: numeric,
     })
 
-    if (!numeric || seen.has(numeric)) continue
-    seen.add(numeric)
+    if (!numeric) continue
     candidates.push(numeric)
   }
 
@@ -2740,7 +2738,6 @@ const extractListingCandidatesFromText = (text: string) => {
     .map(normalizeOcrLine)
     .filter(Boolean)
 
-  const seen = new Set<number>()
   const candidates: number[] = []
   const debugRows: typeof ocrState.value.debugRows = []
 
@@ -2766,8 +2763,7 @@ const extractListingCandidatesFromText = (text: string) => {
       candidate: numeric,
     })
 
-    if (!numeric || seen.has(numeric)) continue
-    seen.add(numeric)
+    if (!numeric) continue
     candidates.push(numeric)
   }
 
@@ -3050,7 +3046,7 @@ const buildObservationStatsSignature = (statsEntries: StoredObservedPriceEntry['
     .join('|')
 
 const isDuplicateObservedEntry = (
-  candidate: Pick<StoredObservedPriceEntry, 'price' | 'statsEntries' | 'createdAt'>,
+  candidate: Pick<StoredObservedPriceEntry, 'price' | 'statsEntries' | 'createdAt' | 'source' | 'marketScreenshotDataUrl'>,
   existing: StoredObservedPriceEntry
 ) => {
   if (candidate.price !== existing.price) return false
@@ -3059,6 +3055,12 @@ const isDuplicateObservedEntry = (
   const existingSignature = buildObservationStatsSignature(existing.statsEntries)
 
   if (candidateSignature !== existingSignature) return false
+
+  if (!candidateSignature && candidate.source === 'ocr' && existing.source === 'ocr') {
+    if (!candidate.marketScreenshotDataUrl || candidate.marketScreenshotDataUrl !== existing.marketScreenshotDataUrl) {
+      return false
+    }
+  }
 
   const candidateTime = new Date(candidate.createdAt).getTime()
   const existingTime = new Date(existing.createdAt).getTime()
