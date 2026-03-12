@@ -57,21 +57,30 @@ export const useResaleTracker = () => {
     return entry
   }
 
-  const addPriceAdjustment = (id: string, previousPrice: number, nextPrice: number, note = '', changedAt = new Date().toISOString()) => {
+  const addPriceAdjustment = (
+    id: string,
+    adjustmentInput: {
+      fromPrice: number
+      toPrice: number
+      reason?: string
+      createdAt?: string
+    },
+  ) => {
     init()
     const entry = data.value.resale.entries.find((current) => current.id === id)
     if (!entry) return null
 
+    const createdAt = adjustmentInput.createdAt || new Date().toISOString()
     const adjustment: ResalePriceAdjustment = {
-      id: `${id}-adj-${changedAt}-${Math.random().toString(36).slice(2, 6)}`,
-      previousPrice,
-      nextPrice,
-      changedAt,
-      note,
+      id: `${id}-adj-${createdAt}-${Math.random().toString(36).slice(2, 6)}`,
+      fromPrice: adjustmentInput.fromPrice,
+      toPrice: adjustmentInput.toPrice,
+      createdAt,
+      reason: adjustmentInput.reason || '',
     }
     entry.priceAdjustments.unshift(adjustment)
-    entry.listPrice = nextPrice
-    entry.updatedAt = changedAt
+    entry.listPrice = adjustment.toPrice
+    entry.updatedAt = createdAt
     return adjustment
   }
 

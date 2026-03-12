@@ -4,10 +4,10 @@ export type ResaleTrackerStatus = 'watched' | 'bought' | 'listed' | 'sold' | 'ca
 
 export interface ResalePriceAdjustment {
   id: string
-  previousPrice: number
-  nextPrice: number
-  changedAt: string
-  note: string
+  fromPrice: number
+  toPrice: number
+  createdAt: string
+  reason: string
 }
 
 export interface ResaleTrackerEntry {
@@ -146,6 +146,50 @@ const isObject = (value: unknown): value is Record<string, any> => {
   return !!value && typeof value === 'object'
 }
 
+const coerceFiniteNumber = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+const normalizeResalePriceAdjustment = (
+  value: unknown,
+  entryId: string,
+  index: number,
+): ResalePriceAdjustment | null => {
+  if (!isObject(value)) return null
+
+  const fromPrice = coerceFiniteNumber(value.fromPrice ?? value.previousPrice)
+  const toPrice = coerceFiniteNumber(value.toPrice ?? value.nextPrice)
+  if (fromPrice === null || toPrice === null) return null
+
+  const createdAt =
+    typeof value.createdAt === 'string'
+      ? value.createdAt
+      : typeof value.changedAt === 'string'
+        ? value.changedAt
+        : new Date().toISOString()
+
+  return {
+    id:
+      typeof value.id === 'string' && value.id
+        ? value.id
+        : `${entryId}-adj-${createdAt}-${index}`,
+    fromPrice,
+    toPrice,
+    createdAt,
+    reason:
+      typeof value.reason === 'string'
+        ? value.reason
+        : typeof value.note === 'string'
+          ? value.note
+          : '',
+  }
+}
+
 const coerceStoreShape = (input: unknown): AppDataStore | null => {
   if (!isObject(input)) return null
 
@@ -205,7 +249,16 @@ const coerceStoreShape = (input: unknown): AppDataStore | null => {
     },
     resale: {
       entries: Array.isArray(inputResale.entries)
-        ? (inputResale.entries as ResaleTrackerEntry[])
+        ? (inputResale.entries as any[])
+          .filter(isObject)
+          .map((entry) => ({
+            ...entry,
+            priceAdjustments: Array.isArray(entry.priceAdjustments)
+              ? entry.priceAdjustments
+                .map((adjustment, index) => normalizeResalePriceAdjustment(adjustment, String(entry.id ?? 'resale'), index))
+                .filter(Boolean) as ResalePriceAdjustment[]
+              : [],
+          })) as ResaleTrackerEntry[]
         : [],
     },
   }

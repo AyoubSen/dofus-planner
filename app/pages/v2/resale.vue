@@ -256,20 +256,20 @@
 
             <div v-if="entry.priceAdjustments?.length" class="rt-adj__list">
               <div
-                v-for="adjustment in [...entry.priceAdjustments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())"
+                v-for="adjustment in [...entry.priceAdjustments].sort((a, b) => getAdjustmentCreatedAtMs(b) - getAdjustmentCreatedAtMs(a))"
                 :key="adjustment.id"
                 class="rt-adj__item"
               >
                 <div class="rt-adj__prices">
-                  <strong>{{ formatKamasFull(adjustment.fromPrice) }}</strong>
+                  <strong>{{ formatKamasFull(getAdjustmentFromPrice(adjustment)) }}</strong>
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.45">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                  <strong>{{ formatKamasFull(adjustment.toPrice) }}</strong>
+                  <strong>{{ formatKamasFull(getAdjustmentToPrice(adjustment)) }}</strong>
                 </div>
                 <div class="rt-adj__when">
-                  <span>{{ formatRelativeDate(adjustment.createdAt) }}</span>
-                  <span v-if="adjustment.reason" style="opacity:.6">· {{ adjustment.reason }}</span>
+                  <span>{{ formatRelativeDate(getAdjustmentCreatedAt(adjustment)) }}</span>
+                  <span v-if="getAdjustmentReason(adjustment)" style="opacity:.6">· {{ getAdjustmentReason(adjustment) }}</span>
                 </div>
               </div>
             </div>
@@ -563,10 +563,36 @@ function saveAdjustment(entry: ResaleTrackerEntry) {
   }
 }
 
+function getAdjustmentFromPrice(adjustment: any) {
+  const value = adjustment?.fromPrice ?? adjustment?.previousPrice
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+function getAdjustmentToPrice(adjustment: any) {
+  const value = adjustment?.toPrice ?? adjustment?.nextPrice
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+function getAdjustmentCreatedAt(adjustment: any) {
+  if (typeof adjustment?.createdAt === 'string' && adjustment.createdAt) return adjustment.createdAt
+  if (typeof adjustment?.changedAt === 'string' && adjustment.changedAt) return adjustment.changedAt
+  return new Date().toISOString()
+}
+
+function getAdjustmentCreatedAtMs(adjustment: any) {
+  return new Date(getAdjustmentCreatedAt(adjustment)).getTime()
+}
+
+function getAdjustmentReason(adjustment: any) {
+  if (typeof adjustment?.reason === 'string' && adjustment.reason) return adjustment.reason
+  if (typeof adjustment?.note === 'string' && adjustment.note) return adjustment.note
+  return ''
+}
+
 function latestTrackedListPrice(entry: ResaleTrackerEntry) {
   const latestAdjustment = entry.priceAdjustments?.[entry.priceAdjustments.length - 1]
   if (latestAdjustment) {
-    return latestAdjustment.toPrice
+    return getAdjustmentToPrice(latestAdjustment)
   }
 
   return entry.listPrice ?? entry.buyPrice ?? 0
