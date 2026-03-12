@@ -1397,6 +1397,8 @@ const observationStatOptions = [
   { key: 'tacle', label: 'Tacle', suffix: '' },
   { key: 'retrait_pa', label: 'Retrait PA', suffix: '' },
   { key: 'retrait_pm', label: 'Retrait PM', suffix: '' },
+  { key: 'esquive_pa', label: 'Esquive PA', suffix: '' },
+  { key: 'esquive_pm', label: 'Esquive PM', suffix: '' },
 ]
 const statsOcrDefs = [
   { key: 'vitalite', label: 'Vitalité', aliases: ['vitalite'] },
@@ -1407,6 +1409,8 @@ const statsOcrDefs = [
   { key: 'sagesse', label: 'Sagesse', aliases: ['sagesse'] },
   { key: 'retrait_pa', label: 'Retrait PA', aliases: ['retrait pa'] },
   { key: 'retrait_pm', label: 'Retrait PM', aliases: ['retrait pm'] },
+  { key: 'esquive_pa', label: 'Esquive PA', aliases: ['esquive pa'] },
+  { key: 'esquive_pm', label: 'Esquive PM', aliases: ['esquive pm'] },
   { key: 'critique', label: 'Critique', aliases: ['critique'], suffix: '%' as const },
   { key: 'resistance_critique', label: 'Résistance Critique', aliases: ['resistance critique', 'résistance critique', 'resistances critiques', 'résistances critiques'] },
   { key: 'pa', label: 'PA', aliases: [' pa ', 'pa [', 'pa'] },
@@ -1461,6 +1465,8 @@ const observationStatWeightMap: Record<string, number> = {
   tacle: 1.3,
   retrait_pa: 2.2,
   retrait_pm: 2.2,
+  esquive_pa: 2.2,
+  esquive_pm: 2.2,
 }
 
 const setFilter = (key: keyof typeof filters, val: string) => {
