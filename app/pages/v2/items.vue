@@ -534,7 +534,7 @@
                   </div>
                 </div>
 
-                <div class="v2-observation-detail__stats">
+                <div ref="exactStatsSectionRef" class="v2-observation-detail__stats">
                   <div class="v2-price-manager__head">
                     <span class="v2-rstat__label">Exact stats</span>
                     <button class="v2-recipe-refresh" @click="addObservationStatEntry">
@@ -678,7 +678,11 @@
                 </div>
               </div>
 
-              <div v-if="selectedItemObservations.length && !selectedObservationDetail" class="v2-observed-prices">
+              <div
+                v-if="selectedItemObservations.length && !selectedObservationDetail"
+                ref="observedPricesSectionRef"
+                class="v2-observed-prices"
+              >
                 <div class="v2-price-manager__head">
                   <span class="v2-rstat__label">Observed prices</span>
                   <div class="v2-observation-summary-actions">
@@ -1491,6 +1495,8 @@ const statsOcrState = ref({
   error: '',
 })
 const observationDetailTab = ref<'stats' | 'explain'>('stats')
+const observedPricesSectionRef = ref<HTMLElement | null>(null)
+const exactStatsSectionRef = ref<HTMLElement | null>(null)
 const selectedObservedPriceIds = ref<string[]>([])
 const resaleTrackerFeedback = ref<Record<string, string>>({})
 const observedSortMode = ref<'newest' | 'price_asc' | 'price_desc' | 'delta' | 'best_buy'>('newest')
@@ -1851,6 +1857,14 @@ const normalizeLabelForStatKey = (value: string) =>
     .replace(/\bresistances?\b/g, 'resistance')
     .replace(/\s+/g, ' ')
     .trim()
+
+const scrollSectionIntoView = async (target: { value: HTMLElement | null }) => {
+  await nextTick()
+  target.value?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  })
+}
 
 const findStatOptionByLabel = (label: string) => {
   const normalized = normalizeLabelForStatKey(label)
@@ -3310,7 +3324,7 @@ const handleOcrFileChange = async (event: Event) => {
   await processMarketScreenshotImage(imageBase64)
 }
 
-const saveOcrSnapshotPrices = () => {
+const saveOcrSnapshotPrices = async () => {
   const item = selectedRecipeItem.value
   const itemKey = selectedObservationKey.value
 
@@ -3349,6 +3363,7 @@ const saveOcrSnapshotPrices = () => {
   observedPrices.value = nextObserved
   writeObservedPrices(nextObserved)
   selectedObservedPriceIds.value = [...new Set([...additions.map((entry) => entry.id), ...selectedObservedPriceIds.value])]
+  await scrollSectionIntoView(observedPricesSectionRef)
 }
 
 const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) => {
@@ -3538,7 +3553,7 @@ const addObservationStatEntry = () => {
   })
 }
 
-const addExpectedObservationStat = (expectedKey: string) => {
+const addExpectedObservationStat = async (expectedKey: string) => {
   const itemKey = selectedObservationKey.value
   const observationId = selectedObservationId.value
   if (!itemKey || !observationId) return
@@ -3565,6 +3580,7 @@ const addExpectedObservationStat = (expectedKey: string) => {
       ],
     }
   })
+  await scrollSectionIntoView(exactStatsSectionRef)
 }
 
 const removeObservationStatEntry = (index: number) => {
