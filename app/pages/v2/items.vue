@@ -383,6 +383,23 @@
                   </div>
                 </div>
 
+                <div class="v2-detail-tabs">
+                  <button
+                    class="v2-fchip"
+                    :class="{ 'v2-fchip--on': observationDetailTab === 'stats' }"
+                    @click="observationDetailTab = 'stats'"
+                  >
+                    Stats
+                  </button>
+                  <button
+                    class="v2-fchip"
+                    :class="{ 'v2-fchip--on': observationDetailTab === 'explain' }"
+                    @click="observationDetailTab = 'explain'"
+                  >
+                    Valuation Explain
+                  </button>
+                </div>
+
                 <div v-if="statsOcrState.isLoading" class="v2-inline-ocr">
                   <div class="v2-spin-sm" /> Extracting stat lines from screenshot...
                 </div>
@@ -399,6 +416,7 @@
                   />
                 </div>
 
+                <template v-if="observationDetailTab === 'stats'">
                 <div
                   v-if="selectedObservationStatsHealth.missing.length || selectedObservationStatsHealth.unmatchedOfficial.length || selectedObservationStatsHealth.unexpected.length || selectedObservationStatsHealth.duplicates.length || selectedObservationStatsHealth.incomplete.length"
                   class="v2-stats-health"
@@ -561,6 +579,89 @@
                     <span class="v2-rstat__label">Stats OCR raw text</span>
                   </div>
                   <pre class="v2-observation-detail__raw">{{ selectedObservationDetail.statsRawText }}</pre>
+                </div>
+                </template>
+
+                <div v-else class="v2-valuation-explain">
+                  <div v-if="selectedObservationValuationExplanation" class="v2-valuation-explain__stack">
+                    <div class="v2-valuation-explain__summary">
+                      <div class="v2-rstat">
+                        <div class="v2-rstat__label">Score</div>
+                        <div class="v2-rstat__val">{{ selectedObservationValuationExplanation.score.toFixed(2) }}</div>
+                      </div>
+                      <div class="v2-rstat">
+                        <div class="v2-rstat__label">Fair value</div>
+                        <div class="v2-rstat__val">{{ formatKamasFull(selectedObservationValuationExplanation.fairValue) }}</div>
+                      </div>
+                      <div class="v2-rstat">
+                        <div class="v2-rstat__label">Delta</div>
+                        <div
+                          class="v2-rstat__val"
+                          :class="{
+                            'v2-profit--up': selectedObservationValuationExplanation.delta < 0,
+                            'v2-profit--down': selectedObservationValuationExplanation.delta > 0,
+                          }"
+                        >
+                          {{ selectedObservationValuationExplanation.delta > 0 ? '+' : '' }}{{ formatKamasFull(selectedObservationValuationExplanation.delta) }}
+                        </div>
+                      </div>
+                      <div class="v2-rstat">
+                        <div class="v2-rstat__label">Reference / point</div>
+                        <div class="v2-rstat__val">{{ formatKamasFull(Math.round(selectedObservationValuationExplanation.referencePricePerPoint)) }}</div>
+                      </div>
+                    </div>
+
+                    <div class="v2-priority-panel">
+                      <div class="v2-price-manager__head">
+                        <span class="v2-rstat__label">How the score was built</span>
+                        <span class="v2-recipe-cache-hint">Range progress × weight, with overmage preserved above max</span>
+                      </div>
+                      <div class="v2-explain-table v2-explain-table--score">
+                        <div class="v2-explain-table__head">Stat</div>
+                        <div class="v2-explain-table__head">Value</div>
+                        <div class="v2-explain-table__head">Range</div>
+                        <div class="v2-explain-table__head">Progress</div>
+                        <div class="v2-explain-table__head">Weight</div>
+                        <div class="v2-explain-table__head">Contribution</div>
+                        <template v-for="row in selectedObservationValuationExplanation.contributions" :key="`${selectedObservationDetail.id}-${row.index}-${row.key}`">
+                          <div class="v2-explain-table__cell">
+                            {{ row.label }}
+                            <span v-if="row.overmageAmount > 0" class="v2-recipe-cache-hint">+{{ row.overmageAmount }} over</span>
+                          </div>
+                          <div class="v2-explain-table__cell">{{ row.value ?? '—' }}{{ row.suffix }}</div>
+                          <div class="v2-explain-table__cell">{{ row.rangeText || '—' }}</div>
+                          <div class="v2-explain-table__cell">{{ row.progress.toFixed(2) }}</div>
+                          <div class="v2-explain-table__cell">{{ row.weight.toFixed(2) }}</div>
+                          <div class="v2-explain-table__cell">{{ row.contribution.toFixed(2) }}</div>
+                        </template>
+                      </div>
+                    </div>
+
+                    <div class="v2-priority-panel">
+                      <div class="v2-price-manager__head">
+                        <span class="v2-rstat__label">Comparable listings used</span>
+                        <span class="v2-recipe-cache-hint">{{ selectedObservationValuationExplanation.peers.length }} peer{{ selectedObservationValuationExplanation.peers.length > 1 ? 's' : '' }} in the leave-one-out model</span>
+                      </div>
+                      <div v-if="selectedObservationValuationExplanation.peers.length" class="v2-explain-table v2-explain-table--peer">
+                        <div class="v2-explain-table__head">Price</div>
+                        <div class="v2-explain-table__head">Score</div>
+                        <div class="v2-explain-table__head">Price / point</div>
+                        <div class="v2-explain-table__head">Distance</div>
+                        <template v-for="peer in selectedObservationValuationExplanation.peers" :key="peer.id">
+                          <div class="v2-explain-table__cell">{{ formatKamasFull(peer.price) }}</div>
+                          <div class="v2-explain-table__cell">{{ peer.score.toFixed(2) }}</div>
+                          <div class="v2-explain-table__cell">{{ formatKamasFull(Math.round(peer.pricePerPoint)) }}</div>
+                          <div class="v2-explain-table__cell">{{ peer.distance.toFixed(2) }}</div>
+                        </template>
+                      </div>
+                      <div v-else class="v2-empty-full">
+                        No comparable listings were available for this observation.
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="v2-empty-full">
+                    This listing does not have enough recognized stats or peers yet to explain a valuation.
+                  </div>
                 </div>
               </div>
 
@@ -1363,6 +1464,7 @@ const statsOcrState = ref({
   isLoading: false,
   error: '',
 })
+const observationDetailTab = ref<'stats' | 'explain'>('stats')
 const selectedObservedPriceIds = ref<string[]>([])
 const observedSortMode = ref<'newest' | 'price_asc' | 'price_desc' | 'delta' | 'best_buy'>('newest')
 const showOnlyUndervaluedListings = ref(false)
@@ -1842,6 +1944,33 @@ const computeObservationRangeProgress = (value: number, range: { min: number; ma
   return cappedProgress + overmageProgress
 }
 
+const computeObservationStatContribution = (entry: StoredObservedPriceEntry['statsEntries'][number], index: number) => {
+  const value = entry.value
+  const range = parseObservationRange(entry.rangeText)
+  const weight = (observationStatWeightMap[entry.key] ?? 1) * getItemStatMultiplier(entry.key)
+  const progress = value === null || value === undefined
+    ? 0
+    : range
+      ? computeObservationRangeProgress(value, range)
+      : 1
+  const overmageAmount = value !== null && value !== undefined && range && value > range.max
+    ? value - range.max
+    : 0
+
+  return {
+    index,
+    key: entry.key,
+    label: entry.label,
+    value,
+    suffix: entry.suffix || '',
+    rangeText: entry.rangeText || '',
+    weight,
+    progress,
+    overmageAmount,
+    contribution: weight > 0 ? progress * weight : 0,
+  }
+}
+
 const computeObservationScore = (observation: StoredObservedPriceEntry) => {
   return observation.statsEntries.reduce((sum, entry) => {
     if (entry.value === null || entry.value === undefined) return sum
@@ -2189,6 +2318,46 @@ const selectedObservationStatsHealth = computed(() => {
     unexpected,
     duplicates,
     incomplete,
+  }
+})
+
+const selectedObservationValuationExplanation = computed(() => {
+  const observation = selectedObservationDetail.value
+  if (!observation) return null
+
+  const score = computeObservationScore(observation)
+  if (score <= 0) return null
+
+  const withScores = baseSelectedItemObservations.value
+    .map((entry) => ({
+      ...entry,
+      score: computeObservationScore(entry),
+    }))
+    .filter((entry) => entry.score > 0)
+
+  const allPeers = withScores.filter((candidate) => candidate.id !== observation.id)
+  const peers = pickComparablePeers({ id: observation.id, score }, allPeers)
+  if (!peers.length) return null
+
+  const referencePricePerPoint = medianOf(
+    peers.map((peer) => peer.price / peer.score).filter((value) => Number.isFinite(value) && value > 0),
+  )
+  const fairValue = Math.round(score * referencePricePerPoint)
+  const contributions = observation.statsEntries.map((entry, index) => computeObservationStatContribution(entry, index))
+
+  return {
+    score,
+    fairValue,
+    delta: observation.price - fairValue,
+    referencePricePerPoint,
+    contributions,
+    peers: peers.map((peer) => ({
+      id: peer.id,
+      price: peer.price,
+      score: peer.score,
+      pricePerPoint: peer.price / peer.score,
+      distance: Math.abs(peer.score - score),
+    })),
   }
 })
 
@@ -3167,10 +3336,12 @@ const openStatsScreenshotPicker = (observationId: string) => {
 
 const openObservationDetail = (observationId: string) => {
   selectedObservationId.value = observationId
+  observationDetailTab.value = 'stats'
 }
 
 const closeObservationDetail = () => {
   selectedObservationId.value = ''
+  observationDetailTab.value = 'stats'
   statsOcrState.value = {
     isLoading: false,
     error: '',
@@ -3944,6 +4115,11 @@ watch(
   gap: .5rem;
   flex-wrap: wrap;
 }
+.v2-detail-tabs {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
 .v2-observation-detail__image-wrap {
   display: flex;
   justify-content: flex-start;
@@ -4052,6 +4228,50 @@ watch(
   font-size: .75rem;
   color: var(--v2-text-secondary);
 }
+.v2-valuation-explain {
+  display: flex;
+  flex-direction: column;
+  gap: .875rem;
+}
+.v2-valuation-explain__stack {
+  display: flex;
+  flex-direction: column;
+  gap: .875rem;
+}
+.v2-valuation-explain__summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .625rem;
+}
+.v2-explain-table {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--v2-border-subtle);
+}
+.v2-explain-table--score {
+  grid-template-columns: minmax(140px, 1.3fr) repeat(5, minmax(84px, .8fr));
+}
+.v2-explain-table--peer {
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+}
+.v2-explain-table__head,
+.v2-explain-table__cell {
+  padding: .65rem .75rem;
+  background: rgba(255,255,255,.02);
+  font-size: .78rem;
+}
+.v2-explain-table__head {
+  color: var(--v2-text-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.v2-explain-table__cell {
+  color: var(--v2-text);
+}
 @media (max-width: 800px) {
   .v2-observed-prices__row {
     grid-template-columns: 1fr;
@@ -4079,6 +4299,10 @@ watch(
   }
   .v2-priority-row__controls {
     justify-content: flex-start;
+  }
+  .v2-explain-table--score,
+  .v2-explain-table--peer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 .v2-spin {
