@@ -1,5 +1,55 @@
 import type { Server, SoldItem } from '~/types/game'
 
+export type ResaleTrackerStatus = 'watched' | 'bought' | 'listed' | 'sold' | 'cancelled'
+
+export interface ResalePriceAdjustment {
+  id: string
+  previousPrice: number
+  nextPrice: number
+  changedAt: string
+  note: string
+}
+
+export interface ResaleTrackerEntry {
+  id: string
+  itemKey: string
+  itemId: number | string | null
+  itemName: string
+  itemImageUrl: string
+  status: ResaleTrackerStatus
+  source: 'observed' | 'crafted' | 'manual'
+  serverId: string
+  characterId: string
+  createdAt: string
+  updatedAt: string
+  boughtAt: string | null
+  listedAt: string | null
+  soldAt: string | null
+  cancelledAt: string | null
+  buyPrice: number
+  listPrice: number
+  targetPrice: number
+  soldPrice: number
+  estimatedFairValue: number
+  estimatedQuickRelist: number
+  estimatedGreedyRelist: number
+  estimatedScore: number
+  estimatedDelta: number
+  observedListingId: string
+  marketScreenshotDataUrl: string
+  statsScreenshotDataUrl: string
+  statsEntries: Array<{
+    key: string
+    label: string
+    value: number | null
+    suffix: string
+    rangeText: string
+    raw?: string
+  }>
+  priceAdjustments: ResalePriceAdjustment[]
+  notes: string
+}
+
 export interface AppDataStore {
   version: number
   metadata: {
@@ -21,13 +71,16 @@ export interface AppDataStore {
   sales: {
     items: SoldItem[]
   }
+  resale: {
+    entries: ResaleTrackerEntry[]
+  }
 }
 
 const STORAGE_KEY = 'dofus-app-store'
 const MIGRATION_BACKUP_PREFIX = 'dofus-app-store-backup'
 const MIGRATION_LOG_KEY = 'dofus-app-store-last-migration'
 const LAST_BACKUP_POINTER_KEY = 'dofus-app-store-last-backup-key'
-const STORAGE_VERSION = 2
+const STORAGE_VERSION = 3
 
 const LEGACY_KEYS = {
   accounts: 'dofus-game-accounts',
@@ -83,6 +136,9 @@ const createDefaultStore = (): AppDataStore => {
     sales: {
       items: [],
     },
+    resale: {
+      entries: [],
+    },
   }
 }
 
@@ -99,6 +155,7 @@ const coerceStoreShape = (input: unknown): AppDataStore | null => {
   const inputAccounts = isObject(input.accounts) ? input.accounts : {}
   const inputAchievements = isObject(input.achievements) ? input.achievements : {}
   const inputSales = isObject(input.sales) ? input.sales : {}
+  const inputResale = isObject(input.resale) ? input.resale : {}
 
   return {
     version:
@@ -146,6 +203,11 @@ const coerceStoreShape = (input: unknown): AppDataStore | null => {
     sales: {
       items: Array.isArray(inputSales.items) ? (inputSales.items as SoldItem[]) : [],
     },
+    resale: {
+      entries: Array.isArray(inputResale.entries)
+        ? (inputResale.entries as ResaleTrackerEntry[])
+        : [],
+    },
   }
 }
 
@@ -167,8 +229,28 @@ const migrationV1ToV2: MigrationFn = (store) => {
   }
 }
 
+const migrationV2ToV3: MigrationFn = (store) => {
+  const now = new Date().toISOString()
+  return {
+    ...store,
+    version: 3,
+    resale: {
+      entries: Array.isArray((store as AppDataStore).resale?.entries)
+        ? (store as AppDataStore).resale.entries
+        : [],
+    },
+    metadata: {
+      ...store.metadata,
+      updatedAt: now,
+      lastMigrationAt: now,
+      lastMigratedFrom: 2,
+    },
+  }
+}
+
 const migrations: Record<number, MigrationFn> = {
   1: migrationV1ToV2,
+  2: migrationV2ToV3,
 }
 
 const saveBackupSnapshot = (
@@ -261,6 +343,14 @@ const mergeStores = (current: AppDataStore, incoming: AppDataStore): AppDataStor
     mergedSalesMap.set(item.id, item)
   }
 
+  const mergedResaleMap = new Map<string, ResaleTrackerEntry>()
+  for (const entry of current.resale.entries) {
+    mergedResaleMap.set(entry.id, entry)
+  }
+  for (const entry of incoming.resale.entries) {
+    mergedResaleMap.set(entry.id, entry)
+  }
+
   return {
     ...current,
     version: STORAGE_VERSION,
@@ -276,6 +366,9 @@ const mergeStores = (current: AppDataStore, incoming: AppDataStore): AppDataStor
     },
     sales: {
       items: Array.from(mergedSalesMap.values()),
+    },
+    resale: {
+      entries: Array.from(mergedResaleMap.values()),
     },
     metadata: {
       ...current.metadata,

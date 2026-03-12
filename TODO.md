@@ -7,6 +7,11 @@ Focused shortlist grouped by delivery priority.
 - [x] Replace Hardcoded V2 Page Colors With Theme Tokens
 - [ ] V2 i18n Parity (Replace Hardcoded Strings) - Remaining hardcoded strings in `archimonstres`, `crafting`, `brisage`, `succes`, `familiers`
 - [ ] Unify Feature Storage Into AppDataStore
+- [ ] Items Resale Tracker Data Model
+- [ ] Items Send Observed Listing To Resale Tracker
+- [ ] Items Resale Tracker Page (Watched / Bought / Listed / Sold / Cancelled)
+- [ ] Items Resale Price Adjustment History
+- [ ] Items Resale Realized Profit + Time-To-Sell Metrics
 - [ ] Dashboard Quick Nav: Add Familiers + Brisage
 - [ ] Dashboard Succes Progress Card (X/Total + Progress Bar)
 - [ ] Dashboard Daily Highlights (Today Earned + Sessions)

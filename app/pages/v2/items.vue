@@ -380,7 +380,17 @@
                     <button class="v2-recipe-refresh" @click="pasteStatsScreenshot(selectedObservationDetail.id)">
                       Paste screenshot
                     </button>
+                    <button
+                      class="v2-recipe-refresh"
+                      :disabled="resaleTrackedObservationIds.has(selectedObservationDetail.id) || !selectedServer || !selectedCharacter"
+                      @click="sendObservationToResaleTracker(selectedObservationDetail)"
+                    >
+                      {{ resaleTrackedObservationIds.has(selectedObservationDetail.id) ? 'Tracked' : 'Send to tracker' }}
+                    </button>
                   </div>
+                </div>
+                <div v-if="resaleTrackerFeedback[selectedObservationDetail.id]" class="v2-recipe-cache-hint">
+                  {{ resaleTrackerFeedback[selectedObservationDetail.id] }}
                 </div>
 
                 <div class="v2-detail-tabs">
@@ -759,6 +769,13 @@
                         @click="openStatsScreenshotPicker(observation.id)"
                       >
                         {{ observation.statsScreenshotDataUrl ? 'Replace stats screenshot' : 'Add stats screenshot' }}
+                      </button>
+                      <button
+                        class="v2-recipe-refresh"
+                        :disabled="resaleTrackedObservationIds.has(observation.id) || !selectedServer || !selectedCharacter"
+                        @click="sendObservationToResaleTracker(observation)"
+                      >
+                        {{ resaleTrackedObservationIds.has(observation.id) ? 'Tracked' : 'Track resale' }}
                       </button>
                       <button
                         class="v2-recipe-refresh"
@@ -1255,9 +1272,12 @@
 </template>
 
 <script setup lang="ts">
+import { useResaleTracker } from '../../../composables/useResaleTracker'
 definePageMeta({ layout: 'v2' })
 
 const { t } = useI18n()
+const { selectedServer, selectedCharacter } = useV2Context()
+const { entries: resaleTrackerEntries, createEntry: createResaleTrackerEntry } = useResaleTracker()
 
 const ELEMENTS = [
   { name: 'eau', icon: '/eau.png' },
@@ -1466,6 +1486,7 @@ const statsOcrState = ref({
 })
 const observationDetailTab = ref<'stats' | 'explain'>('stats')
 const selectedObservedPriceIds = ref<string[]>([])
+const resaleTrackerFeedback = ref<Record<string, string>>({})
 const observedSortMode = ref<'newest' | 'price_asc' | 'price_desc' | 'delta' | 'best_buy'>('newest')
 const showOnlyUndervaluedListings = ref(false)
 const useComparableOnlyValuation = ref(true)
@@ -2360,6 +2381,14 @@ const selectedObservationValuationExplanation = computed(() => {
     })),
   }
 })
+
+const resaleTrackedObservationIds = computed(() =>
+  new Set(
+    resaleTrackerEntries.value
+      .map((entry) => entry.observedListingId)
+      .filter((value) => typeof value === 'string' && value.length > 0),
+  ),
+)
 
 const fetchResolvedRecipe = async (item: { name: string }, options: { forceRefresh?: boolean } = {}) => {
   const normalizedName = normalizeDofusdbSearch(item.name)
@@ -3310,6 +3339,62 @@ const saveOcrSnapshotPrices = () => {
   observedPrices.value = nextObserved
   writeObservedPrices(nextObserved)
   selectedObservedPriceIds.value = [...new Set([...additions.map((entry) => entry.id), ...selectedObservedPriceIds.value])]
+}
+
+const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) => {
+  if (!selectedServer.value?.id || !selectedCharacter.value?.id) {
+    resaleTrackerFeedback.value = {
+      ...resaleTrackerFeedback.value,
+      [observation.id]: 'Select a server and character first.',
+    }
+    return
+  }
+
+  if (resaleTrackedObservationIds.value.has(observation.id)) {
+    resaleTrackerFeedback.value = {
+      ...resaleTrackerFeedback.value,
+      [observation.id]: 'This listing is already in the resale tracker.',
+    }
+    return
+  }
+
+  const valuation = allObservedValuationMap.value[observation.id]
+  const item = selectedRecipeItem.value
+  const itemKey = selectedObservationKey.value || observation.itemKey
+
+  createResaleTrackerEntry({
+    itemKey,
+    itemId: item?.id ?? null,
+    itemName: observation.itemName || item?.name || 'Unknown item',
+    itemImageUrl: item?.image_url ?? item?.img ?? '',
+    status: 'watched',
+    source: 'observed',
+    serverId: String(selectedServer.value.id),
+    characterId: String(selectedCharacter.value.id),
+    boughtAt: null,
+    listedAt: null,
+    soldAt: null,
+    cancelledAt: null,
+    buyPrice: observation.price,
+    listPrice: valuation?.fairRelist ?? valuation?.quickRelist ?? observation.price,
+    targetPrice: valuation?.fairRelist ?? valuation?.fairValue ?? observation.price,
+    soldPrice: 0,
+    estimatedFairValue: valuation?.fairValue ?? observation.price,
+    estimatedQuickRelist: valuation?.quickRelist ?? observation.price,
+    estimatedGreedyRelist: valuation?.greedyRelist ?? observation.price,
+    estimatedScore: valuation?.score ?? computeObservationScore(observation),
+    estimatedDelta: valuation?.delta ?? 0,
+    observedListingId: observation.id,
+    marketScreenshotDataUrl: observation.marketScreenshotDataUrl || '',
+    statsScreenshotDataUrl: observation.statsScreenshotDataUrl || '',
+    statsEntries: observation.statsEntries.map((entry) => ({ ...entry })),
+    notes: '',
+  })
+
+  resaleTrackerFeedback.value = {
+    ...resaleTrackerFeedback.value,
+    [observation.id]: 'Saved to resale tracker.',
+  }
 }
 
 const removeObservation = (observationId: string) => {
