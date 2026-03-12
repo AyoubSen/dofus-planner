@@ -19,6 +19,7 @@ const STAT_DEFS = [
   { key: 'chance', label: 'Chance', aliases: ['chance'] },
   { key: 'agilite', label: 'Agilité', aliases: ['agilite'] },
   { key: 'sagesse', label: 'Sagesse', aliases: ['sagesse'] },
+  { key: 'initiative', label: 'Initiative', aliases: ['initiative', 'ini'] },
   { key: 'retrait_pa', label: 'Retrait PA', aliases: ['retrait pa'] },
   { key: 'retrait_pm', label: 'Retrait PM', aliases: ['retrait pm'] },
   { key: 'esquive_pa', label: 'Esquive PA', aliases: ['esquive pa'] },
@@ -55,6 +56,8 @@ const normalizeSearch = (value: string) =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replace(/\b\d+\b/g, ' ')
+    .replace(/\bresistances?\b/g, 'resistance')
     .replace(/\s+/g, ' ')
     .trim()
 

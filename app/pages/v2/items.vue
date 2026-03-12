@@ -1505,6 +1505,7 @@ const observationStatOptions = [
   { key: 'chance', label: 'Chance', suffix: '' },
   { key: 'agilite', label: 'Agilité', suffix: '' },
   { key: 'sagesse', label: 'Sagesse', suffix: '' },
+  { key: 'initiative', label: 'Initiative', suffix: '' },
   { key: 'critique', label: 'Critique', suffix: '%' },
   { key: 'resistance_critique', label: 'Résistance Critique', suffix: '' },
   { key: 'pa', label: 'PA', suffix: '' },
@@ -1536,6 +1537,7 @@ const statsOcrDefs = [
   { key: 'chance', label: 'Chance', aliases: ['chance'] },
   { key: 'agilite', label: 'Agilité', aliases: ['agilite'] },
   { key: 'sagesse', label: 'Sagesse', aliases: ['sagesse'] },
+  { key: 'initiative', label: 'Initiative', aliases: ['initiative', 'ini'] },
   { key: 'retrait_pa', label: 'Retrait PA', aliases: ['retrait pa'] },
   { key: 'retrait_pm', label: 'Retrait PM', aliases: ['retrait pm'] },
   { key: 'esquive_pa', label: 'Esquive PA', aliases: ['esquive pa'] },
@@ -1573,6 +1575,7 @@ const observationStatWeightMap: Record<string, number> = {
   intelligence: 1,
   chance: 1,
   agilite: 1,
+  initiative: 0.4,
   critique: 1.5,
   resistance_critique: 1.8,
   pa: 4,
@@ -1843,8 +1846,9 @@ const normalizeLabelForStatKey = (value: string) =>
     .toLowerCase()
     .replace(/[{}[\]()]/g, ' ')
     .replace(/[^a-z0-9%+\-\s]/g, ' ')
+    .replace(/\b\d+\b/g, ' ')
     .replace(/\bdommage\b/g, 'dommages')
-    .replace(/\bresistance\b/g, 'resistance')
+    .replace(/\bresistances?\b/g, 'resistance')
     .replace(/\s+/g, ' ')
     .trim()
 
