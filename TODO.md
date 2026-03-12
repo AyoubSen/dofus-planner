@@ -7,14 +7,22 @@ Focused shortlist grouped by delivery priority.
 - [x] Replace Hardcoded V2 Page Colors With Theme Tokens
 - [ ] V2 i18n Parity (Replace Hardcoded Strings) - Remaining hardcoded strings in `archimonstres`, `crafting`, `brisage`, `succes`, `familiers`
 - [ ] Unify Feature Storage Into AppDataStore
+- [ ] Dashboard Init Unified AppDataStore (avoid empty/stale stats on first load)
 - [ ] Items Resale Tracker Data Model
 - [ ] Items Send Observed Listing To Resale Tracker
 - [ ] Items Resale Tracker Page (Watched / Bought / Listed / Sold / Cancelled)
 - [ ] Items Resale Price Adjustment History
 - [ ] Items Resale Realized Profit + Time-To-Sell Metrics
 - [ ] Dashboard Quick Nav: Add Familiers + Brisage
+- [ ] Dashboard Quick Nav: Add Resale
 - [ ] Dashboard Succes Progress Card (X/Total + Progress Bar)
 - [ ] Dashboard Daily Highlights (Today Earned + Sessions)
+- [ ] Dashboard Scope Pass (separate current-character metrics from account-wide totals)
+- [ ] Dashboard Resale Summary Card (Active / Sold / Realized P-L / Avg Hold)
+- [ ] Dashboard Brisage Summary Card (Sessions / Total P-L / Avg Margin)
+- [ ] Dashboard Crafting Summary Card (Count / Total Value / Recent Craft)
+- [ ] Dashboard Replace Recent Sales With Cross-Feature Activity Feed
+- [ ] Dashboard Alerts Panel (slow-moving items / watched flips / missing prices)
 - [ ] Familiers User Price Input + Deal Color Coding
 - [ ] Crafting Cost Field + Profit Margin Column
 - [ ] Archimonstres Missing-Only View Sorted by Etape
@@ -39,6 +47,7 @@ Focused shortlist grouped by delivery priority.
 - [ ] Familiers Pet Level Input
 - [ ] Dashboard Data Freshness + Backup Nudge
 - [ ] Archimonstres Progress by Etape Breakdown
+- [ ] Dashboard Account Overview Strip (characters / servers / total tracked systems)
 - [ ] Archimonstres Bulk Mark as Collected
 - [ ] Archimonstres Export Missing List (Clipboard/CSV)
 - [ ] Succes Category Progress Bars

@@ -157,10 +157,9 @@
     </div>
 
     <!-- ─── Character Picker Modal ───────────────────────── -->
-    <Teleport to="body">
-      <Transition name="v2-modal">
-        <div v-if="showPicker" class="v2-overlay" @click.self="showPicker = false">
-          <div class="v2-picker">
+    <Transition name="v2-modal">
+      <div v-if="showPicker" class="v2-overlay" @click.self="showPicker = false">
+        <div class="v2-picker">
             <!-- Header -->
             <div class="v2-picker__header">
               <div>
@@ -306,8 +305,7 @@
             </div>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+  </Transition>
   </div>
 </template>
 
