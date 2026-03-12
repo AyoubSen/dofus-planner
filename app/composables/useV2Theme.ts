@@ -1,5 +1,5 @@
 // composables/useV2Theme.ts
-export type V2ThemeType = 'classic' | 'royal-green' | 'midnight';
+export type V2ThemeType = 'classic' | 'royal-green' | 'midnight' | 'amethyst' | 'void';
 
 export interface V2Theme {
   id: V2ThemeType;
@@ -22,6 +22,16 @@ export const v2Themes: V2Theme[] = [
     id: 'midnight',
     name: 'Midnight',
     description: 'Dark ocean blue — cool, calm and focused',
+  },
+  {
+    id: 'amethyst',
+    name: 'Amethyst',
+    description: 'Deep violet — elegant and rich',
+  },
+  {
+    id: 'void',
+    name: 'Void',
+    description: 'Near-black with slate silver — pure and minimal',
   },
 ];
 

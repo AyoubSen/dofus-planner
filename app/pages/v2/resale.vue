@@ -1,319 +1,357 @@
 <template>
-  <div class="rs-page">
-    <section v-if="!hasContext" class="rs-empty">
-      <div class="rs-empty-card">
-        <p class="rs-eyebrow">Resale Tracker</p>
-        <h1>Select a server and character first</h1>
-        <p>
-          The tracker is scoped to the active v2 context so buys, listings, and
-          sales stay attached to one character.
-        </p>
+  <div>
+    <!-- No context -->
+    <div v-if="!hasContext" class="v2-no-context">
+      <div class="v2-no-context__icon">
+        <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
       </div>
-    </section>
+      <div class="v2-no-context__title">No character selected</div>
+      <div class="v2-no-context__desc">Select a server and character to track your resale flips.</div>
+    </div>
 
     <template v-else>
-      <section class="rs-hero">
-        <div>
-          <p class="rs-eyebrow">Resale Tracker</p>
-          <h1>Track what you actually tried to flip</h1>
-          <p>
-            Move entries from watched to bought, listed, sold, or cancelled and
-            keep the real outcome next to the model snapshot.
-          </p>
+      <!-- Stats strip -->
+      <div class="rt-stats">
+        <div class="rt-stat">
+          <div class="rt-stat__icon">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <div class="rt-stat__body">
+            <div class="rt-stat__val">{{ filteredEntries.length }}</div>
+            <div class="rt-stat__lbl">Tracked</div>
+          </div>
         </div>
-      </section>
-
-      <section class="rs-stats">
-        <article class="rs-stat">
-          <span class="rs-stat-label">Tracked</span>
-          <strong>{{ filteredEntries.length }}</strong>
-        </article>
-        <article class="rs-stat">
-          <span class="rs-stat-label">Active</span>
-          <strong>{{ activeEntries.length }}</strong>
-        </article>
-        <article class="rs-stat">
-          <span class="rs-stat-label">Sold</span>
-          <strong>{{ soldEntries.length }}</strong>
-        </article>
-        <article class="rs-stat">
-          <span class="rs-stat-label">Realized P/L</span>
-          <strong :class="realizedProfit >= 0 ? 'is-profit' : 'is-loss'">
-            {{ formatKamasFull(realizedProfit) }}
-          </strong>
-        </article>
-        <article class="rs-stat">
-          <span class="rs-stat-label">Avg hold time</span>
-          <strong>{{ formatDuration(averageHoldDurationMs) }}</strong>
-        </article>
-        <article class="rs-stat">
-          <span class="rs-stat-label">Avg on market</span>
-          <strong>{{ formatDuration(averageMarketDurationMs) }}</strong>
-        </article>
-        <article class="rs-stat">
-          <span class="rs-stat-label">Avg reprices before sale</span>
-          <strong>{{ averageRepricesBeforeSale }}</strong>
-        </article>
-      </section>
-
-      <section class="rs-toolbar">
-        <div class="rs-filters">
-          <button
-            v-for="filter in statusFilters"
-            :key="filter.id"
-            type="button"
-            class="rs-filter"
-            :class="{ 'is-active': statusFilter === filter.id }"
-            @click="statusFilter = filter.id"
-          >
-            <span>{{ filter.label }}</span>
-            <strong>{{ filter.count }}</strong>
-          </button>
+        <div class="rt-stat">
+          <div class="rt-stat__icon">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div class="rt-stat__body">
+            <div class="rt-stat__val">{{ activeEntries.length }}</div>
+            <div class="rt-stat__lbl">Active</div>
+          </div>
         </div>
-      </section>
+        <div class="rt-stat">
+          <div class="rt-stat__icon">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="rt-stat__body">
+            <div class="rt-stat__val">{{ soldEntries.length }}</div>
+            <div class="rt-stat__lbl">Sold</div>
+          </div>
+        </div>
+        <div class="rt-stat" :class="realizedProfit >= 0 ? 'rt-stat--pos' : 'rt-stat--neg'">
+          <div class="rt-stat__icon">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="rt-stat__body">
+            <div class="rt-stat__val" :style="realizedProfit >= 0 ? 'color:#34d399' : 'color:#f87171'">
+              {{ realizedProfit >= 0 ? '+' : '' }}{{ formatKamasFull(realizedProfit) }}
+            </div>
+            <div class="rt-stat__lbl">Realized P/L</div>
+          </div>
+        </div>
+        <div class="rt-stat">
+          <div class="rt-stat__icon">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="rt-stat__body">
+            <div class="rt-stat__val" style="font-size:.9375rem">{{ formatDuration(averageHoldDurationMs) }}</div>
+            <div class="rt-stat__lbl">Avg hold</div>
+          </div>
+        </div>
+        <div class="rt-stat">
+          <div class="rt-stat__icon">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4" />
+            </svg>
+          </div>
+          <div class="rt-stat__body">
+            <div class="rt-stat__val" style="font-size:.9375rem">{{ averageRepricesBeforeSale }}</div>
+            <div class="rt-stat__lbl">Avg reprices</div>
+          </div>
+        </div>
+      </div>
 
-      <section v-if="visibleEntries.length" class="rs-list">
-        <article
+      <!-- Status filter tabs -->
+      <div class="rt-tabs">
+        <button
+          v-for="filter in statusFilters"
+          :key="filter.id"
+          type="button"
+          class="rt-tab"
+          :class="{ 'rt-tab--on': statusFilter === filter.id }"
+          @click="statusFilter = filter.id"
+        >
+          {{ filter.label }}
+          <span class="rt-badge">{{ filter.count }}</span>
+        </button>
+      </div>
+
+      <!-- Entry list -->
+      <div v-if="visibleEntries.length" class="rt-list">
+        <div
           v-for="entry in visibleEntries"
           :key="entry.id"
-          class="rs-card"
+          class="v2-card rt-entry"
         >
-          <header class="rs-card-head">
-            <div class="rs-item">
-              <img
-                v-if="entry.itemImage"
-                :src="entry.itemImage"
-                :alt="entry.itemName"
-                class="rs-item-image"
-              >
-              <div>
-                <h2>{{ entry.itemName }}</h2>
-                <div class="rs-meta">
-                  <span class="rs-pill" :class="`is-${entry.status}`">
-                    {{ statusLabelMap[entry.status] }}
-                  </span>
-                  <span>{{ sourceLabel(entry.source) }}</span>
-                  <span>{{ formatRelativeDate(entry.updatedAt) }}</span>
-                </div>
+          <!-- Entry header -->
+          <div class="rt-entry__header">
+            <img
+              v-if="entry.itemImage"
+              :src="entry.itemImage"
+              :alt="entry.itemName"
+              class="rt-entry__img"
+            >
+            <div v-else class="rt-entry__img-placeholder">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.3">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <div class="rt-entry__meta">
+              <div class="rt-entry__name">{{ entry.itemName }}</div>
+              <div class="rt-entry__sub">
+                <span class="rt-pill" :class="`rt-pill--${entry.status}`">{{ statusLabelMap[entry.status] }}</span>
+                <span>{{ sourceLabel(entry.source) }}</span>
+                <span>{{ formatRelativeDate(entry.updatedAt) }}</span>
               </div>
             </div>
-
-            <button type="button" class="rs-remove" @click="removeEntry(entry.id)">
-              Remove
+            <button type="button" class="rt-del v2-btn-ghost" @click="removeEntry(entry.id)" title="Remove entry">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
             </button>
-          </header>
+          </div>
 
-          <div class="rs-grid">
-            <label class="rs-field">
-              <span>Buy price</span>
+          <!-- Price fields -->
+          <div class="rt-prices">
+            <label class="rt-field">
+              <span class="rt-field__lbl">Buy price</span>
               <input
                 :value="entry.buyPrice ?? ''"
                 type="number"
                 min="0"
                 step="1"
+                class="v2-input rt-field__input"
                 @input="updateNumberField(entry, 'buyPrice', ($event.target as HTMLInputElement).value)"
               >
             </label>
-
-            <label class="rs-field">
-              <span>List price</span>
+            <label class="rt-field">
+              <span class="rt-field__lbl">List price</span>
               <input
                 :value="entry.listPrice ?? ''"
                 type="number"
                 min="0"
                 step="1"
+                class="v2-input rt-field__input"
                 @input="updateNumberField(entry, 'listPrice', ($event.target as HTMLInputElement).value)"
               >
             </label>
-
-            <label class="rs-field">
-              <span>Sold price</span>
+            <label class="rt-field">
+              <span class="rt-field__lbl">Sold price</span>
               <input
                 :value="entry.soldPrice ?? ''"
                 type="number"
                 min="0"
                 step="1"
+                class="v2-input rt-field__input"
                 @input="updateNumberField(entry, 'soldPrice', ($event.target as HTMLInputElement).value)"
               >
             </label>
           </div>
 
-          <section class="rs-model">
-            <div class="rs-model-line">
+          <!-- Model estimates -->
+          <div class="rt-model">
+            <div class="rt-model__row">
               <span>Observed</span>
               <strong>{{ formatKamasFull(entry.buyPrice ?? 0) }}</strong>
             </div>
-            <div class="rs-model-line">
+            <div class="rt-model__row">
               <span>Quick target</span>
               <strong>{{ formatKamasOptional(getEstimate(entry, 'estimatedQuickRelistPrice', 'estimatedQuickRelist')) }}</strong>
             </div>
-            <div class="rs-model-line">
+            <div class="rt-model__row">
               <span>Fair target</span>
               <strong>{{ formatKamasOptional(getEstimate(entry, 'estimatedFairRelistPrice', 'estimatedFairValue')) }}</strong>
             </div>
-            <div class="rs-model-line">
+            <div class="rt-model__row">
               <span>Greedy target</span>
               <strong>{{ formatKamasOptional(getEstimate(entry, 'estimatedGreedyRelistPrice', 'estimatedGreedyRelist')) }}</strong>
             </div>
-            <div class="rs-model-line">
+            <div class="rt-model__row">
               <span>Predicted delta</span>
-              <strong
-                :class="(getEstimate(entry, 'estimatedDelta') ?? 0) >= 0 ? 'is-profit' : 'is-loss'"
-              >
+              <strong :class="(getEstimate(entry, 'estimatedDelta') ?? 0) >= 0 ? 'rt-pos' : 'rt-neg'">
                 {{ formatKamasOptional(getEstimate(entry, 'estimatedDelta')) }}
               </strong>
             </div>
-          </section>
+          </div>
 
-          <section class="rs-actions">
+          <!-- Status actions -->
+          <div class="rt-actions">
             <button
               type="button"
-              class="rs-action"
+              class="rt-action-btn"
+              :class="{ 'rt-action-btn--on': entry.status === 'bought' }"
               :disabled="entry.status === 'bought'"
               @click="setStatus(entry, 'bought')"
             >
-              Mark bought
+              Bought
             </button>
             <button
               type="button"
-              class="rs-action"
+              class="rt-action-btn"
+              :class="{ 'rt-action-btn--on': entry.status === 'listed' }"
               :disabled="entry.status === 'listed'"
               @click="setStatus(entry, 'listed')"
             >
-              Mark listed
+              Listed
             </button>
             <button
               type="button"
-              class="rs-action"
+              class="rt-action-btn"
+              :class="{ 'rt-action-btn--on': entry.status === 'sold' }"
               :disabled="entry.status === 'sold'"
               @click="setStatus(entry, 'sold')"
             >
-              Mark sold
+              Sold
             </button>
             <button
               type="button"
-              class="rs-action is-cancel"
+              class="rt-action-btn rt-action-btn--cancel"
+              :class="{ 'rt-action-btn--on': entry.status === 'cancelled' }"
               :disabled="entry.status === 'cancelled'"
               @click="setStatus(entry, 'cancelled')"
             >
               Cancel
             </button>
-          </section>
+          </div>
 
-          <section class="rs-adjustments">
-            <div class="rs-adjustments-head">
+          <!-- Price adjustment history -->
+          <div class="rt-adj">
+            <div class="rt-adj__head">
               <div>
-                <h3>Price adjustment history</h3>
-                <p>Record each relist or price cut instead of overwriting the story.</p>
+                <div class="rt-adj__title">Price adjustments</div>
+                <div class="rt-adj__desc">Log each relist without losing history.</div>
               </div>
-
               <button
                 type="button"
-                class="rs-action"
+                class="v2-btn-ghost rt-adj__snap"
                 :disabled="!canAddAdjustment(entry)"
                 @click="addAdjustmentFromCurrentPrice(entry)"
               >
-                Add current list price
+                Snap current price
               </button>
             </div>
 
-            <div v-if="entry.priceAdjustments?.length" class="rs-adjustment-list">
-              <article
+            <div v-if="entry.priceAdjustments?.length" class="rt-adj__list">
+              <div
                 v-for="adjustment in [...entry.priceAdjustments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())"
                 :key="adjustment.id"
-                class="rs-adjustment"
+                class="rt-adj__item"
               >
-                <div class="rs-adjustment-line">
+                <div class="rt-adj__prices">
                   <strong>{{ formatKamasFull(adjustment.fromPrice) }}</strong>
-                  <span>&rarr;</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.45">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                   <strong>{{ formatKamasFull(adjustment.toPrice) }}</strong>
                 </div>
-                <div class="rs-adjustment-meta">
+                <div class="rt-adj__when">
                   <span>{{ formatRelativeDate(adjustment.createdAt) }}</span>
-                  <span v-if="adjustment.reason">{{ adjustment.reason }}</span>
+                  <span v-if="adjustment.reason" style="opacity:.6">· {{ adjustment.reason }}</span>
                 </div>
-              </article>
+              </div>
             </div>
+            <div v-else class="rt-adj__empty">No reprices logged yet.</div>
 
-            <p v-else class="rs-adjustment-empty">
-              No reprices logged yet.
-            </p>
-
-            <div class="rs-grid">
-              <label class="rs-field">
-                <span>New price</span>
+            <div class="rt-prices" style="margin-top:.75rem">
+              <label class="rt-field">
+                <span class="rt-field__lbl">New price</span>
                 <input
                   :value="adjustmentDrafts[entry.id]?.toPrice ?? ''"
                   type="number"
                   min="0"
                   step="1"
+                  class="v2-input rt-field__input"
                   @input="updateAdjustmentDraft(entry.id, 'toPrice', ($event.target as HTMLInputElement).value)"
                 >
               </label>
-
-              <label class="rs-field">
-                <span>Reason</span>
+              <label class="rt-field">
+                <span class="rt-field__lbl">Reason</span>
                 <input
                   :value="adjustmentDrafts[entry.id]?.reason ?? ''"
                   type="text"
-                  placeholder="Undercut, slow market, urgent sale..."
+                  placeholder="Undercut, slow market…"
+                  class="v2-input rt-field__input"
                   @input="updateAdjustmentDraft(entry.id, 'reason', ($event.target as HTMLInputElement).value)"
                 >
               </label>
             </div>
-
             <button
               type="button"
-              class="rs-action"
+              class="v2-btn-gold rt-adj__save"
               :disabled="!canSaveAdjustment(entry)"
               @click="saveAdjustment(entry)"
             >
               Save adjustment
             </button>
-          </section>
+          </div>
 
-          <label class="rs-field">
-            <span>Notes</span>
+          <!-- Notes -->
+          <label class="rt-field rt-notes">
+            <span class="rt-field__lbl">Notes</span>
             <textarea
-              rows="3"
+              rows="2"
               :value="entry.notes ?? ''"
+              class="v2-input"
+              style="resize:vertical"
               @input="updateTextField(entry, 'notes', ($event.target as HTMLTextAreaElement).value)"
             />
           </label>
 
-          <footer class="rs-card-foot">
+          <!-- Footer stats -->
+          <div class="rt-entry__foot">
             <span>
-              Realized:
-              <strong :class="realizedEntryProfit(entry) >= 0 ? 'is-profit' : 'is-loss'">
-                {{ formatKamasFull(realizedEntryProfit(entry)) }}
+              P/L:
+              <strong :class="realizedEntryProfit(entry) >= 0 ? 'rt-pos' : 'rt-neg'">
+                {{ realizedEntryProfit(entry) >= 0 ? '+' : '' }}{{ formatKamasFull(realizedEntryProfit(entry)) }}
               </strong>
             </span>
-            <span>
-              Held {{ formatDuration(getHoldDurationMs(entry)) }}
-            </span>
-            <span>
-              On market {{ formatDuration(getMarketDurationMs(entry)) }}
-            </span>
-            <span>
-              Reprices {{ entry.priceAdjustments?.length ?? 0 }}
-            </span>
-            <span v-if="entry.soldAt">
-              Sold {{ formatRelativeDate(entry.soldAt) }}
-            </span>
-          </footer>
-        </article>
-      </section>
-
-      <section v-else class="rs-empty">
-        <div class="rs-empty-card">
-          <p class="rs-eyebrow">No entries yet</p>
-          <h2>Send an observed listing from the items page</h2>
-          <p>
-            New resale entries start in <strong>watched</strong>, then you can
-            move them through the full flip lifecycle here.
-          </p>
+            <span>Held {{ formatDuration(getHoldDurationMs(entry)) }}</span>
+            <span>Market {{ formatDuration(getMarketDurationMs(entry)) }}</span>
+            <span>{{ entry.priceAdjustments?.length ?? 0 }} reprice{{ (entry.priceAdjustments?.length ?? 0) !== 1 ? 's' : '' }}</span>
+            <span v-if="entry.soldAt">Sold {{ formatRelativeDate(entry.soldAt) }}</span>
+          </div>
         </div>
-      </section>
+      </div>
+
+      <!-- Empty entries state -->
+      <div v-else class="v2-no-context">
+        <div class="v2-no-context__icon">
+          <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+        </div>
+        <div class="v2-no-context__title">
+          {{ statusFilter === 'all' ? 'No entries yet' : `No ${statusFilter} entries` }}
+        </div>
+        <div class="v2-no-context__desc">
+          {{ statusFilter === 'all'
+            ? 'Send an observed listing from the items page. New entries start as watched.'
+            : 'Try a different status filter above.' }}
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -648,313 +686,262 @@ function formatRelativeDate(value: string | null | undefined) {
 </script>
 
 <style scoped>
-.rs-page {
+/* ── Stats strip ─────────────────────────────────────────── */
+.rt-stats {
   display: grid;
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: .625rem;
+  margin-bottom: 1rem;
 }
-
-.rs-hero,
-.rs-empty-card,
-.rs-stat,
-.rs-card {
-  border: 1px solid rgba(245, 158, 11, 0.18);
-  background:
-    linear-gradient(180deg, rgba(28, 18, 6, 0.96), rgba(16, 10, 3, 0.96));
-  border-radius: 20px;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.18);
-}
-
-.rs-hero,
-.rs-empty-card,
-.rs-card {
-  padding: 22px;
-}
-
-.rs-eyebrow {
-  margin: 0 0 8px;
-  color: #f59e0b;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.rs-hero h1,
-.rs-empty-card h1,
-.rs-empty-card h2,
-.rs-item h2 {
-  margin: 0;
-}
-
-.rs-hero p,
-.rs-empty-card p {
-  margin: 8px 0 0;
-  color: rgba(255, 248, 220, 0.72);
-  max-width: 72ch;
-}
-
-.rs-stats {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-}
-
-.rs-stat {
-  padding: 18px 20px;
-}
-
-.rs-stat-label {
-  display: block;
-  margin-bottom: 8px;
-  color: rgba(255, 248, 220, 0.64);
-  font-size: 0.85rem;
-}
-
-.rs-stat strong {
-  font-size: 1.45rem;
-}
-
-.rs-toolbar {
+.rt-stat {
   display: flex;
-  justify-content: flex-start;
+  align-items: center;
+  gap: .75rem;
+  padding: .875rem 1rem;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-border);
+  border-radius: 12px;
+  transition: border-color .2s;
 }
+.rt-stat:hover { border-color: var(--v2-border-med); }
+.rt-stat--pos { border-color: rgba(52,211,153,.2); background: rgba(52,211,153,.04); }
+.rt-stat--neg { border-color: rgba(248,113,113,.2); background: rgba(248,113,113,.04); }
+.rt-stat__icon {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  background: var(--v2-active);
+  color: var(--v2-accent);
+  display: flex; align-items: center; justify-content: center;
+}
+.rt-stat--pos .rt-stat__icon { background: rgba(52,211,153,.15); color: #34d399; }
+.rt-stat--neg .rt-stat__icon { background: rgba(248,113,113,.15); color: #f87171; }
+.rt-stat__body { flex: 1; min-width: 0; }
+.rt-stat__val { font-size: 1.25rem; font-weight: 800; color: var(--v2-text); line-height: 1.2; }
+.rt-stat__lbl { font-size: .6875rem; color: var(--v2-text-dim); margin-top: 1px; }
 
-.rs-filters {
+/* ── Status filter tabs ───────────────────────────────────── */
+.rt-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: .375rem;
+  margin-bottom: 1rem;
 }
-
-.rs-filter {
+.rt-tab {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  border: 1px solid rgba(245, 158, 11, 0.18);
-  background: rgba(28, 18, 6, 0.82);
-  border-radius: 999px;
-  color: rgba(255, 248, 220, 0.82);
-  padding: 10px 14px;
+  gap: .5rem;
+  padding: .4375rem .875rem;
+  border-radius: 8px;
+  border: 1px solid var(--v2-border);
+  background: transparent;
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+}
+.rt-tab:hover { border-color: var(--v2-border-strong); color: var(--v2-text); }
+.rt-tab--on {
+  background: var(--v2-active-strong);
+  border-color: var(--v2-border-focus);
+  color: var(--v2-text);
+  font-weight: 600;
+}
+.rt-badge {
+  background: var(--v2-active);
+  color: var(--v2-text-secondary);
+  border-radius: 99px;
+  padding: 1px 7px;
+  font-size: .6875rem;
+  font-weight: 700;
+}
+.rt-tab--on .rt-badge { background: var(--v2-active-strong); color: var(--v2-accent); }
+
+/* ── Entry list ───────────────────────────────────────────── */
+.rt-list { display: flex; flex-direction: column; gap: .625rem; }
+
+.rt-entry {
+  display: flex;
+  flex-direction: column;
+  gap: .875rem;
+  padding: 1rem 1.125rem;
 }
 
-.rs-filter.is-active {
-  border-color: rgba(34, 197, 94, 0.55);
-  background: rgba(22, 101, 52, 0.24);
-  color: #dcfce7;
+/* Entry header */
+.rt-entry__header {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
 }
+.rt-entry__img {
+  width: 44px; height: 44px;
+  object-fit: contain; flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--v2-active);
+  padding: 4px;
+}
+.rt-entry__img-placeholder {
+  width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px;
+  background: var(--v2-active);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--v2-text-dim);
+}
+.rt-entry__meta { flex: 1; min-width: 0; }
+.rt-entry__name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
+.rt-entry__sub {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: .375rem; margin-top: .25rem;
+  font-size: .75rem; color: var(--v2-text-secondary);
+}
+.rt-del {
+  width: 32px; height: 32px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.rt-del:hover { color: #f87171; border-color: rgba(248,113,113,.35); }
 
-.rs-list {
+/* Status pills */
+.rt-pill {
+  border-radius: 99px;
+  padding: 2px 8px;
+  font-size: .6875rem;
+  font-weight: 700;
+}
+.rt-pill--watched { background: rgba(245,165,35,.15); color: var(--v2-accent-light, #fbbf24); }
+.rt-pill--bought  { background: rgba(96,165,250,.15); color: #93c5fd; }
+.rt-pill--listed  { background: rgba(52,211,153,.15); color: #86efac; }
+.rt-pill--sold    { background: rgba(168,85,247,.15);  color: #d8b4fe; }
+.rt-pill--cancelled { background: rgba(248,113,113,.12); color: #fca5a5; }
+
+/* Price fields row */
+.rt-prices {
   display: grid;
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: .625rem;
 }
+.rt-field { display: flex; flex-direction: column; gap: .3125rem; }
+.rt-field__lbl { font-size: .75rem; font-weight: 500; color: var(--v2-text-secondary); }
+.rt-field__input { font-size: .875rem; padding: .5rem .75rem; }
+.rt-notes { gap: .3125rem; }
 
-.rs-card {
-  display: grid;
-  gap: 18px;
+/* Model estimates */
+.rt-model {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
 }
-
-.rs-card-head,
-.rs-card-foot,
-.rs-actions,
-.rs-model-line,
-.rs-meta {
+.rt-model__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: .5rem;
+  padding: .4375rem .75rem;
+  font-size: .8125rem;
+  border-bottom: 1px solid var(--v2-border-subtle);
 }
+.rt-model__row:last-child { border-bottom: none; }
+.rt-model__row span { color: var(--v2-text-secondary); }
+.rt-model__row strong { color: var(--v2-text); font-size: .875rem; }
 
-.rs-item {
+/* Status action buttons */
+.rt-actions {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-wrap: wrap;
+  gap: .375rem;
 }
-
-.rs-item-image {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 6px;
+.rt-action-btn {
+  padding: .4375rem .875rem;
+  border-radius: 8px;
+  border: 1px solid var(--v2-border);
+  background: transparent;
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
 }
-
-.rs-meta {
-  justify-content: flex-start;
-  color: rgba(255, 248, 220, 0.68);
-  font-size: 0.88rem;
-}
-
-.rs-pill {
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.rs-pill.is-watched {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fbbf24;
-}
-
-.rs-pill.is-bought {
-  background: rgba(59, 130, 246, 0.18);
-  color: #93c5fd;
-}
-
-.rs-pill.is-listed {
-  background: rgba(34, 197, 94, 0.18);
-  color: #86efac;
-}
-
-.rs-pill.is-sold {
-  background: rgba(168, 85, 247, 0.18);
-  color: #d8b4fe;
-}
-
-.rs-pill.is-cancelled {
-  background: rgba(239, 68, 68, 0.18);
-  color: #fca5a5;
-}
-
-.rs-remove,
-.rs-action {
-  border: 1px solid rgba(245, 158, 11, 0.18);
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  color: rgba(255, 248, 220, 0.88);
-  padding: 10px 12px;
-}
-
-.rs-action.is-cancel {
-  border-color: rgba(239, 68, 68, 0.25);
-}
-
-.rs-remove:hover,
-.rs-action:hover,
-.rs-filter:hover {
-  border-color: rgba(245, 158, 11, 0.36);
-}
-
-.rs-action:disabled {
-  opacity: 0.45;
+.rt-action-btn:hover:not(:disabled) { border-color: var(--v2-border-strong); color: var(--v2-text); }
+.rt-action-btn--on {
+  background: var(--v2-active-strong);
+  border-color: var(--v2-border-focus);
+  color: var(--v2-text);
+  font-weight: 600;
   cursor: default;
 }
+.rt-action-btn--cancel { border-color: rgba(248,113,113,.22); color: #fca5a5; }
+.rt-action-btn--cancel:hover:not(:disabled) { border-color: rgba(248,113,113,.5); background: rgba(248,113,113,.08); color: #f87171; }
+.rt-action-btn:disabled { opacity: .4; cursor: default; }
 
-.rs-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+/* Price adjustments panel */
+.rt-adj {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: .875rem;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 10px;
 }
-
-.rs-field {
-  display: grid;
-  gap: 8px;
-}
-
-.rs-field span {
-  color: rgba(255, 248, 220, 0.72);
-  font-size: 0.86rem;
-}
-
-.rs-field input,
-.rs-field textarea {
-  width: 100%;
-  border: 1px solid rgba(245, 158, 11, 0.16);
-  background: rgba(8, 6, 2, 0.72);
-  color: #fff7db;
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.rs-field textarea {
-  resize: vertical;
-}
-
-.rs-model {
-  display: grid;
-  gap: 10px;
-  border: 1px solid rgba(245, 158, 11, 0.12);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 14px;
-}
-
-.rs-adjustments {
-  display: grid;
-  gap: 14px;
-  border: 1px solid rgba(245, 158, 11, 0.12);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 16px;
-}
-
-.rs-adjustments-head {
+.rt-adj__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: .75rem;
   flex-wrap: wrap;
 }
+.rt-adj__title { font-size: .875rem; font-weight: 600; color: var(--v2-text); }
+.rt-adj__desc { font-size: .75rem; color: var(--v2-text-dim); margin-top: 2px; }
+.rt-adj__snap { font-size: .75rem; padding: .375rem .75rem; white-space: nowrap; }
+.rt-adj__snap:disabled { opacity: .35; cursor: default; }
 
-.rs-adjustments-head h3 {
-  margin: 0;
-}
-
-.rs-adjustments-head p,
-.rs-adjustment-empty,
-.rs-adjustment-meta {
-  margin: 0;
-  color: rgba(255, 248, 220, 0.68);
-}
-
-.rs-adjustment-list {
-  display: grid;
-  gap: 10px;
-}
-
-.rs-adjustment {
-  display: grid;
-  gap: 6px;
-  border: 1px solid rgba(245, 158, 11, 0.12);
-  border-radius: 14px;
-  background: rgba(8, 6, 2, 0.5);
-  padding: 12px 14px;
-}
-
-.rs-adjustment-line,
-.rs-adjustment-meta {
+.rt-adj__list { display: flex; flex-direction: column; gap: .375rem; }
+.rt-adj__item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: .75rem;
   flex-wrap: wrap;
+  padding: .4375rem .75rem;
+  border-radius: 8px;
+  background: var(--v2-hover);
+  font-size: .8125rem;
 }
-
-.rs-model-line span,
-.rs-card-foot span {
-  color: rgba(255, 248, 220, 0.7);
+.rt-adj__prices {
+  display: flex; align-items: center; gap: .375rem;
+  font-size: .875rem; font-weight: 600; color: var(--v2-text);
 }
+.rt-adj__when { font-size: .6875rem; color: var(--v2-text-dim); }
+.rt-adj__empty { font-size: .8125rem; color: var(--v2-text-dim); }
 
-.is-profit {
-  color: #86efac;
+.rt-adj__save {
+  align-self: flex-start;
+  font-size: .8125rem;
+  padding: .4375rem .875rem;
 }
+.rt-adj__save:disabled { opacity: .35; cursor: default; }
 
-.is-loss {
-  color: #fca5a5;
+/* Entry footer */
+.rt-entry__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .375rem .875rem;
+  padding-top: .625rem;
+  border-top: 1px solid var(--v2-border-subtle);
+  font-size: .75rem;
+  color: var(--v2-text-dim);
 }
+.rt-entry__foot strong { font-weight: 700; }
 
-@media (max-width: 720px) {
-  .rs-card-head,
-  .rs-actions,
-  .rs-model-line,
-  .rs-card-foot {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+/* Profit/loss colors */
+.rt-pos { color: #34d399; }
+.rt-neg { color: #f87171; }
 
-  .rs-item {
-    align-items: flex-start;
-  }
+@media (max-width: 520px) {
+  .rt-stats { grid-template-columns: repeat(2, 1fr); }
+  .rt-actions { flex-direction: column; }
+  .rt-adj__head { flex-direction: column; }
 }
 </style>
