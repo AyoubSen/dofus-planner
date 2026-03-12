@@ -387,6 +387,9 @@
                     >
                       {{ resaleTrackedObservationIds.has(selectedObservationDetail.id) ? 'Tracked' : 'Send to tracker' }}
                     </button>
+                    <NuxtLink to="/v2/resale" class="v2-recipe-refresh">
+                      Open tracker
+                    </NuxtLink>
                   </div>
                 </div>
                 <div v-if="resaleTrackerFeedback[selectedObservationDetail.id]" class="v2-recipe-cache-hint">
@@ -777,6 +780,9 @@
                       >
                         {{ resaleTrackedObservationIds.has(observation.id) ? 'Tracked' : 'Track resale' }}
                       </button>
+                      <NuxtLink to="/v2/resale" class="v2-recipe-refresh">
+                        Open tracker
+                      </NuxtLink>
                       <button
                         class="v2-recipe-refresh"
                         @click="removeObservation(observation.id)"

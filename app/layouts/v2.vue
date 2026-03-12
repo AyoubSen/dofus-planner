@@ -373,6 +373,7 @@ const navItems = [
   { path: '/v2', label: 'nav.dashboard', icon: resolveComponent('IconsIconDashboard'), color: '#f5a523' },
   { path: '/v2/archimonstres', label: 'nav.archimonstres', icon: resolveComponent('IconsIconArchimonstres'), color: '#f87171' },
   { path: '/v2/items', label: 'nav.items', icon: resolveComponent('IconsIconItems'), color: '#60a5fa' },
+  { path: '/v2/resale', label: 'nav.resale', icon: resolveComponent('IconsIconItems'), color: '#22c55e' },
   { path: '/v2/crafting', label: 'nav.crafting', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },
   { path: '/v2/brisage', label: 'nav.brisage', icon: resolveComponent('IconsIconBrisage'), color: '#a78bfa' },
   { path: '/v2/succes', label: 'nav.succes', icon: resolveComponent('IconsIconSucces'), color: '#fcd34d' },
