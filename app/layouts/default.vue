@@ -56,6 +56,17 @@
 
           <!-- Right side actions -->
           <div class="flex items-center gap-2">
+            <NuxtLink
+              :to="localePath('/v2')"
+              class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-theme-button border border-theme-border text-theme-text-primary bg-theme-bg-secondary hover:bg-theme-bg-secondary/80 transition-colors"
+            >
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+              <span class="hidden sm:inline">Open V2</span>
+              <span class="sm:hidden">V2</span>
+            </NuxtLink>
+
             <!-- Data Backup Controls -->
             <DataBackupControls />
 
