@@ -65,6 +65,35 @@ Focused shortlist grouped by delivery priority.
 - [x] Items Observed Listing Sort Modes (price / delta / best buy / newest)
 - [x] Items OCR Stats Correction Assistant (flag suspicious lines and missing expected stats)
 
+## Valuation Hardening
+- [ ] Items Expand Curated Alias Coverage For Special Mage Lines
+- [ ] Items Add Stats Health Warnings For Possible Unmatched Special Mage Lines
+- [ ] Items Support More Binary Forge/Mage Flags Beyond Numeric Stats
+- [ ] Items Keep Canonical Internal Keys For All Special Mage Lines
+- [ ] Items Separate Base Stats / Overmage / Exo-Special Lines / Binary Forge States In Valuation Logic
+- [ ] Items Fix Baseline Stat Normalization So Minimum Rolls Still Carry Value
+- [ ] Items Add Explicit Penalties For Missing Mandatory Lines
+- [ ] Items Treat Overmax As A Separate Premium Layer Instead Of Only Linear Extra Progress
+- [ ] Items Strengthen Comparable Matching Penalties For Exo/Special-Line Mismatches
+- [ ] Items Prefer Peers With Similar Stat Completeness
+- [ ] Items Reject Weak Peers And Obvious Price Outliers Before Pricing
+- [ ] Items Require Exact Match On Critical Binary/Exo Flags Before Using A Peer
+- [ ] Items Add Explicit Premium Logic For PA / PM / PO / Invocation
+- [ ] Items Add Explicit Premium Logic For Dommages Au Sort / Distance / Melee
+- [ ] Items Add Explicit Premium Logic For Arme De Chasse
+- [ ] Items Lower Confidence When OCR Coverage Is Weak
+- [ ] Items Lower Confidence When Special Lines Are Unmatched
+- [ ] Items Lower Confidence When Comparable Peers Disagree Too Much
+- [ ] Items Explain Why Confidence Is Low Directly In The UI
+- [ ] Items Surface Unknown Lines That Were Manually Corrected
+- [ ] Items Learn New Aliases From Confirmed Manual Mappings
+- [ ] Items Keep A Small Local Alias Dictionary Per User
+- [ ] Items Add Valuation Regression Fixtures For Known Listing Scenarios
+- [ ] Items Verify Exo Listings Are Not Priced Like Clean Non-Exo Jets
+- [ ] Items Verify Arme De Chasse Recognition
+- [ ] Items Verify Dommages Au Sort Variant Recognition
+- [ ] Items Verify Low-Coverage OCR Does Not Produce False Confidence
+
 ## Heavy
 - [ ] Archimonstres Zone Map Filter
 - [ ] Archimonstres Sort by Rarity/Difficulty

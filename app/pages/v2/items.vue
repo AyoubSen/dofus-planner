@@ -599,6 +599,10 @@
                   <div v-if="selectedObservationValuationExplanation" class="v2-valuation-explain__stack">
                     <div class="v2-valuation-explain__summary">
                       <div class="v2-rstat">
+                        <div class="v2-rstat__label">Model</div>
+                        <div class="v2-rstat__val">{{ selectedObservationValuationExplanation.methodLabel }}</div>
+                      </div>
+                      <div class="v2-rstat">
                         <div class="v2-rstat__label">Score</div>
                         <div class="v2-rstat__val">{{ selectedObservationValuationExplanation.score.toFixed(2) }}</div>
                       </div>
@@ -619,8 +623,8 @@
                         </div>
                       </div>
                       <div class="v2-rstat">
-                        <div class="v2-rstat__label">Reference / point</div>
-                        <div class="v2-rstat__val">{{ formatKamasFull(Math.round(selectedObservationValuationExplanation.referencePricePerPoint)) }}</div>
+                        <div class="v2-rstat__label">{{ selectedObservationValuationExplanation.referenceLabel }}</div>
+                        <div class="v2-rstat__val">{{ selectedObservationValuationExplanation.referenceDisplay }}</div>
                       </div>
                     </div>
 
@@ -658,12 +662,12 @@
                       <div v-if="selectedObservationValuationExplanation.peers.length" class="v2-explain-table v2-explain-table--peer">
                         <div class="v2-explain-table__head">Price</div>
                         <div class="v2-explain-table__head">Score</div>
-                        <div class="v2-explain-table__head">Price / point</div>
+                        <div class="v2-explain-table__head">{{ selectedObservationValuationExplanation.peerMetricLabel }}</div>
                         <div class="v2-explain-table__head">Distance</div>
                         <template v-for="peer in selectedObservationValuationExplanation.peers" :key="peer.id">
                           <div class="v2-explain-table__cell">{{ formatKamasFull(peer.price) }}</div>
                           <div class="v2-explain-table__cell">{{ peer.score.toFixed(2) }}</div>
-                          <div class="v2-explain-table__cell">{{ formatKamasFull(Math.round(peer.pricePerPoint)) }}</div>
+                          <div class="v2-explain-table__cell">{{ peer.metricDisplay }}</div>
                           <div class="v2-explain-table__cell">{{ peer.distance.toFixed(2) }}</div>
                         </template>
                       </div>
@@ -705,12 +709,6 @@
                         Best buy
                       </button>
                     </div>
-                    <button class="v2-recipe-refresh" @click="selectAllObservedPrices">
-                      Select all
-                    </button>
-                    <button class="v2-recipe-refresh" @click="clearObservedPriceSelection">
-                      Clear
-                    </button>
                   </div>
                 </div>
                 <div class="v2-observed-prices__list">
@@ -719,13 +717,6 @@
                     :key="observation.id"
                     class="v2-observed-prices__row"
                   >
-                    <label class="v2-observed-prices__select">
-                      <input
-                        type="checkbox"
-                        :checked="selectedObservedPriceIds.includes(observation.id)"
-                        @change="toggleObservedPriceSelection(observation.id)"
-                      />
-                    </label>
                     <button
                       class="v2-observed-prices__price"
                       @click="selectedRecipeSellPrice = observation.price"
@@ -803,7 +794,7 @@
                   class="hidden"
                   @change="handleStatsScreenshotChange"
                 />
-                <div v-if="selectedObservedValuations.length >= 2" class="v2-valuation-panel">
+                <div v-if="allObservedValuations.length >= 2" class="v2-valuation-panel">
                   <div class="v2-price-manager__head">
                     <span class="v2-rstat__label">Listing valuation</span>
                     <div class="v2-observation-summary-actions">
@@ -824,16 +815,20 @@
                         />
                         Buy candidates only
                       </label>
-                      <label class="v2-recipe-cache-hint">
-                        <input
-                          type="checkbox"
-                          :checked="useComparableOnlyValuation"
-                          @change="useComparableOnlyValuation = !useComparableOnlyValuation"
-                        />
-                        Comparable only
-                      </label>
+                      <div class="v2-observed-sort">
+                        <span class="v2-recipe-cache-hint">Model</span>
+                        <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': valuationMode === 'score' }" @click="valuationMode = 'score'">
+                          Score
+                        </button>
+                        <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': valuationMode === 'comparables' }" @click="valuationMode = 'comparables'">
+                          Comparables
+                        </button>
+                        <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': valuationMode === 'auto' }" @click="valuationMode = 'auto'">
+                          Auto
+                        </button>
+                      </div>
                       <span class="v2-recipe-cache-hint">
-                        {{ selectedObservedValuations.length }} selected · leave-one-out {{ useComparableOnlyValuation ? 'nearest-neighbor comps' : 'all-peer comps' }}
+                        {{ allObservedValuations.length }} priced from all saved listings with stats · {{ valuationModeSummary }}
                       </span>
                       <span class="v2-recipe-cache-hint">
                         {{ valuationConfidence.details }}
@@ -1497,11 +1492,11 @@ const statsOcrState = ref({
 const observationDetailTab = ref<'stats' | 'explain'>('stats')
 const observedPricesSectionRef = ref<HTMLElement | null>(null)
 const exactStatsSectionRef = ref<HTMLElement | null>(null)
-const selectedObservedPriceIds = ref<string[]>([])
 const resaleTrackerFeedback = ref<Record<string, string>>({})
 const observedSortMode = ref<'newest' | 'price_asc' | 'price_desc' | 'delta' | 'best_buy'>('newest')
 const showOnlyUndervaluedListings = ref(false)
-const useComparableOnlyValuation = ref(true)
+type ValuationMode = 'score' | 'comparables' | 'auto'
+const valuationMode = ref<ValuationMode>('auto')
 const effectCache = ref<Record<string, CachedEffectEntry>>({})
 const itemStatPriorities = ref<Record<string, Record<string, number>>>({})
 const observationStatOptions = [
@@ -1535,6 +1530,10 @@ const observationStatOptions = [
   { key: 'retrait_pm', label: 'Retrait PM', suffix: '' },
   { key: 'esquive_pa', label: 'Esquive PA', suffix: '' },
   { key: 'esquive_pm', label: 'Esquive PM', suffix: '' },
+  { key: 'dommages_distance', label: 'Dommages Distance', suffix: '%' },
+  { key: 'dommages_melee', label: 'Dommages Melee', suffix: '%' },
+  { key: 'dommages_sort', label: 'Dommages Sort', suffix: '%' },
+  { key: 'arme_de_chasse', label: 'Arme de Chasse', suffix: '' },
 ]
 const statsOcrDefs = [
   { key: 'vitalite', label: 'Vitalité', aliases: ['vitalite'] },
@@ -1567,6 +1566,10 @@ const statsOcrDefs = [
   { key: 'resistance_neutre', label: 'Résistance Neutre', aliases: ['resistance neutre', 'résistance neutre'], suffix: '%' as const },
   { key: 'fuite', label: 'Fuite', aliases: ['fuite'] },
   { key: 'tacle', label: 'Tacle', aliases: ['tacle'] },
+  { key: 'dommages_distance', label: 'Dommages Distance', aliases: ['dommages distance', 'dommages distances', 'dommages a distance', 'dommages à distance', 'do distance', 'do distances', 'do a distance', 'do à distance'], suffix: '%' as const },
+  { key: 'dommages_melee', label: 'Dommages Melee', aliases: ['dommages melee', 'dommages mêlee', 'dommages mêlée', 'dommages au corps a corps', 'dommages au corps à corps', 'corps a corps', 'corps à corps', 'do melee', 'do mêlee', 'do mêlée'], suffix: '%' as const },
+  { key: 'dommages_sort', label: 'Dommages Sort', aliases: ['dommages sort', 'dommages sorts', 'dommages au sort', 'dommages aux sorts', 'dommages sorts', 'do sort', 'do sorts'], suffix: '%' as const },
+  { key: 'arme_de_chasse', label: 'Arme de Chasse', aliases: ['arme de chasse', 'arme chasse', 'chasse'], binary: true as const },
 ]
 const statPriorityPresets = [
   { key: 'ignore', label: 'Ignore', multiplier: 0 },
@@ -1605,7 +1608,21 @@ const observationStatWeightMap: Record<string, number> = {
   retrait_pm: 2.2,
   esquive_pa: 2.2,
   esquive_pm: 2.2,
+  dommages_distance: 2.8,
+  dommages_melee: 2.8,
+  dommages_sort: 3,
+  arme_de_chasse: 2.5,
 }
+const specialMageStatKeys = new Set([
+  'pa',
+  'pm',
+  'po',
+  'invocation',
+  'dommages_distance',
+  'dommages_melee',
+  'dommages_sort',
+  'arme_de_chasse',
+])
 
 const setFilter = (key: keyof typeof filters, val: string) => {
   filters[key] = val
@@ -1858,6 +1875,31 @@ const normalizeLabelForStatKey = (value: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
+const normalizeSpecialMageSignature = (value: string) =>
+  normalizeLabelForStatKey(value)
+    .replace(/\b(aux|au|a|de|des|du|les|le|la)\b/g, ' ')
+    .replace(/\bcorps a corps\b/g, 'melee')
+    .replace(/\bcorps\b/g, 'melee')
+    .replace(/\bsorts?\b/g, 'sort')
+    .replace(/\bdistances?\b/g, 'distance')
+    .replace(/\s+/g, '')
+    .trim()
+
+const findSpecialMageDef = (label: string) => {
+  const signature = normalizeSpecialMageSignature(label)
+  if (!signature) return undefined
+
+  return statsOcrDefs.find((def) => {
+    if (!specialMageStatKeys.has(def.key)) return false
+    return [def.label, ...def.aliases].some((alias) => {
+      const aliasSignature = normalizeSpecialMageSignature(alias)
+      return signature === aliasSignature
+        || signature.includes(aliasSignature)
+        || aliasSignature.includes(signature)
+    })
+  })
+}
+
 const scrollSectionIntoView = async (target: { value: HTMLElement | null }) => {
   await nextTick()
   target.value?.scrollIntoView({
@@ -1867,6 +1909,11 @@ const scrollSectionIntoView = async (target: { value: HTMLElement | null }) => {
 }
 
 const findStatOptionByLabel = (label: string) => {
+  const specialDef = findSpecialMageDef(label)
+  if (specialDef) {
+    return observationStatOptions.find((option) => option.key === specialDef.key)
+  }
+
   const normalized = normalizeLabelForStatKey(label)
   const exactDef = statsOcrDefs.find((def) =>
     [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
@@ -2051,10 +2098,10 @@ const roundRelistPrice = (value: number) => {
   return rounded - 1
 }
 
-const pickComparablePeers = <
+const pickScoreComparablePeers = <
   T extends { id: string; score: number }
 >(entry: T, peers: T[]) => {
-  if (!useComparableOnlyValuation.value || peers.length <= 3) return peers
+  if (peers.length <= 3) return peers
 
   return peers
     .slice()
@@ -2065,6 +2112,210 @@ const pickComparablePeers = <
       return b.score - a.score
     })
     .slice(0, 3)
+}
+
+const getObservationEntriesByKey = (observation: StoredObservedPriceEntry) => {
+  const statsMap = new Map<string, StoredObservedPriceEntry['statsEntries'][number]>()
+  observation.statsEntries.forEach((entry) => {
+    if (entry.value === null || entry.value === undefined || Number.isNaN(Number(entry.value))) return
+    statsMap.set(entry.key, entry)
+  })
+  return statsMap
+}
+
+const computeObservationComparableDistance = (
+  target: StoredObservedPriceEntry,
+  peer: StoredObservedPriceEntry,
+) => {
+  const targetStats = getObservationEntriesByKey(target)
+  const peerStats = getObservationEntriesByKey(peer)
+  const keys = new Set([...targetStats.keys(), ...peerStats.keys()])
+
+  if (!keys.size) {
+    return {
+      distance: Number.POSITIVE_INFINITY,
+      overlapRatio: 0,
+      comparableCount: 0,
+    }
+  }
+
+  let weightedDistance = 0
+  let totalWeight = 0
+  let overlapCount = 0
+
+  keys.forEach((key) => {
+    const weight = (observationStatWeightMap[key] ?? 1) * getItemStatMultiplier(key)
+    if (weight <= 0) return
+    const missingPenaltyMultiplier = specialMageStatKeys.has(key) ? 2 : 1.15
+
+    const targetEntry = targetStats.get(key)
+    const peerEntry = peerStats.get(key)
+
+    if (!targetEntry || !peerEntry) {
+      weightedDistance += weight * missingPenaltyMultiplier
+      totalWeight += weight
+      return
+    }
+
+    overlapCount += 1
+    totalWeight += weight
+
+    const targetRange = parseObservationRange(targetEntry.rangeText)
+    const peerRange = parseObservationRange(peerEntry.rangeText)
+    const targetValue = Number(targetEntry.value)
+    const peerValue = Number(peerEntry.value)
+
+    if (targetRange && peerRange) {
+      const targetProgress = computeObservationRangeProgress(targetValue, targetRange)
+      const peerProgress = computeObservationRangeProgress(peerValue, peerRange)
+      weightedDistance += Math.abs(targetProgress - peerProgress) * weight
+      return
+    }
+
+    const denom = Math.max(Math.abs(targetValue), Math.abs(peerValue), 1)
+    weightedDistance += (Math.abs(targetValue - peerValue) / denom) * weight
+  })
+
+  if (totalWeight <= 0) {
+    return {
+      distance: Number.POSITIVE_INFINITY,
+      overlapRatio: 0,
+      comparableCount: 0,
+    }
+  }
+
+  const overlapRatio = overlapCount / Math.max(keys.size, 1)
+  const normalizedDistance = weightedDistance / totalWeight
+  const coveragePenalty = overlapRatio < 0.5 ? (0.5 - overlapRatio) * 1.5 : 0
+
+  return {
+    distance: normalizedDistance + coveragePenalty,
+    overlapRatio,
+    comparableCount: overlapCount,
+  }
+}
+
+const buildRelistTargets = (entryPrice: number, fairValue: number, peerPrices: number[]) => {
+  const sortedHigherPeers = peerPrices
+    .filter((price) => price > entryPrice)
+    .sort((a, b) => a - b)
+  const nearestHigherPeer = sortedHigherPeers[0]
+  const highestPeer = peerPrices.slice().sort((a, b) => b - a)[0]
+  const quickRelist = nearestHigherPeer
+    ? roundRelistPrice(nearestHigherPeer)
+    : roundRelistPrice(Math.max(fairValue * 0.98, entryPrice))
+  const fairRelist = roundRelistPrice(Math.max(fairValue, entryPrice))
+  const greedyRelist = roundRelistPrice(
+    Math.max(
+      nearestHigherPeer ? Math.min(highestPeer || fairValue, nearestHigherPeer * 1.02) : fairValue * 1.05,
+      fairRelist,
+    )
+  )
+
+  return {
+    quickRelist,
+    fairRelist,
+    greedyRelist,
+  }
+}
+
+const computeScoreModelValuation = (
+  entry: StoredObservedPriceEntry & { score: number },
+  allPeers: Array<StoredObservedPriceEntry & { score: number }>,
+) => {
+  const peers = pickScoreComparablePeers(entry, allPeers.filter((candidate) => candidate.score > 0))
+  if (!peers.length) return null
+
+  const referencePricePerPoint = medianOf(
+    peers.map((peer) => peer.price / peer.score).filter((value) => Number.isFinite(value) && value > 0),
+  )
+
+  if (!referencePricePerPoint) return null
+
+  const fairValue = Math.round(entry.score * referencePricePerPoint)
+  const relists = buildRelistTargets(entry.price, fairValue, peers.map((peer) => peer.price))
+
+  return {
+    modelUsed: 'score' as const,
+    id: entry.id,
+    price: entry.price,
+    score: entry.score,
+    fairValue,
+    delta: entry.price - fairValue,
+    referencePricePerPoint,
+    comparableCount: peers.length,
+    medianPeerDistance: medianOf(peers.map((peer) => Math.abs(peer.score - entry.score))),
+    peerMetricLabel: 'Price / point',
+    peerMetricKind: 'currency' as const,
+    peerMetricValues: Object.fromEntries(peers.map((peer) => [peer.id, peer.price / peer.score])),
+    peers: peers.map((peer) => ({
+      ...peer,
+      distance: Math.abs(peer.score - entry.score),
+    })),
+    ...relists,
+  }
+}
+
+const computeComparableModelValuation = (
+  entry: StoredObservedPriceEntry & { score: number },
+  allPeers: Array<StoredObservedPriceEntry & { score: number }>,
+) => {
+  const peerDistances = allPeers
+    .map((peer) => ({
+      peer,
+      ...computeObservationComparableDistance(entry, peer),
+    }))
+    .filter((candidate) => Number.isFinite(candidate.distance) && candidate.overlapRatio >= 0.35)
+    .sort((a, b) => a.distance - b.distance)
+
+  const peers = peerDistances.slice(0, 4)
+  if (peers.length < 2) return null
+
+  const localReferencePricePerPoint = medianOf(
+    peers.map(({ peer }) => peer.price / peer.score).filter((value) => Number.isFinite(value) && value > 0),
+  )
+  const weightedAdjustedPrices = peers.map(({ peer, distance }) => {
+    const closenessWeight = 1 / Math.max(0.2, distance + 0.05)
+    const scoreAdjustment = localReferencePricePerPoint
+      ? (entry.score - peer.score) * localReferencePricePerPoint * 0.5
+      : 0
+    return {
+      peer,
+      distance,
+      closenessWeight,
+      adjustedPrice: Math.max(0, peer.price + scoreAdjustment),
+    }
+  })
+
+  const weightSum = weightedAdjustedPrices.reduce((sum, candidate) => sum + candidate.closenessWeight, 0)
+  if (weightSum <= 0) return null
+
+  const fairValue = Math.round(
+    weightedAdjustedPrices.reduce((sum, candidate) => sum + candidate.adjustedPrice * candidate.closenessWeight, 0)
+    / weightSum,
+  )
+  const relists = buildRelistTargets(entry.price, fairValue, peers.map(({ peer }) => peer.price))
+
+  return {
+    modelUsed: 'comparables' as const,
+    id: entry.id,
+    price: entry.price,
+    score: entry.score,
+    fairValue,
+    delta: entry.price - fairValue,
+    referencePricePerPoint: localReferencePricePerPoint,
+    comparableCount: peers.length,
+    medianPeerDistance: medianOf(peers.map((candidate) => candidate.distance)),
+    peerMetricLabel: 'Adj. price',
+    peerMetricKind: 'currency' as const,
+    peerMetricValues: Object.fromEntries(weightedAdjustedPrices.map((candidate) => [candidate.peer.id, candidate.adjustedPrice])),
+    peers: peers.map(({ peer, distance, overlapRatio }) => ({
+      ...peer,
+      distance,
+      overlapRatio,
+    })),
+    ...relists,
+  }
 }
 
 const allObservedValuations = computed(() => {
@@ -2079,53 +2330,36 @@ const allObservedValuations = computed(() => {
 
   return withScores.map((entry) => {
     const allPeers = withScores.filter((candidate) => candidate.id !== entry.id && candidate.score > 0)
-    const peers = pickComparablePeers(entry, allPeers)
-    if (!peers.length) {
-      return {
-        id: entry.id,
-        price: entry.price,
-        score: entry.score,
-        fairValue: entry.price,
-        delta: 0,
-        quickRelist: entry.price,
-        fairRelist: entry.price,
-        greedyRelist: entry.price,
-        referencePricePerPoint: 0,
-        comparableCount: 0,
-      }
-    }
+    const scoreValuation = computeScoreModelValuation(entry, allPeers)
+    const comparableValuation = computeComparableModelValuation(entry, allPeers)
 
-    const referencePricePerPoint = medianOf(
-      peers.map((peer) => peer.price / peer.score).filter((value) => Number.isFinite(value) && value > 0)
-    )
-    const fairValue = Math.round(entry.score * referencePricePerPoint)
-    const sortedHigherPeers = peers
-      .filter((peer) => peer.price > entry.price)
-      .sort((a, b) => a.price - b.price)
-    const nearestHigherPeer = sortedHigherPeers[0]
-    const highestPeer = peers.slice().sort((a, b) => b.price - a.price)[0]
-    const quickRelist = nearestHigherPeer
-      ? roundRelistPrice(nearestHigherPeer.price)
-      : roundRelistPrice(Math.max(fairValue * 0.98, entry.price))
-    const fairRelist = roundRelistPrice(Math.max(fairValue, entry.price))
-    const greedyRelist = roundRelistPrice(
-      Math.max(
-        nearestHigherPeer ? Math.min(highestPeer?.price || fairValue, nearestHigherPeer.price * 1.02) : fairValue * 1.05,
-        fairRelist
-      )
-    )
+    const activeValuation = valuationMode.value === 'score'
+      ? scoreValuation
+      : valuationMode.value === 'comparables'
+        ? comparableValuation
+        : comparableValuation && comparableValuation.comparableCount >= 2 && comparableValuation.medianPeerDistance <= 0.7
+          ? comparableValuation
+          : scoreValuation
+
+    if (activeValuation) return activeValuation
 
     return {
+      modelUsed: 'score' as const,
       id: entry.id,
       price: entry.price,
       score: entry.score,
-      fairValue,
-      delta: entry.price - fairValue,
-      quickRelist,
-      fairRelist,
-      greedyRelist,
-      referencePricePerPoint,
-      comparableCount: peers.length,
+      fairValue: entry.price,
+      delta: 0,
+      quickRelist: entry.price,
+      fairRelist: entry.price,
+      greedyRelist: entry.price,
+      referencePricePerPoint: 0,
+      comparableCount: 0,
+      medianPeerDistance: Number.POSITIVE_INFINITY,
+      peerMetricLabel: 'Price / point',
+      peerMetricKind: 'currency' as const,
+      peerMetricValues: {},
+      peers: [],
     }
   })
 })
@@ -2138,11 +2372,6 @@ const bestBuyObservationId = computed(() => {
   const undervalued = allObservedValuations.value.filter((row) => row.delta < 0)
   if (!undervalued.length) return ''
   return undervalued.slice().sort((a, b) => a.delta - b.delta)[0]?.id || ''
-})
-
-const selectedObservedValuations = computed(() => {
-  const selectedIds = new Set(selectedObservedPriceIds.value)
-  return allObservedValuations.value.filter((row) => selectedIds.has(row.id))
 })
 
 const selectedItemObservations = computed(() => {
@@ -2183,23 +2412,20 @@ const selectedItemObservations = computed(() => {
 
 const displayedObservedValuations = computed(() => {
   return showOnlyUndervaluedListings.value
-    ? selectedObservedValuations.value.filter((row) => row.delta < 0)
-    : selectedObservedValuations.value
+    ? allObservedValuations.value.filter((row) => row.delta < 0)
+    : allObservedValuations.value
 })
 
-const valuationSummary = computed(() => {
-  const rows = selectedObservedValuations.value
-  if (!rows.length) {
-    return {
-      referencePricePerPoint: 0,
-    }
+const valuationModeSummary = computed(() => {
+  if (valuationMode.value === 'score') {
+    return 'score model using nearest score peers'
   }
 
-  return {
-    referencePricePerPoint: medianOf(
-      rows.map((row) => row.referencePricePerPoint).filter((value) => value > 0)
-    ),
+  if (valuationMode.value === 'comparables') {
+    return 'stat-profile comparables with weighted peer pricing'
   }
+
+  return 'auto mode: comparables first, score fallback'
 })
 
 const medianAbsoluteDeviation = (values: number[]) => {
@@ -2242,13 +2468,19 @@ const valuationConfidence = computed(() => {
     : 0
 
   const avgComparableCount = rows.reduce((sum, row) => sum + (row.comparableCount ?? 0), 0) / sample
+  const comparableRows = rows.filter((row) => row.modelUsed === 'comparables')
+  const comparableCoverage = comparableRows.length / Math.max(sample, 1)
   const priceRatios = rows
     .map((row) => row.referencePricePerPoint)
     .filter((value) => Number.isFinite(value) && value > 0)
-
   const priceSpreadRatio = priceRatios.length > 1
     ? medianAbsoluteDeviation(priceRatios) / Math.max(medianOf(priceRatios), 1)
     : 1
+  const medianPeerDistance = medianOf(
+    comparableRows
+      .map((row) => row.medianPeerDistance)
+      .filter((value) => Number.isFinite(value) && value >= 0),
+  )
 
   let score = 0
 
@@ -2261,8 +2493,16 @@ const valuationConfidence = computed(() => {
   if (avgCompleteness >= 0.9) score += 2
   else if (avgCompleteness >= 0.7) score += 1
 
-  if (priceSpreadRatio <= 0.08) score += 2
-  else if (priceSpreadRatio <= 0.18) score += 1
+  if (valuationMode.value === 'comparables') {
+    if (medianPeerDistance <= 0.3) score += 2
+    else if (medianPeerDistance <= 0.55) score += 1
+  } else if (valuationMode.value === 'auto') {
+    if (comparableCoverage >= 0.75) score += 2
+    else if (comparableCoverage >= 0.4) score += 1
+  } else {
+    if (priceSpreadRatio <= 0.08) score += 2
+    else if (priceSpreadRatio <= 0.18) score += 1
+  }
 
   const level =
     score >= 7 ? 'high'
@@ -2271,11 +2511,16 @@ const valuationConfidence = computed(() => {
 
   const completenessPct = Math.round(avgCompleteness * 100)
   const spreadPct = Math.round(priceSpreadRatio * 100)
+  const coveragePct = Math.round(comparableCoverage * 100)
 
   return {
     level,
     label: level === 'high' ? 'High confidence' : level === 'medium' ? 'Medium confidence' : 'Low confidence',
-    details: `${sample} usable · ${avgComparableCount.toFixed(1)} comps avg · ${completenessPct}% stats coverage · ${spreadPct}% spread`,
+    details: valuationMode.value === 'comparables'
+      ? `${sample} usable · ${avgComparableCount.toFixed(1)} comps avg · ${completenessPct}% stats coverage · ${medianPeerDistance.toFixed(2)} median distance`
+      : valuationMode.value === 'auto'
+        ? `${sample} usable · ${avgComparableCount.toFixed(1)} comps avg · ${completenessPct}% stats coverage · ${coveragePct}% comparable coverage`
+        : `${sample} usable · ${avgComparableCount.toFixed(1)} comps avg · ${completenessPct}% stats coverage · ${spreadPct}% spread`,
   }
 })
 
@@ -2341,7 +2586,7 @@ const selectedObservationStatsHealth = computed(() => {
     }))
   const unexpected = observation.statsEntries
     .map((entry, index) => ({ entry, index }))
-    .filter(({ entry }) => !expectedKeys.has(entry.key))
+    .filter(({ entry }) => !expectedKeys.has(entry.key) && !specialMageStatKeys.has(entry.key))
     .map(({ entry, index }) => ({ index, label: entry.label || entry.key || `Line ${index + 1}` }))
 
   const duplicates = Array.from(keyCounts.entries())
@@ -2381,27 +2626,39 @@ const selectedObservationValuationExplanation = computed(() => {
     .filter((entry) => entry.score > 0)
 
   const allPeers = withScores.filter((candidate) => candidate.id !== observation.id)
-  const peers = pickComparablePeers({ id: observation.id, score }, allPeers)
-  if (!peers.length) return null
+  const scoreValuation = computeScoreModelValuation({ ...observation, score }, allPeers)
+  const comparableValuation = computeComparableModelValuation({ ...observation, score }, allPeers)
+  const valuation = valuationMode.value === 'score'
+    ? scoreValuation
+    : valuationMode.value === 'comparables'
+      ? comparableValuation
+      : comparableValuation && comparableValuation.comparableCount >= 2 && comparableValuation.medianPeerDistance <= 0.7
+        ? comparableValuation
+        : scoreValuation
+  if (!valuation) return null
 
-  const referencePricePerPoint = medianOf(
-    peers.map((peer) => peer.price / peer.score).filter((value) => Number.isFinite(value) && value > 0),
-  )
-  const fairValue = Math.round(score * referencePricePerPoint)
   const contributions = observation.statsEntries.map((entry, index) => computeObservationStatContribution(entry, index))
 
   return {
-    score,
-    fairValue,
-    delta: observation.price - fairValue,
-    referencePricePerPoint,
+    score: valuation.score,
+    fairValue: valuation.fairValue,
+    delta: valuation.delta,
+    referencePricePerPoint: valuation.referencePricePerPoint,
+    methodLabel: valuation.modelUsed === 'comparables' ? 'Comparables' : 'Score',
+    referenceLabel: valuation.modelUsed === 'comparables' ? 'Median distance' : 'Reference / point',
+    referenceDisplay: valuation.modelUsed === 'comparables'
+      ? valuation.medianPeerDistance.toFixed(2)
+      : formatKamasFull(Math.round(valuation.referencePricePerPoint)),
+    peerMetricLabel: valuation.peerMetricLabel,
     contributions,
-    peers: peers.map((peer) => ({
+    peers: valuation.peers.map((peer) => ({
       id: peer.id,
       price: peer.price,
       score: peer.score,
-      pricePerPoint: peer.price / peer.score,
-      distance: Math.abs(peer.score - score),
+      metricDisplay: valuation.peerMetricKind === 'currency'
+        ? formatKamasFull(Math.round(valuation.peerMetricValues[peer.id] ?? 0))
+        : String(valuation.peerMetricValues[peer.id] ?? '—'),
+      distance: peer.distance,
     })),
   }
 })
@@ -3023,6 +3280,26 @@ const cleanStatLine = (line: string) => {
 }
 
 const parseClientStatLine = (line: string) => {
+  const specialDef = findSpecialMageDef(line)
+  if (specialDef) {
+    const rangeMatch = line.match(/\[[^\]]+\]/)
+    const firstNumberMatch = line.match(/-?\d+/)
+    const value = firstNumberMatch
+      ? Number(firstNumberMatch[0])
+      : specialDef.binary
+        ? 1
+        : null
+
+    return {
+      key: specialDef.key,
+      label: specialDef.label,
+      value: Number.isFinite(value as number) ? value : null,
+      suffix: specialDef.suffix || '',
+      rangeText: rangeMatch?.[0] || '',
+      raw: line,
+    }
+  }
+
   const normalized = normalizeLabelForStatKey(line)
   const exactDef = statsOcrDefs.find((def) =>
     [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
@@ -3040,7 +3317,11 @@ const parseClientStatLine = (line: string) => {
   if (!matchedDef) return null
 
   const firstNumberMatch = line.match(/-?\d+/)
-  const value = firstNumberMatch ? Number(firstNumberMatch[0]) : null
+  const value = firstNumberMatch
+    ? Number(firstNumberMatch[0])
+    : matchedDef.binary
+      ? 1
+      : null
   const rangeMatch = line.match(/\[[^\]]+\]/)
 
   return {
@@ -3056,12 +3337,18 @@ const parseClientStatLine = (line: string) => {
 const extractClientStatEntries = (rawLines: string[]) => {
   const lines = rawLines.map(cleanStatLine).filter(Boolean)
   const candidates = lines.filter((line) => {
-    if (!/\d/.test(line)) return false
     const lower = line.toLowerCase()
     if (lower.includes('niv.') || lower.includes('niveau')) return false
     if (lower.includes('armes') || lower.includes('weapon')) return false
     if (line.length < 4) return false
-    return /[A-Za-zàâäçéèêëîïôöùûüÿœ]/i.test(line)
+    if (!/[A-Za-zàâäçéèêëîïôöùûüÿœ]/i.test(line)) return false
+
+    if (/\d/.test(line)) return true
+
+    const normalized = normalizeLabelForStatKey(line)
+    return statsOcrDefs.some((def) =>
+      def.binary && [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
+    )
   })
 
   const unique: Array<StoredObservedPriceEntry['statsEntries'][number]> = []
@@ -3362,7 +3649,6 @@ const saveOcrSnapshotPrices = async () => {
 
   observedPrices.value = nextObserved
   writeObservedPrices(nextObserved)
-  selectedObservedPriceIds.value = [...new Set([...additions.map((entry) => entry.id), ...selectedObservedPriceIds.value])]
   await scrollSectionIntoView(observedPricesSectionRef)
 }
 
@@ -3436,7 +3722,6 @@ const removeObservation = (observationId: string) => {
   if (selectedObservationId.value === observationId) {
     selectedObservationId.value = ''
   }
-  selectedObservedPriceIds.value = selectedObservedPriceIds.value.filter((id) => id !== observationId)
 }
 
 const openStatsScreenshotPicker = (observationId: string) => {
@@ -3456,20 +3741,6 @@ const closeObservationDetail = () => {
     isLoading: false,
     error: '',
   }
-}
-
-const toggleObservedPriceSelection = (observationId: string) => {
-  selectedObservedPriceIds.value = selectedObservedPriceIds.value.includes(observationId)
-    ? selectedObservedPriceIds.value.filter((id) => id !== observationId)
-    : [...selectedObservedPriceIds.value, observationId]
-}
-
-const selectAllObservedPrices = () => {
-  selectedObservedPriceIds.value = selectedItemObservations.value.map((entry) => entry.id)
-}
-
-const clearObservedPriceSelection = () => {
-  selectedObservedPriceIds.value = []
 }
 
 const updateObservationEntries = (
@@ -3620,7 +3891,6 @@ const resetRecipeView = () => {
   selectedRecipeItem.value = null
   selectedRecipeSellPrice.value = 0
   selectedObservationId.value = ''
-  selectedObservedPriceIds.value = []
   showPriceManager.value = false
   resetOcrState()
   recipeLookupState.value = {
@@ -3842,11 +4112,6 @@ onBeforeUnmount(() => {
 watch(activeSlot, () => {
   resetRecipeView()
   resetAggregateRecipeView()
-})
-
-watch(selectedItemObservations, (observations) => {
-  const validIds = new Set(observations.map((entry) => entry.id))
-  selectedObservedPriceIds.value = selectedObservedPriceIds.value.filter((id) => validIds.has(id))
 })
 
 watch(
