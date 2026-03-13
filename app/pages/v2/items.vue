@@ -257,6 +257,7 @@
             </div>
 
             <template v-else-if="recipeLookupState.data">
+              <div class="v2-section-head">Recipe</div>
               <div class="v2-recipe-stats">
                 <div class="v2-rstat">
                   <div class="v2-rstat__label">Profession</div>
@@ -272,6 +273,7 @@
                 </div>
               </div>
 
+              <div class="v2-section-head">Craft cost</div>
               <div class="v2-recipe-cost">
                 <div class="v2-rstat">
                   <div class="v2-rstat__label">Craft cost</div>
@@ -287,6 +289,7 @@
                 </div>
               </div>
 
+              <div class="v2-section-head">Pricing</div>
               <div class="v2-recipe-sell">
                 <div class="v2-rstat">
                   <div class="v2-rstat__label">Sell price</div>
@@ -326,11 +329,14 @@
               </div>
 
               <div v-if="currentItemPriorityOptions.length" class="v2-priority-panel">
-                <div class="v2-price-manager__head">
+                <div class="v2-price-manager__head v2-collapsible-head" @click="showValuationFocus = !showValuationFocus">
                   <span class="v2-rstat__label">Valuation focus</span>
-                  <span class="v2-recipe-cache-hint">Choose which stats matter more for this item</span>
+                  <div class="v2-collapsible-right">
+                    <span class="v2-recipe-cache-hint">Choose which stats matter more for this item</span>
+                    <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showValuationFocus }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                  </div>
                 </div>
-                <div class="v2-priority-list">
+                <div v-show="showValuationFocus" class="v2-priority-list">
                   <div
                     v-for="option in currentItemPriorityOptions"
                     :key="`priority-${option.key}`"
@@ -709,9 +715,16 @@
                         Best buy
                       </button>
                     </div>
+                    <button class="v2-recipe-refresh v2-remove-all-btn" @click.stop="removeAllObservations">
+                      Remove all
+                    </button>
+                    <button class="v2-recipe-refresh v2-collapse-btn" @click.stop="showObservedPrices = !showObservedPrices">
+                      <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showObservedPrices }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                      {{ showObservedPrices ? 'Collapse' : 'Expand' }}
+                    </button>
                   </div>
                 </div>
-                <div class="v2-observed-prices__list">
+                <div v-show="showObservedPrices" class="v2-observed-prices__list">
                   <div
                     v-for="observation in selectedItemObservations"
                     :key="observation.id"
@@ -794,7 +807,7 @@
                   class="hidden"
                   @change="handleStatsScreenshotChange"
                 />
-                <div v-if="allObservedValuations.length >= 2" class="v2-valuation-panel">
+                <div v-if="allObservedValuations.length >= 2 && showObservedPrices" class="v2-valuation-panel">
                   <div class="v2-price-manager__head">
                     <span class="v2-rstat__label">Listing valuation</span>
                     <div class="v2-observation-summary-actions">
@@ -915,7 +928,11 @@
               </div>
 
               <div class="v2-recipe-list">
-                <div class="v2-recipe-list__head">Ingredients</div>
+                <div class="v2-recipe-list__head v2-collapsible-head" @click="showIngredients = !showIngredients">
+                  Ingredients
+                  <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showIngredients }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+                <div v-show="showIngredients">
                 <div v-if="recipeIngredients.length" class="v2-recipe-lines">
                   <div v-for="ingredient in recipeIngredients" :key="ingredient.id" class="v2-recipe-line">
                     <div class="v2-recipe-line__img-wrap">
@@ -966,6 +983,7 @@
                 </div>
                 <div v-else class="v2-empty-full">
                   No ingredients found for this recipe.
+                </div>
                 </div>
               </div>
             </template>
@@ -1283,6 +1301,8 @@ definePageMeta({ layout: 'v2' })
 const { t } = useI18n()
 const { selectedServer, selectedCharacter } = useV2Context()
 const { entries: resaleTrackerEntries, createEntry: createResaleTrackerEntry } = useResaleTracker()
+const route = useRoute()
+const router = useRouter()
 
 const ELEMENTS = [
   { name: 'eau', icon: '/eau.png' },
@@ -1440,6 +1460,9 @@ const resourcePrices = ref<Record<string, StoredResourcePriceEntry>>({})
 const observedPrices = ref<Record<string, StoredObservedPriceEntry[]>>({})
 const selectedObservationId = ref('')
 const showPriceManager = ref(false)
+const showValuationFocus = ref(true)
+const showObservedPrices = ref(true)
+const showIngredients = ref(true)
 const ocrState = ref<{
   isLoading: boolean
   error: string
@@ -3724,6 +3747,17 @@ const removeObservation = (observationId: string) => {
   }
 }
 
+const removeAllObservations = () => {
+  const itemKey = selectedObservationKey.value
+  if (!itemKey) return
+  if (!confirm(`Remove all ${(observedPrices.value[itemKey] || []).length} observed prices for this item?`)) return
+
+  const nextObserved = { ...observedPrices.value, [itemKey]: [] }
+  observedPrices.value = nextObserved
+  writeObservedPrices(nextObserved)
+  selectedObservationId.value = ''
+}
+
 const openStatsScreenshotPicker = (observationId: string) => {
   pendingStatsObservationId.value = observationId
   statsScreenshotInput.value?.click()
@@ -4071,6 +4105,35 @@ const processData = (equipments: any[]) => {
   }
 }
 
+let hasRestoredFromUrl = false
+
+const restoreFromUrl = async () => {
+  if (hasRestoredFromUrl) return
+  hasRestoredFromUrl = true
+
+  const slot = route.query.slot as string | undefined
+  const itemName = route.query.item as string | undefined
+  const obsId = route.query.obs as string | undefined
+
+  if (!slot && !itemName && !obsId) return
+
+  if (slot && SLOT_GROUPS.some(s => s.key === slot)) {
+    activeSlot.value = slot
+  }
+
+  if (itemName) {
+    await nextTick()
+    const slotKey = slot || activeSlot.value
+    const found = getSlotStats(slotKey)?.topItems?.find((i: any) => i.name === itemName)
+    if (found) await loadRecipeIntoView(found)
+  }
+
+  if (obsId) {
+    selectedObservationId.value = obsId
+    observationDetailTab.value = 'stats'
+  }
+}
+
 const fetchData = async () => {
   loading.value = true
   stats.value = null
@@ -4080,6 +4143,7 @@ const fetchData = async () => {
     const qs = buildQuery()
     const res = await $fetch<any>(`/api/items/items${qs ? '?' + qs : ''}`)
     processData(res?.docs ?? [])
+    await restoreFromUrl()
   } catch {
     stats.value = null
   } finally {
@@ -4109,9 +4173,23 @@ onBeforeUnmount(() => {
   window.removeEventListener('paste', handleGlobalPaste)
 })
 
-watch(activeSlot, () => {
+watch(activeSlot, (slot) => {
   resetRecipeView()
   resetAggregateRecipeView()
+  router.replace({ query: { slot } })
+})
+
+watch(() => selectedRecipeItem.value?.name, (name) => {
+  const q: Record<string, string> = { slot: activeSlot.value }
+  if (name) q.item = name
+  router.replace({ query: q })
+})
+
+watch(selectedObservationId, (id) => {
+  const q: Record<string, string> = { slot: activeSlot.value }
+  if (selectedRecipeItem.value?.name) q.item = selectedRecipeItem.value.name
+  if (id) q.obs = id
+  router.replace({ query: q })
 })
 
 watch(
@@ -4282,11 +4360,11 @@ watch(
   gap: .5rem;
 }
 .v2-observed-prices__row {
-  display: grid;
-  grid-template-columns: auto auto auto 1fr;
-  gap: .75rem;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  padding: .5rem .625rem;
+  gap: .5rem .75rem;
+  padding: .625rem .75rem;
   border-radius: 10px;
   border: 1px solid var(--v2-border-subtle);
   background: rgba(255,255,255,.02);
@@ -4330,6 +4408,7 @@ watch(
   flex-direction: column;
   gap: .35rem;
   min-width: 0;
+  flex: 1;
 }
 .v2-observed-prices__badges {
   display: flex;
@@ -4393,9 +4472,12 @@ watch(
 .v2-observed-prices__actions {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  justify-content: flex-end;
+  gap: .4rem;
+  justify-content: flex-start;
   flex-wrap: wrap;
+  flex-basis: 100%;
+  padding-top: .375rem;
+  border-top: 1px solid var(--v2-border-subtle);
 }
 .v2-valuation-panel {
   display: flex;
@@ -4650,14 +4732,10 @@ watch(
 }
 @media (max-width: 800px) {
   .v2-observed-prices__row {
-    grid-template-columns: 1fr;
-    justify-items: flex-start;
-  }
-  .v2-observed-prices__meta-wrap {
-    width: 100%;
+    gap: .375rem;
   }
   .v2-observed-prices__actions {
-    justify-content: flex-start;
+    padding-top: .25rem;
   }
   .v2-observation-detail__stats-row {
     grid-template-columns: 1fr;
@@ -4840,7 +4918,13 @@ watch(
 .v2-table-pct { font-size: .8125rem; color: var(--v2-accent); font-weight: 600; white-space: nowrap; }
 
 /* ── Recipe view ─────────────────────────────────────────── */
-.v2-recipe-shell { display: flex; flex-direction: column; gap: .875rem; }
+.v2-recipe-shell { display: flex; flex-direction: column; gap: 1.375rem; }
+.v2-section-head {
+  display: flex; align-items: center; gap: .625rem;
+  font-size: .6875rem; text-transform: uppercase; letter-spacing: .08em; color: var(--v2-text-dim); font-weight: 700;
+  margin-bottom: -.5rem;
+}
+.v2-section-head::after { content: ''; flex: 1; height: 1px; background: var(--v2-border-subtle); }
 .v2-recipe-top {
   display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
 }
@@ -4900,7 +4984,7 @@ watch(
 }
 @media (max-width: 760px) { .v2-recipe-stats { grid-template-columns: 1fr; } }
 .v2-rstat {
-  background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle); border-radius: 12px; padding: .875rem 1rem;
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle); border-radius: 12px; padding: 1rem 1.125rem;
 }
 .v2-rstat__label { font-size: .6875rem; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-dim); font-weight: 700; }
 .v2-rstat__val { margin-top: .25rem; font-size: 1rem; color: var(--v2-text); font-weight: 700; }
@@ -4918,7 +5002,14 @@ watch(
 .v2-price-manager {
   background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle); border-radius: 12px; padding: .875rem 1rem;
 }
-.v2-price-manager__head { margin-bottom: .625rem; }
+.v2-price-manager__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .375rem;
+  margin-bottom: .625rem;
+}
 .v2-price-manager__list { display: flex; flex-direction: column; gap: .45rem; }
 .v2-price-manager__row {
   display: grid; grid-template-columns: minmax(0, 1fr) 110px 140px; gap: .5rem; align-items: center;
@@ -4970,6 +5061,15 @@ watch(
 .v2-recipe-list__head {
   padding: .875rem 1rem; border-bottom: 1px solid var(--v2-border-subtle); font-size: .875rem; font-weight: 700; color: var(--v2-text-hover);
 }
+.v2-recipe-list__head.v2-collapsible-head { display: flex; align-items: center; justify-content: space-between; }
+.v2-collapsible-head { cursor: pointer; user-select: none; }
+.v2-collapsible-head:hover .v2-rstat__label { color: var(--v2-text); }
+.v2-collapsible-right { display: flex; align-items: center; gap: .5rem; }
+.v2-collapse-chevron { width: 14px; height: 14px; flex-shrink: 0; color: var(--v2-text-dim); transition: transform .2s ease; }
+.v2-collapse-chevron--open { transform: rotate(180deg); }
+.v2-collapse-btn { display: inline-flex !important; align-items: center; gap: .3rem; }
+.v2-remove-all-btn { color: #fca5a5 !important; border-color: rgba(239,68,68,.35) !important; }
+.v2-remove-all-btn:hover { background: rgba(239,68,68,.12) !important; border-color: rgba(239,68,68,.6) !important; }
 .v2-recipe-lines { display: flex; flex-direction: column; }
 .v2-recipe-line {
   display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border-top: 1px solid var(--v2-hover);

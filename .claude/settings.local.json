@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(find \"C:\\\\Users\\\\ayoub\\\\OneDrive\\\\Bureau\\\\coding-things\\\\dofus-stuff/app\" -type f -name \"*.vue\" | xargs grep -l -i \"item.*view\\\\|item.*modal\\\\|item.*detail\\\\|ItemDetail\\\\|ItemModal\" | head -20)"
     ]
   }
 }
