@@ -84,6 +84,46 @@
         </div>
       </div>
 
+      <!-- Transfer panel -->
+      <div class="rt-transfer-panel">
+        <button class="rt-transfer-panel__head" @click="showTransferPanel = !showTransferPanel">
+          <span class="rt-transfer-panel__title">Transfer character data</span>
+          <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showTransferPanel }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        <div v-show="showTransferPanel" class="rt-transfer-panel__body">
+          <p class="rt-transfer-hint">Reassign all resale entries from one character to another.</p>
+          <div class="rt-transfer-row">
+            <div class="rt-transfer-col">
+              <label class="rt-transfer-label">From</label>
+              <select v-model="transferFromKey" class="rt-transfer-select">
+                <option value="">Select character</option>
+                <option v-for="opt in allCharacterOptions" :key="opt.key" :value="opt.key">{{ opt.label }}</option>
+              </select>
+              <span v-if="transferFromKey" class="rt-transfer-count">{{ transferFromCount }} entries</span>
+            </div>
+            <div class="rt-transfer-arrow">→</div>
+            <div class="rt-transfer-col">
+              <label class="rt-transfer-label">To</label>
+              <select v-model="transferToKey" class="rt-transfer-select">
+                <option value="">Select character</option>
+                <option
+                  v-for="opt in allCharacterOptions.filter(o => o.key !== transferFromKey)"
+                  :key="opt.key"
+                  :value="opt.key"
+                >{{ opt.label }}</option>
+              </select>
+            </div>
+          </div>
+          <button
+            class="rt-transfer-btn"
+            :disabled="!transferFromKey || !transferToKey || transferFromCount === 0"
+            @click="doTransfer"
+          >
+            Transfer {{ transferFromCount }} {{ transferFromCount === 1 ? 'entry' : 'entries' }}
+          </button>
+        </div>
+      </div>
+
       <!-- Status filter tabs -->
       <div class="rt-tabs">
         <button
@@ -364,8 +404,42 @@ definePageMeta({
   layout: 'v2',
 })
 
-const { hasContext, selectedServer, selectedCharacter } = useV2Context()
-const { entries, upsertEntry, updateStatus, addPriceAdjustment, removeEntry } = useResaleTracker()
+const { hasContext, selectedServer, selectedCharacter, servers } = useV2Context()
+const { entries, upsertEntry, updateStatus, addPriceAdjustment, removeEntry, transferEntries } = useResaleTracker()
+
+const showTransferPanel = ref(false)
+const transferFromKey = ref('')
+const transferToKey = ref('')
+
+const allCharacterOptions = computed(() =>
+  servers.value.flatMap(server =>
+    server.characters.map(char => ({
+      key: `${server.id}:${char.id}`,
+      label: `${server.name} · ${char.name}`,
+      serverId: server.id,
+      characterId: char.id,
+    }))
+  )
+)
+
+const transferFromCount = computed(() => {
+  if (!transferFromKey.value) return 0
+  const [sId, cId] = transferFromKey.value.split(':')
+  return entries.value.filter(e => e.serverId === sId && e.characterId === cId).length
+})
+
+const doTransfer = () => {
+  if (!transferFromKey.value || !transferToKey.value) return
+  if (transferFromKey.value === transferToKey.value) return
+  const [fromSid, fromCid] = transferFromKey.value.split(':')
+  const [toSid, toCid] = transferToKey.value.split(':')
+  const count = transferEntries(fromSid, fromCid, toSid, toCid)
+  if (!count) return
+  alert(`${count} entries transferred successfully.`)
+  transferFromKey.value = ''
+  transferToKey.value = ''
+  showTransferPanel.value = false
+}
 
 const statusFilter = ref<'all' | ResaleTrackerStatus>('all')
 const adjustmentDrafts = ref<Record<string, { toPrice: string, reason: string }>>({})
@@ -970,4 +1044,53 @@ function formatRelativeDate(value: string | null | undefined) {
   .rt-actions { flex-direction: column; }
   .rt-adj__head { flex-direction: column; }
 }
+
+/* ── Transfer panel ───────────────────────────────────────── */
+.rt-transfer-panel {
+  margin-bottom: 1rem;
+  border: 1px solid var(--v2-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.rt-transfer-panel__head {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: .75rem 1rem;
+  background: var(--v2-hover-subtle); border: none; cursor: pointer;
+  color: var(--v2-text-secondary);
+}
+.rt-transfer-panel__head:hover { color: var(--v2-text); background: var(--v2-hover); }
+.rt-transfer-panel__title {
+  font-size: .8125rem; font-weight: 600;
+}
+.v2-collapse-chevron {
+  width: 14px; height: 14px; flex-shrink: 0; color: var(--v2-text-dim); transition: transform .2s ease;
+}
+.v2-collapse-chevron--open { transform: rotate(180deg); }
+.rt-transfer-panel__body {
+  display: flex; flex-direction: column; gap: .875rem;
+  padding: 1rem;
+  border-top: 1px solid var(--v2-border);
+}
+.rt-transfer-hint { font-size: .8125rem; color: var(--v2-text-secondary); margin: 0; }
+.rt-transfer-row {
+  display: flex; align-items: flex-end; gap: .75rem; flex-wrap: wrap;
+}
+.rt-transfer-col { display: flex; flex-direction: column; gap: .375rem; flex: 1; min-width: 160px; }
+.rt-transfer-label { font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-dim); }
+.rt-transfer-select {
+  border: 1px solid var(--v2-border); border-radius: 8px;
+  background: rgba(0,0,0,.18); color: var(--v2-text);
+  padding: .4375rem .625rem; font-size: .8125rem; font-weight: 500;
+}
+.rt-transfer-select:focus { outline: none; border-color: var(--v2-border-focus); }
+.rt-transfer-count { font-size: .6875rem; color: var(--v2-accent); font-weight: 700; }
+.rt-transfer-arrow { font-size: 1.25rem; color: var(--v2-text-dim); padding-bottom: .25rem; }
+.rt-transfer-btn {
+  align-self: flex-start;
+  border: 1px solid var(--v2-border); border-radius: 9px;
+  background: rgba(0,0,0,.18); color: var(--v2-text);
+  padding: .5rem 1rem; font-size: .8125rem; font-weight: 700; cursor: pointer;
+}
+.rt-transfer-btn:hover:not(:disabled) { border-color: var(--v2-border-focus); background: var(--v2-hover-subtle); }
+.rt-transfer-btn:disabled { opacity: .45; cursor: not-allowed; }
 </style>

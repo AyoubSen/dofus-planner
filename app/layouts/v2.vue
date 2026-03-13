@@ -99,6 +99,40 @@
 
       <div class="v2-divider" />
 
+      <!-- Storage indicator -->
+      <div ref="storageBarRef">
+        <div v-show="!sidebarCollapsed" class="v2-storage" @click="toggleStorageBreakdown">
+          <div class="v2-storage__row">
+            <span class="v2-storage__label">Storage</span>
+            <span class="v2-storage__val" :class="storageClass">{{ storageUsed }} / {{ storageTotal }}</span>
+          </div>
+          <div class="v2-storage__bar">
+            <div class="v2-storage__fill" :class="storageClass" :style="{ width: storagePct + '%' }" />
+          </div>
+        </div>
+        <div v-show="sidebarCollapsed" class="v2-storage-dot" :class="storageClass" :title="`Storage: ${storageUsed} / ${storageTotal}`" @click="toggleStorageBreakdown" />
+      </div>
+
+      <Teleport to="body">
+        <div v-if="showStorageBreakdown" class="v2-storage-popover" :style="storagePopoverStyle">
+          <div class="v2-storage-popover__head">
+            <span>Storage breakdown</span>
+            <span class="v2-storage-popover__total" :class="storageClass">{{ storageUsed }} / {{ storageTotal }}</span>
+          </div>
+          <div class="v2-storage-popover__list">
+            <div v-for="item in storageBreakdown" :key="item.key" class="v2-storage-popover__row">
+              <div class="v2-storage-popover__name" :title="item.key">{{ item.label }}</div>
+              <div class="v2-storage-popover__right">
+                <div class="v2-storage-popover__bar">
+                  <div class="v2-storage-popover__bar-fill" :style="{ width: item.pct + '%' }" />
+                </div>
+                <span class="v2-storage-popover__size">{{ formatBytes(item.bytes) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
       <!-- Bottom: back to v1 -->
       <div class="v2-sidebar__bottom">
         <NuxtLink
@@ -441,9 +475,97 @@ watch(showAddServer, async (v) => {
   }
 })
 
+const storageBytesUsed = ref(0)
+const storageBarRef = ref<HTMLElement | null>(null)
+const showStorageBreakdown = ref(false)
+const storagePopoverStyle = ref<Record<string, string>>({})
+
+const STORAGE_KEY_LABELS: Record<string, string> = {
+  'dofus-app-store': 'App data (resale, accounts…)',
+  'dofus-items-observed-prices-v1': 'Observed prices + screenshots',
+  'dofus-items-dofusdb-recipe-cache-v1': 'Recipe cache',
+  'dofus-items-resource-prices-v1': 'Resource prices',
+  'dofus-items-stat-priorities-v1': 'Stat priorities',
+  'v2-context': 'Selected character',
+}
+
+const measureStorage = () => {
+  if (!import.meta.client) return
+  let bytes = 0
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key) bytes += (key.length + (localStorage.getItem(key)?.length ?? 0)) * 2
+  }
+  storageBytesUsed.value = bytes
+}
+
+const STORAGE_LIMIT = 10 * 1024 * 1024
+
+const storagePct = computed(() => Math.min((storageBytesUsed.value / STORAGE_LIMIT) * 100, 100))
+
+const formatBytes = (b: number) => {
+  if (b < 1024) return `${b} B`
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`
+  return `${(b / (1024 * 1024)).toFixed(1)} MB`
+}
+
+const storageUsed = computed(() => formatBytes(storageBytesUsed.value))
+const storageTotal = computed(() => formatBytes(STORAGE_LIMIT))
+
+const storageClass = computed(() => {
+  if (storagePct.value >= 90) return 'v2-storage--danger'
+  if (storagePct.value >= 65) return 'v2-storage--warn'
+  return 'v2-storage--ok'
+})
+
+const storageBreakdown = computed(() => {
+  void storageBytesUsed.value // reactive dependency so this re-runs after measureStorage
+  if (!import.meta.client) return []
+  const items = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (!key) continue
+    const val = localStorage.getItem(key) ?? ''
+    const bytes = (key.length + val.length) * 2
+    items.push({
+      key,
+      label: STORAGE_KEY_LABELS[key] ?? key,
+      bytes,
+      pct: Math.min((bytes / STORAGE_LIMIT) * 100, 100),
+    })
+  }
+  return items.sort((a, b) => b.bytes - a.bytes)
+})
+
+const toggleStorageBreakdown = () => {
+  if (!showStorageBreakdown.value && storageBarRef.value) {
+    const rect = storageBarRef.value.getBoundingClientRect()
+    storagePopoverStyle.value = {
+      position: 'fixed',
+      bottom: `${window.innerHeight - rect.bottom}px`,
+      left: `${rect.right + 8}px`,
+      width: '260px',
+    }
+  }
+  showStorageBreakdown.value = !showStorageBreakdown.value
+}
+
+const handleStorageClickOutside = (e: MouseEvent) => {
+  if (showStorageBreakdown.value && storageBarRef.value && !storageBarRef.value.contains(e.target as Node)) {
+    showStorageBreakdown.value = false
+  }
+}
+
 onMounted(() => {
   initV2Theme()
   initContext()
+  measureStorage()
+  setInterval(measureStorage, 30_000)
+  document.addEventListener('click', handleStorageClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleStorageClickOutside)
 })
 </script>
 
@@ -1101,6 +1223,92 @@ onMounted(() => {
 }
 .v2-no-context__title { font-size: 1.25rem; font-weight: 700; color: var(--v2-text); }
 .v2-no-context__desc { font-size: 0.9375rem; max-width: 320px; line-height: 1.6; }
+
+/* ── Storage indicator ───────────────────────────────────── */
+.v2-storage {
+  padding: .5rem .75rem .375rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.v2-storage:hover .v2-storage__label { color: var(--v2-text-secondary); }
+.v2-storage__row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: .3rem;
+}
+.v2-storage__label {
+  font-size: .625rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--v2-text-dimmer);
+}
+.v2-storage__val {
+  font-size: .625rem; font-weight: 700;
+}
+.v2-storage__bar {
+  height: 3px; border-radius: 99px;
+  background: var(--v2-active); overflow: hidden;
+}
+.v2-storage__fill {
+  height: 100%; border-radius: 99px; transition: width .5s ease;
+}
+.v2-storage--ok .v2-storage__fill { background: var(--v2-accent); }
+.v2-storage--ok .v2-storage__val { color: var(--v2-text-dim); }
+.v2-storage--warn .v2-storage__fill { background: #fbbf24; }
+.v2-storage--warn .v2-storage__val { color: #fbbf24; }
+.v2-storage--danger .v2-storage__fill { background: #f87171; }
+.v2-storage--danger .v2-storage__val { color: #f87171; }
+.v2-storage-dot {
+  width: 6px; height: 6px; border-radius: 50%; margin: .5rem auto;
+  flex-shrink: 0; cursor: pointer;
+}
+.v2-storage-dot.v2-storage--ok { background: var(--v2-accent); }
+.v2-storage-dot.v2-storage--warn { background: #fbbf24; }
+.v2-storage-dot.v2-storage--danger { background: #f87171; }
+
+/* ── Storage breakdown popover ───────────────────────────── */
+.v2-storage-popover {
+  z-index: 9999;
+  background: #1e1a14;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: .875rem 1rem;
+  box-shadow: 0 16px 48px rgba(0,0,0,.8);
+  display: flex; flex-direction: column; gap: .625rem;
+  width: 280px;
+}
+.v2-storage-popover__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.v2-storage-popover__head span:first-child {
+  font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: rgba(255,255,255,0.45);
+}
+.v2-storage-popover__total { font-size: .75rem; font-weight: 700; color: #fff; }
+.v2-storage-popover__list {
+  display: flex; flex-direction: column; gap: .5rem;
+  max-height: 240px; overflow-y: auto;
+  padding-right: .25rem;
+}
+.v2-storage-popover__row {
+  display: flex; align-items: center; gap: .625rem;
+}
+.v2-storage-popover__name {
+  font-size: .75rem; color: rgba(255,255,255,0.75); font-weight: 500;
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.v2-storage-popover__bar {
+  width: 60px; flex-shrink: 0; height: 4px; border-radius: 99px;
+  background: rgba(255,255,255,0.1); overflow: hidden;
+}
+.v2-storage-popover__bar-fill {
+  height: 100%; border-radius: 99px;
+  background: #c8a96e; transition: width .3s ease;
+}
+.v2-storage-popover__size {
+  font-size: .75rem; font-weight: 700; color: #fff;
+  white-space: nowrap; min-width: 52px; text-align: right;
+}
 
 /* ── Transitions ─────────────────────────────────────────── */
 .v2-fade-enter-active, .v2-fade-leave-active { transition: opacity 0.2s; }

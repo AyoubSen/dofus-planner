@@ -91,6 +91,24 @@ export const useResaleTracker = () => {
     return data.value.resale.entries.length !== before
   }
 
+  const transferEntries = (
+    fromServerId: string,
+    fromCharacterId: string,
+    toServerId: string,
+    toCharacterId: string,
+  ): number => {
+    init()
+    let count = 0
+    data.value.resale.entries = data.value.resale.entries.map((entry) => {
+      if (entry.serverId === fromServerId && entry.characterId === fromCharacterId) {
+        count++
+        return { ...entry, serverId: toServerId, characterId: toCharacterId }
+      }
+      return entry
+    })
+    return count
+  }
+
   return {
     entries,
     createEntry,
@@ -98,5 +116,6 @@ export const useResaleTracker = () => {
     updateStatus,
     addPriceAdjustment,
     removeEntry,
+    transferEntries,
   }
 }
