@@ -25,6 +25,18 @@ export const themes: Theme[] = [
   }
 ];
 
+const normalizeTheme = (theme: string | null | undefined): ThemeType | null => {
+  if (theme === 'minimal' || theme === 'graphite' || theme === 'amakna') {
+    return theme;
+  }
+
+  if (theme === 'shadcn') {
+    return 'minimal';
+  }
+
+  return null;
+};
+
 export const useTheme = () => {
   const { data, init } = useAppDataStore();
   const currentTheme = useState<ThemeType>('theme', () => 'minimal');
@@ -35,10 +47,10 @@ export const useTheme = () => {
     init();
 
     const savedFromStore = data.value.settings.theme as ThemeType | null;
-    const savedLegacy = localStorage.getItem('theme') as ThemeType | null;
+  const savedLegacy = localStorage.getItem('theme');
     const saved = savedFromStore || savedLegacy;
 
-    const normalizedSaved = saved === 'shadcn' ? 'minimal' : saved;
+  const normalizedSaved = normalizeTheme(saved);
 
     if (normalizedSaved && themes.some(t => t.id === normalizedSaved)) {
       currentTheme.value = normalizedSaved as ThemeType;

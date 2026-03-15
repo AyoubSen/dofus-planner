@@ -63,7 +63,9 @@ const parsePriceFromNumericTokens = (tokens: string[]) => {
     for (let end = normalized.length; end > start; end--) {
       const slice = normalized.slice(start, end)
       if (slice.length < 2) continue
-      if (slice[0].length < 1 || slice[0].length > 3) continue
+      const firstPart = slice[0]
+      if (!firstPart) continue
+      if (firstPart.length < 1 || firstPart.length > 3) continue
       if (!slice.slice(1).every((part) => part.length === 3)) continue
 
       const raw = slice.join('')
@@ -71,12 +73,13 @@ const parsePriceFromNumericTokens = (tokens: string[]) => {
       if (!Number.isFinite(value)) continue
       if (value < 100000 || value > 100000000) continue
 
-      const hasSingleDigitPrefix = start > 0 && normalized[start - 1].length === 1
+      const previousPart = normalized[start - 1]
+      const hasSingleDigitPrefix = start > 0 && previousPart?.length === 1
       if (hasSingleDigitPrefix) {
         return value
       }
 
-      if (slice[0].length >= 2 || slice.length >= 2) {
+      if (firstPart.length >= 2 || slice.length >= 2) {
         return value
       }
     }
@@ -301,7 +304,7 @@ export default defineEventHandler(async (event) => {
 
     const paramsStartedAt = Date.now()
     await worker.setParameters({
-      tessedit_pageseg_mode: '6',
+      tessedit_pageseg_mode: 6 as never,
       tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .,\'-:",
       preserve_interword_spaces: '1',
     })
@@ -310,8 +313,9 @@ export default defineEventHandler(async (event) => {
     const recognizeStartedAt = Date.now()
     const result = await worker.recognize(ocrInput)
     console.log(`[ocr:hdv:${requestId}] recognize ok in ${Date.now() - recognizeStartedAt}ms`)
-    const text = result?.data?.text || ''
-    const wordResult = extractListingCandidatesFromWords(result?.data?.words || [])
+    const ocrData = result?.data as { text?: string; words?: OcrWord[] } | undefined
+    const text = ocrData?.text || ''
+    const wordResult = extractListingCandidatesFromWords(ocrData?.words || [])
     const fallbackResult = extractListingCandidates(text)
     const useWordCandidates = wordResult.candidates.length > 0
 

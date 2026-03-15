@@ -213,7 +213,7 @@ const FILTERS = [
   { l: 'All', v: 'all' },
   { l: 'Completed', v: 'done' },
   { l: 'To do', v: 'todo' },
-]
+] as const
 
 // Completion tracking
 const completedIds = ref<Set<string>>(new Set())

@@ -27,6 +27,7 @@ export interface ArchimonstresProgress {
 
 export interface MonsterStatus {
   captured: boolean
+  count?: number
   sold?: boolean
   notes?: string
 }

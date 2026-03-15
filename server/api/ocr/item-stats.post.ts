@@ -216,7 +216,7 @@ export default defineEventHandler(async (event) => {
 
     const paramsStartedAt = Date.now()
     await worker.setParameters({
-      tessedit_pageseg_mode: '6',
+      tessedit_pageseg_mode: 6 as never,
       tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàâäçéèêëîïôöùûüÿœ%+-[]() .,\'-:",
       preserve_interword_spaces: '1',
     })
@@ -225,9 +225,10 @@ export default defineEventHandler(async (event) => {
     const recognizeStartedAt = Date.now()
     const result = await worker.recognize(ocrInput)
     console.log(`[ocr:stats:${requestId}] recognize ok in ${Date.now() - recognizeStartedAt}ms`)
-    const text = result?.data?.text || ''
-    const ocrLines = Array.isArray(result?.data?.lines)
-      ? result.data.lines
+    const ocrData = result?.data as { text?: string; lines?: Array<{ text?: string }> } | undefined
+    const text = ocrData?.text || ''
+    const ocrLines = Array.isArray(ocrData?.lines)
+      ? ocrData.lines
           .map((line: any) => normalizeLine(line?.text || ''))
           .filter(Boolean)
       : text

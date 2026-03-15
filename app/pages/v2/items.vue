@@ -380,8 +380,22 @@
                     <button class="v2-recipe-refresh" @click="selectedRecipeSellPrice = selectedObservationDetail.price">
                       Use as sell price
                     </button>
+                    <button
+                      v-if="selectedObservationDetail.marketScreenshotDataUrl"
+                      class="v2-recipe-refresh"
+                      @click="clearObservationScreenshots(selectedObservationDetail.id, { market: true })"
+                    >
+                      Remove market screenshot
+                    </button>
                     <button class="v2-recipe-refresh" @click="openStatsScreenshotPicker(selectedObservationDetail.id)">
                       {{ selectedObservationDetail.statsScreenshotDataUrl ? 'Replace stats screenshot' : 'Upload stats screenshot' }}
+                    </button>
+                    <button
+                      v-if="selectedObservationDetail.statsScreenshotDataUrl"
+                      class="v2-recipe-refresh"
+                      @click="clearObservationScreenshots(selectedObservationDetail.id, { stats: true })"
+                    >
+                      Remove stats screenshot
                     </button>
                     <button class="v2-recipe-refresh" @click="pasteStatsScreenshot(selectedObservationDetail.id)">
                       Paste screenshot
@@ -697,6 +711,12 @@
                   <span class="v2-rstat__label">Observed prices</span>
                   <div class="v2-observation-summary-actions">
                     <span class="v2-recipe-cache-hint">{{ selectedItemObservations.length }} saved</span>
+                    <span
+                      v-if="selectedItemScreenshotSummary.totalCount"
+                      class="v2-recipe-cache-hint"
+                    >
+                      {{ selectedItemScreenshotSummary.marketCount }} market · {{ selectedItemScreenshotSummary.statsCount }} stats screenshots
+                    </span>
                     <div class="v2-observed-sort">
                       <span class="v2-recipe-cache-hint">Sort</span>
                       <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'newest' }" @click="observedSortMode = 'newest'">
@@ -715,6 +735,13 @@
                         Best buy
                       </button>
                     </div>
+                    <button
+                      v-if="selectedItemScreenshotSummary.totalCount"
+                      class="v2-recipe-refresh"
+                      @click.stop="clearAllObservationScreenshots"
+                    >
+                      Clear screenshots
+                    </button>
                     <button class="v2-recipe-refresh v2-remove-all-btn" @click.stop="removeAllObservations">
                       Remove all
                     </button>
@@ -769,6 +796,13 @@
                       </div>
                     </div>
                     <div class="v2-observed-prices__actions">
+                      <button
+                        v-if="observation.marketScreenshotDataUrl || observation.statsScreenshotDataUrl"
+                        class="v2-recipe-refresh"
+                        @click="clearObservationScreenshots(observation.id, { market: true, stats: true })"
+                      >
+                        Clear screenshots
+                      </button>
                       <button
                         class="v2-recipe-refresh"
                         @click="openObservationDetail(observation.id)"
@@ -1299,6 +1333,7 @@ import { useResaleTracker } from '../../../composables/useResaleTracker'
 definePageMeta({ layout: 'v2' })
 
 const { t } = useI18n()
+const { appendActivity } = useAppDataStore()
 const { selectedServer, selectedCharacter } = useV2Context()
 const { entries: resaleTrackerEntries, createEntry: createResaleTrackerEntry } = useResaleTracker()
 const route = useRoute()
@@ -2579,6 +2614,23 @@ const selectedObservationDetail = computed(() => {
   return selectedItemObservations.value.find((entry) => entry.id === selectedObservationId.value) || null
 })
 
+const selectedItemScreenshotSummary = computed(() => {
+  const observations = selectedItemObservations.value
+  let marketCount = 0
+  let statsCount = 0
+
+  observations.forEach((entry) => {
+    if (entry.marketScreenshotDataUrl) marketCount += 1
+    if (entry.statsScreenshotDataUrl) statsCount += 1
+  })
+
+  return {
+    marketCount,
+    statsCount,
+    totalCount: marketCount + statsCount,
+  }
+})
+
 const selectedObservationStatsHealth = computed(() => {
   const observation = selectedObservationDetail.value
   if (!observation) {
@@ -3672,6 +3724,23 @@ const saveOcrSnapshotPrices = async () => {
 
   observedPrices.value = nextObserved
   writeObservedPrices(nextObserved)
+  if (selectedServer.value?.id && selectedCharacter.value?.id) {
+    appendActivity({
+      type: 'items',
+      action: 'observations-saved',
+      createdAt,
+      serverId: String(selectedServer.value.id),
+      characterId: String(selectedCharacter.value.id),
+      title: item.name,
+      description: `Saved ${additions.length} observed price${additions.length > 1 ? 's' : ''}`,
+      path: '/v2/items',
+      imageUrl: item.image_url || item.img || '',
+      meta: {
+        itemKey,
+        count: additions.length,
+      },
+    })
+  }
   await scrollSectionIntoView(observedPricesSectionRef)
 }
 
@@ -3729,11 +3798,28 @@ const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) =
     ...resaleTrackerFeedback.value,
     [observation.id]: 'Saved to resale tracker.',
   }
+  appendActivity({
+    type: 'items',
+    action: 'sent-to-resale',
+    serverId: String(selectedServer.value.id),
+    characterId: String(selectedCharacter.value.id),
+    title: observation.itemName || item?.name || 'Unknown item',
+    description: 'Sent observed listing to resale tracker',
+    path: '/v2/items',
+    imageUrl: item?.image_url || item?.img || '',
+    meta: {
+      observationId: observation.id,
+      itemKey,
+      price: observation.price,
+    },
+  })
 }
 
 const removeObservation = (observationId: string) => {
   const itemKey = selectedObservationKey.value
   if (!itemKey) return
+  const removedObservation = (observedPrices.value[itemKey] || []).find((entry) => entry.id === observationId) || null
+  const item = selectedRecipeItem.value
 
   const nextObserved = {
     ...observedPrices.value,
@@ -3745,6 +3831,59 @@ const removeObservation = (observationId: string) => {
   if (selectedObservationId.value === observationId) {
     selectedObservationId.value = ''
   }
+  if (removedObservation && selectedServer.value?.id && selectedCharacter.value?.id) {
+    appendActivity({
+      type: 'items',
+      action: 'observation-removed',
+      serverId: String(selectedServer.value.id),
+      characterId: String(selectedCharacter.value.id),
+      title: removedObservation.itemName || item?.name || 'Unknown item',
+      description: 'Removed an observed listing',
+      path: '/v2/items',
+      imageUrl: item?.image_url || item?.img || '',
+      meta: {
+        observationId,
+        itemKey,
+        price: removedObservation.price,
+      },
+    })
+  }
+}
+
+const clearObservationScreenshots = (
+  observationId: string,
+  options: { market?: boolean; stats?: boolean } = { market: true, stats: true },
+) => {
+  const itemKey = selectedObservationKey.value
+  if (!itemKey) return
+
+  const removeMarket = options.market ?? false
+  const removeStats = options.stats ?? false
+  if (!removeMarket && !removeStats) return
+
+  updateObservationEntries(itemKey, (entry) => {
+    if (entry.id !== observationId) return entry
+    return {
+      ...entry,
+      marketScreenshotDataUrl: removeMarket ? '' : entry.marketScreenshotDataUrl,
+      statsScreenshotDataUrl: removeStats ? '' : entry.statsScreenshotDataUrl,
+      statsRawText: removeStats ? '' : entry.statsRawText,
+    }
+  })
+}
+
+const clearAllObservationScreenshots = () => {
+  const itemKey = selectedObservationKey.value
+  const summary = selectedItemScreenshotSummary.value
+  if (!itemKey || !summary.totalCount) return
+  if (!confirm(`Remove ${summary.totalCount} saved screenshots for this item?`)) return
+
+  updateObservationEntries(itemKey, (entry) => ({
+    ...entry,
+    marketScreenshotDataUrl: '',
+    statsScreenshotDataUrl: '',
+    statsRawText: '',
+  }))
 }
 
 const removeAllObservations = () => {

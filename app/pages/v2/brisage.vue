@@ -942,7 +942,7 @@ const bestItem = computed(() => {
     .filter(e => e.craftPrice > 0)
     .map(e => ({ name: e.item?.name?.fr ?? 'Unknown', margin: (e.runeValue - e.craftPrice) / e.craftPrice }))
   if (!withMargin.length) return null
-  return withMargin.reduce((b, c) => c.margin > b.margin ? c : b, withMargin[0])
+  return withMargin.reduce((b, c) => c.margin > b.margin ? c : b, withMargin[0]!)
 })
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

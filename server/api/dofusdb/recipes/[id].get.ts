@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const query = getQuery(event);
+    const query = getQuery(event) as Record<string, string | number | boolean | null | undefined | Array<string | number | boolean | null | undefined>>;
     return await dofusdbFetch(`/recipes/${encodeURIComponent(id)}`, query);
   } catch (error: any) {
     console.error("Error fetching DofusDB recipe:", error);

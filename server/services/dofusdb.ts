@@ -20,7 +20,7 @@ function buildDofusdbUrl(path: string, query: QueryInput = {}) {
 export async function dofusdbFetch<T = unknown>(
   path: string,
   query: QueryInput = {}
-) {
+): Promise<T> {
   const url = buildDofusdbUrl(path, query);
-  return await $fetch<T>(url, { method: "GET" });
+  return await $fetch(url, { method: "GET" }) as T;
 }

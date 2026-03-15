@@ -46,10 +46,14 @@ export const useV2Context = () => {
 
     // Auto-select if only one server + character
     if (!selectedServerId.value && servers.value.length === 1) {
-      const server = servers.value[0]
-      selectedServerId.value = server.id
+  const server = servers.value[0]
+  if (!server) return
+  selectedServerId.value = server.id
       if (server.characters.length === 1) {
-        selectedCharacterId.value = server.characters[0].id
+    const character = server.characters[0]
+    if (character) {
+      selectedCharacterId.value = character.id
+    }
         persistContext()
       }
     }

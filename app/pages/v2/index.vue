@@ -39,6 +39,7 @@
             {{ monstersCompleted }}<span class="v2-stat-card__of">/{{ totalMonsters }}</span>
           </div>
           <div class="v2-stat-card__label">Archimonstres</div>
+          <div class="v2-stat-card__sub">{{ hasContext ? 'Current character' : 'Select a character' }}</div>
           <div class="v2-progress" style="margin-top:0.5rem">
             <div class="v2-progress__fill" :style="{ width: `${monstersPercent}%` }" />
           </div>
@@ -52,22 +53,25 @@
           </svg>
         </div>
         <div class="v2-stat-card__body">
-          <div class="v2-stat-card__value">{{ salesCount }}</div>
+          <div class="v2-stat-card__value">{{ scopedSalesCount }}</div>
           <div class="v2-stat-card__label">{{ t('v2.dashboard.itemsSold') }}</div>
-          <div class="v2-stat-card__sub">{{ t('v2.dashboard.kamasEarned', { amount: formatKamas(totalKamas) }) }}</div>
+          <div class="v2-stat-card__sub">{{ salesScopeLabel }} · {{ t('v2.dashboard.kamasEarned', { amount: formatKamas(scopedTotalKamas) }) }}</div>
         </div>
       </div>
 
       <div class="v2-stat-card">
         <div class="v2-stat-card__icon" style="background:rgba(96,165,250,.12);color:#60a5fa">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
         <div class="v2-stat-card__body">
-          <div class="v2-stat-card__value">{{ allCharCount }}</div>
-          <div class="v2-stat-card__label">{{ t('v2.dashboard.characters') }}</div>
-          <div class="v2-stat-card__sub">{{ t('v2.dashboard.acrossServers', { count: servers.length }) }}</div>
+          <div class="v2-stat-card__value">{{ resaleActiveCount }}</div>
+          <div class="v2-stat-card__label">Resale</div>
+          <div class="v2-stat-card__sub">
+            {{ resaleScopeLabel }} · {{ resaleSoldCount }} sold · {{ realizedProfitLabel }}
+          </div>
+          <div class="v2-stat-card__sub">{{ resaleHoldLabel }}</div>
         </div>
       </div>
 
@@ -80,49 +84,53 @@
         <div class="v2-stat-card__body">
           <div class="v2-stat-card__value">{{ monstersPercent }}<span style="font-size:1.1rem">%</span></div>
           <div class="v2-stat-card__label">{{ t('v2.dashboard.overallCompletion') }}</div>
-          <div class="v2-stat-card__sub">{{ t('v2.dashboard.monstersCollected', { count: monstersCompleted }) }}</div>
+          <div class="v2-stat-card__sub">{{ hasContext ? 'Current character' : 'No character selected' }} · {{ t('v2.dashboard.monstersCollected', { count: monstersCompleted }) }}</div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom: recent sales + quick nav -->
+    <!-- Bottom: activity + quick nav -->
     <div class="v2-dash-bottom">
-      <!-- Recent sales -->
+      <!-- Activity feed -->
       <div class="v2-card v2-dash-panel">
         <div class="v2-dash-panel__header">
-          <h2 class="v2-dash-panel__title">{{ t('v2.dashboard.recentSales') }}</h2>
-          <NuxtLink :to="localePath('/v2/items')" class="v2-dash-panel__link">{{ t('v2.dashboard.viewAll') }} →</NuxtLink>
+          <h2 class="v2-dash-panel__title">{{ activityFeedTitle }}</h2>
+          <span class="v2-dash-panel__link">{{ activityScopeLabel }}</span>
         </div>
 
-        <div v-if="recentSales.length === 0" class="v2-dash-empty">
+        <div v-if="activityFeed.length === 0" class="v2-dash-empty">
           <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.2">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p>{{ t('v2.dashboard.noSales') }}</p>
-          <NuxtLink :to="localePath('/v2/items')" class="v2-btn-gold mt-3 px-4 py-2 text-sm font-semibold inline-block">
-            {{ t('v2.dashboard.trackFirstSale') }} →
+          <p>{{ activityFeedEmptyMessage }}</p>
+          <NuxtLink :to="localePath('/v2/archimonstres')" class="v2-btn-gold mt-3 px-4 py-2 text-sm font-semibold inline-block">
+            Open a tracker →
           </NuxtLink>
         </div>
 
         <div v-else class="v2-dash-sales">
-          <div v-for="sale in recentSales" :key="sale.id" class="v2-dash-sale">
+          <div v-for="activity in activityFeed" :key="activity.id" class="v2-dash-sale">
             <div class="v2-dash-sale__img">
               <img
-                v-if="sale.item?.img"
-                :src="sale.item.img"
-                :alt="sale.item?.name?.fr"
+                v-if="activity.imageUrl"
+                :src="activity.imageUrl"
+                :alt="activity.title"
                 class="w-full h-full object-cover"
                 @error="(e: Event) => { (e.target as HTMLImageElement).style.display='none' }"
               />
-              <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.3">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
+              <div
+                v-else
+                class="v2-dash-sale__icon-fallback"
+                :style="{ color: activity.color, background: `${activity.color}18` }"
+              >
+                <component :is="activity.icon" class="w-5 h-5" />
+              </div>
             </div>
             <div class="v2-dash-sale__info">
-              <div class="v2-dash-sale__name">{{ sale.item?.name?.fr || sale.item?.name?.en || t('v2.dashboard.itemFallback') }}</div>
-              <div class="v2-dash-sale__meta">{{ sale.character }} · {{ formatDate(sale.dateSold) }}</div>
+              <div class="v2-dash-sale__name">{{ activity.title }}</div>
+              <div class="v2-dash-sale__meta">{{ activity.description }} · {{ formatDate(activity.date) }}</div>
             </div>
-            <div class="v2-dash-sale__price">{{ formatKamas(sale.price) }}</div>
+            <NuxtLink :to="localePath(activity.path)" class="v2-dash-panel__link">{{ activity.cta }} →</NuxtLink>
           </div>
         </div>
       </div>
@@ -153,10 +161,13 @@
 </template>
 
 <script setup lang="ts">
+import monstersJson from '@/data/monsters.json'
+
 definePageMeta({ layout: 'v2' })
 
 const localePath = useLocalePath()
-const { t } = useI18n()
+const { $i18n } = useNuxtApp()
+const t = $i18n.t.bind($i18n)
 const { data } = useAppDataStore()
 const { servers, selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 
@@ -167,25 +178,128 @@ const charColor = computed(() => {
   return COLORS[h % COLORS.length]
 })
 
-// Monster stats
-const totalMonsters = ref(0)
-const monstersCompleted = ref(0)
+const archiMonsters = monstersJson.filter((monster) => monster.type === 'archimonstre')
+const totalMonsters = archiMonsters.length
+const monstersCompleted = computed(() => {
+  const progress = selectedCharacter.value?.archimonstresProgress?.monsters
+  if (!progress) return 0
+
+  return archiMonsters.reduce((count, monster) => {
+    return progress[String(monster.id)]?.captured ? count + 1 : count
+  }, 0)
+})
 const monstersPercent = computed(() =>
-  totalMonsters.value > 0 ? Math.round((monstersCompleted.value / totalMonsters.value) * 100) : 0
+  totalMonsters > 0 ? Math.round((monstersCompleted.value / totalMonsters) * 100) : 0
 )
+const archiCompletedCountForCharacter = (character: any) => {
+  const progress = character?.archimonstresProgress?.monsters
+  if (!progress) return 0
+
+  return archiMonsters.reduce((count, monster) => {
+    return progress[String(monster.id)]?.captured ? count + 1 : count
+  }, 0)
+}
 
 // Sales
 const allSales = computed(() => (data.value.sales?.items ?? []) as any[])
-const salesCount = computed(() => allSales.value.length)
-const totalKamas = computed(() => allSales.value.reduce((s, i) => s + (i.price || 0), 0))
-const recentSales = computed(() =>
-  [...allSales.value]
-    .sort((a, b) => new Date(b.dateSold).getTime() - new Date(a.dateSold).getTime())
-    .slice(0, 6)
+const selectedCharacterSales = computed(() => {
+  if (!selectedCharacter.value || !selectedServer.value) return []
+  return allSales.value.filter((sale) =>
+    String(sale.characterId) === String(selectedCharacter.value?.id)
+    && String(sale.serverId) === String(selectedServer.value?.id)
+  )
+})
+const scopedSales = computed(() => (hasContext.value ? selectedCharacterSales.value : allSales.value))
+const scopedSalesCount = computed(() => scopedSales.value.length)
+const scopedTotalKamas = computed(() => scopedSales.value.reduce((sum, sale) => sum + (sale.price || 0), 0))
+const salesScopeLabel = computed(() => hasContext.value ? 'Current character' : 'All accounts')
+const activityScopeLabel = computed(() => hasContext.value ? 'Current character' : 'All accounts')
+const activityFeedTitle = computed(() => hasContext.value ? 'Recent activity for current character' : 'Recent activity')
+const activityFeedEmptyMessage = computed(() => hasContext.value ? 'No tracked activity for this character yet.' : 'No tracked activity yet.')
+const scopedActivityEntries = computed(() => {
+  const entries = data.value.activity?.entries ?? []
+  if (!hasContext.value || !selectedCharacter.value || !selectedServer.value) return entries
+  return entries.filter((entry) =>
+    String(entry.characterId) === String(selectedCharacter.value?.id)
+    && String(entry.serverId) === String(selectedServer.value?.id)
+  )
+})
+
+const scopedResaleEntries = computed(() => {
+  const entries = data.value.resale?.entries ?? []
+  if (!hasContext.value || !selectedCharacter.value || !selectedServer.value) return entries
+  return entries.filter((entry) =>
+    String(entry.characterId) === String(selectedCharacter.value?.id)
+    && String(entry.serverId) === String(selectedServer.value?.id)
+  )
+})
+const resaleActiveEntries = computed(() =>
+  scopedResaleEntries.value.filter((entry) =>
+    entry.status === 'watched'
+    || entry.status === 'bought'
+    || entry.status === 'listed',
+  ),
+)
+const resaleSoldEntries = computed(() =>
+  scopedResaleEntries.value.filter((entry) => entry.status === 'sold'),
+)
+const resaleActiveCount = computed(() => resaleActiveEntries.value.length)
+const resaleSoldCount = computed(() => resaleSoldEntries.value.length)
+const realizedProfit = computed(() =>
+  resaleSoldEntries.value.reduce((total, entry) => total + ((entry.soldPrice ?? 0) - (entry.buyPrice ?? 0)), 0),
+)
+const averageResaleHoldDurationMs = computed(() => {
+  const values = resaleSoldEntries.value
+    .map((entry) => getDurationMs(entry.boughtAt, entry.soldAt))
+    .filter((value): value is number => value != null)
+
+  if (!values.length) return null
+  return values.reduce((sum, value) => sum + value, 0) / values.length
+})
+const resaleScopeLabel = computed(() => hasContext.value ? 'Current character' : 'All accounts')
+const realizedProfitLabel = computed(() =>
+  `${realizedProfit.value >= 0 ? '+' : ''}${formatKamas(Math.abs(realizedProfit.value))}${realizedProfit.value < 0 ? ' loss' : ' realized'}`
+)
+const resaleHoldLabel = computed(() =>
+  averageResaleHoldDurationMs.value == null
+    ? 'Avg hold: n/a'
+    : `Avg hold: ${formatDuration(averageResaleHoldDurationMs.value)}`
 )
 
-// Accounts
-const allCharCount = computed(() => servers.value.reduce((s, sv) => s + sv.characters.length, 0))
+const activityFeed = computed(() =>
+  scopedActivityEntries.value
+    .map((entry) => ({
+      id: entry.id,
+      date: entry.createdAt,
+      title: entry.title,
+      description: entry.description,
+      path: entry.path,
+      cta: entry.type === 'resale'
+        ? 'Open resale'
+        : entry.type === 'archimonstres'
+          ? 'Open archimonstres'
+          : entry.type === 'sales'
+            ? 'Open items'
+            : 'Open',
+      color: entry.type === 'resale'
+        ? '#22c55e'
+        : entry.type === 'archimonstres'
+          ? '#f87171'
+          : entry.type === 'sales'
+            ? '#fcd34d'
+            : '#60a5fa',
+      icon: resolveComponent(
+        entry.type === 'resale'
+          ? 'IconsIconItems'
+          : entry.type === 'archimonstres'
+            ? 'IconsIconArchimonstres'
+            : 'IconsIconItems'
+      ),
+      imageUrl: entry.imageUrl || '',
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 8)
+)
 
 const formatKamas = (n: number) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -199,29 +313,37 @@ const formatDate = (d: string) => {
   if (diff < 7) return t('v2.dashboard.daysAgo', { count: diff })
   return new Date(d).toLocaleDateString()
 }
+const getDurationMs = (start: string | null | undefined, end: string | null | undefined) => {
+  if (!start || !end) return null
 
+  const startMs = new Date(start).getTime()
+  const endMs = new Date(end).getTime()
+  if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs < startMs) return null
+
+  return endMs - startMs
+}
+const formatDuration = (value: number | null) => {
+  if (value == null) return 'n/a'
+
+  const totalHours = Math.round(value / (1000 * 60 * 60))
+  if (totalHours < 24) return `${totalHours}h`
+
+  const totalDays = Math.round(totalHours / 24)
+  if (totalDays < 30) return `${totalDays}d`
+
+  return `${(totalDays / 30).toFixed(1)}mo`
+}
 const quickItems = [
   { path: '/v2/archimonstres', label: 'nav.archimonstres', icon: resolveComponent('IconsIconArchimonstres'), color: '#f87171' },
   { path: '/v2/items', label: 'nav.items', icon: resolveComponent('IconsIconItems'), color: '#60a5fa' },
+  { path: '/v2/resale', label: 'nav.resale', icon: resolveComponent('IconsIconItems'), color: '#22c55e' },
   { path: '/v2/crafting', label: 'nav.crafting', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },
+  { path: '/v2/brisage', label: 'nav.brisage', icon: resolveComponent('IconsIconBrisage'), color: '#a78bfa' },
   { path: '/v2/succes', label: 'nav.succes', icon: resolveComponent('IconsIconSucces'), color: '#fcd34d' },
+  { path: '/v2/familiers', label: 'nav.familiers', icon: resolveComponent('IconsIconFamiliers'), color: '#fb923c' },
 ]
 
-const loadMonsterStats = async () => {
-  if (!import.meta.client || !selectedCharacter.value || !selectedServer.value) return
-  try {
-    const raw = localStorage.getItem('archimonstres-monsters')
-    const monsters: any[] = raw ? JSON.parse(raw) : (await import('@/data/monsters.json')).default as any[]
-    totalMonsters.value = monsters.length
-    monstersCompleted.value = monsters.filter(m => {
-      const key = `monster_count_${selectedServer.value!.id}_${selectedCharacter.value!.id}_${m.id}`
-      return parseInt(localStorage.getItem(key) ?? '0', 10) > 0
-    }).length
-  } catch {}
-}
-
-onMounted(() => { initContext(); loadMonsterStats() })
-watch([selectedCharacter, selectedServer], loadMonsterStats)
+onMounted(() => { initContext() })
 </script>
 
 <style scoped>
@@ -305,6 +427,13 @@ watch([selectedCharacter, selectedServer], loadMonsterStats)
   width: 38px; height: 38px; border-radius: 9px;
   background: var(--v2-border-subtle); overflow: hidden;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--v2-text-dim);
+}
+.v2-dash-sale__icon-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .v2-dash-sale__info { flex: 1; min-width: 0; }
 .v2-dash-sale__name { font-size: .875rem; font-weight: 600; color: var(--v2-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

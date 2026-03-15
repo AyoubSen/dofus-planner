@@ -149,8 +149,8 @@
           <!-- Entry header -->
           <div class="rt-entry__header">
             <img
-              v-if="entry.itemImage"
-              :src="entry.itemImage"
+              v-if="entry.itemImageUrl"
+              :src="entry.itemImageUrl"
               :alt="entry.itemName"
               class="rt-entry__img"
             >
@@ -397,7 +397,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ResaleTrackerEntry, ResaleTrackerStatus } from '~/app/composables/useAppDataStore'
+import type { ResaleTrackerEntry, ResaleTrackerStatus } from '../../composables/useAppDataStore'
 import { useResaleTracker } from '../../../composables/useResaleTracker'
 
 definePageMeta({
@@ -433,6 +433,7 @@ const doTransfer = () => {
   if (transferFromKey.value === transferToKey.value) return
   const [fromSid, fromCid] = transferFromKey.value.split(':')
   const [toSid, toCid] = transferToKey.value.split(':')
+  if (!fromSid || !fromCid || !toSid || !toCid) return
   const count = transferEntries(fromSid, fromCid, toSid, toCid)
   if (!count) return
   alert(`${count} entries transferred successfully.`)
@@ -708,7 +709,7 @@ function averageDuration(values: number[]) {
 }
 
 function getEstimate(entry: ResaleTrackerEntry, ...keys: string[]) {
-  const rawEntry = entry as Record<string, unknown>
+  const rawEntry = entry as unknown as Record<string, unknown>
 
   for (const key of keys) {
     const value = rawEntry[key]

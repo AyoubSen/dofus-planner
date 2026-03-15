@@ -50,6 +50,22 @@ export interface ResaleTrackerEntry {
   notes: string
 }
 
+export type AppActivityType = 'archimonstres' | 'resale' | 'sales' | 'items'
+
+export interface AppActivityEntry {
+  id: string
+  type: AppActivityType
+  action: string
+  createdAt: string
+  serverId: string | null
+  characterId: string | null
+  title: string
+  description: string
+  path: string
+  imageUrl: string
+  meta?: Record<string, string | number | boolean | null>
+}
+
 export interface AppDataStore {
   version: number
   metadata: {
@@ -74,13 +90,16 @@ export interface AppDataStore {
   resale: {
     entries: ResaleTrackerEntry[]
   }
+  activity: {
+    entries: AppActivityEntry[]
+  }
 }
 
 const STORAGE_KEY = 'dofus-app-store'
 const MIGRATION_BACKUP_PREFIX = 'dofus-app-store-backup'
 const MIGRATION_LOG_KEY = 'dofus-app-store-last-migration'
 const LAST_BACKUP_POINTER_KEY = 'dofus-app-store-last-backup-key'
-const STORAGE_VERSION = 3
+const STORAGE_VERSION = 4
 
 const LEGACY_KEYS = {
   accounts: 'dofus-game-accounts',
@@ -137,6 +156,9 @@ const createDefaultStore = (): AppDataStore => {
       items: [],
     },
     resale: {
+      entries: [],
+    },
+    activity: {
       entries: [],
     },
   }
@@ -200,6 +222,7 @@ const coerceStoreShape = (input: unknown): AppDataStore | null => {
   const inputAchievements = isObject(input.achievements) ? input.achievements : {}
   const inputSales = isObject(input.sales) ? input.sales : {}
   const inputResale = isObject(input.resale) ? input.resale : {}
+  const inputActivity = isObject(input.activity) ? input.activity : {}
 
   return {
     version:
@@ -261,6 +284,27 @@ const coerceStoreShape = (input: unknown): AppDataStore | null => {
           })) as ResaleTrackerEntry[]
         : [],
     },
+    activity: {
+      entries: Array.isArray(inputActivity.entries)
+        ? (inputActivity.entries as any[])
+          .filter(isObject)
+          .map((entry) => ({
+            id: typeof entry.id === 'string' && entry.id
+              ? entry.id
+              : `activity-${new Date().toISOString()}-${Math.random().toString(36).slice(2, 8)}`,
+            type: typeof entry.type === 'string' ? entry.type as AppActivityType : 'items',
+            action: typeof entry.action === 'string' ? entry.action : 'updated',
+            createdAt: typeof entry.createdAt === 'string' ? entry.createdAt : new Date().toISOString(),
+            serverId: typeof entry.serverId === 'string' ? entry.serverId : null,
+            characterId: typeof entry.characterId === 'string' ? entry.characterId : null,
+            title: typeof entry.title === 'string' ? entry.title : 'Activity',
+            description: typeof entry.description === 'string' ? entry.description : '',
+            path: typeof entry.path === 'string' ? entry.path : '/v2',
+            imageUrl: typeof entry.imageUrl === 'string' ? entry.imageUrl : '',
+            meta: isObject(entry.meta) ? entry.meta as Record<string, string | number | boolean | null> : undefined,
+          })) as AppActivityEntry[]
+        : [],
+    },
   }
 }
 
@@ -301,9 +345,29 @@ const migrationV2ToV3: MigrationFn = (store) => {
   }
 }
 
+const migrationV3ToV4: MigrationFn = (store) => {
+  const now = new Date().toISOString()
+  return {
+    ...store,
+    version: 4,
+    activity: {
+      entries: Array.isArray((store as AppDataStore).activity?.entries)
+        ? (store as AppDataStore).activity.entries
+        : [],
+    },
+    metadata: {
+      ...store.metadata,
+      updatedAt: now,
+      lastMigrationAt: now,
+      lastMigratedFrom: 3,
+    },
+  }
+}
+
 const migrations: Record<number, MigrationFn> = {
   1: migrationV1ToV2,
   2: migrationV2ToV3,
+  3: migrationV3ToV4,
 }
 
 const saveBackupSnapshot = (
@@ -358,6 +422,7 @@ const mergeServers = (current: Server[], incoming: Server[]): Server[] => {
     }
 
     const existingServer = merged[serverIndex]
+    if (!existingServer) continue
     for (const incomingChar of incomingServer.characters || []) {
       const existingCharIndex = existingServer.characters.findIndex(
         (char) => char.name.toLowerCase().trim() === incomingChar.name.toLowerCase().trim()
@@ -404,6 +469,14 @@ const mergeStores = (current: AppDataStore, incoming: AppDataStore): AppDataStor
     mergedResaleMap.set(entry.id, entry)
   }
 
+  const mergedActivityMap = new Map<string, AppActivityEntry>()
+  for (const entry of current.activity.entries) {
+    mergedActivityMap.set(entry.id, entry)
+  }
+  for (const entry of incoming.activity.entries) {
+    mergedActivityMap.set(entry.id, entry)
+  }
+
   return {
     ...current,
     version: STORAGE_VERSION,
@@ -423,6 +496,11 @@ const mergeStores = (current: AppDataStore, incoming: AppDataStore): AppDataStor
     resale: {
       entries: Array.from(mergedResaleMap.values()),
     },
+    activity: {
+      entries: Array.from(mergedActivityMap.values())
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 200),
+    },
     metadata: {
       ...current.metadata,
       updatedAt: new Date().toISOString(),
@@ -436,6 +514,21 @@ export const useAppDataStore = () => {
   const data = useState<AppDataStore>('app-data-store', createDefaultStore)
   const isInitialized = useState<boolean>('app-data-store-initialized', () => false)
   let isPersisting = false
+
+  const appendActivity = (entry: Omit<AppActivityEntry, 'id' | 'createdAt'> & { id?: string; createdAt?: string }) => {
+    init()
+    const createdAt = entry.createdAt || new Date().toISOString()
+    const activity: AppActivityEntry = {
+      id: entry.id || `activity-${createdAt}-${Math.random().toString(36).slice(2, 8)}`,
+      createdAt,
+      ...entry,
+    }
+    data.value.activity.entries.unshift(activity)
+    if (data.value.activity.entries.length > 200) {
+      data.value.activity.entries = data.value.activity.entries.slice(0, 200)
+    }
+    return activity
+  }
 
   const persist = () => {
     if (!import.meta.client || !isInitialized.value || isPersisting) return
@@ -647,6 +740,7 @@ export const useAppDataStore = () => {
   return {
     data,
     init,
+    appendActivity,
     createBackup,
     exportStore,
     importStore,

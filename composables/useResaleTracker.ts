@@ -1,4 +1,4 @@
-import type { ResalePriceAdjustment, ResaleTrackerEntry, ResaleTrackerStatus } from '~/app/composables/useAppDataStore'
+import type { ResalePriceAdjustment, ResaleTrackerEntry, ResaleTrackerStatus } from '../app/composables/useAppDataStore'
 
 const createResaleEntryId = () =>
   `resale-${new Date().toISOString()}-${Math.random().toString(36).slice(2, 8)}`
@@ -10,7 +10,7 @@ const cloneResaleEntry = (entry: ResaleTrackerEntry): ResaleTrackerEntry => ({
 })
 
 export const useResaleTracker = () => {
-  const { data, init } = useAppDataStore()
+  const { data, init, appendActivity } = useAppDataStore()
 
   const entries = computed(() => data.value.resale.entries)
 
@@ -40,6 +40,20 @@ export const useResaleTracker = () => {
       priceAdjustments: input.priceAdjustments ? input.priceAdjustments.map((adjustment) => ({ ...adjustment })) : [],
     }
     data.value.resale.entries.unshift(entry)
+    appendActivity({
+      type: 'resale',
+      action: 'created',
+      serverId: entry.serverId,
+      characterId: entry.characterId,
+      title: entry.itemName,
+      description: `Started resale tracking as ${entry.status}`,
+      path: '/v2/resale',
+      imageUrl: entry.itemImageUrl || '',
+      meta: {
+        resaleId: entry.id,
+        status: entry.status,
+      },
+    })
     return entry
   }
 
@@ -54,6 +68,21 @@ export const useResaleTracker = () => {
     if (status === 'listed') entry.listedAt = changedAt
     if (status === 'sold') entry.soldAt = changedAt
     if (status === 'cancelled') entry.cancelledAt = changedAt
+    appendActivity({
+      type: 'resale',
+      action: `status:${status}`,
+      createdAt: changedAt,
+      serverId: entry.serverId,
+      characterId: entry.characterId,
+      title: entry.itemName,
+      description: `Marked resale as ${status}`,
+      path: '/v2/resale',
+      imageUrl: entry.itemImageUrl || '',
+      meta: {
+        resaleId: entry.id,
+        status,
+      },
+    })
     return entry
   }
 
@@ -81,13 +110,45 @@ export const useResaleTracker = () => {
     entry.priceAdjustments.unshift(adjustment)
     entry.listPrice = adjustment.toPrice
     entry.updatedAt = createdAt
+    appendActivity({
+      type: 'resale',
+      action: 'repriced',
+      createdAt,
+      serverId: entry.serverId,
+      characterId: entry.characterId,
+      title: entry.itemName,
+      description: `Repriced from ${adjustment.fromPrice} to ${adjustment.toPrice}`,
+      path: '/v2/resale',
+      imageUrl: entry.itemImageUrl || '',
+      meta: {
+        resaleId: entry.id,
+        fromPrice: adjustment.fromPrice,
+        toPrice: adjustment.toPrice,
+      },
+    })
     return adjustment
   }
 
   const removeEntry = (id: string) => {
     init()
+    const removed = data.value.resale.entries.find((entry) => entry.id === id)
     const before = data.value.resale.entries.length
     data.value.resale.entries = data.value.resale.entries.filter((entry) => entry.id !== id)
+    if (removed && data.value.resale.entries.length !== before) {
+      appendActivity({
+        type: 'resale',
+        action: 'removed',
+        serverId: removed.serverId,
+        characterId: removed.characterId,
+        title: removed.itemName,
+        description: 'Removed resale entry',
+        path: '/v2/resale',
+        imageUrl: removed.itemImageUrl || '',
+        meta: {
+          resaleId: removed.id,
+        },
+      })
+    }
     return data.value.resale.entries.length !== before
   }
 

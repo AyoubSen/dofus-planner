@@ -606,6 +606,7 @@
 import monstersJson from '@/data/monsters.json'
 definePageMeta({ layout: 'v2' })
 
+const { appendActivity } = useAppDataStore()
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 
 // ── Shared ──────────────────────────────────────────────────────────────────
@@ -665,20 +666,119 @@ const key = (m: any) =>
 
 const getCount = (m: any) => counts[m.id] ?? 0
 
+const ensureArchimonstresProgress = () => {
+  if (!selectedCharacter.value) return null
+
+  if (!selectedCharacter.value.archimonstresProgress) {
+    selectedCharacter.value.archimonstresProgress = {
+      mode: 'ocre',
+      monsters: {},
+      lastUpdated: new Date().toISOString(),
+    }
+  }
+
+  return selectedCharacter.value.archimonstresProgress
+}
+
+const getStoredCountFromProgress = (monsterId: string | number) => {
+  const entry = selectedCharacter.value?.archimonstresProgress?.monsters?.[String(monsterId)]
+  if (!entry) return null
+  if (typeof entry.count === 'number' && Number.isFinite(entry.count)) {
+    return Math.max(0, entry.count)
+  }
+  return entry.captured ? 1 : 0
+}
+
+const persistMonsterCount = (monsterId: string | number, count: number) => {
+  const progress = ensureArchimonstresProgress()
+  if (!progress) return
+
+  const normalizedCount = Math.max(0, Math.floor(count))
+  const existing = progress.monsters[String(monsterId)]
+
+  progress.mode = 'ocre'
+  progress.monsters[String(monsterId)] = {
+    captured: normalizedCount > 0,
+    count: normalizedCount,
+    sold: existing?.sold,
+    notes: existing?.notes,
+  }
+  progress.lastUpdated = new Date().toISOString()
+}
+
 const loadCounts = () => {
+  Object.keys(counts).forEach((monsterId) => {
+    counts[monsterId] = 0
+  })
+
   if (!monsters.value.length || !selectedCharacter.value) return
+  let migratedLegacyData = false
+
   monsters.value.forEach(m => {
-    counts[m.id] = parseInt(localStorage.getItem(key(m)) ?? '0', 10)
+    const progressCount = getStoredCountFromProgress(m.id)
+    if (progressCount !== null) {
+      counts[m.id] = progressCount
+      return
+    }
+
+    const legacyCount = parseInt(localStorage.getItem(key(m)) ?? '0', 10)
+    counts[m.id] = legacyCount
+    if (legacyCount > 0) {
+      persistMonsterCount(m.id, legacyCount)
+      migratedLegacyData = true
+    }
+  })
+
+  if (migratedLegacyData) {
+    const progress = ensureArchimonstresProgress()
+    if (progress) {
+      progress.lastUpdated = new Date().toISOString()
+    }
+  }
+}
+
+const logMonsterCountActivity = (monster: any, previousCount: number, nextCount: number) => {
+  if (!selectedServer.value?.id || !selectedCharacter.value?.id || previousCount === nextCount) return
+
+  appendActivity({
+    type: 'archimonstres',
+    action: nextCount > previousCount ? 'count-increased' : 'count-decreased',
+    serverId: String(selectedServer.value.id),
+    characterId: String(selectedCharacter.value.id),
+    title: monster.nom || 'Archimonstre',
+    description: nextCount > previousCount
+      ? `Count increased to ${nextCount}`
+      : nextCount === 0
+        ? 'Removed from tracked captures'
+        : `Count decreased to ${nextCount}`,
+    path: '/v2/archimonstres',
+    imageUrl: getMonsterImg(monster),
+    meta: {
+      monsterId: monster.id,
+      previousCount,
+      nextCount,
+    },
   })
 }
 
-const saveCount = (m: any) => localStorage.setItem(key(m), String(counts[m.id] ?? 0))
-const inc = (m: any) => { counts[m.id] = (counts[m.id] ?? 0) + 1; saveCount(m) }
+const saveCount = (m: any) => {
+  const count = counts[m.id] ?? 0
+  persistMonsterCount(m.id, count)
+  localStorage.setItem(key(m), String(count))
+}
+const inc = (m: any) => {
+  const previousCount = counts[m.id] ?? 0
+  counts[m.id] = previousCount + 1
+  saveCount(m)
+  logMonsterCountActivity(m, previousCount, counts[m.id] ?? 0)
+}
 const dec = (m: any) => {
   const current = counts[m.id] ?? 0
   if (current > 0) {
+    const previousCount = current
     counts[m.id] = current - 1
     saveCount(m)
+    logMonsterCountActivity(m, previousCount, counts[m.id] ?? 0)
   }
 }
 
@@ -809,13 +909,31 @@ const addToQueue = () => {
 }
 
 const markSold = (item: PendingItem) => {
-  soldItems.value.unshift({ ...item, dateSold: new Date().toISOString(), soldPrice: item.price })
+  const soldAt = new Date().toISOString()
+  soldItems.value.unshift({ ...item, dateSold: soldAt, soldPrice: item.price })
   pendingItems.value = pendingItems.value.filter(p => p.id !== item.id)
   // Save price history
   const mid = String(item.monsterId)
   if (!priceHistory.value[mid]) priceHistory.value[mid] = []
   priceHistory.value[mid].push(item.price)
   if (priceHistory.value[mid].length > 10) priceHistory.value[mid].shift()
+  if (selectedServer.value?.id && selectedCharacter.value?.id) {
+    appendActivity({
+      type: 'sales',
+      action: 'sold',
+      createdAt: soldAt,
+      serverId: String(selectedServer.value.id),
+      characterId: String(selectedCharacter.value.id),
+      title: item.monsterName,
+      description: `Sold for ${formatKamas(item.price)}`,
+      path: '/v2/archimonstres',
+      imageUrl: item.image_url || '',
+      meta: {
+        monsterId: String(item.monsterId),
+        price: item.price,
+      },
+    })
+  }
   savePending(); saveSold(); saveHistory()
 }
 

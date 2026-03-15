@@ -220,7 +220,7 @@
                     :class="{ 'v2-picker__server--active': pickerServerId === server.id }"
                     @click="pickerServerId = server.id; showAddChar = false"
                   >
-                    <div class="v2-picker__server-icon">{{ server.name[0].toUpperCase() }}</div>
+                    <div class="v2-picker__server-icon">{{ server.name?.[0]?.toUpperCase() ?? '?' }}</div>
                     <div class="v2-picker__server-info">
                       <div class="v2-picker__server-name">{{ server.name }}</div>
                       <div class="v2-picker__server-count">
@@ -291,7 +291,7 @@
                     @click="selectChar(char)"
                   >
                     <div class="v2-picker__char-avatar" :style="{ background: getColor(char) }">
-                      {{ char.name[0].toUpperCase() }}
+                      {{ char.name?.[0]?.toUpperCase() ?? '?' }}
                     </div>
                     <div class="v2-picker__char-info">
                       <div class="v2-picker__char-name">{{ char.name }}</div>
