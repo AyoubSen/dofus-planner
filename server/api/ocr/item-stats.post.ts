@@ -25,6 +25,7 @@ const STAT_DEFS = [
   { key: 'esquive_pa', label: 'Esquive PA', aliases: ['esquive pa'] },
   { key: 'esquive_pm', label: 'Esquive PM', aliases: ['esquive pm'] },
   { key: 'critique', label: 'Critique', aliases: ['critique'], suffix: '%' as const },
+  { key: 'dommages_critiques', label: 'Dommages Critiques', aliases: ['dommages critiques', 'dommage critique', 'do crit', 'do cri'] },
   { key: 'resistance_critique', label: 'Résistance Critique', aliases: ['resistance critique', 'résistance critique', 'resistances critiques', 'résistances critiques'] },
   { key: 'pa', label: 'PA', aliases: [' pa ', 'pa [', 'pa'] },
   { key: 'pm', label: 'PM', aliases: [' pm ', 'pm [', 'pm'] },
@@ -43,6 +44,7 @@ const STAT_DEFS = [
   { key: 'resistance_neutre', label: 'Résistance Neutre', aliases: ['resistance neutre', 'résistance neutre'], suffix: '%' as const },
   { key: 'fuite', label: 'Fuite', aliases: ['fuite'] },
   { key: 'tacle', label: 'Tacle', aliases: ['tacle'] },
+  { key: 'dommages_poussee', label: 'Dommages Poussée', aliases: ['dommages poussee', 'dommage poussee', 'dommages poussée', 'dommage poussée', 'do pou', 'dopou'] },
 ]
 
 const normalizeLine = (line: string) =>
@@ -60,6 +62,20 @@ const normalizeSearch = (value: string) =>
     .replace(/\bresistances?\b/g, 'resistance')
     .replace(/\s+/g, ' ')
     .trim()
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const hasWholeWordAliasMatch = (normalizedLabel: string, normalizedAlias: string) => {
+  if (!normalizedLabel || !normalizedAlias) return false
+  if (normalizedLabel === normalizedAlias) return true
+  if (normalizedAlias.length < 3 || normalizedLabel.length < 3) return false
+
+  const aliasPattern = new RegExp(`(^|\\s)${escapeRegExp(normalizedAlias)}(\\s|$)`)
+  const labelPattern = new RegExp(`(^|\\s)${escapeRegExp(normalizedLabel)}(\\s|$)`)
+
+  return aliasPattern.test(normalizedLabel) || labelPattern.test(normalizedAlias)
+}
 
 const dataUrlToBuffer = (imageBase64: string) => {
   const base64Payload = imageBase64.includes(',')
@@ -127,7 +143,7 @@ const parseStatLine = (line: string): ParsedStatEntry | null => {
       def,
       matchedAlias: [def.label, ...def.aliases]
         .map((alias) => normalizeSearch(alias))
-        .find((alias) => normalized.includes(alias) || alias.includes(normalized)) || '',
+        .find((alias) => hasWholeWordAliasMatch(normalized, alias)) || '',
     }))
     .filter((entry) => entry.matchedAlias)
     .sort((a, b) => b.matchedAlias.length - a.matchedAlias.length)[0]?.def

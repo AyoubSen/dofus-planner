@@ -1566,6 +1566,7 @@ const observationStatOptions = [
   { key: 'sagesse', label: 'Sagesse', suffix: '' },
   { key: 'initiative', label: 'Initiative', suffix: '' },
   { key: 'critique', label: 'Critique', suffix: '%' },
+  { key: 'dommages_critiques', label: 'Dommages Critiques', suffix: '' },
   { key: 'resistance_critique', label: 'Résistance Critique', suffix: '' },
   { key: 'pa', label: 'PA', suffix: '' },
   { key: 'pm', label: 'PM', suffix: '' },
@@ -1584,6 +1585,7 @@ const observationStatOptions = [
   { key: 'resistance_neutre', label: 'Résistance Neutre', suffix: '%' },
   { key: 'fuite', label: 'Fuite', suffix: '' },
   { key: 'tacle', label: 'Tacle', suffix: '' },
+  { key: 'dommages_poussee', label: 'Dommages Poussée', suffix: '' },
   { key: 'retrait_pa', label: 'Retrait PA', suffix: '' },
   { key: 'retrait_pm', label: 'Retrait PM', suffix: '' },
   { key: 'esquive_pa', label: 'Esquive PA', suffix: '' },
@@ -1606,6 +1608,7 @@ const statsOcrDefs = [
   { key: 'esquive_pa', label: 'Esquive PA', aliases: ['esquive pa'] },
   { key: 'esquive_pm', label: 'Esquive PM', aliases: ['esquive pm'] },
   { key: 'critique', label: 'Critique', aliases: ['critique'], suffix: '%' as const },
+  { key: 'dommages_critiques', label: 'Dommages Critiques', aliases: ['dommages critiques', 'dommage critique', 'do crit', 'do cri'] },
   { key: 'resistance_critique', label: 'Résistance Critique', aliases: ['resistance critique', 'résistance critique', 'resistances critiques', 'résistances critiques'] },
   { key: 'pa', label: 'PA', aliases: [' pa ', 'pa [', 'pa'] },
   { key: 'pm', label: 'PM', aliases: [' pm ', 'pm [', 'pm'] },
@@ -1624,6 +1627,7 @@ const statsOcrDefs = [
   { key: 'resistance_neutre', label: 'Résistance Neutre', aliases: ['resistance neutre', 'résistance neutre'], suffix: '%' as const },
   { key: 'fuite', label: 'Fuite', aliases: ['fuite'] },
   { key: 'tacle', label: 'Tacle', aliases: ['tacle'] },
+  { key: 'dommages_poussee', label: 'Dommages Poussée', aliases: ['dommages poussee', 'dommage poussee', 'dommages poussée', 'dommage poussée', 'do pou', 'dopou'] },
   { key: 'dommages_distance', label: 'Dommages Distance', aliases: ['dommages distance', 'dommages distances', 'dommages a distance', 'dommages à distance', 'do distance', 'do distances', 'do a distance', 'do à distance'], suffix: '%' as const },
   { key: 'dommages_melee', label: 'Dommages Melee', aliases: ['dommages melee', 'dommages mêlee', 'dommages mêlée', 'dommages au corps a corps', 'dommages au corps à corps', 'corps a corps', 'corps à corps', 'do melee', 'do mêlee', 'do mêlée'], suffix: '%' as const },
   { key: 'dommages_sort', label: 'Dommages Sort', aliases: ['dommages sort', 'dommages sorts', 'dommages au sort', 'dommages aux sorts', 'dommages sorts', 'do sort', 'do sorts'], suffix: '%' as const },
@@ -1644,6 +1648,7 @@ const observationStatWeightMap: Record<string, number> = {
   agilite: 1,
   initiative: 0.4,
   critique: 1.5,
+  dommages_critiques: 2.4,
   resistance_critique: 1.8,
   pa: 4,
   pm: 4,
@@ -1662,6 +1667,7 @@ const observationStatWeightMap: Record<string, number> = {
   resistance_neutre: 1.8,
   fuite: 1.3,
   tacle: 1.3,
+  dommages_poussee: 2.2,
   retrait_pa: 2.2,
   retrait_pm: 2.2,
   esquive_pa: 2.2,
@@ -1676,6 +1682,8 @@ const specialMageStatKeys = new Set([
   'pm',
   'po',
   'invocation',
+  'dommages_critiques',
+  'dommages_poussee',
   'dommages_distance',
   'dommages_melee',
   'dommages_sort',
@@ -1933,6 +1941,20 @@ const normalizeLabelForStatKey = (value: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const hasWholeWordStatAliasMatch = (normalizedLabel: string, normalizedAlias: string) => {
+  if (!normalizedLabel || !normalizedAlias) return false
+  if (normalizedLabel === normalizedAlias) return true
+  if (normalizedAlias.length < 3 || normalizedLabel.length < 3) return false
+
+  const aliasPattern = new RegExp(`(^|\\s)${escapeRegExp(normalizedAlias)}(\\s|$)`)
+  const labelPattern = new RegExp(`(^|\\s)${escapeRegExp(normalizedLabel)}(\\s|$)`)
+
+  return aliasPattern.test(normalizedLabel) || labelPattern.test(normalizedAlias)
+}
+
 const normalizeSpecialMageSignature = (value: string) =>
   normalizeLabelForStatKey(value)
     .replace(/\b(aux|au|a|de|des|du|les|le|la)\b/g, ' ')
@@ -1985,7 +2007,7 @@ const findStatOptionByLabel = (label: string) => {
       def,
       matchedAlias: [def.label, ...def.aliases]
         .map((alias) => normalizeLabelForStatKey(alias))
-        .find((alias) => normalized.includes(alias) || alias.includes(normalized)) || '',
+        .find((alias) => hasWholeWordStatAliasMatch(normalized, alias)) || '',
     }))
     .filter((entry) => entry.matchedAlias)
     .sort((a, b) => b.matchedAlias.length - a.matchedAlias.length)[0]?.def
@@ -3384,7 +3406,7 @@ const parseClientStatLine = (line: string) => {
       def,
       matchedAlias: [def.label, ...def.aliases]
         .map((alias) => normalizeLabelForStatKey(alias))
-        .find((alias) => normalized.includes(alias) || alias.includes(normalized)) || '',
+        .find((alias) => hasWholeWordStatAliasMatch(normalized, alias)) || '',
     }))
     .filter((entry) => entry.matchedAlias)
     .sort((a, b) => b.matchedAlias.length - a.matchedAlias.length)[0]?.def
