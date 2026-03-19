@@ -1,1058 +1,564 @@
 <template>
-  <div
-    class="min-h-full"
-    :style="{ background: 'var(--theme-gradient-bg)' }"
-  >
-    <div class="max-w-7xl mx-auto px-8 py-12">
-      <!-- Header -->
-      <div class="mb-12">
-        <div class="flex items-center gap-4">
-          <div
-            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
-          >
-            <svg
-              class="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-              />
-            </svg>
-          </div>
-          <div>
-            <h1
-              class="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"
-            >
-              Dofus Crafting Tracker
-            </h1>
-            <p class="text-gray-400 text-lg mt-1">
-              Search and track your crafted items
-            </p>
-          </div>
-        </div>
+  <div>
+    <div v-if="!hasContext" class="v2-no-context">
+      <div class="v2-no-context__icon">
+        <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
       </div>
-
-      <!-- Breadcrumb Navigation -->
-      <div class="mb-8">
-        <div class="flex items-center gap-2 text-sm">
-          <span
-            class="px-3 py-1 bg-gray-800/50 text-gray-300 rounded-full border border-gray-700/50"
-          >
-            {{ currentServer ? "✓" : "1" }} Server Selection
-          </span>
-          <svg
-            class="w-4 h-4 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-          <span
-            :class="[
-              'px-3 py-1 rounded-full border',
-              currentCharacter
-                ? 'bg-gray-800/50 text-gray-300 border-gray-700/50'
-                : currentServer
-                ? 'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                : 'bg-gray-700/30 text-gray-500 border-gray-600/30',
-            ]"
-          >
-            {{ currentCharacter ? "✓" : currentServer ? "2" : "2" }} Character
-            Selection
-          </span>
-          <svg
-            class="w-4 h-4 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-          <span
-            :class="[
-              'px-3 py-1 rounded-full border',
-              currentCharacter
-                ? 'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                : 'bg-gray-700/30 text-gray-500 border-gray-600/30',
-            ]"
-          >
-            {{ currentCharacter ? "3" : "3" }} Item Search
-          </span>
-        </div>
-      </div>
-
-      <!-- Content Container -->
-      <div class="relative overflow-visible">
-        <!-- Server Selection -->
-        <Transition name="fade-slide" mode="out-in">
-          <div v-if="!currentServer" key="server-selection">
-            <div
-              class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl"
-            >
-              <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-100 mb-3">
-                  Choose Your Server
-                </h2>
-                <p class="text-gray-400 text-lg">
-                  Select a server to begin searching items
-                </p>
-              </div>
-
-              <ServerSelector
-                :servers="servers"
-                @server-selected="selectServer"
-                @server-added="addServer"
-                @server-deleted="deleteServer"
-              />
-            </div>
-          </div>
-
-          <!-- Character Selection -->
-          <div v-else-if="!currentCharacter" key="character-selection">
-            <div
-              class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl"
-            >
-              <div class="flex items-center justify-between mb-8">
-                <div>
-                  <h2 class="text-3xl font-bold text-gray-100 mb-2">
-                    Choose Your Character
-                  </h2>
-                  <p class="text-gray-400 text-lg">
-                    Server:
-                    <span class="text-blue-400 font-semibold">{{
-                      currentServer.name
-                    }}</span>
-                  </p>
-                </div>
-                <button
-                  @click="currentServer = null"
-                  class="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-blue-400 transition-colors duration-200"
-                >
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  Change Server
-                </button>
-              </div>
-
-              <CharacterSelector
-                :server="currentServer"
-                @character-selected="selectCharacter"
-                @character-added="addCharacter"
-                @character-deleted="deleteCharacter"
-                @back-to-servers="currentServer = null"
-              />
-            </div>
-          </div>
-
-          <!-- Item Search Interface -->
-          <div v-else key="search-interface">
-            <!-- Tab Navigation -->
-            <div class="mb-6">
-              <div
-                class="flex space-x-1 bg-gray-800/50 p-1 rounded-lg border border-gray-700/50"
-              >
-                <button
-                  @click="activeTab = 'search'"
-                  :class="[
-                    'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200',
-                    activeTab === 'search'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/50',
-                  ]"
-                >
-                  <div class="flex items-center justify-center gap-2">
-                    <svg
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    Item Search
-                  </div>
-                </button>
-                <button
-                  @click="activeTab = 'sold'"
-                  :class="[
-                    'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200',
-                    activeTab === 'sold'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/50',
-                  ]"
-                >
-                  <div class="flex items-center justify-center gap-2">
-                    <svg
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                      />
-                    </svg>
-                    Sold Items ({{ soldItems.length }})
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            <div
-              class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-2xl overflow-visible"
-            >
-              <!-- Header with character info -->
-              <div
-                class="bg-gradient-to-r from-blue-500/10 to-purple-600/10 border-b border-gray-700/50 p-6"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-4">
-                    <div
-                      class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
-                    >
-                      <span class="text-white font-bold text-lg">{{
-                        currentCharacter.name.charAt(0).toUpperCase()
-                      }}</span>
-                    </div>
-                    <div>
-                      <h2 class="text-2xl font-bold text-gray-100">
-                        {{ currentCharacter.name }}
-                      </h2>
-                      <p class="text-gray-300">
-                        {{ currentCharacter.class }} • {{ currentServer.name }}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-3">
-                    <button
-                      @click="currentCharacter = null"
-                      class="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-blue-400 transition-colors duration-200"
-                    >
-                      <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                      Change Character
-                    </button>
-                    <button
-                      @click="currentServer = null"
-                      class="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-blue-400 transition-colors duration-200"
-                    >
-                      <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      Change Server
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tab Content -->
-              <div class="p-8 overflow-visible">
-                <!-- Search Tab -->
-                <div v-if="activeTab === 'search'" class="space-y-6">
-                  <!-- Item Search with Floating UI -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">
-                      Search Item
-                    </label>
-                    <div class="relative">
-                      <input
-                        ref="searchInput"
-                        v-model="itemSearch"
-                        @input="searchItems"
-                        @focus="showDropdown = true"
-                        @blur="handleInputBlur"
-                        type="text"
-                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Tapez pour rechercher des objets..."
-                      />
-
-                      <!-- Loading indicator -->
-                      <div v-if="isSearching" class="absolute right-3 top-3">
-                        <div
-                          class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"
-                        ></div>
-                      </div>
-
-                      <!-- Floating Search Results Dropdown -->
-                      <div
-                        v-if="
-                          showDropdown &&
-                          (searchResults.length > 0 ||
-                            (itemSearch.length > 1 && !isSearching))
-                        "
-                        ref="dropdown"
-                        class="absolute top-full left-0 right-0 bg-gray-700 border border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto z-50 mt-2"
-                      >
-                        <!-- Search Results -->
-                        <div v-if="searchResults.length > 0">
-                          <div
-                            v-for="item in searchResults"
-                            :key="item.id"
-                            @mousedown="selectItem(item)"
-                            class="px-4 py-3 hover:bg-gray-600 cursor-pointer flex items-center gap-3 border-b border-gray-600 last:border-b-0"
-                          >
-                            <img
-                              :src="item.img"
-                              :alt="getItemName(item)"
-                              class="w-8 h-8 rounded"
-                              @error="
-                                $event.target.src = '/placeholder-item.png'
-                              "
-                            />
-                            <div class="flex-1">
-                              <div class="text-gray-100 font-medium">
-                                {{ getItemName(item) }}
-                              </div>
-                              <div class="text-gray-400 text-sm">
-                                {{ getTypeName(item) }} • Niveau
-                                {{ item.level }}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- No results -->
-                        <div
-                          v-else-if="itemSearch.length > 1 && !isSearching"
-                          class="p-4 text-center text-gray-400"
-                        >
-                          Aucun objet trouvé
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Selected Item Preview and Customization -->
-                  <div
-                    v-if="selectedItem"
-                    class="bg-gray-700 border border-gray-600 rounded-lg p-6"
-                  >
-                    <div class="flex items-center gap-4 mb-6">
-                      <img
-                        :src="selectedItem.img"
-                        :alt="getItemName(selectedItem)"
-                        class="w-16 h-16 rounded-lg"
-                        @error="$event.target.src = '/placeholder-item.png'"
-                      />
-                      <div>
-                        <h4 class="text-xl font-semibold text-gray-100">
-                          {{ getItemName(selectedItem) }}
-                        </h4>
-                        <p class="text-gray-400">
-                          {{ getTypeName(selectedItem) }} • Niveau
-                          {{ selectedItem.level }}
-                        </p>
-                        <p class="text-gray-500 text-sm mt-1">
-                          {{ getItemDescription(selectedItem) }}
-                        </p>
-                      </div>
-                    </div>
-
-                    <!-- Customizable Effects -->
-                    <div
-                      v-if="
-                        selectedItem.effects && selectedItem.effects.length > 0
-                      "
-                      class="mb-6"
-                    >
-                      <h5 class="text-lg font-medium text-gray-300 mb-4">
-                        Customize Item Stats:
-                      </h5>
-                      <div
-                        v-if="isLoadingEffects"
-                        class="flex items-center gap-2 text-gray-400"
-                      >
-                        <div
-                          class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"
-                        ></div>
-                        <span class="text-sm">Chargement des effets...</span>
-                      </div>
-                      <div v-else class="space-y-4">
-                        <div
-                          v-for="(effect, index) in processedEffects"
-                          :key="`${effect.effectId}-${index}`"
-                          class="bg-gray-800 rounded-lg p-4"
-                        >
-                          <div class="flex items-center justify-between gap-4">
-                            <div class="flex-1">
-                              <label
-                                class="block text-sm font-medium text-gray-300 mb-2"
-                              >
-                                {{ getEffectBaseDescription(effect) }}
-                              </label>
-                              <p class="text-xs text-gray-500 mb-2">
-                                Range: {{ effect.from }} - {{ effect.to }}
-                              </p>
-                            </div>
-                            <div class="w-32">
-                              <input
-                                v-model.number="
-                                  customEffectValues[
-                                    `${effect.effectId}-${index}`
-                                  ]
-                                "
-                                type="number"
-                                :min="effect.from"
-                                :max="effect.to"
-                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                :placeholder="effect.from.toString()"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Price Input and Save Button -->
-                    <div class="border-t border-gray-600 pt-6">
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                          <label
-                            class="block text-sm font-medium text-gray-300 mb-2"
-                          >
-                            Sale Price (kamas)
-                          </label>
-                          <input
-                            v-model.number="salePrice"
-                            type="number"
-                            min="0"
-                            step="1000"
-                            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter sale price..."
-                          />
-                        </div>
-                        <div>
-                          <label
-                            class="block text-sm font-medium text-gray-300 mb-2"
-                          >
-                            Notes (optional)
-                          </label>
-                          <input
-                            v-model="itemNotes"
-                            type="text"
-                            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Add notes..."
-                          />
-                        </div>
-                      </div>
-
-                      <div class="flex gap-4">
-                        <button
-                          @click="saveItemAsSold"
-                          :disabled="!salePrice || salePrice <= 0"
-                          class="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-                        >
-                          <svg
-                            class="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                          </svg>
-                          Add to Sold Items
-                        </button>
-                        <button
-                          @click="resetItemForm"
-                          class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200"
-                        >
-                          Reset
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Sold Items Tab -->
-                <div
-                  v-else-if="activeTab === 'sold'"
-                  class="space-y-6 overflow-visible"
-                >
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold text-gray-100">
-                      Sold Equipment
-                    </h3>
-                    <div class="text-sm text-gray-400">
-                      Total: {{ formatPrice(totalSoldValue) }} kamas
-                    </div>
-                  </div>
-
-                  <div v-if="soldItems.length === 0" class="text-center py-12">
-                    <svg
-                      class="w-16 h-16 text-gray-600 mx-auto mb-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-4a2 2 0 00-2 2v1a2 2 0 01-2 2H8a2 2 0 01-2-2v-1a2 2 0 00-2-2H0"
-                      />
-                    </svg>
-                    <p class="text-gray-400 text-lg">No sold items yet</p>
-                    <p class="text-gray-500">Items you sell will appear here</p>
-                  </div>
-
-                  <div v-else class="grid gap-4 overflow-visible">
-                    <div
-                      v-for="soldItem in soldItems"
-                      :key="soldItem.id"
-                      class="bg-gray-700 border border-gray-600 rounded-lg p-4 hover:bg-gray-650 transition-colors duration-200 relative overflow-visible"
-                    >
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-4 flex-1">
-                          <div
-                            class="relative"
-                            @mouseenter="showTooltip = soldItem.id"
-                            @mouseleave="showTooltip = null"
-                          >
-                            <img
-                              :src="soldItem.item.img"
-                              :alt="getItemName(soldItem.item)"
-                              class="w-12 h-12 rounded cursor-pointer border-2 border-transparent hover:border-yellow-400 transition-colors"
-                              @error="
-                                $event.target.src = '/placeholder-item.png'
-                              "
-                            />
-
-                            <ItemTooltip
-                              v-if="showTooltip === soldItem.id"
-                              :item="soldItem.item"
-                              :custom-effects="soldItem.customEffects"
-                              :sale-info="{
-                                price: soldItem.price,
-                                dateSold: soldItem.dateSold,
-                                notes: soldItem.notes,
-                              }"
-                            />
-                          </div>
-
-                          <div class="flex-1">
-                            <h4
-                              class="text-lg font-semibold text-gray-100 mb-1"
-                            >
-                              {{ getItemName(soldItem.item) }}
-                            </h4>
-                            <p class="text-gray-400 text-sm mb-2">
-                              {{ getTypeName(soldItem.item) }} • Niveau
-                              {{ soldItem.item.level }}
-                            </p>
-                            <div class="flex items-center gap-4 text-sm">
-                              <span class="text-green-400 font-semibold">
-                                {{ formatPrice(soldItem.price) }} kamas
-                              </span>
-                              <span class="text-gray-500">
-                                {{ formatDate(soldItem.dateSold) }}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          @click="deleteSoldItem(soldItem.id)"
-                          class="p-2 text-gray-400 hover:text-red-400 transition-colors duration-200"
-                          title="Delete item"
-                        >
-                          <svg
-                            class="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Transition>
-      </div>
+      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
+      <div class="v2-no-context__desc">{{ $t('v2.crafting.noCharacterDesc') }}</div>
     </div>
+
+    <template v-else>
+      <div class="v2-craft-layout">
+
+        <!-- Left: Search & add panel -->
+        <div class="v2-panel">
+          <div class="v2-panel-title">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {{ $t('v2.crafting.findItem') }}
+          </div>
+
+          <div class="v2-searchbox">
+            <svg class="v2-searchbox__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input v-model="search" type="text" :placeholder="$t('v2.common.searchItems')" class="v2-searchbox__input" @input="onSearchInput" />
+            <button v-if="search" class="v2-searchbox__clear" @click="clearSearch">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div v-if="searching" class="v2-inline-loader">
+            <div class="v2-spin-sm" /> {{ $t('v2.common.searching') }}
+          </div>
+
+          <div v-else-if="results.length" class="v2-results-list">
+            <button
+              v-for="item in results"
+              :key="item.id"
+              class="v2-result-row"
+              :class="{ 'v2-result-row--sel': selectedItem?.id === item.id }"
+              @click="selectItem(item)"
+            >
+              <img :src="getItemImg(item)" :alt="item.name?.fr ?? ''" class="v2-result-img" @error="onImgErr" />
+              <div class="v2-result-info">
+                <div class="v2-result-name">{{ item.name?.fr ?? item.id }}</div>
+                <div class="v2-result-sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
+              </div>
+              <svg v-if="selectedItem?.id === item.id" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style="color:var(--v2-accent)">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+
+          <div v-else-if="search && !searching" class="v2-empty-hint">No items found for "{{ search }}"</div>
+
+          <!-- Item detail + add craft form -->
+          <Transition name="v2-slide-fade">
+            <div v-if="selectedItem" class="v2-craft-form">
+              <div class="v2-craft-item-header">
+                <img :src="getItemImg(selectedItem)" :alt="selectedItem.name?.fr ?? ''" class="v2-craft-item-img" @error="onImgErr" />
+                <div>
+                  <div class="v2-craft-item-name">{{ selectedItem.name?.fr ?? selectedItem.id }}</div>
+                  <div class="v2-craft-item-sub">{{ selectedItem.type?.name?.fr ?? '' }} · Lv {{ selectedItem.level ?? '?' }}</div>
+                </div>
+                <button class="v2-form-close" @click="selectedItem = null">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Effects -->
+              <div v-if="effectsLoading" class="v2-inline-loader" style="padding:.5rem 0">
+                <div class="v2-spin-sm" /> {{ $t('v2.crafting.loadingEffects') }}
+              </div>
+              <div v-else-if="effects.length" class="v2-effects">
+                <div class="v2-effects-label">Rolled stats</div>
+                <div v-for="(eff, i) in effects" :key="`${eff.id}-${i}`" class="v2-effect-row">
+                  <span class="v2-effect-name">{{ eff.label }}</span>
+                  <span class="v2-effect-range">{{ eff.from }}–{{ eff.to }}</span>
+                  <input
+                    v-model.number="customValues[`${eff.id}-${i}`]"
+                    type="number"
+                    class="v2-effect-input"
+                    :min="eff.from"
+                    :max="eff.to"
+                    :placeholder="String(eff.value ?? 0)"
+                  />
+                </div>
+              </div>
+
+              <!-- Price & Notes -->
+              <div class="v2-sale-fields">
+                <div class="v2-sale-field">
+                  <label class="v2-field-label">Sell price (kamas)</label>
+                  <input v-model.number="salePrice" type="number" min="0" step="1000" placeholder="0" class="v2-field-input" />
+                </div>
+                <div class="v2-sale-field">
+                  <label class="v2-field-label">Notes</label>
+                  <input v-model="saleNotes" type="text" placeholder="Optional notes…" class="v2-field-input" />
+                </div>
+              </div>
+
+              <button class="v2-btn-craft" @click="addCraft">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add to crafting log
+              </button>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- Right: Crafted items history -->
+        <div class="v2-panel">
+          <div class="v2-panel-title">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            Crafting log
+            <span class="v2-badge-count">{{ characterCrafts.length }}</span>
+            <span class="v2-badge-total">{{ formattedTotal }} kamas</span>
+          </div>
+
+          <div v-if="characterCrafts.length === 0" class="v2-empty-full">
+            <svg class="w-10 h-10 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--v2-text-muted)">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            No crafted items logged yet.<br />
+            <span style="font-size:.8125rem;color:var(--v2-text-muted)">Search for an item and add your first craft.</span>
+          </div>
+
+          <div v-else class="v2-crafts-scroll">
+            <div v-for="craft in characterCrafts" :key="craft.id" class="v2-craft-row">
+              <img :src="getItemImg(craft.item)" :alt="craft.item?.name?.fr ?? ''" class="v2-craft-img" @error="onImgErr" />
+              <div class="v2-craft-info">
+                <div class="v2-craft-name">{{ craft.item?.name?.fr ?? 'Unknown item' }}</div>
+                <div class="v2-craft-meta">
+                  {{ formatDate(craft.dateSold) }}
+                  <span v-if="craft.notes" class="v2-craft-note"> · {{ craft.notes }}</span>
+                </div>
+                <div v-if="craft.customEffects?.length" class="v2-craft-chips">
+                  <span v-for="e in craft.customEffects.slice(0, 3)" :key="e.effectId" class="v2-chip">
+                    {{ e.description }}: {{ e.customValue }}
+                  </span>
+                  <span v-if="craft.customEffects.length > 3" class="v2-chip v2-chip--more">
+                    +{{ craft.customEffects.length - 3 }}
+                  </span>
+                </div>
+              </div>
+              <div class="v2-craft-price">{{ formatKamas(craft.price) }}</div>
+              <button class="v2-craft-del" title="Remove" @click="deleteCraft(craft.id)">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </template>
   </div>
 </template>
 
-<script setup>
-// Use shared accounts composable
-const { servers, initAccounts, addServer: addServerToStore, deleteServer: deleteServerFromStore, addCharacter: addCharacterToStore, deleteCharacter: deleteCharacterFromStore } = useAccounts();
+<script setup lang="ts">
+import type { SoldItem, CustomEffect } from '~/types/game'
+definePageMeta({ layout: 'v2' })
 
-// Local UI state for current selection
-const currentServer = ref(null);
-const currentCharacter = ref(null);
+const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
+const { data, init: initStore } = useAppDataStore()
 
-const activeTab = ref("search");
+// Crafted items are stored in the same sales.items array, tagged by notes prefix
+const CRAFT_TAG = '[Crafted]'
 
-const itemSearch = ref("");
-const searchResults = ref([]);
-const selectedItem = ref(null);
-const showDropdown = ref(false);
-const isSearching = ref(false);
-const isLoadingEffects = ref(false);
-const processedEffects = ref([]);
+// Search
+const search = ref('')
+const searching = ref(false)
+const results = ref<any[]>([])
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-const customEffectValues = ref({});
-const salePrice = ref(null);
-const itemNotes = ref("");
+// Selected item & effects
+const selectedItem = ref<any>(null)
+const effects = ref<any[]>([])
+const effectsLoading = ref(false)
+const customValues = reactive<Record<string, number>>({})
 
-const soldItems = ref([]);
+// Form
+const salePrice = ref(0)
+const saleNotes = ref('')
 
-const showTooltip = ref(null);
+const characterCrafts = computed(() => {
+  if (!selectedServer.value || !selectedCharacter.value) return []
+  return [...data.value.sales.items]
+    .filter(s =>
+      s.serverId === selectedServer.value!.id &&
+      s.characterId === selectedCharacter.value!.id &&
+      (s.notes?.startsWith(CRAFT_TAG) ?? false)
+    )
+    .sort((a, b) => new Date(b.dateSold).getTime() - new Date(a.dateSold).getTime())
+})
 
-const searchInput = ref(null);
-const dropdown = ref(null);
+const formattedTotal = computed(() => {
+  const total = characterCrafts.value.reduce((sum, s) => sum + (s.price ?? 0), 0)
+  return formatKamas(total)
+})
 
-const effectsCache = ref({});
+const getItemImg = (item: any) => item?.img ?? ''
 
-const totalSoldValue = computed(() => {
-  return soldItems.value.reduce((total, item) => total + item.price, 0);
-});
-
-onMounted(async () => {
-  initAccounts();
-  loadEffectsCache();
-  loadSoldItems();
-
-  document.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
-
-const handleClickOutside = (event) => {
-  if (
-    searchInput.value &&
-    dropdown.value &&
-    !searchInput.value.contains(event.target) &&
-    !dropdown.value.contains(event.target)
-  ) {
-    showDropdown.value = false;
-  }
-};
-
-const handleInputBlur = () => {
-  setTimeout(() => {
-    showDropdown.value = false;
-  }, 150);
-};
-
-const loadEffectsCache = () => {
-  const savedEffects = localStorage.getItem("dofus-effects-cache");
-  if (savedEffects) {
-    effectsCache.value = JSON.parse(savedEffects);
-  }
-};
-
-const loadSoldItems = () => {
-  const saved = localStorage.getItem("sold-equipments");
-  if (saved) {
-    soldItems.value = JSON.parse(saved);
-  }
-};
-
-const saveSoldItems = () => {
-  localStorage.setItem("sold-equipments", JSON.stringify(soldItems.value));
-};
-
-watch(
-  effectsCache,
-  (newCache) => {
-    localStorage.setItem("dofus-effects-cache", JSON.stringify(newCache));
-  },
-  { deep: true }
-);
-
-const addServer = (serverName) => {
-  const result = addServerToStore(serverName);
-  if (result.success && result.data) {
-    selectServer(result.data);
-  }
-};
-
-const selectServer = (server) => {
-  currentServer.value = server;
-  currentCharacter.value = null;
-};
-
-const deleteServer = (serverId) => {
-  deleteServerFromStore(serverId);
-  if (currentServer.value && currentServer.value.id === serverId) {
-    currentServer.value = null;
-    currentCharacter.value = null;
-  }
-};
-
-const addCharacter = (characterData) => {
-  if (!currentServer.value) return;
-  const result = addCharacterToStore(currentServer.value.id, characterData);
-  if (result.success && result.data) {
-    selectCharacter(result.data);
-  }
-};
-
-const selectCharacter = (character) => {
-  currentCharacter.value = character;
-};
-
-const deleteCharacter = (characterId) => {
-  if (!currentServer.value) return;
-  deleteCharacterFromStore(currentServer.value.id, characterId);
-  if (currentCharacter.value && currentCharacter.value.id === characterId) {
-    currentCharacter.value = null;
-  }
-};
-
-const searchItems = async () => {
-  if (itemSearch.value.length < 2) {
-    searchResults.value = [];
-    showDropdown.value = false;
-    return;
-  }
-
-  isSearching.value = true;
-
-  try {
-    const data = await $fetch("/api/dofusdb/items", {
-      query: {
-        "typeId[$ne]": 203,
-        $sort: "-id",
-        "slug.fr[$search]": itemSearch.value,
-        "level[$gte]": 0,
-        "level[$lte]": 200,
-        $skip: 0,
-        lang: "fr",
-      },
-    });
-
-    if (data.data) {
-      searchResults.value = data.data.slice(0, 15);
-      showDropdown.value = true;
-    } else {
-      searchResults.value = [];
-    }
-  } catch (error) {
-    console.error("Error searching items:", error);
-    searchResults.value = [];
-  }
-
-  isSearching.value = false;
-};
-
-const selectItem = async (item) => {
-  selectedItem.value = item;
-  itemSearch.value = getItemName(item);
-  showDropdown.value = false;
-  searchResults.value = [];
-
-  customEffectValues.value = {};
-  salePrice.value = null;
-  itemNotes.value = "";
-
-  await processItemEffects(item);
-};
-
-const processItemEffects = async (item) => {
-  if (!item.effects || item.effects.length === 0) {
-    processedEffects.value = [];
-    return;
-  }
-
-  isLoadingEffects.value = true;
-  const effects = [];
-
-  for (const [index, effect] of item.effects.entries()) {
-    const effectId = effect.effectId;
-    const effectKey = `${effectId}-${index}`;
-
-    customEffectValues.value[effectKey] = effect.from;
-
-    if (effectsCache.value[effectId]) {
-      effects.push({
-        ...effect,
-        description: formatEffectWithData(effect, effectsCache.value[effectId]),
-      });
-    } else {
-      try {
-        const data = await $fetch(`/api/dofusdb/effects/${effectId}`);
-
-        if (data && data.description) {
-          effectsCache.value[effectId] = data;
-
-          effects.push({
-            ...effect,
-            description: formatEffectWithData(effect, data),
-          });
-        } else {
-          effects.push({
-            ...effect,
-            description: formatEffectFallback(effect),
-          });
-        }
-      } catch (error) {
-        console.error(`Error fetching effect ${effectId}:`, error);
-        effects.push({
-          ...effect,
-          description: formatEffectFallback(effect),
-        });
-      }
-    }
-  }
-
-  processedEffects.value = effects;
-  isLoadingEffects.value = false;
-};
-
-const formatEffectWithData = (effect, effectData) => {
-  let description =
-    effectData.description?.fr ||
-    effectData.description?.en ||
-    `Effet ${effect.effectId}`;
-
-  if (description.includes("#1") || description.includes("#2")) {
-    if (effect.from !== undefined && effect.to !== undefined) {
-      if (effect.from === effect.to) {
-        description = description
-          .replace(/{[^}]*}/g, "")
-          .replace(/#1/g, effect.from)
-          .replace(/#2/g, "")
-          .trim();
-      } else {
-        description = description
-          .replace(/#1/g, effect.from)
-          .replace(/#2/g, effect.to)
-          .replace(/{~1~2 ([^}]*)}/g, "$1")
-          .trim();
-      }
-    }
-  }
-
-  return description;
-};
-const formatEffectFallback = (effect) => {
-  if (effect.from === effect.to) {
-    return `Effet ${effect.effectId}: ${effect.from}`;
+const formatEffectLabel = (effData: any, eff: any): string => {
+  let desc = effData?.description?.fr ?? effData?.description?.en ?? `Effet ${eff.effectId ?? eff.id}`
+  const from = eff.from ?? eff.value ?? 0
+  const to = eff.to ?? eff.value ?? 0
+  if (from === to) {
+    // Fixed value: strip all {token} blocks, insert value, drop #2
+    desc = desc
+      .replace(/\{[^}]*\}/g, '')
+      .replace(/#1/g, String(from))
+      .replace(/#2/g, '')
+      .trim()
   } else {
-    return `Effet ${effect.effectId}: ${effect.from} à ${effect.to}`;
+    // Range: keep the separator text inside {~1~2 …}, then strip all remaining tokens
+    desc = desc
+      .replace(/#1/g, String(from))
+      .replace(/#2/g, String(to))
+      .replace(/\{~1~2 ([^}]*)\}/g, '$1')
+      .replace(/\{[^}]*\}/g, '')   // remove {~ps}, {~zs}, and any other leftover tokens
+      .trim()
   }
-};
+  // collapse multiple spaces that may result from removed tokens
+  return desc.replace(/\s{2,}/g, ' ').trim()
+}
 
-const getEffectBaseDescription = (effect) => {
-  const effectData = effectsCache.value[effect.effectId];
-  if (!effectData) return `Effect ${effect.effectId}`;
+const formatKamas = (n: number) => {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${Math.round(n / 1_000)}k`
+  return String(n)
+}
 
-  let description =
-    effectData.description?.fr ||
-    effectData.description?.en ||
-    `Effect ${effect.effectId}`;
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })
 
-  description = description
-    .replace(/{{[^}]*}}/g, "")
-    .replace(/#[12]/g, "X")
-    .replace(/^X+\s*/, "")
-    .replace(/\s+X+(?=\s|$)/g, " X")
-    .trim();
+const onSearchInput = () => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(doSearch, 350)
+}
 
-  return description;
-};
-
-const saveItemAsSold = () => {
-  if (!selectedItem.value || !salePrice.value || salePrice.value <= 0) {
-    return;
+const doSearch = async () => {
+  if (!search.value.trim()) { results.value = []; return }
+  searching.value = true
+  try {
+    const res = await $fetch<any>('/api/dofusdb/items', {
+      query: {
+        'slug.fr[$search]': search.value.trim(),
+        'typeId[$ne]': 203,
+        '$sort': '-id',
+        'level[$gte]': 0,
+        'level[$lte]': 200,
+        '$skip': 0,
+        'lang': 'fr',
+      },
+    })
+    results.value = res?.data ?? []
+  } catch {
+    results.value = []
+  } finally {
+    searching.value = false
   }
+}
 
-  const customEffects = processedEffects.value.map((effect, index) => {
-    const effectKey = `${effect.effectId}-${index}`;
-    const customValue = customEffectValues.value[effectKey] || effect.from;
+const clearSearch = () => {
+  search.value = ''
+  results.value = []
+  selectedItem.value = null
+}
 
-    return {
-      effectId: effect.effectId,
-      customValue,
-      description: formatCustomEffectDescription(effect, customValue),
-    };
-  });
+const selectItem = async (item: any) => {
+  selectedItem.value = item
+  effects.value = []
+  Object.keys(customValues).forEach(k => delete customValues[k])
+  salePrice.value = 0
+  saleNotes.value = ''
 
-  const soldItem = {
-    id: Date.now().toString(),
+  if (!item.effects?.length) return
+
+  effectsLoading.value = true
+  try {
+    const fetched: any[] = []
+    for (const eff of item.effects) {
+      const effId = eff.effectId ?? eff.id
+      if (!effId) continue
+
+      const cacheKey = `dofus-effect-${effId}`
+      let effData: any = null
+      try {
+        const raw = localStorage.getItem(cacheKey)
+        if (raw) effData = JSON.parse(raw)
+      } catch {}
+
+      if (!effData) {
+        try {
+          effData = await $fetch<any>(`/api/dofusdb/effects/${effId}`)
+          if (effData) localStorage.setItem(cacheKey, JSON.stringify(effData))
+        } catch {}
+      }
+
+      const idx = fetched.length
+      const val = eff.value ?? eff.from ?? 0
+      fetched.push({
+        id: effId,
+        index: idx,
+        label: formatEffectLabel(effData, eff),
+        value: val,
+        from: eff.from ?? val,
+        to: eff.to ?? val,
+      })
+      customValues[`${effId}-${idx}`] = val
+    }
+    effects.value = fetched
+  } finally {
+    effectsLoading.value = false
+  }
+}
+
+const addCraft = () => {
+  if (!selectedItem.value || !selectedServer.value || !selectedCharacter.value) return
+
+  const customEffectsList: CustomEffect[] = effects.value.map((eff, i) => ({
+    effectId: eff.id,
+    customValue: customValues[`${eff.id}-${i}`] ?? eff.value ?? 0,
+    description: eff.label,
+  }))
+
+  const craftNotes = saleNotes.value
+    ? `${CRAFT_TAG} ${saleNotes.value}`
+    : CRAFT_TAG
+
+  const sale: SoldItem = {
+    id: crypto.randomUUID(),
+    itemId: selectedItem.value.id,
     item: selectedItem.value,
-    price: salePrice.value,
-    notes: itemNotes.value.trim() || null,
-    customEffects,
-    server: currentServer.value.name,
-    character: currentCharacter.value.name,
+    price: salePrice.value ?? 0,
+    notes: craftNotes,
+    customEffects: customEffectsList,
+    serverId: selectedServer.value.id,
+    characterId: selectedCharacter.value.id,
     dateSold: new Date().toISOString(),
-  };
-
-  soldItems.value.unshift(soldItem);
-  saveSoldItems();
-
-  resetItemForm();
-  activeTab.value = "sold";
-};
-
-const formatCustomEffectDescription = (effect, customValue) => {
-  const effectData = effectsCache.value[effect.effectId];
-  if (!effectData) return `Effect ${effect.effectId}: ${customValue}`;
-
-  let effectName =
-    effectData.description?.fr ||
-    effectData.description?.en ||
-    `Effect ${effect.effectId}`;
-
-  effectName = effectName
-    .replace(/#[12]/g, "")
-    .replace(/{[^}]*}/g, "")
-    .replace(/{{[^}]*}}/g, "")
-    .replace(/[{}]/g, "")
-    .replace(/~\d+/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return `${customValue} ${effectName}`;
-};
-const resetItemForm = () => {
-  selectedItem.value = null;
-  itemSearch.value = "";
-  customEffectValues.value = {};
-  salePrice.value = null;
-  itemNotes.value = "";
-  processedEffects.value = [];
-};
-
-const deleteSoldItem = (itemId) => {
-  const index = soldItems.value.findIndex((item) => item.id === itemId);
-  if (index !== -1) {
-    soldItems.value.splice(index, 1);
-    saveSoldItems();
   }
-};
 
-const getItemName = (item) => {
-  return item.name?.fr || item.name?.en || "Objet Inconnu";
-};
+  data.value.sales.items.push(sale)
+  selectedItem.value = null
+  effects.value = []
+  salePrice.value = 0
+  saleNotes.value = ''
+  search.value = ''
+  results.value = []
+}
 
-const getTypeName = (item) => {
-  return item.type?.name?.fr || item.type?.name?.en || "Type Inconnu";
-};
+const deleteCraft = (id: string) => {
+  data.value.sales.items = data.value.sales.items.filter(s => s.id !== id)
+}
 
-const getItemDescription = (item) => {
-  return item.description?.fr || item.description?.en || "";
-};
+const onImgErr = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  if (img.dataset.fb) return
+  img.dataset.fb = '1'
+  img.src = '/item-fallback.svg'
+}
 
-const formatPrice = (price) => {
-  return new Intl.NumberFormat("fr-FR").format(price);
-};
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("fr-FR", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+onMounted(() => { initContext(); initStore() })
 </script>
 
 <style scoped>
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.3s ease;
+.v2-craft-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1rem;
+  align-items: start;
 }
 
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: translateX(20px);
+@media (max-width: 840px) {
+  .v2-craft-layout { grid-template-columns: 1fr; }
 }
 
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
+.v2-panel {
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-active);
+  border-radius: 14px;
+  padding: 1rem;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.v2-panel-title {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .875rem; font-weight: 700; color: var(--v2-accent);
+  margin-bottom: .875rem;
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
+.v2-badge-count {
+  background: var(--v2-active-strong); color: var(--v2-accent);
+  font-size: .6875rem; font-weight: 600; padding: .125rem .4375rem;
+  border-radius: 999px;
 }
 
-/* Ensure tooltips can escape overflow */
-.overflow-visible {
-  overflow: visible !important;
+.v2-badge-total {
+  font-size: .75rem; color: var(--v2-text-hover); font-weight: 600; margin-left: auto;
 }
+
+/* Search */
+.v2-searchbox {
+  position: relative; display: flex; align-items: center; margin-bottom: .75rem;
+}
+.v2-searchbox__icon { position: absolute; left: .75rem; color: var(--v2-text-muted); pointer-events: none; }
+.v2-searchbox__input {
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border); border-radius: 10px;
+  padding: .5rem 2.25rem; color: var(--v2-text); font-size: .875rem;
+  outline: none; width: 100%; transition: border-color .18s;
+}
+.v2-searchbox__input:focus { border-color: var(--v2-border-focus); }
+.v2-searchbox__input::placeholder { color: var(--v2-text-dim); }
+.v2-searchbox__clear {
+  position: absolute; right: .625rem; background: none; border: none;
+  color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center; transition: color .15s;
+}
+.v2-searchbox__clear:hover { color: var(--v2-accent); }
+
+.v2-inline-loader {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .8125rem; color: var(--v2-text-secondary); padding: .375rem 0;
+}
+.v2-spin-sm {
+  width: 16px; height: 16px; flex-shrink: 0;
+  border: 2px solid var(--v2-border-med); border-top-color: var(--v2-accent);
+  border-radius: 50%; animation: vspin .8s linear infinite;
+}
+@keyframes vspin { to { transform: rotate(360deg); } }
+
+.v2-empty-hint { font-size: .8125rem; color: var(--v2-text-muted); padding: .375rem 0; }
+
+/* Results */
+.v2-results-list {
+  display: flex; flex-direction: column; gap: 2px; max-height: 220px;
+  overflow-y: auto; margin-bottom: .75rem;
+}
+.v2-result-row {
+  display: flex; align-items: center; gap: .625rem;
+  padding: .4375rem .625rem; border-radius: 9px;
+  border: 1px solid transparent; background: rgba(0,0,0,.15);
+  cursor: pointer; transition: all .15s; text-align: left;
+}
+.v2-result-row:hover { background: var(--v2-hover); border-color: var(--v2-border-med); }
+.v2-result-row--sel { background: var(--v2-active); border-color: var(--v2-border-strong); }
+.v2-result-img { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
+.v2-result-name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
+.v2-result-sub { font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px; }
+.v2-result-info { flex: 1; min-width: 0; }
+
+/* Craft form */
+.v2-craft-form {
+  background: rgba(0,0,0,.18); border: 1px solid var(--v2-border);
+  border-radius: 12px; padding: .875rem;
+  display: flex; flex-direction: column; gap: .75rem; margin-top: .5rem;
+}
+.v2-craft-item-header { display: flex; align-items: center; gap: .75rem; }
+.v2-craft-item-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+.v2-craft-item-name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
+.v2-craft-item-sub { font-size: .75rem; color: var(--v2-text-secondary); margin-top: 2px; }
+.v2-form-close {
+  margin-left: auto; flex-shrink: 0; background: none; border: none;
+  color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center; transition: color .15s;
+}
+.v2-form-close:hover { color: #f87171; }
+
+/* Effects */
+.v2-effects { display: flex; flex-direction: column; gap: 4px; }
+.v2-effects-label { font-size: .6875rem; color: var(--v2-text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.v2-effect-row { display: flex; align-items: center; gap: .5rem; }
+.v2-effect-name {
+  flex: 1; font-size: .75rem; color: var(--v2-text-hover);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.v2-effect-range { font-size: .6875rem; color: var(--v2-text-muted); flex-shrink: 0; }
+.v2-effect-input {
+  width: 68px; flex-shrink: 0;
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border-med); border-radius: 7px;
+  padding: .25rem .5rem; color: var(--v2-text); font-size: .8125rem; text-align: right;
+  outline: none; transition: border-color .15s;
+}
+.v2-effect-input:focus { border-color: var(--v2-border-focus); }
+
+/* Fields */
+.v2-sale-fields { display: flex; flex-direction: column; gap: 6px; }
+.v2-field-label { font-size: .6875rem; color: var(--v2-text-secondary); margin-bottom: 3px; display: block; }
+.v2-field-input {
+  width: 100%;
+  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border-med); border-radius: 8px;
+  padding: .4375rem .75rem; color: var(--v2-text); font-size: .875rem;
+  outline: none; transition: border-color .15s;
+}
+.v2-field-input:focus { border-color: var(--v2-border-focus); }
+.v2-field-input::placeholder { color: var(--v2-text-dim); }
+
+.v2-btn-craft {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .625rem 1rem; border-radius: 10px;
+  background: var(--v2-active-strong); border: 1px solid var(--v2-border-strong);
+  color: var(--v2-text); font-size: .875rem; font-weight: 600; cursor: pointer; transition: all .18s;
+}
+.v2-btn-craft:hover { background: var(--v2-active); border-color: var(--v2-border-focus); }
+
+/* Empty states */
+.v2-empty-full {
+  padding: 2.5rem 1rem; text-align: center;
+  color: var(--v2-text-muted); font-size: .9375rem;
+  display: flex; flex-direction: column; align-items: center; gap: .25rem;
+}
+
+/* Crafts list */
+.v2-crafts-scroll {
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: calc(100vh - 180px); overflow-y: auto;
+}
+.v2-craft-row {
+  display: flex; align-items: flex-start; gap: .625rem;
+  padding: .625rem .75rem; border-radius: 10px;
+  background: rgba(0,0,0,.15); border: 1px solid var(--v2-border-subtle);
+  transition: border-color .15s;
+}
+.v2-craft-row:hover { border-color: var(--v2-border-med); }
+.v2-craft-img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; margin-top: 2px; }
+.v2-craft-info { flex: 1; min-width: 0; }
+.v2-craft-name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
+.v2-craft-meta { font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px; }
+.v2-craft-note { color: var(--v2-text-secondary); }
+.v2-craft-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.v2-chip {
+  font-size: .625rem; padding: .125rem .375rem;
+  background: var(--v2-hover); border: 1px solid var(--v2-border-med);
+  border-radius: 4px; color: var(--v2-text-hover);
+}
+.v2-chip--more { color: var(--v2-text-secondary); }
+.v2-craft-price {
+  font-size: .875rem; font-weight: 700; color: var(--v2-accent); flex-shrink: 0; white-space: nowrap;
+}
+.v2-craft-del {
+  flex-shrink: 0; background: none; border: none; color: var(--v2-text-dim);
+  cursor: pointer; display: flex; align-items: center; transition: color .15s; padding: 2px;
+}
+.v2-craft-del:hover { color: #f87171; }
+
+/* Transition */
+.v2-slide-fade-enter-active, .v2-slide-fade-leave-active { transition: all .2s ease; }
+.v2-slide-fade-enter-from, .v2-slide-fade-leave-to { opacity: 0; transform: translateY(-6px); }
 </style>
+
+
+
+
+

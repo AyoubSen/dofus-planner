@@ -47,7 +47,7 @@ export const useResaleTracker = () => {
       characterId: entry.characterId,
       title: entry.itemName,
       description: `Started resale tracking as ${entry.status}`,
-      path: '/v2/resale',
+      path: '/resale',
       imageUrl: entry.itemImageUrl || '',
       meta: {
         resaleId: entry.id,
@@ -76,7 +76,7 @@ export const useResaleTracker = () => {
       characterId: entry.characterId,
       title: entry.itemName,
       description: `Marked resale as ${status}`,
-      path: '/v2/resale',
+      path: '/resale',
       imageUrl: entry.itemImageUrl || '',
       meta: {
         resaleId: entry.id,
@@ -118,7 +118,7 @@ export const useResaleTracker = () => {
       characterId: entry.characterId,
       title: entry.itemName,
       description: `Repriced from ${adjustment.fromPrice} to ${adjustment.toPrice}`,
-      path: '/v2/resale',
+      path: '/resale',
       imageUrl: entry.itemImageUrl || '',
       meta: {
         resaleId: entry.id,
@@ -142,7 +142,7 @@ export const useResaleTracker = () => {
         characterId: removed.characterId,
         title: removed.itemName,
         description: 'Removed resale entry',
-        path: '/v2/resale',
+        path: '/resale',
         imageUrl: removed.itemImageUrl || '',
         meta: {
           resaleId: removed.id,

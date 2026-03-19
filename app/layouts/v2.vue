@@ -20,7 +20,7 @@
     >
       <!-- Brand -->
       <div class="v2-brand">
-        <NuxtLink :to="localePath('/v2')" class="v2-brand__link">
+        <NuxtLink :to="localePath('/')" class="v2-brand__link">
           <div class="v2-brand__icon">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z" />
@@ -136,7 +136,7 @@
       <!-- Bottom: back to v1 -->
       <div class="v2-sidebar__bottom">
         <NuxtLink
-          :to="localePath('/')"
+          :to="localePath('/v1')"
           class="v2-nav__item"
           :title="sidebarCollapsed ? $t('v2.layout.backToV1') : ''"
         >
@@ -402,19 +402,19 @@ const pickerServer = computed(() =>
 )
 
 const navItems = [
-  { path: '/v2', label: 'nav.dashboard', icon: resolveComponent('IconsIconDashboard'), color: '#f5a523' },
-  { path: '/v2/archimonstres', label: 'nav.archimonstres', icon: resolveComponent('IconsIconArchimonstres'), color: '#f87171' },
-  { path: '/v2/items', label: 'nav.items', icon: resolveComponent('IconsIconItems'), color: '#60a5fa' },
-  { path: '/v2/resale', label: 'nav.resale', icon: resolveComponent('IconsIconItems'), color: '#22c55e' },
-  { path: '/v2/crafting', label: 'nav.crafting', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },
-  { path: '/v2/brisage', label: 'nav.brisage', icon: resolveComponent('IconsIconBrisage'), color: '#a78bfa' },
-  { path: '/v2/succes', label: 'nav.succes', icon: resolveComponent('IconsIconSucces'), color: '#fcd34d' },
-  { path: '/v2/familiers', label: 'nav.familiers', icon: resolveComponent('IconsIconFamiliers'), color: '#fb923c' },
+  { path: '/', label: 'nav.dashboard', icon: resolveComponent('IconsIconDashboard'), color: '#f5a523' },
+  { path: '/archimonstres', label: 'nav.archimonstres', icon: resolveComponent('IconsIconArchimonstres'), color: '#f87171' },
+  { path: '/items', label: 'nav.items', icon: resolveComponent('IconsIconItems'), color: '#60a5fa' },
+  { path: '/resale', label: 'nav.resale', icon: resolveComponent('IconsIconItems'), color: '#22c55e' },
+  { path: '/crafting', label: 'nav.crafting', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },
+  { path: '/brisage', label: 'nav.brisage', icon: resolveComponent('IconsIconBrisage'), color: '#a78bfa' },
+  { path: '/succes', label: 'nav.succes', icon: resolveComponent('IconsIconSucces'), color: '#fcd34d' },
+  { path: '/familiers', label: 'nav.familiers', icon: resolveComponent('IconsIconFamiliers'), color: '#fb923c' },
 ]
 
 const isActive = (path: string) => {
   const full = localePath(path)
-  if (path === '/v2') return route.path === full
+  if (path === '/') return route.path === full
   return route.path === full || route.path.startsWith(full + '/')
 }
 

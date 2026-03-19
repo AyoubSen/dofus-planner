@@ -299,7 +299,7 @@ const coerceStoreShape = (input: unknown): AppDataStore | null => {
             characterId: typeof entry.characterId === 'string' ? entry.characterId : null,
             title: typeof entry.title === 'string' ? entry.title : 'Activity',
             description: typeof entry.description === 'string' ? entry.description : '',
-            path: typeof entry.path === 'string' ? entry.path : '/v2',
+            path: typeof entry.path === 'string' ? entry.path : '/',
             imageUrl: typeof entry.imageUrl === 'string' ? entry.imageUrl : '',
             meta: isObject(entry.meta) ? entry.meta as Record<string, string | number | boolean | null> : undefined,
           })) as AppActivityEntry[]
