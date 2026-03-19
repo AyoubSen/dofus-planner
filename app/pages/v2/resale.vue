@@ -208,6 +208,7 @@
                 class="v2-input rt-field__input"
                 @input="updateNumberField(entry, 'soldPrice', ($event.target as HTMLInputElement).value)"
               >
+              <span v-if="statusMessages[entry.id]" class="rt-field__hint rt-field__hint--warn">{{ statusMessages[entry.id] }}</span>
             </label>
           </div>
 
@@ -261,8 +262,9 @@
               type="button"
               class="rt-action-btn"
               :class="{ 'rt-action-btn--on': entry.status === 'sold' }"
-              :disabled="entry.status === 'sold'"
+              :disabled="entry.status === 'sold' || !canMarkSold(entry)"
               @click="setStatus(entry, 'sold')"
+              :title="canMarkSold(entry) ? 'Mark as sold' : 'Enter a sold price first'"
             >
               Sold
             </button>
@@ -410,6 +412,7 @@ const { entries, upsertEntry, updateStatus, addPriceAdjustment, removeEntry, tra
 const showTransferPanel = ref(false)
 const transferFromKey = ref('')
 const transferToKey = ref('')
+const statusMessages = ref<Record<string, string>>({})
 
 const allCharacterOptions = computed(() =>
   servers.value.flatMap(server =>
@@ -531,6 +534,13 @@ function patchEntry(entry: ResaleTrackerEntry, patch: Partial<ResaleTrackerEntry
   })
 }
 
+function setStatusMessage(entryId: string, message = '') {
+  statusMessages.value = {
+    ...statusMessages.value,
+    [entryId]: message,
+  }
+}
+
 function updateNumberField(
   entry: ResaleTrackerEntry,
   field: 'buyPrice' | 'listPrice' | 'soldPrice',
@@ -541,6 +551,10 @@ function updateNumberField(
   patchEntry(entry, {
     [field]: value ? Number(value) : null,
   } as Partial<ResaleTrackerEntry>)
+
+  if (field === 'soldPrice' && value && Number(value) > 0) {
+    setStatusMessage(entry.id, '')
+  }
 }
 
 function updateTextField(
@@ -552,7 +566,17 @@ function updateTextField(
 }
 
 function setStatus(entry: ResaleTrackerEntry, status: ResaleTrackerStatus) {
+  if (status === 'sold' && !canMarkSold(entry)) {
+    setStatusMessage(entry.id, 'Enter the actual sold price before marking this entry as sold.')
+    return
+  }
+
+  setStatusMessage(entry.id, '')
   updateStatus(entry.id, status)
+}
+
+function canMarkSold(entry: ResaleTrackerEntry) {
+  return typeof entry.soldPrice === 'number' && Number.isFinite(entry.soldPrice) && entry.soldPrice > 0
 }
 
 function updateAdjustmentDraft(
@@ -922,6 +946,8 @@ function formatRelativeDate(value: string | null | undefined) {
 .rt-field { display: flex; flex-direction: column; gap: .3125rem; }
 .rt-field__lbl { font-size: .75rem; font-weight: 500; color: var(--v2-text-secondary); }
 .rt-field__input { font-size: .875rem; padding: .5rem .75rem; }
+.rt-field__hint { font-size: .6875rem; line-height: 1.35; }
+.rt-field__hint--warn { color: #fca5a5; }
 .rt-notes { gap: .3125rem; }
 
 /* Model estimates */

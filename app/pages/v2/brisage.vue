@@ -11,7 +11,6 @@
     </div>
 
     <template v-else>
-      <!-- Stats strip -->
       <div class="br-stats">
         <div class="br-stat">
           <div class="br-stat__icon">
@@ -20,10 +19,23 @@
             </svg>
           </div>
           <div class="br-stat__body">
-            <div class="br-stat__val">{{ entries.length }}</div>
+            <div class="br-stat__val">{{ sessions.length }}</div>
             <div class="br-stat__lbl">Sessions</div>
           </div>
         </div>
+
+        <div class="br-stat">
+          <div class="br-stat__icon">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <div class="br-stat__body">
+            <div class="br-stat__val">{{ totalItemsLogged }}</div>
+            <div class="br-stat__lbl">Items logged</div>
+          </div>
+        </div>
+
         <div class="br-stat" :class="totalPL >= 0 ? 'br-stat--green' : 'br-stat--red'">
           <div class="br-stat__icon">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,9 +46,10 @@
             <div class="br-stat__val" :style="totalPL >= 0 ? 'color:#34d399' : 'color:#f87171'">
               {{ totalPL >= 0 ? '+' : '' }}{{ formatKamas(totalPL) }}
             </div>
-            <div class="br-stat__lbl">Total P/L (vs craft)</div>
+            <div class="br-stat__lbl">Total P/L</div>
           </div>
         </div>
+
         <div class="br-stat">
           <div class="br-stat__icon">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,56 +57,106 @@
             </svg>
           </div>
           <div class="br-stat__body">
-            <div class="br-stat__val" :style="avgMargin >= 0 ? 'color:#34d399' : 'color:#f87171'">
-              {{ avgMargin >= 0 ? '+' : '' }}{{ avgMargin }}%
+            <div class="br-stat__val" :style="avgSessionPL >= 0 ? 'color:#34d399' : 'color:#f87171'">
+              {{ avgSessionPL >= 0 ? '+' : '' }}{{ formatKamas(avgSessionPL) }}
             </div>
-            <div class="br-stat__lbl">Avg margin</div>
-          </div>
-        </div>
-        <div class="br-stat">
-          <div class="br-stat__icon">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          </div>
-          <div class="br-stat__body">
-            <div class="br-stat__val" style="font-size:.9375rem">{{ bestItem?.name ?? '—' }}</div>
-            <div class="br-stat__lbl">Best margin item</div>
+            <div class="br-stat__lbl">Avg session P/L</div>
           </div>
         </div>
       </div>
 
-      <div class="br-mode-switch" role="tablist" aria-label="Brisage workspace mode">
-        <button
-          class="br-mode-switch__btn"
-          :class="{ 'br-mode-switch__btn--on': workspaceMode === 'planner' }"
-          @click="workspaceMode = 'planner'"
-        >
-          Planner
-          <span class="br-mode-switch__hint">Pre-brisage</span>
-        </button>
-        <button
-          class="br-mode-switch__btn"
-          :class="{ 'br-mode-switch__btn--on': workspaceMode === 'log' }"
-          @click="workspaceMode = 'log'"
-        >
-          Log
-          <span class="br-mode-switch__hint">Actual outcomes</span>
-        </button>
-      </div>
-
-      <!-- Two-column layout -->
       <div class="br-layout">
-
-        <!-- ─── LEFT: Search + form + rune prices ─── -->
         <div class="br-panel">
-
-          <!-- Item search -->
           <div class="br-panel-title">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
+            </svg>
+            Session builder
+          </div>
+
+          <div class="br-form">
+            <div class="br-form__row">
+              <div class="br-form__field">
+                <label class="br-field-lbl">Date</label>
+                <input v-model="draftSession.date" type="date" class="br-field-input" />
+              </div>
+              <div class="br-form__field">
+                <label class="br-field-lbl">Focus category</label>
+                <input v-model="draftSession.categoryLabel" type="text" placeholder="Amulets, rings, capes..." class="br-field-input" />
+              </div>
+            </div>
+
+            <div class="br-form__row">
+              <div class="br-form__field">
+                <label class="br-field-lbl">Level min</label>
+                <input v-model.number="draftSession.levelMin" type="number" min="1" max="200" class="br-field-input" />
+              </div>
+              <div class="br-form__field">
+                <label class="br-field-lbl">Level max</label>
+                <input v-model.number="draftSession.levelMax" type="number" min="1" max="200" class="br-field-input" />
+              </div>
+            </div>
+
+            <div class="br-form__field">
+              <label class="br-field-lbl">Session notes</label>
+              <input v-model="draftSession.notes" type="text" placeholder="What are you targeting in this batch?" class="br-field-input" />
+            </div>
+
+            <div class="br-form__row br-form__row--triple">
+              <div class="br-form__field">
+                <label class="br-field-lbl">Starting kamas</label>
+                <input v-model.number="draftSession.startingKamas" type="number" step="1000" class="br-field-input" />
+              </div>
+              <div class="br-form__field">
+                <label class="br-field-lbl">Ending kamas</label>
+                <input v-model.number="draftSession.endingKamas" type="number" step="1000" class="br-field-input" />
+              </div>
+              <div class="br-form__field">
+                <label class="br-field-lbl">External delta</label>
+                <input v-model.number="draftSession.externalDelta" type="number" step="1000" class="br-field-input" />
+                <div class="br-field-help">Use this for kamas changes outside this brisage batch, like unrelated buys, sales, or taxes.</div>
+              </div>
+            </div>
+
+            <div class="br-session-summary">
+              <div class="br-session-summary__item">
+                <div class="br-session-summary__label">Draft items</div>
+                <div class="br-session-summary__value">{{ draftItems.length }}</div>
+              </div>
+              <div class="br-session-summary__item">
+                <div class="br-session-summary__label">Craft total</div>
+                <div class="br-session-summary__value">{{ formatKamas(draftTotals.craft) }}</div>
+              </div>
+              <div class="br-session-summary__item">
+                <div class="br-session-summary__label">Realized value</div>
+                <div class="br-session-summary__value">{{ formatKamas(draftTotals.realized) }}</div>
+              </div>
+              <div class="br-session-summary__item">
+                <div class="br-session-summary__label">Session P/L</div>
+                <div class="br-session-summary__value" :class="draftTotals.profit >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                  {{ draftTotals.profit >= 0 ? '+' : '' }}{{ formatKamas(draftTotals.profit) }}
+                </div>
+              </div>
+              <div class="br-session-summary__item">
+                <div class="br-session-summary__label">Cash delta</div>
+                <div class="br-session-summary__value" :class="sessionCashDelta >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                  {{ sessionCashDelta >= 0 ? '+' : '' }}{{ formatKamas(sessionCashDelta) }}
+                </div>
+              </div>
+              <div class="br-session-summary__item">
+                <div class="br-session-summary__label">Reconciliation gap</div>
+                <div class="br-session-summary__value" :class="sessionCashGap >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                  {{ sessionCashGap >= 0 ? '+' : '' }}{{ formatKamas(sessionCashGap) }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="br-panel-title br-panel-title--sub">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            {{ workspaceMode === 'planner' ? 'Find item to evaluate' : 'Find item to log' }}
+            Add items to this session
           </div>
 
           <div ref="searchAreaEl" class="br-search-area">
@@ -116,429 +179,168 @@
                 v-for="item in results"
                 :key="item.id"
                 class="br-result"
-                :class="{ 'br-result--sel': selectedItem?.id === item.id }"
-                @click="selectItem(item)"
+                @click="addItemToDraft(item)"
               >
                 <img :src="getItemImg(item)" :alt="item.name?.fr ?? ''" class="br-result__img" @error="onImgErr" />
                 <div class="br-result__info">
                   <div class="br-result__name">{{ item.name?.fr ?? item.id }}</div>
                   <div class="br-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
                 </div>
-                <svg v-if="selectedItem?.id === item.id" class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style="color:var(--v2-accent)">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
+                <span class="br-result__cta">Add</span>
               </button>
             </div>
             <div v-else-if="search && !searching" class="br-empty-hint">No items found for "{{ search }}"</div>
           </div>
 
-          <!-- Entry form -->
-          <Transition name="br-slide">
-            <div v-if="selectedItem && workspaceMode === 'planner'" class="br-form">
-              <div class="br-form__item-header">
-                <img :src="getItemImg(selectedItem)" :alt="selectedItem.name?.fr ?? ''" class="br-form__item-img" @error="onImgErr" />
-                <div>
-                  <div class="br-form__item-name">{{ selectedItem.name?.fr ?? selectedItem.id }}</div>
-                  <div class="br-form__item-sub">{{ selectedItem.type?.name?.fr ?? '' }} · Lv {{ selectedItem.level ?? '?' }}</div>
+          <div v-if="draftItems.length" class="br-draft-list">
+            <div v-for="draftItem in draftItems" :key="draftItem.id" class="br-draft-card">
+              <div class="br-draft-card__header">
+                <div class="br-draft-card__meta">
+                  <img :src="getItemImg(draftItem.item)" :alt="draftItem.item?.name?.fr ?? ''" class="br-draft-card__img" @error="onImgErr" />
+                  <div>
+                    <div class="br-draft-card__name">{{ draftItem.item?.name?.fr ?? draftItem.itemId }}</div>
+                    <div class="br-draft-card__sub">{{ draftItem.item?.type?.name?.fr ?? '' }} · Lv {{ draftItem.item?.level ?? '?' }}</div>
+                  </div>
                 </div>
-                <button class="br-form__close" @click="selectedItem = null">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="br-entry__del" @click="removeDraftItem(draftItem.id)" title="Remove">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
-              <div class="br-planner-kicker">
-                Separate pre-brisage workspace. Use this to decide whether the item is worth breaking before you record actual runes.
+              <div class="br-form__row br-form__row--triple">
+                <div class="br-form__field">
+                  <label class="br-field-lbl">Qty</label>
+                  <input v-model.number="draftItem.quantity" type="number" min="1" class="br-field-input" />
+                </div>
+                <div class="br-form__field">
+                  <label class="br-field-lbl">Unit craft cost</label>
+                  <input v-model.number="draftItem.unitCraftCost" type="number" min="0" step="1000" class="br-field-input" />
+                </div>
+                <div class="br-form__field">
+                  <label class="br-field-lbl">Rune value total</label>
+                  <input v-model.number="draftItem.realizedRuneValue" type="number" min="0" step="1000" class="br-field-input" />
+                </div>
               </div>
 
               <div class="br-form__row">
                 <div class="br-form__field">
-                  <label class="br-field-lbl">Craft price (kamas)</label>
-                  <input v-model.number="formCraftPrice" type="number" min="0" step="1000" placeholder="0" class="br-field-input" />
+                  <label class="br-field-lbl">Optional HDV reference</label>
+                  <input v-model.number="draftItem.hdvReference" type="number" min="0" step="1000" class="br-field-input" />
                 </div>
                 <div class="br-form__field">
-                  <label class="br-field-lbl">HDV price (kamas)</label>
-                  <input v-model.number="formHdvPrice" type="number" min="0" step="1000" placeholder="0" class="br-field-input" />
+                  <label class="br-field-lbl">Item note</label>
+                  <input v-model="draftItem.notes" type="text" placeholder="Any quick note about this break" class="br-field-input" />
                 </div>
               </div>
 
-              <div class="br-form__field">
-                <label class="br-field-lbl">Date</label>
-                <input v-model="formDate" type="date" class="br-field-input" />
-              </div>
-
-              <div class="br-planner-grid">
-                <div class="br-planner-card">
-                  <div class="br-planner-card__label">Reference cost</div>
-                  <div class="br-planner-card__value">
-                    {{ plannerReferenceCost > 0 ? formatKamas(plannerReferenceCost) : '—' }}
-                  </div>
-                  <div class="br-planner-card__sub">{{ plannerReferenceLabel }}</div>
-                </div>
-                <div class="br-planner-card">
-                  <div class="br-planner-card__label">Market spread</div>
-                  <div class="br-planner-card__value" :class="plannerSpread >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                    {{ formHdvPrice > 0 && formCraftPrice > 0 ? `${plannerSpread > 0 ? '+' : ''}${formatKamas(plannerSpread)}` : '—' }}
-                  </div>
-                  <div class="br-planner-card__sub">HDV minus craft</div>
-                </div>
-                <div class="br-planner-card">
-                  <div class="br-planner-card__label">Item profile</div>
-                  <div class="br-planner-card__value">{{ plannerEffectCount }}</div>
-                  <div class="br-planner-card__sub">Effect lines detected</div>
-                </div>
-              </div>
-
-              <div class="br-planner-section">
-                <div class="br-runes-header">
-                  <span class="br-field-lbl">Planner readiness</span>
-                </div>
-                <div class="br-planner-checklist">
-                  <div class="br-planner-check" :class="{ 'br-planner-check--on': true }">
-                    <span class="br-planner-check__dot" />
-                    Selected item loaded
-                  </div>
-                  <div class="br-planner-check" :class="{ 'br-planner-check--on': plannerReferenceCost > 0 }">
-                    <span class="br-planner-check__dot" />
-                    Cost basis entered
-                  </div>
-                  <div class="br-planner-check" :class="{ 'br-planner-check--on': plannerEffectCount > 0 }">
-                    <span class="br-planner-check__dot" />
-                    Item effects available for rune mapping
-                  </div>
-                  <div class="br-planner-check">
-                    <span class="br-planner-check__dot" />
-                    Rune-family mapping pending next implementation step
-                  </div>
-                  <div class="br-planner-check">
-                    <span class="br-planner-check__dot" />
-                    Coefficient-aware EV pending next implementation step
-                  </div>
-                </div>
-              </div>
-
-              <div class="br-planner-section">
-                <div class="br-runes-header">
-                  <span class="br-field-lbl">Planner notes</span>
-                </div>
-                <input v-model="formNotes" type="text" placeholder="Why this item looks promising, coefficient notes, price assumptions…" class="br-field-input" />
-              </div>
-
-              <div class="br-planner-actions">
-                <button class="br-submit-btn" @click="workspaceMode = 'log'">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L10 18l-7-7" />
-                  </svg>
-                  Use this item in manual log
-                </button>
-              </div>
-            </div>
-
-            <div v-else-if="selectedItem && workspaceMode === 'log'" class="br-form">
-              <!-- Item header -->
-              <div class="br-form__item-header">
-                <img :src="getItemImg(selectedItem)" :alt="selectedItem.name?.fr ?? ''" class="br-form__item-img" @error="onImgErr" />
-                <div>
-                  <div class="br-form__item-name">{{ selectedItem.name?.fr ?? selectedItem.id }}</div>
-                  <div class="br-form__item-sub">{{ selectedItem.type?.name?.fr ?? '' }} · Lv {{ selectedItem.level ?? '?' }}</div>
-                </div>
-                <button class="br-form__close" @click="selectedItem = null">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Prices row -->
-              <div class="br-form__row">
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Craft price (kamas)</label>
-                  <input v-model.number="formCraftPrice" type="number" min="0" step="1000" placeholder="0" class="br-field-input" />
-                </div>
-                <div class="br-form__field">
-                  <label class="br-field-lbl">HDV price (kamas)</label>
-                  <input v-model.number="formHdvPrice" type="number" min="0" step="1000" placeholder="0" class="br-field-input" />
-                </div>
-              </div>
-
-              <div class="br-form__field">
-                <label class="br-field-lbl">Date</label>
-                <input v-model="formDate" type="date" class="br-field-input" />
-              </div>
-
-              <!-- Rune breakdown -->
-              <div class="br-runes-section">
-                <div class="br-runes-header">
-                  <span class="br-field-lbl">Runes obtained</span>
-                  <span v-if="formRunes.length > 0" class="br-runes-total">{{ formatKamas(formRuneTotal) }}</span>
-                </div>
-
-                <!-- Add rune form -->
-                <div class="br-rune-add">
-                  <div class="br-rune-add__row">
-                    <div ref="addRuneWrapEl" class="br-rune-add__name-wrap">
-                      <input
-                        v-model="addRuneForm.name"
-                        type="text"
-                        placeholder="Rune name (e.g. Ra Vi)…"
-                        class="br-rune-add__name"
-                        @input="onAddRuneNameInput"
-                        @focus="addRuneDropOpen = true"
-                        @keyup.enter="commitAddRune"
-                        @keyup.escape="addRuneDropOpen = false"
-                      />
-                      <div v-if="addRuneDropOpen && addRuneSuggestions.length" class="br-rune-dropdown">
-                        <button
-                          v-for="s in addRuneSuggestions"
-                          :key="s.id"
-                          class="br-rune-dropdown__item"
-                          @mousedown.prevent="pickAddRune(s)"
-                        >
-                          <span class="br-rune-dropdown__name">{{ s.name }}</span>
-                          <span class="br-rune-dropdown__price">
-                            {{ s.price > 0 ? `${formatKamas(s.price)}/u` : 'No saved price' }}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                    <input
-                      v-model.number="addRuneForm.qty"
-                      type="number"
-                      min="1"
-                      placeholder="Qty"
-                      class="br-rune-add__qty"
-                      @keyup.enter="commitAddRune"
-                    />
-                  </div>
-                  <!-- Price preview when rune is known -->
-                  <div v-if="addRunePreview > 0" class="br-rune-add__preview">
-                    {{ addRuneForm.qty || 1 }}× {{ formatKamas(addRunePreview) }} = <strong>{{ formatKamas((addRuneForm.qty || 1) * addRunePreview) }}</strong>
-                  </div>
-                  <div v-else-if="selectedAddRune" class="br-rune-add__manual-row">
-                    <label class="br-field-lbl">Price per unit</label>
-                    <input
-                      v-model.number="addRuneForm.unitPrice"
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      class="br-rune-add__price"
-                      @keyup.enter="commitAddRune"
-                    />
-                  </div>
-                  <div v-else-if="addRuneForm.name.trim()" class="br-rune-add__preview">
-                    Select a rune from the catalog to keep names normalized.
-                  </div>
-                  <button
-                    class="br-rune-add__btn"
-                    :disabled="!selectedAddRune || effectiveAddPrice === 0"
-                    @click="commitAddRune"
-                  >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add rune
-                  </button>
-                </div>
-
-                <!-- Added runes list -->
-                <div v-if="formRunes.length > 0" class="br-rune-list">
-                  <div v-for="(rune, idx) in formRunes" :key="idx" class="br-rune-item">
-                    <span class="br-rune-item__label">
-                      <span class="br-rune-item__qty">{{ rune.qty }}×</span>
-                      <span class="br-rune-item__name">{{ rune.name }}</span>
-                    </span>
-                    <span class="br-rune-item__val">{{ formatKamas((rune.qty || 0) * (rune.unitPrice || 0)) }}</span>
-                    <button class="br-rune-item__del" @click="formRunes.splice(idx, 1)" title="Remove">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="br-rune-list__total">
-                    <span>Total rune value</span>
-                    <span class="br-rune-list__total-val">{{ formatKamas(formRuneTotal) }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Profit preview -->
-              <div v-if="formCraftPrice > 0 || formRuneTotal > 0" class="br-profit-preview">
+              <div class="br-profit-preview">
                 <div class="br-profit-row">
-                  <span>vs Craft:</span>
-                  <span :style="(formRuneTotal - formCraftPrice) >= 0 ? 'color:#34d399' : 'color:#f87171'">
-                    {{ (formRuneTotal - formCraftPrice) >= 0 ? '+' : '' }}{{ formatKamas(formRuneTotal - formCraftPrice) }}
-                    <span style="font-size:.6875rem;opacity:.7">
-                      ({{ formCraftPrice > 0 ? (((formRuneTotal - formCraftPrice) / formCraftPrice) * 100).toFixed(0) : '∞' }}%)
-                    </span>
+                  <span>Total craft cost</span>
+                  <span>{{ formatKamas(itemCraftTotal(draftItem)) }}</span>
+                </div>
+                <div class="br-profit-row">
+                  <span>Per-item P/L</span>
+                  <span :class="itemProfit(draftItem) >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                    {{ itemProfit(draftItem) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(draftItem)) }}
                   </span>
                 </div>
-                <div v-if="formHdvPrice > 0" class="br-profit-row">
-                  <span>vs HDV:</span>
-                  <span :style="(formRuneTotal - formHdvPrice) >= 0 ? 'color:#34d399' : 'color:#f87171'">
-                    {{ (formRuneTotal - formHdvPrice) >= 0 ? '+' : '' }}{{ formatKamas(formRuneTotal - formHdvPrice) }}
-                    <span style="font-size:.6875rem;opacity:.7">
-                      ({{ formHdvPrice > 0 ? (((formRuneTotal - formHdvPrice) / formHdvPrice) * 100).toFixed(0) : '∞' }}%)
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-              <div class="br-form__field">
-                <label class="br-field-lbl">Notes (optional)</label>
-                <input v-model="formNotes" type="text" placeholder="Optional notes…" class="br-field-input" />
-              </div>
-
-              <button class="br-submit-btn" :disabled="!selectedItem || formRuneTotal === 0" @click="addEntry">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
-                </svg>
-                Add to brisage log
-              </button>
-            </div>
-          </Transition>
-
-          <!-- ─── Rune prices manager ─── -->
-          <div class="br-rune-prices">
-            <button class="br-rune-prices__toggle" @click="showRunePrices = !showRunePrices">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-              Rune prices
-              <span class="br-rune-prices__count">{{ runePrices.length }}</span>
-              <svg class="w-3.5 h-3.5 ml-auto transition-transform" :class="{ 'rotate-180': showRunePrices }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-              <div v-if="showRunePrices" class="br-rune-prices__body">
-                <!-- Add rune price -->
-                <div class="br-rune-prices__add-form">
-                <input v-model="newRuneName" type="text" placeholder="Rune name (e.g. Ra Vi)" class="br-rune-prices__input" @keyup.enter="addRunePrice" />
-                <input v-model.number="newRunePrice" type="number" min="0" placeholder="Price" class="br-rune-prices__input br-rune-prices__input--sm" @keyup.enter="addRunePrice" />
-                <button class="br-rune-prices__add-btn" @click="addRunePrice" :disabled="!resolveRuneCatalogEntry(newRuneName) || newRunePrice <= 0">+</button>
-              </div>
-              <div v-if="newRuneName.trim()" class="br-rune-prices__hint">
-                <template v-if="resolveRuneCatalogEntry(newRuneName)">
-                  Saving as {{ resolveRuneCatalogEntry(newRuneName)?.name }}
-                </template>
-                <template v-else>
-                  Unknown rune. Use a catalog name or alias like `Ra Vi`, `Pa Fo`, `Cri`, `Ga Pa`.
-                </template>
-              </div>
-
-              <div v-if="runePrices.length === 0" class="br-rune-prices__empty">
-                No rune prices saved yet.
-              </div>
-              <div v-else class="br-rune-prices__list">
-                <div v-for="rp in runePrices" :key="rp.id" class="br-rp-row">
-                  <span class="br-rp-name">{{ rp.name }}</span>
-                  <template v-if="editingRune?.id === rp.id">
-                    <input v-model.number="editingRune.price" type="number" class="br-rp-input" @keyup.enter="saveRunePrice" @keyup.escape="editingRune = null" />
-                    <button class="br-rp-ok" @click="saveRunePrice">✓</button>
-                    <button class="br-rp-cancel" @click="editingRune = null">✕</button>
-                  </template>
-                  <template v-else>
-                    <span class="br-rp-price" @click="startEditRune(rp)">{{ formatKamas(rp.price) }}</span>
-                    <button class="br-rp-edit" @click="startEditRune(rp)" title="Edit">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button class="br-rp-del" @click="deleteRunePrice(rp.id)" title="Delete">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </template>
+                <div class="br-profit-row" v-if="draftItem.quantity > 0">
+                  <span>Avg per copy</span>
+                  <span>{{ formatKamas(Math.round(itemProfit(draftItem) / draftItem.quantity)) }}</span>
                 </div>
               </div>
             </div>
           </div>
+
+          <div v-else class="br-log-empty br-log-empty--compact">
+            Search for an item, add it to the draft session, then enter the total rune value you realized after breaking it in game.
+          </div>
+
+          <button class="br-submit-btn" :disabled="draftItems.length === 0" @click="saveSession">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Save session
+          </button>
         </div>
 
-        <!-- ─── RIGHT: Log ─── -->
         <div class="br-panel">
           <div class="br-panel-title">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
             </svg>
-            Brisage log
-            <span class="br-badge">{{ entries.length }}</span>
+            Session history
+            <span class="br-badge">{{ sessions.length }}</span>
           </div>
 
-          <div v-if="entries.length === 0" class="br-log-empty">
+          <div v-if="sessions.length === 0" class="br-log-empty">
             <svg class="w-10 h-10 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
             </svg>
             No brisage sessions recorded yet.<br />
-            <span style="font-size:.8125rem;opacity:.5">Search for an item and log your first break.</span>
+            <span style="font-size:.8125rem;opacity:.5">Create a draft session on the left and save it once your batch is logged.</span>
           </div>
 
           <div v-else class="br-log-scroll">
-            <div v-for="entry in entries" :key="entry.id" class="br-entry">
-              <!-- Header row -->
+            <div v-for="session in sessions" :key="session.id" class="br-entry">
               <div class="br-entry__header">
-                <img :src="getItemImg(entry.item)" :alt="entry.item?.name?.fr ?? ''" class="br-entry__img" @error="onImgErr" />
                 <div class="br-entry__meta">
-                  <div class="br-entry__name">{{ entry.item?.name?.fr ?? 'Unknown item' }}</div>
-                  <div class="br-entry__sub">{{ entry.item?.type?.name?.fr ?? '' }} · Lv {{ entry.item?.level ?? '?' }}</div>
-                  <div class="br-entry__date">{{ formatDisplayDate(entry.date) }}</div>
+                  <div class="br-entry__name">{{ session.categoryLabel || 'General session' }}</div>
+                  <div class="br-entry__sub">{{ describeSessionScope(session) }}</div>
+                  <div class="br-entry__date">{{ formatDisplayDate(session.date) }}</div>
                 </div>
-                <button class="br-entry__del" @click="deleteEntry(entry.id)" title="Delete">
+                <button class="br-entry__del" @click="deleteSession(session.id)" title="Delete session">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
               </div>
 
-              <!-- Price trio -->
               <div class="br-entry__prices">
                 <div class="br-price-cell br-price-cell--craft">
-                  <div class="br-price-cell__lbl">Craft cost</div>
-                  <div class="br-price-cell__val">{{ formatKamas(entry.craftPrice) }}</div>
+                  <div class="br-price-cell__lbl">Craft total</div>
+                  <div class="br-price-cell__val">{{ formatKamas(sessionTotals(session).craft) }}</div>
                 </div>
                 <div class="br-price-cell br-price-cell--hdv">
-                  <div class="br-price-cell__lbl">HDV price</div>
-                  <div class="br-price-cell__val">{{ formatKamas(entry.hdvPrice) }}</div>
+                  <div class="br-price-cell__lbl">Cash delta</div>
+                  <div class="br-price-cell__val">{{ formatKamas((session.endingKamas || 0) - (session.startingKamas || 0) - (session.externalDelta || 0)) }}</div>
                 </div>
                 <div class="br-price-cell br-price-cell--rune">
-                  <div class="br-price-cell__lbl">Rune value</div>
-                  <div class="br-price-cell__val" style="color:var(--v2-accent)">{{ formatKamas(entry.runeValue) }}</div>
+                  <div class="br-price-cell__lbl">Realized value</div>
+                  <div class="br-price-cell__val" style="color:var(--v2-accent)">{{ formatKamas(sessionTotals(session).realized) }}</div>
                 </div>
               </div>
 
-              <!-- Profit indicators -->
               <div class="br-entry__profits">
-                <div class="br-profit-pill" :class="(entry.runeValue - entry.craftPrice) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                  vs Craft: {{ (entry.runeValue - entry.craftPrice) >= 0 ? '+' : '' }}{{ formatKamas(entry.runeValue - entry.craftPrice) }}
-                  <span class="br-profit-pct" v-if="entry.craftPrice > 0">
-                    ({{ (((entry.runeValue - entry.craftPrice) / entry.craftPrice) * 100).toFixed(0) }}%)
-                  </span>
+                <div class="br-profit-pill" :class="sessionTotals(session).profit >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
+                  Session P/L: {{ sessionTotals(session).profit >= 0 ? '+' : '' }}{{ formatKamas(sessionTotals(session).profit) }}
                 </div>
-                <div v-if="entry.hdvPrice > 0" class="br-profit-pill" :class="(entry.runeValue - entry.hdvPrice) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  vs HDV: {{ (entry.runeValue - entry.hdvPrice) >= 0 ? '+' : '' }}{{ formatKamas(entry.runeValue - entry.hdvPrice) }}
-                  <span class="br-profit-pct" v-if="entry.hdvPrice > 0">
-                    ({{ (((entry.runeValue - entry.hdvPrice) / entry.hdvPrice) * 100).toFixed(0) }}%)
-                  </span>
+                <div class="br-profit-pill" :class="sessionMargin(session) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
+                  Margin: {{ sessionMargin(session) >= 0 ? '+' : '' }}{{ sessionMargin(session) }}%
+                </div>
+                <div class="br-profit-pill" :class="(((session.endingKamas || 0) - (session.startingKamas || 0) - (session.externalDelta || 0)) - sessionTotals(session).profit) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
+                  Gap: {{ (((session.endingKamas || 0) - (session.startingKamas || 0) - (session.externalDelta || 0)) - sessionTotals(session).profit) >= 0 ? '+' : '' }}{{ formatKamas(((session.endingKamas || 0) - (session.startingKamas || 0) - (session.externalDelta || 0)) - sessionTotals(session).profit) }}
                 </div>
               </div>
 
-              <!-- Rune chips -->
-              <div v-if="entry.runes.length > 0" class="br-entry__rune-chips">
-                <span v-for="(r, i) in entry.runes" :key="i" class="br-rune-chip">
-                  {{ r.qty }}× {{ r.name }}
-                  <span class="br-rune-chip__val">{{ formatKamas(r.qty * r.unitPrice) }}</span>
-                </span>
+              <div class="br-session-items">
+                <div v-for="item in session.items" :key="item.id" class="br-session-item-row">
+                  <div class="br-session-item-row__meta">
+                    <img :src="getItemImg(item.item)" :alt="item.item?.name?.fr ?? ''" class="br-session-item-row__img" @error="onImgErr" />
+                    <div>
+                      <div class="br-session-item-row__name">{{ item.item?.name?.fr ?? item.itemId }}</div>
+                      <div class="br-session-item-row__sub">x{{ item.quantity }} · Unit {{ formatKamas(item.unitCraftCost) }} · Total {{ formatKamas(itemCraftTotal(item)) }} · Realized {{ formatKamas(item.realizedRuneValue) }}</div>
+                    </div>
+                  </div>
+                  <div class="br-session-item-row__profit" :class="itemProfit(item) >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                    {{ itemProfit(item) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(item)) }}
+                  </div>
+                </div>
               </div>
 
-              <div v-if="entry.notes" class="br-entry__notes">{{ entry.notes }}</div>
+              <div v-if="session.notes" class="br-entry__notes">{{ session.notes }}</div>
             </div>
           </div>
         </div>
@@ -552,216 +354,180 @@ definePageMeta({ layout: 'v2' })
 
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-interface FormRune { runeId: string; name: string; qty: number; unitPrice: number }
-interface BrisageRune { runeId: string; name: string; qty: number; unitPrice: number }
-interface BrisageEntry {
+interface BrisageSessionItem {
+  id: string
+  itemId: string | number
+  item: any
+  quantity: number
+  unitCraftCost: number
+  hdvReference: number
+  realizedRuneValue: number
+  notes: string
+}
+
+interface BrisageSession {
+  id: string
+  date: string
+  startingKamas: number
+  endingKamas: number
+  externalDelta: number
+  levelMin: number | null
+  levelMax: number | null
+  categoryLabel: string
+  notes: string
+  items: BrisageSessionItem[]
+}
+
+interface LegacyBrisageEntry {
   id: string
   itemId: string | number
   item: any
   craftPrice: number
   hdvPrice: number
   runeValue: number
-  runes: BrisageRune[]
   date: string
   notes: string
 }
-interface RunePrice { id: string; runeId: string; name: string; price: number }
-interface RuneCatalogEntry { id: string; name: string; aliases: string[] }
 
-const RUNE_CATALOG: RuneCatalogEntry[] = [
-  { id: 'vi', name: 'Vi', aliases: ['vi', 'vitalite', 'vitalité', 'rune vi'] },
-  { id: 'pa_vi', name: 'Pa Vi', aliases: ['pavi', 'pa vi', 'pa vitalite', 'pa vitalité'] },
-  { id: 'ra_vi', name: 'Ra Vi', aliases: ['ravi', 'ra vi', 'ra vitalite', 'ra vitalité'] },
-  { id: 'fo', name: 'Fo', aliases: ['fo', 'force', 'rune fo'] },
-  { id: 'pa_fo', name: 'Pa Fo', aliases: ['pafo', 'pa fo', 'pa force'] },
-  { id: 'ra_fo', name: 'Ra Fo', aliases: ['rafo', 'ra fo', 'ra force'] },
-  { id: 'ine', name: 'Ine', aliases: ['ine', 'intel', 'intelligence', 'rune ine'] },
-  { id: 'pa_ine', name: 'Pa Ine', aliases: ['paine', 'pa ine', 'pa intel', 'pa intelligence'] },
-  { id: 'ra_ine', name: 'Ra Ine', aliases: ['raine', 'ra ine', 'ra intel', 'ra intelligence'] },
-  { id: 'cha', name: 'Cha', aliases: ['cha', 'chance', 'rune cha'] },
-  { id: 'pa_cha', name: 'Pa Cha', aliases: ['pacha', 'pa cha', 'pa chance'] },
-  { id: 'ra_cha', name: 'Ra Cha', aliases: ['racha', 'ra cha', 'ra chance'] },
-  { id: 'age', name: 'Age', aliases: ['age', 'agi', 'agilite', 'agilité', 'rune age'] },
-  { id: 'pa_age', name: 'Pa Age', aliases: ['paage', 'pa age', 'pa agi', 'pa agilite', 'pa agilité'] },
-  { id: 'ra_age', name: 'Ra Age', aliases: ['raage', 'ra age', 'ra agi', 'ra agilite', 'ra agilité'] },
-  { id: 'sa', name: 'Sa', aliases: ['sa', 'sagesse', 'rune sa'] },
-  { id: 'pa_sa', name: 'Pa Sa', aliases: ['pasa', 'pa sa', 'pa sagesse'] },
-  { id: 'ra_sa', name: 'Ra Sa', aliases: ['rasa', 'ra sa', 'ra sagesse'] },
-  { id: 'ini', name: 'Ini', aliases: ['ini', 'initiative', 'rune ini'] },
-  { id: 'pa_ini', name: 'Pa Ini', aliases: ['paini', 'pa ini', 'pa initiative'] },
-  { id: 'ra_ini', name: 'Ra Ini', aliases: ['raini', 'ra ini', 'ra initiative'] },
-  { id: 'do', name: 'Do', aliases: ['do', 'dom', 'dommage', 'dommages', 'rune do'] },
-  { id: 'pa_do', name: 'Pa Do', aliases: ['pado', 'pa do', 'pa dommage', 'pa dommages'] },
-  { id: 'ra_do', name: 'Ra Do', aliases: ['rado', 'ra do', 'ra dommage', 'ra dommages'] },
-  { id: 'cri', name: 'Cri', aliases: ['cri', 'crit', 'critique', 'cri', 'rune cri'] },
-  { id: 'prospe', name: 'Prospe', aliases: ['prospe', 'prospection', 'pp'] },
-  { id: 'tacle', name: 'Tac', aliases: ['tac', 'tacle'] },
-  { id: 'fuite', name: 'Fui', aliases: ['fui', 'fuite'] },
-  { id: 'pui', name: 'Pui', aliases: ['pui', 'puissance'] },
-  { id: 'so', name: 'So', aliases: ['so', 'soin', 'soins'] },
-  { id: 'do_pou', name: 'Do Pou', aliases: ['dopou', 'do pou', 'dommage poussee', 'dommages poussee', 'dommage poussée', 'dommages poussée'] },
-  { id: 'do_per', name: 'Do Per', aliases: ['doper', 'do per', 'dommage piege', 'dommages piege', 'dommage piège', 'dommages piège'] },
-  { id: 'recri', name: 'Ré Cri', aliases: ['recri', 're cri', 'res cri', 'rés cri', 'resistance critique', 'résistance critique'] },
-  { id: 'ga_pa', name: 'Ga Pa', aliases: ['gapa', 'ga pa', 'pa', 'point action'] },
-  { id: 'ga_pme', name: 'Ga Pme', aliases: ['gapme', 'ga pme', 'pme', 'pm', 'point mouvement'] },
-  { id: 'po', name: 'Po', aliases: ['po', 'portee', 'portée'] },
-  { id: 'invo', name: 'Invo', aliases: ['invo', 'invocation'] },
-]
+const sessionsKey = computed(() =>
+  `brisage_sessions_${selectedServer.value?.id}_${selectedCharacter.value?.id}`,
+)
+const legacyEntriesKey = computed(() =>
+  `brisage_entries_${selectedServer.value?.id}_${selectedCharacter.value?.id}`,
+)
 
-const normalizeRuneToken = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/gi, '')
-    .toLowerCase()
-    .trim()
-
-const RUNE_CATALOG_LOOKUP = new Map<string, RuneCatalogEntry>()
-RUNE_CATALOG.forEach((entry) => {
-  ;[entry.name, ...entry.aliases].forEach((alias) => {
-    const key = normalizeRuneToken(alias)
-    if (key) RUNE_CATALOG_LOOKUP.set(key, entry)
-  })
+const sessions = ref<BrisageSession[]>([])
+const draftItems = ref<BrisageSessionItem[]>([])
+const draftSession = ref({
+  date: todayISO(),
+  startingKamas: 0,
+  endingKamas: 0,
+  externalDelta: 0,
+  levelMin: null as number | null,
+  levelMax: null as number | null,
+  categoryLabel: '',
+  notes: '',
 })
 
-const resolveRuneCatalogEntry = (value: string): RuneCatalogEntry | null =>
-  RUNE_CATALOG_LOOKUP.get(normalizeRuneToken(value)) ?? null
-
-const getRuneCatalogSuggestions = (query: string, limit = 8) => {
-  const key = normalizeRuneToken(query)
-  const pool = key
-    ? RUNE_CATALOG.filter((entry) =>
-        [entry.name, ...entry.aliases].some((alias) => normalizeRuneToken(alias).includes(key)),
-      )
-    : RUNE_CATALOG
-  return pool.slice(0, limit)
-}
-
-const makeCustomRuneId = (name: string) => `custom:${normalizeRuneToken(name) || 'unknown'}`
-
-const normalizeRunePriceRecord = (record: any): RunePrice | null => {
-  const name = String(record?.name ?? '').trim()
-  const price = Number(record?.price ?? 0)
-  if (!name || price <= 0) return null
-  const match = resolveRuneCatalogEntry(record?.runeId || name)
-  return {
-    id: String(record?.id ?? crypto.randomUUID()),
-    runeId: match?.id ?? makeCustomRuneId(name),
-    name: match?.name ?? name,
-    price,
-  }
-}
-
-const normalizeBrisageRuneRecord = (record: any): BrisageRune | null => {
-  const name = String(record?.name ?? '').trim()
-  const qty = Number(record?.qty ?? 0)
-  const unitPrice = Number(record?.unitPrice ?? 0)
-  if (!name || qty <= 0) return null
-  const match = resolveRuneCatalogEntry(record?.runeId || name)
-  return {
-    runeId: match?.id ?? makeCustomRuneId(name),
-    name: match?.name ?? name,
-    qty,
-    unitPrice,
-  }
-}
-
-const normalizeBrisageEntryRecord = (record: any): BrisageEntry | null => {
-  if (!record?.id || !record?.item) return null
-  const runes = Array.isArray(record?.runes)
-    ? record.runes.map(normalizeBrisageRuneRecord).filter(Boolean) as BrisageRune[]
-    : []
-  return {
-    id: String(record.id),
-    itemId: record.itemId,
-    item: record.item,
-    craftPrice: Number(record.craftPrice ?? 0),
-    hdvPrice: Number(record.hdvPrice ?? 0),
-    runeValue: Number(record.runeValue ?? 0),
-    runes,
-    date: String(record.date ?? todayISO()),
-    notes: String(record.notes ?? ''),
-  }
-}
-
-// ── Storage keys ──────────────────────────────────────────────────────────────
-const entriesKey = computed(() =>
-  `brisage_entries_${selectedServer.value?.id}_${selectedCharacter.value?.id}`
-)
-const runePricesKey = computed(() =>
-  `brisage_rune_prices_${selectedServer.value?.id}`
-)
-
-// ── State ─────────────────────────────────────────────────────────────────────
-const entries = ref<BrisageEntry[]>([])
-const runePrices = ref<RunePrice[]>([])
-const showRunePrices = ref(false)
-const workspaceMode = ref<'planner' | 'log'>('planner')
-
-// Search
 const search = ref('')
 const searching = ref(false)
 const results = ref<any[]>([])
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-// Selected item
-const selectedItem = ref<any>(null)
+const normalizeLevelValue = (value: unknown) => {
+  const num = Number(value)
+  if (!Number.isFinite(num) || num <= 0) return null
+  return Math.max(1, Math.min(200, Math.round(num)))
+}
 
-// Form fields
-const formCraftPrice = ref(0)
-const formHdvPrice = ref(0)
-const formDate = ref(todayISO())
-const formRunes = ref<FormRune[]>([])
-const formNotes = ref('')
+const normalizeSessionItem = (record: any): BrisageSessionItem | null => {
+  if (!record?.id || !record?.item) return null
+  return {
+    id: String(record.id),
+    itemId: record.itemId,
+    item: record.item,
+    quantity: Math.max(1, Number(record.quantity ?? 1) || 1),
+    unitCraftCost: Math.max(0, Number(record.unitCraftCost ?? record.craftCost ?? 0) || 0),
+    hdvReference: Math.max(0, Number(record.hdvReference ?? 0) || 0),
+    realizedRuneValue: Math.max(0, Number(record.realizedRuneValue ?? 0) || 0),
+    notes: String(record.notes ?? ''),
+  }
+}
 
-// Add-rune mini form
-const addRuneForm = ref({ name: '', selectedRuneId: '', qty: 1, unitPrice: 0 })
-const addRuneDropOpen = ref(false)
+const normalizeSessionRecord = (record: any): BrisageSession | null => {
+  if (!record?.id) return null
+  const items = Array.isArray(record?.items)
+    ? record.items.map(normalizeSessionItem).filter(Boolean) as BrisageSessionItem[]
+    : []
+  return {
+    id: String(record.id),
+    date: String(record.date ?? todayISO()),
+    startingKamas: Number(record.startingKamas ?? 0) || 0,
+    endingKamas: Number(record.endingKamas ?? 0) || 0,
+    externalDelta: Number(record.externalDelta ?? 0) || 0,
+    levelMin: normalizeLevelValue(record.levelMin),
+    levelMax: normalizeLevelValue(record.levelMax),
+    categoryLabel: String(record.categoryLabel ?? ''),
+    notes: String(record.notes ?? ''),
+    items,
+  }
+}
 
-// Rune price management
-const newRuneName = ref('')
-const newRunePrice = ref(0)
-const editingRune = ref<{ id: string; price: number } | null>(null)
+const normalizeLegacyEntry = (record: any): LegacyBrisageEntry | null => {
+  if (!record?.id || !record?.item) return null
+  return {
+    id: String(record.id),
+    itemId: record.itemId,
+    item: record.item,
+    craftPrice: Math.max(0, Number(record.craftPrice ?? 0) || 0),
+    hdvPrice: Math.max(0, Number(record.hdvPrice ?? 0) || 0),
+    runeValue: Math.max(0, Number(record.runeValue ?? 0) || 0),
+    date: String(record.date ?? todayISO()),
+    notes: String(record.notes ?? ''),
+  }
+}
 
-// ── Load/save ─────────────────────────────────────────────────────────────────
+const migrateLegacyEntries = (legacyEntries: LegacyBrisageEntry[]) =>
+  legacyEntries.map(entry => ({
+    id: `legacy-${entry.id}`,
+    date: entry.date || todayISO(),
+    startingKamas: 0,
+    endingKamas: 0,
+    externalDelta: 0,
+    levelMin: normalizeLevelValue(entry.item?.level),
+    levelMax: normalizeLevelValue(entry.item?.level),
+    categoryLabel: String(entry.item?.type?.name?.fr ?? ''),
+    notes: entry.notes,
+    items: [
+      {
+        id: entry.id,
+        itemId: entry.itemId,
+        item: entry.item,
+        quantity: 1,
+        unitCraftCost: entry.craftPrice,
+        hdvReference: entry.hdvPrice,
+        realizedRuneValue: entry.runeValue,
+        notes: entry.notes,
+      },
+    ],
+  } satisfies BrisageSession))
+
+const saveSessions = () =>
+  localStorage.setItem(sessionsKey.value, JSON.stringify(sessions.value))
+
 const loadData = () => {
   if (!hasContext.value) return
-  const eRaw = localStorage.getItem(entriesKey.value)
-  const rRaw = localStorage.getItem(runePricesKey.value)
-  const parsedEntries = eRaw ? JSON.parse(eRaw) : []
-  const parsedRunePrices = rRaw ? JSON.parse(rRaw) : []
 
-  entries.value = Array.isArray(parsedEntries)
-    ? parsedEntries.map(normalizeBrisageEntryRecord).filter(Boolean) as BrisageEntry[]
+  const rawSessions = localStorage.getItem(sessionsKey.value)
+  if (rawSessions) {
+    const parsed = JSON.parse(rawSessions)
+    sessions.value = Array.isArray(parsed)
+      ? parsed.map(normalizeSessionRecord).filter(Boolean) as BrisageSession[]
+      : []
+    saveSessions()
+    return
+  }
+
+  const rawLegacyEntries = localStorage.getItem(legacyEntriesKey.value)
+  const parsedLegacyEntries = rawLegacyEntries ? JSON.parse(rawLegacyEntries) : []
+  const normalizedLegacyEntries = Array.isArray(parsedLegacyEntries)
+    ? parsedLegacyEntries.map(normalizeLegacyEntry).filter(Boolean) as LegacyBrisageEntry[]
     : []
 
-  const normalizedPrices = Array.isArray(parsedRunePrices)
-    ? parsedRunePrices.map(normalizeRunePriceRecord).filter(Boolean) as RunePrice[]
-    : []
-
-  const dedupedPrices = new Map<string, RunePrice>()
-  normalizedPrices.forEach((entry) => {
-    dedupedPrices.set(entry.runeId, entry)
-  })
-  runePrices.value = Array.from(dedupedPrices.values()).sort((a, b) => a.name.localeCompare(b.name))
-
-  saveEntries()
-  saveRunePrices()
+  sessions.value = migrateLegacyEntries(normalizedLegacyEntries)
+  saveSessions()
 }
-const saveEntries = () => localStorage.setItem(entriesKey.value, JSON.stringify(entries.value))
-const saveRunePrices = () => localStorage.setItem(runePricesKey.value, JSON.stringify(runePrices.value))
 
-const getSavedRunePrice = (runeId: string) =>
-  runePrices.value.find(r => r.runeId === runeId)?.price ?? 0
-
-// ── Search ────────────────────────────────────────────────────────────────────
 const onSearchInput = () => {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(doSearch, 350)
 }
+
 const doSearch = async () => {
-  if (!search.value.trim()) { results.value = []; return }
+  if (!search.value.trim()) {
+    results.value = []
+    return
+  }
   searching.value = true
   try {
     const res = await $fetch<any>('/api/dofusdb/items', {
@@ -776,190 +542,171 @@ const doSearch = async () => {
       },
     })
     results.value = res?.data ?? []
-  } catch { results.value = [] }
-  finally { searching.value = false }
+  }
+  catch {
+    results.value = []
+  }
+  finally {
+    searching.value = false
+  }
 }
-const clearSearch = () => { search.value = ''; results.value = []; selectedItem.value = null }
 
-const selectItem = (item: any) => {
-  selectedItem.value = item
-  results.value = []
+const clearSearch = () => {
   search.value = ''
-  formCraftPrice.value = 0
-  formHdvPrice.value = 0
-  formDate.value = todayISO()
-  formRunes.value = []
-  formNotes.value = ''
-  addRuneForm.value = { name: '', selectedRuneId: '', qty: 1, unitPrice: 0 }
+  results.value = []
 }
 
-// ── Rune form helpers ─────────────────────────────────────────────────────────
-const addRuneSuggestions = computed(() => {
-  return getRuneCatalogSuggestions(addRuneForm.value.name).map((entry) => ({
-    ...entry,
-    price: getSavedRunePrice(entry.id),
-  }))
-})
-
-const selectedAddRune = computed(() =>
-  addRuneForm.value.selectedRuneId
-    ? RUNE_CATALOG.find(entry => entry.id === addRuneForm.value.selectedRuneId) ?? null
-    : resolveRuneCatalogEntry(addRuneForm.value.name),
-)
-
-const addRunePreview = computed(() => {
-  if (!selectedAddRune.value) return 0
-  return getSavedRunePrice(selectedAddRune.value.id)
-})
-
-const effectiveAddPrice = computed(() => addRunePreview.value || addRuneForm.value.unitPrice || 0)
-
-const onAddRuneNameInput = () => {
-  addRuneForm.value.unitPrice = 0
-  addRuneForm.value.selectedRuneId = resolveRuneCatalogEntry(addRuneForm.value.name)?.id ?? ''
-}
-
-const pickAddRune = (entry: RuneCatalogEntry) => {
-  addRuneForm.value.name = entry.name
-  addRuneForm.value.selectedRuneId = entry.id
-  addRuneDropOpen.value = false
-}
-
-const commitAddRune = () => {
-  const rune = selectedAddRune.value
-  const name = rune?.name ?? addRuneForm.value.name.trim()
-  const qty = addRuneForm.value.qty || 1
-  const price = effectiveAddPrice.value
-  if (!rune || !name || price === 0) return
-  formRunes.value.push({ runeId: rune.id, name, qty, unitPrice: price })
-  addRuneForm.value = { name: '', selectedRuneId: '', qty: 1, unitPrice: 0 }
-}
-
-const formRuneTotal = computed(() =>
-  formRunes.value.reduce((s, r) => s + (r.qty ?? 0) * (r.unitPrice ?? 0), 0)
-)
-
-const plannerReferenceCost = computed(() => {
-  const craft = formCraftPrice.value > 0 ? formCraftPrice.value : 0
-  const hdv = formHdvPrice.value > 0 ? formHdvPrice.value : 0
-  if (craft && hdv) return Math.min(craft, hdv)
-  return craft || hdv || 0
-})
-
-const plannerReferenceLabel = computed(() => {
-  const craft = formCraftPrice.value > 0
-  const hdv = formHdvPrice.value > 0
-  if (craft && hdv) return formCraftPrice.value <= formHdvPrice.value ? 'Using craft as cheaper basis' : 'Using HDV as cheaper basis'
-  if (craft) return 'Using craft cost'
-  if (hdv) return 'Using HDV price'
-  return 'Enter craft or HDV price'
-})
-
-const plannerSpread = computed(() => (formHdvPrice.value || 0) - (formCraftPrice.value || 0))
-
-const plannerEffectCount = computed(() => {
-  const effects = selectedItem.value?.effects
-  return Array.isArray(effects) ? effects.length : 0
-})
-
-// ── Add entry ─────────────────────────────────────────────────────────────────
-const addEntry = () => {
-  if (!selectedItem.value) return
-  const entry: BrisageEntry = {
+const addItemToDraft = (item: any) => {
+  draftItems.value.unshift({
     id: crypto.randomUUID(),
-    itemId: selectedItem.value.id,
-    item: selectedItem.value,
-    craftPrice: formCraftPrice.value ?? 0,
-    hdvPrice: formHdvPrice.value ?? 0,
-    runeValue: formRuneTotal.value,
-    runes: formRunes.value.map(r => ({ ...r })),
-    date: formDate.value || todayISO(),
-    notes: formNotes.value,
+    itemId: item.id,
+    item,
+    quantity: 1,
+    unitCraftCost: 0,
+    hdvReference: 0,
+    realizedRuneValue: 0,
+    notes: '',
+  })
+
+  if (!draftSession.value.categoryLabel) {
+    draftSession.value.categoryLabel = String(item?.type?.name?.fr ?? '')
   }
-  entries.value.unshift(entry)
-  saveEntries()
-  // reset form
-  selectedItem.value = null
-  formCraftPrice.value = 0
-  formHdvPrice.value = 0
-  formDate.value = todayISO()
-  formRunes.value = []
-  formNotes.value = ''
-  addRuneForm.value = { name: '', selectedRuneId: '', qty: 1, unitPrice: 0 }
-  search.value = ''
-  results.value = []
+  if (draftSession.value.levelMin == null && item?.level) {
+    draftSession.value.levelMin = normalizeLevelValue(item.level)
+  }
+  if (draftSession.value.levelMax == null && item?.level) {
+    draftSession.value.levelMax = normalizeLevelValue(item.level)
+  }
+
+  clearSearch()
 }
 
-const deleteEntry = (id: string) => {
-  entries.value = entries.value.filter(e => e.id !== id)
-  saveEntries()
+const removeDraftItem = (id: string) => {
+  draftItems.value = draftItems.value.filter(item => item.id !== id)
 }
 
-// ── Rune price management ─────────────────────────────────────────────────────
-const addRunePrice = () => {
-  const match = resolveRuneCatalogEntry(newRuneName.value)
-  if (!match || newRunePrice.value <= 0) return
-  const existing = runePrices.value.find(r => r.runeId === match.id)
-  if (existing) {
-    existing.price = newRunePrice.value
-    existing.name = match.name
-  }
-  else {
-    runePrices.value.push({ id: crypto.randomUUID(), runeId: match.id, name: match.name, price: newRunePrice.value })
-  }
-  runePrices.value.sort((a, b) => a.name.localeCompare(b.name))
-  saveRunePrices()
-  newRuneName.value = ''
-  newRunePrice.value = 0
-}
-const startEditRune = (rp: RunePrice) => { editingRune.value = { id: rp.id, price: rp.price } }
-const saveRunePrice = () => {
-  if (!editingRune.value) return
-  const rp = runePrices.value.find(r => r.id === editingRune.value!.id)
-  if (rp) { rp.price = editingRune.value.price; saveRunePrices() }
-  editingRune.value = null
-}
-const deleteRunePrice = (id: string) => {
-  runePrices.value = runePrices.value.filter(r => r.id !== id)
-  saveRunePrices()
+const itemCraftTotal = (item: BrisageSessionItem) =>
+  Math.max(1, Number(item.quantity) || 1) * (Number(item.unitCraftCost) || 0)
+
+const itemProfit = (item: BrisageSessionItem) =>
+  (Number(item.realizedRuneValue) || 0) - itemCraftTotal(item)
+
+const sessionTotals = (session: BrisageSession) => {
+  const craft = session.items.reduce((sum, item) => sum + itemCraftTotal(item), 0)
+  const realized = session.items.reduce((sum, item) => sum + (Number(item.realizedRuneValue) || 0), 0)
+  return { craft, realized, profit: realized - craft }
 }
 
-// ── Stats ─────────────────────────────────────────────────────────────────────
-const totalPL = computed(() =>
-  entries.value.reduce((s, e) => s + (e.runeValue - e.craftPrice), 0)
+const draftTotals = computed(() => {
+  const craft = draftItems.value.reduce((sum, item) => sum + itemCraftTotal(item), 0)
+  const realized = draftItems.value.reduce((sum, item) => sum + (Number(item.realizedRuneValue) || 0), 0)
+  return { craft, realized, profit: realized - craft }
+})
+
+const sessionCashDelta = computed(() =>
+  (Number(draftSession.value.endingKamas) || 0)
+  - (Number(draftSession.value.startingKamas) || 0)
+  - (Number(draftSession.value.externalDelta) || 0),
 )
-const avgMargin = computed(() => {
-  if (!entries.value.length) return 0
-  const margins = entries.value
-    .filter(e => e.craftPrice > 0)
-    .map(e => ((e.runeValue - e.craftPrice) / e.craftPrice) * 100)
-  if (!margins.length) return 0
-  return Math.round(margins.reduce((a, b) => a + b, 0) / margins.length)
-})
-const bestItem = computed(() => {
-  if (!entries.value.length) return null
-  const withMargin = entries.value
-    .filter(e => e.craftPrice > 0)
-    .map(e => ({ name: e.item?.name?.fr ?? 'Unknown', margin: (e.runeValue - e.craftPrice) / e.craftPrice }))
-  if (!withMargin.length) return null
-  return withMargin.reduce((b, c) => c.margin > b.margin ? c : b, withMargin[0]!)
+
+const sessionCashGap = computed(() => sessionCashDelta.value - draftTotals.value.profit)
+
+const totalItemsLogged = computed(() =>
+  sessions.value.reduce((sum, session) => sum + session.items.length, 0),
+)
+
+const totalPL = computed(() =>
+  sessions.value.reduce((sum, session) => sum + sessionTotals(session).profit, 0),
+)
+
+const avgSessionPL = computed(() => {
+  if (!sessions.value.length) return 0
+  return Math.round(totalPL.value / sessions.value.length)
 })
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+const sessionMargin = (session: BrisageSession) => {
+  const totals = sessionTotals(session)
+  if (!totals.craft) return 0
+  return Math.round((totals.profit / totals.craft) * 100)
+}
+
+const resetDraft = () => {
+  draftItems.value = []
+  draftSession.value = {
+    date: todayISO(),
+    startingKamas: 0,
+    endingKamas: 0,
+    externalDelta: 0,
+    levelMin: null,
+    levelMax: null,
+    categoryLabel: '',
+    notes: '',
+  }
+  clearSearch()
+}
+
+const saveSession = () => {
+  if (!draftItems.value.length) return
+
+  sessions.value.unshift({
+    id: crypto.randomUUID(),
+    date: draftSession.value.date || todayISO(),
+    startingKamas: Number(draftSession.value.startingKamas) || 0,
+    endingKamas: Number(draftSession.value.endingKamas) || 0,
+    externalDelta: Number(draftSession.value.externalDelta) || 0,
+    levelMin: normalizeLevelValue(draftSession.value.levelMin),
+    levelMax: normalizeLevelValue(draftSession.value.levelMax),
+    categoryLabel: draftSession.value.categoryLabel.trim(),
+    notes: draftSession.value.notes.trim(),
+    items: draftItems.value.map(item => ({
+      ...item,
+      quantity: Math.max(1, Number(item.quantity) || 1),
+      unitCraftCost: Math.max(0, Number(item.unitCraftCost) || 0),
+      hdvReference: Math.max(0, Number(item.hdvReference) || 0),
+      realizedRuneValue: Math.max(0, Number(item.realizedRuneValue) || 0),
+      notes: item.notes.trim(),
+    })),
+  })
+
+  saveSessions()
+  resetDraft()
+}
+
+const deleteSession = (id: string) => {
+  sessions.value = sessions.value.filter(session => session.id !== id)
+  saveSessions()
+}
+
+const describeSessionScope = (session: BrisageSession) => {
+  const parts: string[] = []
+  if (session.levelMin && session.levelMax) parts.push(`Lv ${session.levelMin}-${session.levelMax}`)
+  else if (session.levelMin) parts.push(`Lv ${session.levelMin}+`)
+  else if (session.levelMax) parts.push(`Up to Lv ${session.levelMax}`)
+  if (session.categoryLabel) parts.push(session.categoryLabel)
+  return parts.join(' · ') || 'No explicit scope'
+}
+
 const getItemImg = (item: any) => item?.img ?? ''
 const onImgErr = (e: Event) => {
   const img = e.target as HTMLImageElement
-  if (img.dataset.fb) return; img.dataset.fb = '1'; img.src = '/item-fallback.svg'
+  if (img.dataset.fb) return
+  img.dataset.fb = '1'
+  img.src = '/item-fallback.svg'
 }
+
 const formatKamas = (n: number) => {
   if (!n) return '0'
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K`
-  return n.toLocaleString()
+  const abs = Math.abs(n)
+  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (abs >= 1_000) return `${Math.round(n / 1_000)}K`
+  return Math.round(n).toLocaleString()
 }
+
 function todayISO() {
-  const d = new Date(); return d.toISOString().slice(0, 10)
+  const d = new Date()
+  return d.toISOString().slice(0, 10)
 }
+
 const formatDisplayDate = (iso: string) => {
   const d = new Date(iso)
   const today = new Date()
@@ -967,15 +714,9 @@ const formatDisplayDate = (iso: string) => {
   return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: '2-digit' })
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-const addRuneWrapEl = ref<HTMLElement | null>(null)
 const searchAreaEl = ref<HTMLElement | null>(null)
-
 const onDocMousedown = (e: MouseEvent) => {
   const t = e.target as Node
-  if (addRuneWrapEl.value && !addRuneWrapEl.value.contains(t)) {
-    addRuneDropOpen.value = false
-  }
   if (searchAreaEl.value && !searchAreaEl.value.contains(t)) {
     results.value = []
   }
@@ -986,490 +727,457 @@ onMounted(() => {
   loadData()
   document.addEventListener('mousedown', onDocMousedown)
 })
+
 onUnmounted(() => document.removeEventListener('mousedown', onDocMousedown))
 watch([selectedServer, selectedCharacter], loadData)
 </script>
 
 <style scoped>
-/* ── Accent: violet ──────────────────────────────────────────────────────────*/
-/* primary: var(--v2-accent)  bg/border follow --v2-* tokens */
-
-/* Workspace mode */
-.br-mode-switch {
-  display: inline-flex;
-  gap: .375rem;
-  padding: .25rem;
-  border-radius: 14px;
-  border: 1px solid var(--v2-border-med);
-  background: var(--v2-hover-subtle);
-  margin-bottom: .875rem;
-}
-.br-mode-switch__btn {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .625rem .875rem;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--v2-text-dim);
-  font-size: .8125rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: .18s ease;
-}
-.br-mode-switch__btn:hover { color: var(--v2-text); }
-.br-mode-switch__btn--on {
-  background: var(--v2-hover);
-  border-color: var(--v2-border-med);
-  color: var(--v2-text);
-}
-.br-mode-switch__hint {
-  font-size: .6875rem;
-  font-weight: 600;
-  color: var(--v2-text-muted);
-}
-
-/* Stats strip */
 .br-stats {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: .625rem;
   margin-bottom: .875rem;
 }
+
 .br-stat {
-  display: flex; align-items: center; gap: .75rem;
-  padding: .875rem 1rem; border-radius: 12px;
-  background: var(--v2-hover); border: 1px solid var(--v2-border-med);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .875rem 1rem;
+  border-radius: 12px;
+  background: var(--v2-hover);
+  border: 1px solid var(--v2-border-med);
 }
+
 .br-stat--green { border-color: rgba(52,211,153,.2); background: rgba(52,211,153,.05); }
-.br-stat--red   { border-color: rgba(248,113,113,.2); background: rgba(248,113,113,.05); }
+.br-stat--red { border-color: rgba(248,113,113,.2); background: rgba(248,113,113,.05); }
+
 .br-stat__icon {
-  width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px;
-  background: var(--v2-border-med); color: var(--v2-accent);
-  display: flex; align-items: center; justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--v2-border-med);
+  color: var(--v2-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .br-stat--green .br-stat__icon { background: rgba(52,211,153,.15); color: #34d399; }
-.br-stat--red   .br-stat__icon { background: rgba(248,113,113,.15); color: #f87171; }
+.br-stat--red .br-stat__icon { background: rgba(248,113,113,.15); color: #f87171; }
 .br-stat__val { font-size: 1.25rem; font-weight: 800; color: var(--v2-text); line-height: 1.2; }
 .br-stat__lbl { font-size: .6875rem; color: var(--v2-text-dim); margin-top: 1px; }
 
-/* Layout */
 .br-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: minmax(340px, 440px) 1fr;
   gap: 1rem;
   align-items: start;
 }
-@media (max-width: 860px) { .br-layout { grid-template-columns: 1fr; } }
 
-/* Panel */
+@media (max-width: 980px) {
+  .br-layout { grid-template-columns: 1fr; }
+}
+
 .br-panel {
   background: var(--v2-hover-subtle);
   border: 1px solid var(--v2-active);
-  border-radius: 14px; padding: 1rem;
+  border-radius: 14px;
+  padding: 1rem;
 }
+
 .br-panel-title {
-  display: flex; align-items: center; gap: .5rem;
-  font-size: .875rem; font-weight: 700; color: var(--v2-accent);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .875rem;
+  font-weight: 700;
+  color: var(--v2-accent);
   margin-bottom: .875rem;
 }
+
+.br-panel-title--sub {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--v2-active);
+}
+
 .br-badge {
-  background: var(--v2-active-strong); color: var(--v2-accent);
-  font-size: .6875rem; font-weight: 600; padding: .125rem .4375rem;
+  background: var(--v2-active-strong);
+  color: var(--v2-accent);
+  font-size: .6875rem;
+  font-weight: 600;
+  padding: .125rem .4375rem;
   border-radius: 999px;
 }
 
-/* Search */
-.br-search { position: relative; display: flex; align-items: center; margin-bottom: .75rem; }
-.br-search__icon { position: absolute; left: .75rem; color: var(--v2-text-muted); pointer-events: none; }
-.br-search__input {
-  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border); border-radius: 10px;
-  padding: .5rem 2.25rem; color: var(--v2-text); font-size: .875rem;
-  outline: none; width: 100%; transition: border-color .18s;
-}
-.br-search__input:focus { border-color: var(--v2-border-focus); }
-.br-search__input::placeholder { color: var(--v2-text-dim); }
-.br-search__clear {
-  position: absolute; right: .625rem; background: none; border: none;
-  color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center;
-}
-.br-search__clear:hover { color: var(--v2-accent); }
-
-/* Planner */
-.br-planner-kicker {
-  font-size: .75rem;
-  line-height: 1.45;
-  color: var(--v2-text-secondary);
-  margin-bottom: .875rem;
-}
-.br-planner-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .5rem;
-  margin-bottom: .875rem;
-}
-@media (max-width: 540px) {
-  .br-planner-grid { grid-template-columns: 1fr; }
-}
-.br-planner-card {
-  padding: .75rem;
+.br-form {
+  background: rgba(0,0,0,.18);
+  border: 1px solid var(--v2-border);
   border-radius: 12px;
-  border: 1px solid var(--v2-border-med);
-  background: rgba(0,0,0,.22);
+  padding: .875rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
 }
-.br-planner-card__label {
+
+.br-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+}
+
+.br-form__row--triple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 540px) {
+  .br-form__row,
+  .br-form__row--triple {
+    grid-template-columns: 1fr;
+  }
+}
+
+.br-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.br-field-lbl { font-size: .6875rem; color: var(--v2-text-secondary); font-weight: 500; }
+.br-field-help { font-size: .6875rem; color: var(--v2-text-muted); line-height: 1.35; margin-top: 2px; }
+
+.br-field-input {
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--v2-active-strong);
+  border-radius: 8px;
+  padding: .4375rem .75rem;
+  color: var(--v2-text);
+  font-size: .875rem;
+  outline: none;
+  transition: border-color .15s;
+  width: 100%;
+}
+
+.br-field-input:focus { border-color: var(--v2-border-focus); }
+.br-field-input::placeholder { color: var(--v2-text-dim); }
+
+.br-session-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.br-session-summary__item {
+  padding: .625rem .75rem;
+  border-radius: 10px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid var(--v2-border-med);
+}
+
+.br-session-summary__label {
   font-size: .6875rem;
   color: var(--v2-text-muted);
   text-transform: uppercase;
   letter-spacing: .04em;
 }
-.br-planner-card__value {
+
+.br-session-summary__value {
   margin-top: .25rem;
-  font-size: 1rem;
+  font-size: .95rem;
   font-weight: 800;
   color: var(--v2-text);
 }
-.br-planner-card__sub {
-  margin-top: .1875rem;
-  font-size: .75rem;
-  color: var(--v2-text-secondary);
+
+.br-search { position: relative; display: flex; align-items: center; margin-bottom: .75rem; }
+.br-search__icon { position: absolute; left: .75rem; color: var(--v2-text-muted); pointer-events: none; }
+
+.br-search__input {
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--v2-border);
+  border-radius: 10px;
+  padding: .5rem 2.25rem;
+  color: var(--v2-text);
+  font-size: .875rem;
+  outline: none;
+  width: 100%;
+  transition: border-color .18s;
 }
-.br-planner-section {
-  margin-bottom: .875rem;
-}
-.br-planner-checklist {
-  display: flex;
-  flex-direction: column;
-  gap: .4375rem;
-}
-.br-planner-check {
+
+.br-search__input:focus { border-color: var(--v2-border-focus); }
+.br-search__input::placeholder { color: var(--v2-text-dim); }
+
+.br-search__clear {
+  position: absolute;
+  right: .625rem;
+  background: none;
+  border: none;
+  color: var(--v2-text-muted);
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: .5rem;
-  font-size: .8125rem;
-  color: var(--v2-text-dim);
 }
-.br-planner-check--on { color: var(--v2-text); }
-.br-planner-check__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--v2-border-strong);
-  flex-shrink: 0;
-}
-.br-planner-check--on .br-planner-check__dot {
-  background: #34d399;
-  box-shadow: 0 0 0 4px rgba(52,211,153,.12);
-}
-.br-planner-actions {
-  display: flex;
-  justify-content: flex-start;
-}
-.br-profit--up { color: #86efac; }
-.br-profit--down { color: #fca5a5; }
 
+.br-search__clear:hover { color: var(--v2-accent); }
 .br-inline-loader { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; color: var(--v2-text-secondary); padding: .375rem 0; }
+
 .br-spin {
-  width: 16px; height: 16px; flex-shrink: 0;
-  border: 2px solid var(--v2-border-med); border-top-color: var(--v2-accent);
-  border-radius: 50%; animation: brspin .8s linear infinite;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border: 2px solid var(--v2-border-med);
+  border-top-color: var(--v2-accent);
+  border-radius: 50%;
+  animation: brspin .8s linear infinite;
 }
+
 @keyframes brspin { to { transform: rotate(360deg); } }
+
 .br-empty-hint { font-size: .8125rem; color: var(--v2-text-muted); padding: .375rem 0; }
 
-/* Results */
 .br-results {
-  display: flex; flex-direction: column; gap: 2px;
-  max-height: 200px; overflow-y: auto; margin-bottom: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
 }
+
 .br-result {
-  display: flex; align-items: center; gap: .625rem;
-  padding: .4375rem .625rem; border-radius: 9px;
-  border: 1px solid transparent; background: rgba(0,0,0,.15);
-  cursor: pointer; transition: all .15s; text-align: left;
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  padding: .4375rem .625rem;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: rgba(0,0,0,.15);
+  cursor: pointer;
+  transition: all .15s;
+  text-align: left;
 }
+
 .br-result:hover { background: var(--v2-glow); border-color: var(--v2-active-strong); }
-.br-result--sel { background: var(--v2-active); border-color: var(--v2-border-strong); }
 .br-result__img { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
 .br-result__name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
 .br-result__sub { font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px; }
 .br-result__info { flex: 1; min-width: 0; }
+.br-result__cta { font-size: .6875rem; font-weight: 700; color: var(--v2-accent); }
 
-/* Entry form */
-.br-form {
-  background: rgba(0,0,0,.18); border: 1px solid var(--v2-border);
-  border-radius: 12px; padding: .875rem;
-  display: flex; flex-direction: column; gap: .75rem; margin-top: .5rem;
+.br-draft-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin-top: .75rem;
+  margin-bottom: .875rem;
 }
-.br-form__item-header { display: flex; align-items: center; gap: .75rem; }
-.br-form__item-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
-.br-form__item-name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
-.br-form__item-sub { font-size: .75rem; color: var(--v2-text-secondary); margin-top: 2px; }
-.br-form__close {
-  margin-left: auto; flex-shrink: 0; background: none; border: none;
-  color: var(--v2-text-muted); cursor: pointer; display: flex; align-items: center; transition: color .15s;
-}
-.br-form__close:hover { color: #f87171; }
-.br-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-.br-form__field { display: flex; flex-direction: column; gap: 3px; }
-.br-field-lbl { font-size: .6875rem; color: var(--v2-text-secondary); font-weight: 500; }
-.br-field-input {
-  background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong); border-radius: 8px;
-  padding: .4375rem .75rem; color: var(--v2-text); font-size: .875rem;
-  outline: none; transition: border-color .15s; width: 100%;
-}
-.br-field-input:focus { border-color: var(--v2-border-focus); }
-.br-field-input::placeholder { color: var(--v2-text-dim); }
 
-/* Runes section */
-.br-runes-section {
-  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
-  border-radius: 10px; padding: .75rem;
-  display: flex; flex-direction: column; gap: .625rem;
+.br-draft-card {
+  background: rgba(0,0,0,.18);
+  border: 1px solid var(--v2-active);
+  border-radius: 12px;
+  padding: .875rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
 }
-.br-runes-header { display: flex; align-items: center; justify-content: space-between; }
-.br-runes-total { font-size: .75rem; font-weight: 600; color: var(--v2-accent); }
 
-/* Add-rune form */
-.br-rune-add { display: flex; flex-direction: column; gap: .4375rem; }
-.br-rune-add__row { display: grid; grid-template-columns: 1fr 68px; gap: .375rem; align-items: center; }
-.br-rune-add__name-wrap { position: relative; }
-.br-rune-add__name {
-  width: 100%; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong);
-  border-radius: 8px; padding: .4375rem .625rem; color: var(--v2-text); font-size: .8125rem;
-  outline: none; transition: border-color .15s;
+.br-draft-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
 }
-.br-rune-add__name:focus { border-color: var(--v2-border-focus); }
-.br-rune-add__name::placeholder { color: var(--v2-text-dim); }
-.br-rune-add__qty {
-  width: 100%; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong);
-  border-radius: 8px; padding: .4375rem .5rem; color: var(--v2-text); font-size: .8125rem;
-  outline: none; text-align: center; transition: border-color .15s;
-}
-.br-rune-add__qty:focus { border-color: var(--v2-border-focus); }
-.br-rune-add__preview {
-  font-size: .75rem; color: var(--v2-text-secondary);
-  background: var(--v2-hover); border-radius: 6px; padding: .25rem .5rem;
-}
-.br-rune-add__preview strong { color: var(--v2-accent); }
-.br-rune-add__manual-row { display: flex; flex-direction: column; gap: 2px; }
-.br-rune-add__price {
-  width: 100%; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong);
-  border-radius: 8px; padding: .4375rem .625rem; color: var(--v2-text); font-size: .8125rem;
-  outline: none; transition: border-color .15s;
-}
-.br-rune-add__price:focus { border-color: var(--v2-border-focus); }
-.br-rune-add__btn {
-  display: flex; align-items: center; justify-content: center; gap: .375rem;
-  padding: .375rem .75rem; border-radius: 8px;
-  background: var(--v2-border); border: 1px solid var(--v2-border-strong);
-  color: var(--v2-accent); font-size: .8125rem; font-weight: 600; cursor: pointer; transition: all .15s;
-}
-.br-rune-add__btn:hover:not(:disabled) { background: var(--v2-border-strong); }
-.br-rune-add__btn:disabled { opacity: .35; cursor: not-allowed; }
 
-/* Dropdown (shared by add-form) */
-.br-rune-dropdown {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
-  background: var(--v2-surface-elevated);
-  border: 1px solid var(--v2-active-strong);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.6);
-  max-height: 200px; overflow-y: auto;
+.br-draft-card__meta {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
 }
-.br-rune-dropdown__item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: .4375rem .75rem; cursor: pointer; border: none; background: transparent; width: 100%;
-  transition: background .1s; text-align: left;
-}
-.br-rune-dropdown__item:hover { background: var(--v2-border); }
-.br-rune-dropdown__name { font-size: .8125rem; color: var(--v2-text); font-weight: 500; }
-.br-rune-dropdown__price { font-size: .6875rem; color: #7a5fa0; }
 
-/* Added runes list */
-.br-rune-list { display: flex; flex-direction: column; gap: .25rem; }
-.br-rune-item {
-  display: flex; align-items: center; gap: .5rem;
-  padding: .3125rem .5rem; border-radius: 7px;
-  background: var(--v2-hover); border: 1px solid var(--v2-active);
+.br-draft-card__img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
-.br-rune-item__label { flex: 1; display: flex; align-items: baseline; gap: .3125rem; min-width: 0; }
-.br-rune-item__qty { font-size: .75rem; color: #6d4fa0; font-weight: 600; flex-shrink: 0; }
-.br-rune-item__name {
-  font-size: .8125rem; color: var(--v2-text); font-weight: 600;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.br-rune-item__val { font-size: .8125rem; font-weight: 700; color: var(--v2-accent); flex-shrink: 0; }
-.br-rune-item__del {
-  background: none; border: none; cursor: pointer; color: var(--v2-text-dim);
-  display: flex; align-items: center; padding: 2px; border-radius: 4px; flex-shrink: 0; transition: all .15s;
-}
-.br-rune-item__del:hover { color: #f87171; }
-.br-rune-list__total {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: .375rem .5rem; border-top: 1px solid var(--v2-active);
-  margin-top: .125rem; font-size: .8125rem; color: #6d4fa0;
-}
-.br-rune-list__total-val { font-size: .875rem; font-weight: 700; color: var(--v2-accent); }
 
-/* Profit preview */
+.br-draft-card__name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
+.br-draft-card__sub { font-size: .75rem; color: var(--v2-text-secondary); margin-top: 2px; }
+
 .br-profit-preview {
-  background: rgba(0,0,0,.2); border: 1px solid var(--v2-active);
-  border-radius: 8px; padding: .5rem .75rem;
-  display: flex; flex-direction: column; gap: .25rem;
+  background: rgba(0,0,0,.2);
+  border: 1px solid var(--v2-active);
+  border-radius: 8px;
+  padding: .5rem .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
 }
-.br-profit-row {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: .8125rem; color: #6d4fa0;
-}
-.br-profit-row strong { color: var(--v2-text); }
 
-/* Submit */
-.br-submit-btn {
-  display: flex; align-items: center; justify-content: center; gap: .5rem;
-  padding: .625rem 1rem; border-radius: 10px;
-  background: var(--v2-border-med); border: 1px solid var(--v2-border-strong);
-  color: var(--v2-text); font-size: .875rem; font-weight: 600; cursor: pointer; transition: all .18s;
+.br-profit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .8125rem;
+  color: var(--v2-text-secondary);
 }
+
+.br-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .625rem 1rem;
+  border-radius: 10px;
+  background: var(--v2-border-med);
+  border: 1px solid var(--v2-border-strong);
+  color: var(--v2-text);
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s;
+  width: 100%;
+}
+
 .br-submit-btn:hover:not(:disabled) { background: var(--v2-border-strong); }
 .br-submit-btn:disabled { opacity: .35; cursor: not-allowed; }
 
-/* Rune prices manager */
-.br-rune-prices { margin-top: 1rem; }
-.br-rune-prices__toggle {
-  display: flex; align-items: center; gap: .5rem;
-  width: 100%; padding: .5rem .75rem; border-radius: 10px;
-  background: rgba(0,0,0,.2); border: 1px solid var(--v2-active);
-  color: #6d4fa0; font-size: .8125rem; font-weight: 500; cursor: pointer; transition: all .15s;
-}
-.br-rune-prices__toggle:hover { border-color: var(--v2-border-strong); color: var(--v2-text); }
-.br-rune-prices__count {
-  background: var(--v2-border-med); color: var(--v2-accent);
-  font-size: .625rem; padding: .0625rem .375rem; border-radius: 999px; font-weight: 600;
-}
-.br-rune-prices__body {
-  margin-top: .5rem; padding: .75rem;
-  background: rgba(0,0,0,.18); border: 1px solid var(--v2-active);
-  border-radius: 10px; display: flex; flex-direction: column; gap: .5rem;
-}
-.br-rune-prices__add-form { display: flex; gap: .375rem; align-items: center; }
-.br-rune-prices__hint { font-size: .75rem; color: var(--v2-text-secondary); }
-.br-rune-prices__input {
-  flex: 1; background: rgba(0,0,0,.3); border: 1px solid var(--v2-active-strong); border-radius: 7px;
-  padding: .375rem .625rem; color: var(--v2-text); font-size: .8125rem; outline: none; transition: border-color .15s;
-}
-.br-rune-prices__input:focus { border-color: var(--v2-border-focus); }
-.br-rune-prices__input::placeholder { color: var(--v2-text-dim); }
-.br-rune-prices__input--sm { flex: 0 0 80px; }
-.br-rune-prices__add-btn {
-  width: 28px; height: 28px; flex-shrink: 0; border-radius: 7px;
-  background: var(--v2-border-med); border: 1px solid var(--v2-border-strong);
-  color: var(--v2-accent); font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .15s;
-  display: flex; align-items: center; justify-content: center;
-}
-.br-rune-prices__add-btn:hover:not(:disabled) { background: var(--v2-border-strong); }
-.br-rune-prices__add-btn:disabled { opacity: .35; cursor: not-allowed; }
-.br-rune-prices__empty { font-size: .75rem; color: var(--v2-text-muted); text-align: center; padding: .25rem; }
-.br-rune-prices__list { display: flex; flex-direction: column; gap: 2px; }
-.br-rp-row {
-  display: flex; align-items: center; gap: .375rem;
-  padding: .3125rem .5rem; border-radius: 6px; background: rgba(0,0,0,.15);
-}
-.br-rp-name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); flex: 1; }
-.br-rp-price {
-  font-size: .8125rem; font-weight: 600; color: var(--v2-accent); cursor: pointer;
-  padding: .125rem .375rem; border-radius: 5px; transition: background .15s;
-}
-.br-rp-price:hover { background: var(--v2-active); }
-.br-rp-input {
-  width: 80px; background: rgba(0,0,0,.4); border: 1px solid var(--v2-border-strong);
-  border-radius: 5px; padding: .1875rem .375rem; color: var(--v2-text); font-size: .8125rem; outline: none;
-}
-.br-rp-ok, .br-rp-cancel {
-  background: none; border: none; cursor: pointer; font-size: .8125rem; padding: .125rem .25rem;
-  border-radius: 4px; transition: all .15s;
-}
-.br-rp-ok { color: #34d399; }
-.br-rp-ok:hover { background: rgba(52,211,153,.12); }
-.br-rp-cancel { color: #f87171; }
-.br-rp-cancel:hover { background: rgba(248,113,113,.12); }
-.br-rp-edit, .br-rp-del {
-  background: none; border: none; cursor: pointer;
-  display: flex; align-items: center; padding: 2px; border-radius: 4px; transition: all .15s;
-}
-.br-rp-edit { color: var(--v2-text-muted); }
-.br-rp-edit:hover { color: var(--v2-accent); }
-.br-rp-del { color: var(--v2-text-dim); }
-.br-rp-del:hover { color: #f87171; }
-
-/* Log */
 .br-log-empty {
-  padding: 2.5rem 1rem; text-align: center;
-  color: var(--v2-text-muted); font-size: .9375rem;
-  display: flex; flex-direction: column; align-items: center; gap: .25rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--v2-text-muted);
+  font-size: .9375rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
 }
-.br-log-scroll { display: flex; flex-direction: column; gap: .625rem; max-height: calc(100vh - 220px); overflow-y: auto; }
+
+.br-log-empty--compact {
+  padding: 1rem;
+  margin-top: .75rem;
+  margin-bottom: .875rem;
+  border: 1px dashed var(--v2-active);
+  border-radius: 12px;
+}
+
+.br-log-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: .625rem;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
 
 .br-entry {
-  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
-  border-radius: 12px; padding: .875rem 1rem;
-  display: flex; flex-direction: column; gap: .625rem;
-  transition: border-color .18s;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-active);
+  border-radius: 12px;
+  padding: .875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .625rem;
 }
-.br-entry:hover { border-color: var(--v2-border-strong); }
 
+.br-entry:hover { border-color: var(--v2-border-strong); }
 .br-entry__header { display: flex; align-items: flex-start; gap: .75rem; }
-.br-entry__img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
 .br-entry__meta { flex: 1; min-width: 0; }
 .br-entry__name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
 .br-entry__sub { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 1px; }
 .br-entry__date { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 3px; }
+
 .br-entry__del {
-  flex-shrink: 0; background: none; border: none; color: var(--v2-text-muted);
-  cursor: pointer; display: flex; align-items: center; padding: 2px; border-radius: 5px; transition: all .15s;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--v2-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 5px;
+  transition: all .15s;
 }
+
 .br-entry__del:hover { color: #f87171; background: rgba(248,113,113,.1); }
 
 .br-entry__prices {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
 }
-.br-price-cell {
-  padding: .5rem .625rem; border-radius: 8px; text-align: center;
+
+@media (max-width: 640px) {
+  .br-entry__prices { grid-template-columns: 1fr; }
 }
+
+.br-price-cell { padding: .5rem .625rem; border-radius: 8px; text-align: center; }
 .br-price-cell--craft { background: var(--v2-hover); border: 1px solid var(--v2-border-med); }
-.br-price-cell--hdv   { background: rgba(96,165,250,.06); border: 1px solid rgba(96,165,250,.15); }
-.br-price-cell--rune  { background: var(--v2-hover); border: 1px solid var(--v2-border-med); }
+.br-price-cell--hdv { background: rgba(96,165,250,.06); border: 1px solid rgba(96,165,250,.15); }
+.br-price-cell--rune { background: var(--v2-hover); border: 1px solid var(--v2-border-med); }
 .br-price-cell__lbl { font-size: .625rem; color: var(--v2-text-dim); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
-.br-price-cell--hdv .br-price-cell__lbl   { color: #2d4a70; }
-.br-price-cell--rune .br-price-cell__lbl  { color: var(--v2-text-secondary); }
 .br-price-cell__val { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
 
 .br-entry__profits { display: flex; flex-wrap: wrap; gap: .375rem; }
+
 .br-profit-pill {
-  display: flex; align-items: center; gap: .3125rem;
-  padding: .3125rem .625rem; border-radius: 999px; font-size: .75rem; font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: .3125rem;
+  padding: .3125rem .625rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
 }
+
 .br-profit-pill--pos { background: rgba(52,211,153,.1); color: #34d399; border: 1px solid rgba(52,211,153,.22); }
 .br-profit-pill--neg { background: rgba(248,113,113,.1); color: #f87171; border: 1px solid rgba(248,113,113,.22); }
-.br-profit-pct { font-weight: 400; opacity: .75; margin-left: .25rem; }
+.br-profit--up { color: #86efac; }
+.br-profit--down { color: #fca5a5; }
 
-.br-entry__rune-chips { display: flex; flex-wrap: wrap; gap: .3125rem; }
-.br-rune-chip {
-  display: flex; align-items: center; gap: .3125rem;
-  font-size: .6875rem; padding: .125rem .5rem;
-  background: var(--v2-border-subtle); border: 1px solid var(--v2-active-strong);
-  border-radius: 5px; color: var(--v2-text);
+.br-session-items {
+  display: flex;
+  flex-direction: column;
+  gap: .375rem;
 }
-.br-rune-chip__val { color: var(--v2-accent); font-weight: 600; }
 
+.br-session-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .5rem .625rem;
+  border-radius: 8px;
+  background: rgba(0,0,0,.15);
+  border: 1px solid var(--v2-active);
+}
+
+@media (max-width: 640px) {
+  .br-session-item-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.br-session-item-row__meta {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  min-width: 0;
+}
+
+.br-session-item-row__img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.br-session-item-row__name { font-size: .8125rem; font-weight: 700; color: var(--v2-text); }
+.br-session-item-row__sub { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 2px; }
+.br-session-item-row__profit { font-size: .8125rem; font-weight: 700; flex-shrink: 0; }
 .br-entry__notes { font-size: .75rem; color: var(--v2-text-secondary); font-style: italic; }
-
-/* Transition */
-.br-slide-enter-active, .br-slide-leave-active { transition: all .2s ease; }
-.br-slide-enter-from, .br-slide-leave-to { opacity: 0; transform: translateY(-6px); }
 </style>
-
-
-
