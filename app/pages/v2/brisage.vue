@@ -82,7 +82,12 @@
               </div>
               <div class="br-form__field">
                 <label class="br-field-lbl">Focus category</label>
-                <input v-model="draftSession.categoryLabel" type="text" placeholder="Amulets, rings, capes..." class="br-field-input" />
+                <select v-model.number="draftSession.categoryTypeId" class="br-field-input">
+                  <option :value="null">Select category</option>
+                  <option v-for="option in BRISAGE_CATEGORY_OPTIONS" :key="option.typeId" :value="option.typeId">
+                    {{ option.label }}
+                  </option>
+                </select>
               </div>
             </div>
 
@@ -159,6 +164,20 @@
             Add items to this session
           </div>
 
+          <div class="br-batch-controls">
+            <button
+              class="br-submit-btn br-submit-btn--secondary"
+              :disabled="!draftSession.categoryTypeId || !draftSession.levelMin || !draftSession.levelMax || loadingBatchResults"
+              @click="loadCategoryBatch"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.836 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-13.837-2m13.837 2H15" />
+              </svg>
+              {{ loadingBatchResults ? 'Loading batch…' : 'Load matching items' }}
+            </button>
+            <div class="br-field-help">Uses the selected category and level range to fetch matching items from DofusDB.</div>
+          </div>
+
           <div ref="searchAreaEl" class="br-search-area">
             <div class="br-search">
               <svg class="br-search__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,6 +198,7 @@
                 v-for="item in results"
                 :key="item.id"
                 class="br-result"
+                :class="{ 'br-result--disabled': draftItemIdSet.has(String(item.id)) }"
                 @click="addItemToDraft(item)"
               >
                 <img :src="getItemImg(item)" :alt="item.name?.fr ?? ''" class="br-result__img" @error="onImgErr" />
@@ -186,7 +206,7 @@
                   <div class="br-result__name">{{ item.name?.fr ?? item.id }}</div>
                   <div class="br-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
                 </div>
-                <span class="br-result__cta">Add</span>
+                <span class="br-result__cta">{{ draftItemIdSet.has(String(item.id)) ? 'Added' : 'Add' }}</span>
               </button>
             </div>
             <div v-else-if="search && !searching" class="br-empty-hint">No items found for "{{ search }}"</div>
@@ -202,54 +222,94 @@
                     <div class="br-draft-card__sub">{{ draftItem.item?.type?.name?.fr ?? '' }} · Lv {{ draftItem.item?.level ?? '?' }}</div>
                   </div>
                 </div>
-                <button class="br-entry__del" @click="removeDraftItem(draftItem.id)" title="Remove">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <div class="br-draft-card__actions">
+                  <button class="br-draft-card__toggle" @click="toggleDraftItem(draftItem.id)">
+                    {{ isDraftItemExpanded(draftItem.id) ? 'Hide details' : 'Edit details' }}
+                  </button>
+                  <button class="br-entry__del" @click="removeDraftItem(draftItem.id)" title="Remove">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="br-draft-card__summary">
+                <span>{{ draftItem.runs.length }} run{{ draftItem.runs.length !== 1 ? 's' : '' }}</span>
+                <span>x{{ itemQuantityTotal(draftItem) }}</span>
+                <span>Craft {{ formatKamas(itemCraftTotal(draftItem)) }}</span>
+                <span>Realized {{ formatKamas(itemRealizedTotal(draftItem)) }}</span>
+                <span :class="itemProfit(draftItem) >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                  {{ itemProfit(draftItem) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(draftItem)) }}
+                </span>
+              </div>
+
+              <div v-if="isDraftItemExpanded(draftItem.id)" class="br-draft-card__details">
+                <div class="br-item-runs">
+                  <div v-for="(run, runIndex) in draftItem.runs" :key="run.id" class="br-item-run">
+                    <div class="br-item-run__head">
+                      <div class="br-item-run__title">Run {{ runIndex + 1 }}</div>
+                      <button class="br-item-run__del" @click="removeRunFromDraftItem(draftItem.id, run.id)">Remove run</button>
+                    </div>
+
+                    <div class="br-form__row br-form__row--triple">
+                      <div class="br-form__field">
+                        <label class="br-field-lbl">Qty crafted</label>
+                        <input v-model.number="run.quantity" type="number" min="1" class="br-field-input" />
+                      </div>
+                      <div class="br-form__field">
+                        <label class="br-field-lbl">Kamas before buying</label>
+                        <input v-model.number="run.buyStartKamas" type="number" min="0" step="1000" class="br-field-input" />
+                      </div>
+                      <div class="br-form__field">
+                        <label class="br-field-lbl">Kamas after buying</label>
+                        <input v-model.number="run.buyEndKamas" type="number" min="0" step="1000" class="br-field-input" />
+                      </div>
+                    </div>
+
+                    <div class="br-form__row">
+                      <div class="br-form__field">
+                        <label class="br-field-lbl">Estimated rune value</label>
+                        <input v-model.number="run.realizedRuneValue" type="number" min="0" step="1000" class="br-field-input" />
+                      </div>
+                      <div class="br-form__field">
+                        <label class="br-field-lbl">Run note</label>
+                        <input v-model="run.notes" type="text" placeholder="Coef, market pressure, retry decision..." class="br-field-input" />
+                      </div>
+                    </div>
+
+                    <div class="br-profit-preview">
+                      <div class="br-profit-row">
+                        <span>Run craft cost</span>
+                        <span>{{ formatKamas(runCraftCost(run)) }}</span>
+                      </div>
+                      <div class="br-profit-row">
+                        <span>Run P/L</span>
+                        <span :class="runProfit(run) >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                          {{ runProfit(run) >= 0 ? '+' : '' }}{{ formatKamas(runProfit(run)) }}
+                        </span>
+                      </div>
+                      <div class="br-profit-row" v-if="run.quantity > 0">
+                        <span>Avg per copy</span>
+                        <span>{{ formatKamas(Math.round(runProfit(run) / run.quantity)) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="br-form__row">
+                  <div class="br-form__field">
+                    <label class="br-field-lbl">Item note</label>
+                    <input v-model="draftItem.notes" type="text" placeholder="Overall conclusion for this item" class="br-field-input" />
+                  </div>
+                </div>
+
+                <button class="br-submit-btn br-submit-btn--secondary" @click="addRunToDraftItem(draftItem.id)">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
+                  Add another run
                 </button>
-              </div>
-
-              <div class="br-form__row br-form__row--triple">
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Qty</label>
-                  <input v-model.number="draftItem.quantity" type="number" min="1" class="br-field-input" />
-                </div>
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Unit craft cost</label>
-                  <input v-model.number="draftItem.unitCraftCost" type="number" min="0" step="1000" class="br-field-input" />
-                </div>
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Rune value total</label>
-                  <input v-model.number="draftItem.realizedRuneValue" type="number" min="0" step="1000" class="br-field-input" />
-                </div>
-              </div>
-
-              <div class="br-form__row">
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Optional HDV reference</label>
-                  <input v-model.number="draftItem.hdvReference" type="number" min="0" step="1000" class="br-field-input" />
-                </div>
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Item note</label>
-                  <input v-model="draftItem.notes" type="text" placeholder="Any quick note about this break" class="br-field-input" />
-                </div>
-              </div>
-
-              <div class="br-profit-preview">
-                <div class="br-profit-row">
-                  <span>Total craft cost</span>
-                  <span>{{ formatKamas(itemCraftTotal(draftItem)) }}</span>
-                </div>
-                <div class="br-profit-row">
-                  <span>Per-item P/L</span>
-                  <span :class="itemProfit(draftItem) >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                    {{ itemProfit(draftItem) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(draftItem)) }}
-                  </span>
-                </div>
-                <div class="br-profit-row" v-if="draftItem.quantity > 0">
-                  <span>Avg per copy</span>
-                  <span>{{ formatKamas(Math.round(itemProfit(draftItem) / draftItem.quantity)) }}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -331,7 +391,7 @@
                     <img :src="getItemImg(item.item)" :alt="item.item?.name?.fr ?? ''" class="br-session-item-row__img" @error="onImgErr" />
                     <div>
                       <div class="br-session-item-row__name">{{ item.item?.name?.fr ?? item.itemId }}</div>
-                      <div class="br-session-item-row__sub">x{{ item.quantity }} · Unit {{ formatKamas(item.unitCraftCost) }} · Total {{ formatKamas(itemCraftTotal(item)) }} · Realized {{ formatKamas(item.realizedRuneValue) }}</div>
+                      <div class="br-session-item-row__sub">{{ item.runs.length }} run{{ item.runs.length !== 1 ? 's' : '' }} · x{{ itemQuantityTotal(item) }} · Cost {{ formatKamas(itemCraftTotal(item)) }} · Realized {{ formatKamas(itemRealizedTotal(item)) }}</div>
                     </div>
                   </div>
                   <div class="br-session-item-row__profit" :class="itemProfit(item) >= 0 ? 'br-profit--up' : 'br-profit--down'">
@@ -350,6 +410,8 @@
 </template>
 
 <script setup lang="ts">
+import { BRISAGE_CATEGORY_OPTIONS } from '../../data/brisageCategories'
+
 definePageMeta({ layout: 'v2' })
 
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
@@ -358,9 +420,15 @@ interface BrisageSessionItem {
   id: string
   itemId: string | number
   item: any
+  notes: string
+  runs: BrisageItemRun[]
+}
+
+interface BrisageItemRun {
+  id: string
   quantity: number
-  unitCraftCost: number
-  hdvReference: number
+  buyStartKamas: number
+  buyEndKamas: number
   realizedRuneValue: number
   notes: string
 }
@@ -371,6 +439,7 @@ interface BrisageSession {
   startingKamas: number
   endingKamas: number
   externalDelta: number
+  categoryTypeId: number | null
   levelMin: number | null
   levelMax: number | null
   categoryLabel: string
@@ -398,11 +467,13 @@ const legacyEntriesKey = computed(() =>
 
 const sessions = ref<BrisageSession[]>([])
 const draftItems = ref<BrisageSessionItem[]>([])
+const expandedDraftItemIds = ref<string[]>([])
 const draftSession = ref({
   date: todayISO(),
   startingKamas: 0,
   endingKamas: 0,
   externalDelta: 0,
+  categoryTypeId: null as number | null,
   levelMin: null as number | null,
   levelMax: null as number | null,
   categoryLabel: '',
@@ -412,6 +483,7 @@ const draftSession = ref({
 const search = ref('')
 const searching = ref(false)
 const results = ref<any[]>([])
+const loadingBatchResults = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const normalizeLevelValue = (value: unknown) => {
@@ -422,16 +494,44 @@ const normalizeLevelValue = (value: unknown) => {
 
 const normalizeSessionItem = (record: any): BrisageSessionItem | null => {
   if (!record?.id || !record?.item) return null
+  const runs = Array.isArray(record?.runs)
+    ? record.runs.map(normalizeItemRun).filter(Boolean) as BrisageItemRun[]
+    : buildFallbackRuns(record)
   return {
     id: String(record.id),
     itemId: record.itemId,
     item: record.item,
+    notes: String(record.notes ?? ''),
+    runs,
+  }
+}
+
+const normalizeItemRun = (record: any): BrisageItemRun | null => {
+  if (!record?.id) return null
+  return {
+    id: String(record.id),
     quantity: Math.max(1, Number(record.quantity ?? 1) || 1),
-    unitCraftCost: Math.max(0, Number(record.unitCraftCost ?? record.craftCost ?? 0) || 0),
-    hdvReference: Math.max(0, Number(record.hdvReference ?? 0) || 0),
+    buyStartKamas: Math.max(0, Number(record.buyStartKamas ?? 0) || 0),
+    buyEndKamas: Math.max(0, Number(record.buyEndKamas ?? 0) || 0),
     realizedRuneValue: Math.max(0, Number(record.realizedRuneValue ?? 0) || 0),
     notes: String(record.notes ?? ''),
   }
+}
+
+const buildFallbackRuns = (record: any): BrisageItemRun[] => {
+  const quantity = Math.max(1, Number(record?.quantity ?? 1) || 1)
+  const totalCraftCost = Math.max(0, Number(record?.craftCost ?? 0) || 0)
+  const unitCraftCost = Math.max(0, Number(record?.unitCraftCost ?? 0) || 0)
+  const fallbackCost = totalCraftCost || (quantity * unitCraftCost)
+
+  return [{
+    id: crypto.randomUUID(),
+    quantity,
+    buyStartKamas: fallbackCost,
+    buyEndKamas: 0,
+    realizedRuneValue: Math.max(0, Number(record?.realizedRuneValue ?? 0) || 0),
+    notes: String(record?.notes ?? ''),
+  }]
 }
 
 const normalizeSessionRecord = (record: any): BrisageSession | null => {
@@ -445,6 +545,7 @@ const normalizeSessionRecord = (record: any): BrisageSession | null => {
     startingKamas: Number(record.startingKamas ?? 0) || 0,
     endingKamas: Number(record.endingKamas ?? 0) || 0,
     externalDelta: Number(record.externalDelta ?? 0) || 0,
+    categoryTypeId: Number(record.categoryTypeId ?? 0) || null,
     levelMin: normalizeLevelValue(record.levelMin),
     levelMax: normalizeLevelValue(record.levelMax),
     categoryLabel: String(record.categoryLabel ?? ''),
@@ -474,6 +575,7 @@ const migrateLegacyEntries = (legacyEntries: LegacyBrisageEntry[]) =>
     startingKamas: 0,
     endingKamas: 0,
     externalDelta: 0,
+    categoryTypeId: Number(entry.item?.type?.id ?? 0) || null,
     levelMin: normalizeLevelValue(entry.item?.level),
     levelMax: normalizeLevelValue(entry.item?.level),
     categoryLabel: String(entry.item?.type?.name?.fr ?? ''),
@@ -483,11 +585,17 @@ const migrateLegacyEntries = (legacyEntries: LegacyBrisageEntry[]) =>
         id: entry.id,
         itemId: entry.itemId,
         item: entry.item,
-        quantity: 1,
-        unitCraftCost: entry.craftPrice,
-        hdvReference: entry.hdvPrice,
-        realizedRuneValue: entry.runeValue,
         notes: entry.notes,
+        runs: [
+          {
+            id: `legacy-run-${entry.id}`,
+            quantity: 1,
+            buyStartKamas: entry.craftPrice,
+            buyEndKamas: 0,
+            realizedRuneValue: entry.runeValue,
+            notes: entry.notes,
+          },
+        ],
       },
     ],
   } satisfies BrisageSession))
@@ -556,20 +664,37 @@ const clearSearch = () => {
   results.value = []
 }
 
+const selectedCategoryOption = computed(() =>
+  BRISAGE_CATEGORY_OPTIONS.find(option => option.typeId === draftSession.value.categoryTypeId) ?? null,
+)
+
+const draftItemIdSet = computed(() =>
+  new Set(draftItems.value.map(item => String(item.itemId))),
+)
+
 const addItemToDraft = (item: any) => {
+  const existing = draftItems.value.find(draftItem => String(draftItem.itemId) === String(item?.id))
+  if (existing) {
+    if (!expandedDraftItemIds.value.includes(existing.id)) {
+      expandedDraftItemIds.value = [...expandedDraftItemIds.value, existing.id]
+    }
+    return
+  }
+
+  const draftId = crypto.randomUUID()
   draftItems.value.unshift({
-    id: crypto.randomUUID(),
+    id: draftId,
     itemId: item.id,
     item,
-    quantity: 1,
-    unitCraftCost: 0,
-    hdvReference: 0,
-    realizedRuneValue: 0,
     notes: '',
+    runs: [createEmptyRun()],
   })
 
   if (!draftSession.value.categoryLabel) {
     draftSession.value.categoryLabel = String(item?.type?.name?.fr ?? '')
+  }
+  if (draftSession.value.categoryTypeId == null) {
+    draftSession.value.categoryTypeId = Number(item?.type?.id ?? 0) || null
   }
   if (draftSession.value.levelMin == null && item?.level) {
     draftSession.value.levelMin = normalizeLevelValue(item.level)
@@ -577,29 +702,137 @@ const addItemToDraft = (item: any) => {
   if (draftSession.value.levelMax == null && item?.level) {
     draftSession.value.levelMax = normalizeLevelValue(item.level)
   }
+}
 
-  clearSearch()
+const loadCategoryBatch = async () => {
+  const typeId = draftSession.value.categoryTypeId
+  const levelMin = normalizeLevelValue(draftSession.value.levelMin)
+  const levelMax = normalizeLevelValue(draftSession.value.levelMax)
+
+  if (!typeId || !levelMin || !levelMax) {
+    results.value = []
+    return
+  }
+
+  loadingBatchResults.value = true
+  draftSession.value.categoryLabel = selectedCategoryOption.value?.label ?? draftSession.value.categoryLabel
+
+  try {
+    const collected: any[] = []
+    let skip = 0
+    let total = Infinity
+    let pageSize = 0
+
+    while (skip < total) {
+      const res = await $fetch<any>('/api/dofusdb/items', {
+        query: {
+          'typeId[$ne]': 203,
+          'typeId[$in][]': typeId,
+          'level[$gte]': levelMin,
+          'level[$lte]': levelMax,
+          '$sort': '-id',
+          '$skip': skip,
+          'lang': 'fr',
+        },
+      })
+
+      const pageItems = Array.isArray(res?.data) ? res.data : []
+      total = Number(res?.total ?? pageItems.length)
+      pageSize = Number(res?.limit ?? pageItems.length)
+
+      if (!pageItems.length) break
+
+      collected.push(...pageItems)
+
+      if (collected.length >= total) break
+
+      skip += pageItems.length || pageSize
+      if (!skip) break
+    }
+
+    const deduped = new Map<string | number, any>()
+    collected.forEach((item) => {
+      deduped.set(item?.id ?? crypto.randomUUID(), item)
+    })
+
+    results.value = Array.from(deduped.values())
+  }
+  catch {
+    results.value = []
+  }
+  finally {
+    loadingBatchResults.value = false
+  }
 }
 
 const removeDraftItem = (id: string) => {
   draftItems.value = draftItems.value.filter(item => item.id !== id)
+  expandedDraftItemIds.value = expandedDraftItemIds.value.filter(currentId => currentId !== id)
 }
 
+const isDraftItemExpanded = (id: string) => expandedDraftItemIds.value.includes(id)
+
+const toggleDraftItem = (id: string) => {
+  expandedDraftItemIds.value = isDraftItemExpanded(id)
+    ? expandedDraftItemIds.value.filter(currentId => currentId !== id)
+    : [...expandedDraftItemIds.value, id]
+}
+
+const createEmptyRun = (): BrisageItemRun => ({
+  id: crypto.randomUUID(),
+  quantity: 1,
+  buyStartKamas: 0,
+  buyEndKamas: 0,
+  realizedRuneValue: 0,
+  notes: '',
+})
+
+const addRunToDraftItem = (itemId: string) => {
+  const item = draftItems.value.find(entry => entry.id === itemId)
+  if (!item) return
+  item.runs.push(createEmptyRun())
+  if (!isDraftItemExpanded(itemId)) {
+    toggleDraftItem(itemId)
+  }
+}
+
+const removeRunFromDraftItem = (itemId: string, runId: string) => {
+  const item = draftItems.value.find(entry => entry.id === itemId)
+  if (!item) return
+  if (item.runs.length === 1) {
+    item.runs[0] = createEmptyRun()
+    return
+  }
+  item.runs = item.runs.filter(run => run.id !== runId)
+}
+
+const runCraftCost = (run: BrisageItemRun) =>
+  Math.max(0, (Number(run.buyStartKamas) || 0) - (Number(run.buyEndKamas) || 0))
+
+const runProfit = (run: BrisageItemRun) =>
+  (Number(run.realizedRuneValue) || 0) - runCraftCost(run)
+
+const itemQuantityTotal = (item: BrisageSessionItem) =>
+  item.runs.reduce((sum, run) => sum + (Number(run.quantity) || 0), 0)
+
 const itemCraftTotal = (item: BrisageSessionItem) =>
-  Math.max(1, Number(item.quantity) || 1) * (Number(item.unitCraftCost) || 0)
+  item.runs.reduce((sum, run) => sum + runCraftCost(run), 0)
+
+const itemRealizedTotal = (item: BrisageSessionItem) =>
+  item.runs.reduce((sum, run) => sum + (Number(run.realizedRuneValue) || 0), 0)
 
 const itemProfit = (item: BrisageSessionItem) =>
-  (Number(item.realizedRuneValue) || 0) - itemCraftTotal(item)
+  itemRealizedTotal(item) - itemCraftTotal(item)
 
 const sessionTotals = (session: BrisageSession) => {
   const craft = session.items.reduce((sum, item) => sum + itemCraftTotal(item), 0)
-  const realized = session.items.reduce((sum, item) => sum + (Number(item.realizedRuneValue) || 0), 0)
+  const realized = session.items.reduce((sum, item) => sum + itemRealizedTotal(item), 0)
   return { craft, realized, profit: realized - craft }
 }
 
 const draftTotals = computed(() => {
   const craft = draftItems.value.reduce((sum, item) => sum + itemCraftTotal(item), 0)
-  const realized = draftItems.value.reduce((sum, item) => sum + (Number(item.realizedRuneValue) || 0), 0)
+  const realized = draftItems.value.reduce((sum, item) => sum + itemRealizedTotal(item), 0)
   return { craft, realized, profit: realized - craft }
 })
 
@@ -632,11 +865,13 @@ const sessionMargin = (session: BrisageSession) => {
 
 const resetDraft = () => {
   draftItems.value = []
+  expandedDraftItemIds.value = []
   draftSession.value = {
     date: todayISO(),
     startingKamas: 0,
     endingKamas: 0,
     externalDelta: 0,
+    categoryTypeId: null,
     levelMin: null,
     levelMax: null,
     categoryLabel: '',
@@ -654,17 +889,24 @@ const saveSession = () => {
     startingKamas: Number(draftSession.value.startingKamas) || 0,
     endingKamas: Number(draftSession.value.endingKamas) || 0,
     externalDelta: Number(draftSession.value.externalDelta) || 0,
+    categoryTypeId: draftSession.value.categoryTypeId,
     levelMin: normalizeLevelValue(draftSession.value.levelMin),
     levelMax: normalizeLevelValue(draftSession.value.levelMax),
-    categoryLabel: draftSession.value.categoryLabel.trim(),
+    categoryLabel: (selectedCategoryOption.value?.label ?? draftSession.value.categoryLabel).trim(),
     notes: draftSession.value.notes.trim(),
     items: draftItems.value.map(item => ({
-      ...item,
-      quantity: Math.max(1, Number(item.quantity) || 1),
-      unitCraftCost: Math.max(0, Number(item.unitCraftCost) || 0),
-      hdvReference: Math.max(0, Number(item.hdvReference) || 0),
-      realizedRuneValue: Math.max(0, Number(item.realizedRuneValue) || 0),
+      id: item.id,
+      itemId: item.itemId,
+      item: item.item,
       notes: item.notes.trim(),
+      runs: item.runs.map(run => ({
+        id: run.id,
+        quantity: Math.max(1, Number(run.quantity) || 1),
+        buyStartKamas: Math.max(0, Number(run.buyStartKamas) || 0),
+        buyEndKamas: Math.max(0, Number(run.buyEndKamas) || 0),
+        realizedRuneValue: Math.max(0, Number(run.realizedRuneValue) || 0),
+        notes: run.notes.trim(),
+      })),
     })),
   })
 
@@ -730,6 +972,9 @@ onMounted(() => {
 
 onUnmounted(() => document.removeEventListener('mousedown', onDocMousedown))
 watch([selectedServer, selectedCharacter], loadData)
+watch(selectedCategoryOption, (option) => {
+  draftSession.value.categoryLabel = option?.label ?? ''
+})
 </script>
 
 <style scoped>
@@ -894,6 +1139,14 @@ watch([selectedServer, selectedCharacter], loadData)
 .br-search { position: relative; display: flex; align-items: center; margin-bottom: .75rem; }
 .br-search__icon { position: absolute; left: .75rem; color: var(--v2-text-muted); pointer-events: none; }
 
+.br-batch-controls {
+  display: flex;
+  flex-direction: column;
+  gap: .375rem;
+  margin-top: .875rem;
+  margin-bottom: .75rem;
+}
+
 .br-search__input {
   background: rgba(0,0,0,.3);
   border: 1px solid var(--v2-border);
@@ -959,6 +1212,7 @@ watch([selectedServer, selectedCharacter], loadData)
 }
 
 .br-result:hover { background: var(--v2-glow); border-color: var(--v2-active-strong); }
+.br-result--disabled { border-color: var(--v2-active); background: rgba(0,0,0,.22); }
 .br-result__img { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
 .br-result__name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
 .br-result__sub { font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px; }
@@ -990,6 +1244,28 @@ watch([selectedServer, selectedCharacter], loadData)
   gap: .75rem;
 }
 
+.br-draft-card__actions {
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+}
+
+.br-draft-card__toggle {
+  border: 1px solid var(--v2-active);
+  background: rgba(0,0,0,.2);
+  color: var(--v2-text-secondary);
+  border-radius: 999px;
+  padding: .3125rem .625rem;
+  font-size: .75rem;
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.br-draft-card__toggle:hover {
+  color: var(--v2-text);
+  border-color: var(--v2-border-strong);
+}
+
 .br-draft-card__meta {
   display: flex;
   align-items: center;
@@ -1006,6 +1282,66 @@ watch([selectedServer, selectedCharacter], loadData)
 
 .br-draft-card__name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
 .br-draft-card__sub { font-size: .75rem; color: var(--v2-text-secondary); margin-top: 2px; }
+
+.br-draft-card__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  font-size: .75rem;
+  color: var(--v2-text-secondary);
+}
+
+.br-draft-card__summary span {
+  padding: .25rem .5rem;
+  border-radius: 999px;
+  background: rgba(0,0,0,.18);
+  border: 1px solid var(--v2-active);
+}
+
+.br-draft-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.br-item-runs {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.br-item-run {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: .75rem;
+  border-radius: 10px;
+  background: rgba(0,0,0,.18);
+  border: 1px solid var(--v2-active);
+}
+
+.br-item-run__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.br-item-run__title {
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--v2-text);
+}
+
+.br-item-run__del {
+  border: 1px solid rgba(248,113,113,.25);
+  background: rgba(248,113,113,.08);
+  color: #fca5a5;
+  border-radius: 999px;
+  padding: .25rem .625rem;
+  font-size: .75rem;
+  cursor: pointer;
+}
 
 .br-profit-preview {
   background: rgba(0,0,0,.2);
@@ -1044,6 +1380,7 @@ watch([selectedServer, selectedCharacter], loadData)
 
 .br-submit-btn:hover:not(:disabled) { background: var(--v2-border-strong); }
 .br-submit-btn:disabled { opacity: .35; cursor: not-allowed; }
+.br-submit-btn--secondary { width: auto; justify-content: flex-start; }
 
 .br-log-empty {
   padding: 2.5rem 1rem;
