@@ -318,6 +318,47 @@
             Search for an item, add it to the draft session, then enter the total rune value you realized after breaking it in game.
           </div>
 
+          <div class="br-panel-title br-panel-title--sub">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V7a2 2 0 00-2-2h-4M4 7h10M4 7v10a2 2 0 002 2h12a2 2 0 002-2v-4M4 7l4 4m0 0l4-4m-4 4V3" />
+            </svg>
+            Resource checklist
+          </div>
+
+          <div class="br-batch-controls">
+            <button
+              class="br-submit-btn br-submit-btn--secondary"
+              :disabled="draftItems.length === 0 || recipeChecklistState.isLoading"
+              @click="fetchRecipeChecklist"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.836 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-13.837-2m13.837 2H15" />
+              </svg>
+              {{ recipeChecklistState.isLoading ? 'Loading resources…' : 'Fetch recipes for current draft' }}
+            </button>
+            <div class="br-field-help">Aggregates all recipe ingredients from the current draft items using their total crafted quantity.</div>
+          </div>
+
+          <div v-if="recipeChecklistState.error" class="br-empty-hint">{{ recipeChecklistState.error }}</div>
+
+          <div v-if="draftResourceChecklist.length" class="br-resource-list">
+            <label v-for="resource in draftResourceChecklist" :key="resource.id" class="br-resource-row">
+              <input
+                type="checkbox"
+                :checked="resource.isDone"
+                class="br-resource-row__check"
+                @change="toggleDraftResourceDone(resource.id)"
+              >
+              <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
+              <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
+              <div class="br-resource-row__meta">
+                <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
+                <div class="br-resource-row__sub">{{ resource.typeName ?? 'Resource' }}</div>
+              </div>
+              <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
+            </label>
+          </div>
+
           <button class="br-submit-btn" :disabled="draftItems.length === 0" @click="saveSession">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -400,6 +441,19 @@
                 </div>
               </div>
 
+              <div v-if="session.resourceChecklist?.length" class="br-resource-list br-resource-list--saved">
+                <div v-for="resource in session.resourceChecklist" :key="resource.id" class="br-resource-row br-resource-row--saved">
+                  <div class="br-resource-row__check br-resource-row__check--static">{{ resource.isDone ? '✓' : '•' }}</div>
+                  <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
+                  <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
+                  <div class="br-resource-row__meta">
+                    <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
+                    <div class="br-resource-row__sub">{{ resource.typeName ?? 'Resource' }}</div>
+                  </div>
+                  <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
+                </div>
+              </div>
+
               <div v-if="session.notes" class="br-entry__notes">{{ session.notes }}</div>
             </div>
           </div>
@@ -433,6 +487,16 @@ interface BrisageItemRun {
   notes: string
 }
 
+interface BrisageSessionResource {
+  id: number
+  name: string
+  image: string | null
+  typeName: string | null
+  totalQuantity: number
+  hasRecipe: boolean
+  isDone: boolean
+}
+
 interface BrisageSession {
   id: string
   date: string
@@ -445,6 +509,7 @@ interface BrisageSession {
   categoryLabel: string
   notes: string
   items: BrisageSessionItem[]
+  resourceChecklist: BrisageSessionResource[]
 }
 
 interface LegacyBrisageEntry {
@@ -468,6 +533,12 @@ const legacyEntriesKey = computed(() =>
 const sessions = ref<BrisageSession[]>([])
 const draftItems = ref<BrisageSessionItem[]>([])
 const expandedDraftItemIds = ref<string[]>([])
+const draftResourceChecklist = ref<BrisageSessionResource[]>([])
+const recipeChecklistState = ref({
+  hasFetched: false,
+  isLoading: false,
+  error: '',
+})
 const draftSession = ref({
   date: todayISO(),
   startingKamas: 0,
@@ -539,6 +610,9 @@ const normalizeSessionRecord = (record: any): BrisageSession | null => {
   const items = Array.isArray(record?.items)
     ? record.items.map(normalizeSessionItem).filter(Boolean) as BrisageSessionItem[]
     : []
+  const resourceChecklist = Array.isArray(record?.resourceChecklist)
+    ? record.resourceChecklist.map(normalizeSessionResource).filter(Boolean) as BrisageSessionResource[]
+    : []
   return {
     id: String(record.id),
     date: String(record.date ?? todayISO()),
@@ -551,6 +625,21 @@ const normalizeSessionRecord = (record: any): BrisageSession | null => {
     categoryLabel: String(record.categoryLabel ?? ''),
     notes: String(record.notes ?? ''),
     items,
+    resourceChecklist,
+  }
+}
+
+const normalizeSessionResource = (record: any): BrisageSessionResource | null => {
+  const id = Number(record?.id ?? 0)
+  if (!id) return null
+  return {
+    id,
+    name: String(record?.name ?? `Ingredient #${id}`),
+    image: typeof record?.image === 'string' ? record.image : null,
+    typeName: typeof record?.typeName === 'string' ? record.typeName : null,
+    totalQuantity: Math.max(0, Number(record?.totalQuantity ?? 0) || 0),
+    hasRecipe: Boolean(record?.hasRecipe),
+    isDone: Boolean(record?.isDone),
   }
 }
 
@@ -598,6 +687,7 @@ const migrateLegacyEntries = (legacyEntries: LegacyBrisageEntry[]) =>
         ],
       },
     ],
+    resourceChecklist: [],
   } satisfies BrisageSession))
 
 const saveSessions = () =>
@@ -821,6 +911,106 @@ const itemCraftTotal = (item: BrisageSessionItem) =>
 const itemRealizedTotal = (item: BrisageSessionItem) =>
   item.runs.reduce((sum, run) => sum + (Number(run.realizedRuneValue) || 0), 0)
 
+const draftRecipeSignature = computed(() =>
+  JSON.stringify(
+    draftItems.value.map(item => ({
+      itemId: item.itemId,
+      quantity: itemQuantityTotal(item),
+    })),
+  ),
+)
+
+const fetchRecipeChecklist = async () => {
+  if (!draftItems.value.length) {
+    draftResourceChecklist.value = []
+    recipeChecklistState.value = { hasFetched: false, isLoading: false, error: 'Add items first.' }
+    return
+  }
+
+  recipeChecklistState.value = { hasFetched: true, isLoading: true, error: '' }
+
+  try {
+    const existingChecks = new Map<number, boolean>(
+      draftResourceChecklist.value.map(resource => [resource.id, resource.isDone]),
+    )
+
+    const ingredientMap = new Map<number, BrisageSessionResource>()
+
+    const recipes = await Promise.allSettled(
+      draftItems.value.map(async (item) => {
+        const recipe = await $fetch<any>(`/api/dofusdb/recipes/${encodeURIComponent(String(item.itemId))}`, {
+          query: { lang: 'fr' },
+        })
+        return { item, recipe }
+      }),
+    )
+
+    recipes.forEach((result) => {
+      if (result.status !== 'fulfilled') return
+
+      const { item, recipe } = result.value
+      if (!recipe?.ingredientIds?.length || !recipe?.quantities?.length) return
+      const multiplier = Math.max(1, itemQuantityTotal(item))
+
+      recipe.ingredientIds.forEach((ingredientId: number, index: number) => {
+        const ingredient = recipe.ingredients?.find((candidate: any) => candidate.id === ingredientId)
+        const baseQuantity = Number(recipe.quantities?.[index] ?? 0) || 0
+        const totalQuantity = baseQuantity * multiplier
+        const existing = ingredientMap.get(ingredientId)
+
+        if (existing) {
+          existing.totalQuantity += totalQuantity
+          return
+        }
+
+        ingredientMap.set(ingredientId, {
+          id: ingredientId,
+          name: ingredient?.name?.fr || ingredient?.name?.en || `Ingredient #${ingredientId}`,
+          image: ingredient?.img || null,
+          typeName: ingredient?.type?.name?.fr || ingredient?.type?.name?.en || null,
+          totalQuantity,
+          hasRecipe: Boolean(ingredient?.hasRecipe),
+          isDone: existingChecks.get(ingredientId) ?? false,
+        })
+      })
+    })
+
+    if (!ingredientMap.size) {
+      draftResourceChecklist.value = []
+      recipeChecklistState.value = {
+        hasFetched: true,
+        isLoading: false,
+        error: 'No recipe ingredients found for the current draft items.',
+      }
+      return
+    }
+
+    draftResourceChecklist.value = Array.from(ingredientMap.values()).sort((a, b) => {
+      if (a.isDone !== b.isDone) return Number(a.isDone) - Number(b.isDone)
+      if (b.totalQuantity !== a.totalQuantity) return b.totalQuantity - a.totalQuantity
+      return a.name.localeCompare(b.name)
+    })
+
+    recipeChecklistState.value = { hasFetched: true, isLoading: false, error: '' }
+  }
+  catch {
+    draftResourceChecklist.value = []
+    recipeChecklistState.value = {
+      hasFetched: true,
+      isLoading: false,
+      error: 'Failed to load recipe resources for the current draft.',
+    }
+  }
+}
+
+const toggleDraftResourceDone = (resourceId: number) => {
+  draftResourceChecklist.value = draftResourceChecklist.value.map(resource =>
+    resource.id === resourceId
+      ? { ...resource, isDone: !resource.isDone }
+      : resource,
+  )
+}
+
 const itemProfit = (item: BrisageSessionItem) =>
   itemRealizedTotal(item) - itemCraftTotal(item)
 
@@ -866,6 +1056,8 @@ const sessionMargin = (session: BrisageSession) => {
 const resetDraft = () => {
   draftItems.value = []
   expandedDraftItemIds.value = []
+  draftResourceChecklist.value = []
+  recipeChecklistState.value = { hasFetched: false, isLoading: false, error: '' }
   draftSession.value = {
     date: todayISO(),
     startingKamas: 0,
@@ -908,6 +1100,7 @@ const saveSession = () => {
         notes: run.notes.trim(),
       })),
     })),
+    resourceChecklist: draftResourceChecklist.value.map(resource => ({ ...resource })),
   })
 
   saveSessions()
@@ -974,6 +1167,23 @@ onUnmounted(() => document.removeEventListener('mousedown', onDocMousedown))
 watch([selectedServer, selectedCharacter], loadData)
 watch(selectedCategoryOption, (option) => {
   draftSession.value.categoryLabel = option?.label ?? ''
+})
+watch(draftRecipeSignature, async () => {
+  if (!draftItems.value.length) {
+    draftResourceChecklist.value = []
+    recipeChecklistState.value = {
+      hasFetched: false,
+      isLoading: false,
+      error: '',
+    }
+    return
+  }
+
+  if (!recipeChecklistState.value.hasFetched || recipeChecklistState.value.isLoading) {
+    return
+  }
+
+  await fetchRecipeChecklist()
 })
 </script>
 
@@ -1341,6 +1551,80 @@ watch(selectedCategoryOption, (option) => {
   padding: .25rem .625rem;
   font-size: .75rem;
   cursor: pointer;
+}
+
+.br-resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: .375rem;
+  margin-top: .75rem;
+  margin-bottom: .875rem;
+}
+
+.br-resource-row {
+  display: grid;
+  grid-template-columns: 20px 28px 1fr auto;
+  align-items: center;
+  gap: .625rem;
+  padding: .5rem .625rem;
+  border-radius: 10px;
+  background: rgba(0,0,0,.18);
+  border: 1px solid var(--v2-active);
+  cursor: pointer;
+}
+
+.br-resource-row--saved { cursor: default; }
+
+.br-resource-row__check {
+  width: 16px;
+  height: 16px;
+  accent-color: #86efac;
+}
+
+.br-resource-row__check--static {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #86efac;
+  font-weight: 700;
+}
+
+.br-resource-row__img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.br-resource-row__img--fallback {
+  border-radius: 6px;
+  background: rgba(255,255,255,.05);
+}
+
+.br-resource-row__meta {
+  min-width: 0;
+}
+
+.br-resource-row__name {
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--v2-text);
+}
+
+.br-resource-row__name--done {
+  text-decoration: line-through;
+  opacity: .65;
+}
+
+.br-resource-row__sub {
+  font-size: .6875rem;
+  color: var(--v2-text-secondary);
+  margin-top: 2px;
+}
+
+.br-resource-row__qty {
+  font-size: .875rem;
+  font-weight: 800;
+  color: var(--v2-text);
 }
 
 .br-profit-preview {
