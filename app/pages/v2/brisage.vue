@@ -116,11 +116,6 @@
                 <label class="br-field-lbl">Ending kamas</label>
                 <input v-model.number="draftSession.endingKamas" type="number" step="1000" class="br-field-input" />
               </div>
-              <div class="br-form__field">
-                <label class="br-field-lbl">External delta</label>
-                <input v-model.number="draftSession.externalDelta" type="number" step="1000" class="br-field-input" />
-                <div class="br-field-help">Use this for kamas changes outside this brisage batch, like unrelated buys, sales, or taxes.</div>
-              </div>
             </div>
 
             <div class="br-session-summary">
@@ -140,18 +135,6 @@
                 <div class="br-session-summary__label">Session P/L</div>
                 <div class="br-session-summary__value" :class="draftTotals.profit >= 0 ? 'br-profit--up' : 'br-profit--down'">
                   {{ draftTotals.profit >= 0 ? '+' : '' }}{{ formatKamas(draftTotals.profit) }}
-                </div>
-              </div>
-              <div class="br-session-summary__item">
-                <div class="br-session-summary__label">Cash delta</div>
-                <div class="br-session-summary__value" :class="sessionCashDelta >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                  {{ sessionCashDelta >= 0 ? '+' : '' }}{{ formatKamas(sessionCashDelta) }}
-                </div>
-              </div>
-              <div class="br-session-summary__item">
-                <div class="br-session-summary__label">Reconciliation gap</div>
-                <div class="br-session-summary__value" :class="sessionCashGap >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                  {{ sessionCashGap >= 0 ? '+' : '' }}{{ formatKamas(sessionCashGap) }}
                 </div>
               </div>
             </div>
@@ -323,9 +306,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V7a2 2 0 00-2-2h-4M4 7h10M4 7v10a2 2 0 002 2h12a2 2 0 002-2v-4M4 7l4 4m0 0l4-4m-4 4V3" />
             </svg>
             Resource checklist
+            <button class="br-collapse-toggle" @click="showDraftResourceChecklist = !showDraftResourceChecklist">
+              {{ showDraftResourceChecklist ? 'Hide' : 'Show' }}
+            </button>
           </div>
 
-          <div class="br-batch-controls">
+          <div v-if="showDraftResourceChecklist" class="br-batch-controls">
             <button
               class="br-submit-btn br-submit-btn--secondary"
               :disabled="draftItems.length === 0 || recipeChecklistState.isLoading"
@@ -339,24 +325,26 @@
             <div class="br-field-help">Aggregates all recipe ingredients from the current draft items using their total crafted quantity.</div>
           </div>
 
-          <div v-if="recipeChecklistState.error" class="br-empty-hint">{{ recipeChecklistState.error }}</div>
+          <div v-if="showDraftResourceChecklist">
+            <div v-if="recipeChecklistState.error" class="br-empty-hint">{{ recipeChecklistState.error }}</div>
 
-          <div v-if="draftResourceChecklist.length" class="br-resource-list">
-            <label v-for="resource in draftResourceChecklist" :key="resource.id" class="br-resource-row">
-              <input
-                type="checkbox"
-                :checked="resource.isDone"
-                class="br-resource-row__check"
-                @change="toggleDraftResourceDone(resource.id)"
-              >
-              <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
-              <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
-              <div class="br-resource-row__meta">
-                <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
-                <div class="br-resource-row__sub">{{ resource.typeName ?? 'Resource' }}</div>
-              </div>
-              <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
-            </label>
+            <div v-if="draftResourceChecklist.length" class="br-resource-list">
+              <label v-for="resource in draftResourceChecklist" :key="resource.id" class="br-resource-row">
+                <input
+                  type="checkbox"
+                  :checked="resource.isDone"
+                  class="br-resource-row__check"
+                  @change="toggleDraftResourceDone(resource.id)"
+                >
+                <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
+                <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
+                <div class="br-resource-row__meta">
+                  <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
+                  <div class="br-resource-row__sub">{{ resource.typeName ?? 'Resource' }}</div>
+                </div>
+                <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
+              </label>
+            </div>
           </div>
 
           <button class="br-submit-btn" :disabled="draftItems.length === 0" @click="saveSession">
@@ -405,8 +393,8 @@
                   <div class="br-price-cell__val">{{ formatKamas(sessionTotals(session).craft) }}</div>
                 </div>
                 <div class="br-price-cell br-price-cell--hdv">
-                  <div class="br-price-cell__lbl">Cash delta</div>
-                  <div class="br-price-cell__val">{{ formatKamas((session.endingKamas || 0) - (session.startingKamas || 0) - (session.externalDelta || 0)) }}</div>
+                  <div class="br-price-cell__lbl">Total items</div>
+                  <div class="br-price-cell__val">{{ sessionQuantityTotal(session) }}</div>
                 </div>
                 <div class="br-price-cell br-price-cell--rune">
                   <div class="br-price-cell__lbl">Realized value</div>
@@ -421,12 +409,12 @@
                 <div class="br-profit-pill" :class="sessionMargin(session) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
                   Margin: {{ sessionMargin(session) >= 0 ? '+' : '' }}{{ sessionMargin(session) }}%
                 </div>
-                <div class="br-profit-pill" :class="(((session.endingKamas || 0) - (session.startingKamas || 0) - (session.externalDelta || 0)) - sessionTotals(session).profit) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                  Gap: {{ (((session.endingKamas || 0) - (session.startingKamas || 0) - (session.externalDelta || 0)) - sessionTotals(session).profit) >= 0 ? '+' : '' }}{{ formatKamas(((session.endingKamas || 0) - (session.startingKamas || 0) - (session.externalDelta || 0)) - sessionTotals(session).profit) }}
-                </div>
+                <button class="br-collapse-toggle br-collapse-toggle--inline" @click="toggleSession(session.id)">
+                  {{ isSessionExpanded(session.id) ? 'Hide details' : 'Show details' }}
+                </button>
               </div>
 
-              <div class="br-session-items">
+              <div v-if="isSessionExpanded(session.id)" class="br-session-items">
                 <div v-for="item in session.items" :key="item.id" class="br-session-item-row">
                   <div class="br-session-item-row__meta">
                     <img :src="getItemImg(item.item)" :alt="item.item?.name?.fr ?? ''" class="br-session-item-row__img" @error="onImgErr" />
@@ -441,7 +429,7 @@
                 </div>
               </div>
 
-              <div v-if="session.resourceChecklist?.length" class="br-resource-list br-resource-list--saved">
+              <div v-if="isSessionExpanded(session.id) && session.resourceChecklist?.length" class="br-resource-list br-resource-list--saved">
                 <div v-for="resource in session.resourceChecklist" :key="resource.id" class="br-resource-row br-resource-row--saved">
                   <div class="br-resource-row__check br-resource-row__check--static">{{ resource.isDone ? '✓' : '•' }}</div>
                   <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
@@ -454,7 +442,7 @@
                 </div>
               </div>
 
-              <div v-if="session.notes" class="br-entry__notes">{{ session.notes }}</div>
+              <div v-if="isSessionExpanded(session.id) && session.notes" class="br-entry__notes">{{ session.notes }}</div>
             </div>
           </div>
         </div>
@@ -533,6 +521,8 @@ const legacyEntriesKey = computed(() =>
 const sessions = ref<BrisageSession[]>([])
 const draftItems = ref<BrisageSessionItem[]>([])
 const expandedDraftItemIds = ref<string[]>([])
+const expandedSessionIds = ref<string[]>([])
+const showDraftResourceChecklist = ref(true)
 const draftResourceChecklist = ref<BrisageSessionResource[]>([])
 const recipeChecklistState = ref({
   hasFetched: false,
@@ -868,6 +858,14 @@ const toggleDraftItem = (id: string) => {
     : [...expandedDraftItemIds.value, id]
 }
 
+const isSessionExpanded = (id: string) => expandedSessionIds.value.includes(id)
+
+const toggleSession = (id: string) => {
+  expandedSessionIds.value = isSessionExpanded(id)
+    ? expandedSessionIds.value.filter(currentId => currentId !== id)
+    : [...expandedSessionIds.value, id]
+}
+
 const createEmptyRun = (): BrisageItemRun => ({
   id: crypto.randomUUID(),
   quantity: 1,
@@ -904,6 +902,9 @@ const runProfit = (run: BrisageItemRun) =>
 
 const itemQuantityTotal = (item: BrisageSessionItem) =>
   item.runs.reduce((sum, run) => sum + (Number(run.quantity) || 0), 0)
+
+const sessionQuantityTotal = (session: BrisageSession) =>
+  session.items.reduce((sum, item) => sum + itemQuantityTotal(item), 0)
 
 const itemCraftTotal = (item: BrisageSessionItem) =>
   item.runs.reduce((sum, run) => sum + runCraftCost(run), 0)
@@ -1025,14 +1026,6 @@ const draftTotals = computed(() => {
   const realized = draftItems.value.reduce((sum, item) => sum + itemRealizedTotal(item), 0)
   return { craft, realized, profit: realized - craft }
 })
-
-const sessionCashDelta = computed(() =>
-  (Number(draftSession.value.endingKamas) || 0)
-  - (Number(draftSession.value.startingKamas) || 0)
-  - (Number(draftSession.value.externalDelta) || 0),
-)
-
-const sessionCashGap = computed(() => sessionCashDelta.value - draftTotals.value.profit)
 
 const totalItemsLogged = computed(() =>
   sessions.value.reduce((sum, session) => sum + session.items.length, 0),
@@ -1251,6 +1244,21 @@ watch(draftRecipeSignature, async () => {
   font-weight: 700;
   color: var(--v2-accent);
   margin-bottom: .875rem;
+}
+
+.br-collapse-toggle {
+  margin-left: auto;
+  border: 1px solid var(--v2-active);
+  background: rgba(0,0,0,.18);
+  color: var(--v2-text-secondary);
+  border-radius: 999px;
+  padding: .25rem .625rem;
+  font-size: .75rem;
+  cursor: pointer;
+}
+
+.br-collapse-toggle--inline {
+  margin-left: 0;
 }
 
 .br-panel-title--sub {
