@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Tableau de bord",
     "archimonstres": "Archimonstres",
+    "monsters": "Monstres",
     "items": "Objets",
     "resale": "Suivi Revente",
     "crafting": "Craft",
@@ -476,7 +477,58 @@
   }
 }
   },
-  
+  "monsters": {
+    "kicker": "Bestiaire DofusDB",
+    "title": "Monstres",
+    "subtitle": "Recherchez les monstres DofusDB par slug, parcourez les résultats paginés et ouvrez une page détail dédiée via l'id DofusDB.",
+    "totalResults": "Résultats",
+    "searchLabel": "Rechercher des monstres",
+    "searchPlaceholder": "Rechercher des monstres comme nessil...",
+    "searchingFor": "Recherche : {term}",
+    "pageLabel": "Page {page}",
+    "levelLabel": "Niv. {level}",
+    "spellsLabel": "{count} sorts",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "backToList": "Retour aux monstres",
+    "errorTitle": "Impossible de charger les monstres",
+    "errorDescription": "Le proxy DofusDB a renvoyé une erreur. Réessayez dans un instant.",
+    "emptyTitle": "Aucun monstre trouvé",
+    "emptyDescription": "Essayez une autre recherche par slug ou videz la requête actuelle.",
+    "badges": {
+      "boss": "Boss",
+      "miniBoss": "Mini-boss",
+      "quest": "Quête",
+      "standard": "Standard"
+    },
+    "detail": {
+      "errorTitle": "Monstre introuvable",
+      "errorDescription": "Cet id de monstre n'a pas pu être chargé depuis DofusDB.",
+      "mainLevel": "Niveau principal",
+      "apMp": "PA / PM",
+      "lifePoints": "Points de vie",
+      "spells": "Sorts",
+      "characteristics": "Caractéristiques",
+      "resistances": "Résistances",
+      "flags": "Indicateurs",
+      "drops": "Drops",
+      "strength": "Force",
+      "intelligence": "Intelligence",
+      "chance": "Chance",
+      "agility": "Agilité",
+      "wisdom": "Sagesse",
+      "neutral": "Neutre",
+      "earth": "Terre",
+      "fire": "Feu",
+      "water": "Eau",
+      "air": "Air",
+      "canPlay": "Peut jouer",
+      "canTackle": "Peut tacler",
+      "canUsePortal": "Peut utiliser les portails",
+      "objectId": "Objet #{id}",
+      "noDrops": "Aucun drop exposé pour ce monstre."
+    }
+  },
   "items": {
     "backToHome": "Retour à l'accueil",
     "title": "Statistiques d'Équipement",

@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "archimonstres": "Archimonstres",
+    "monsters": "Monsters",
     "items": "Items",
     "resale": "Resale Tracker",
     "crafting": "Crafting",
@@ -478,7 +479,59 @@
 }
     
 },
-"items": {
+  "monsters": {
+    "kicker": "DofusDB Bestiary",
+    "title": "Monsters",
+    "subtitle": "Search DofusDB monsters by slug, browse paginated results, and open a dedicated detail page by DofusDB monster id.",
+    "totalResults": "Results",
+    "searchLabel": "Search monsters",
+    "searchPlaceholder": "Search monsters like nessil...",
+    "searchingFor": "Search: {term}",
+    "pageLabel": "Page {page}",
+    "levelLabel": "Lv. {level}",
+    "spellsLabel": "{count} spells",
+    "previous": "Previous",
+    "next": "Next",
+    "backToList": "Back to monsters",
+    "errorTitle": "Could not load monsters",
+    "errorDescription": "The DofusDB proxy returned an error. Try again in a moment.",
+    "emptyTitle": "No monsters found",
+    "emptyDescription": "Try another slug search or clear the current query.",
+    "badges": {
+      "boss": "Boss",
+      "miniBoss": "Mini-boss",
+      "quest": "Quest",
+      "standard": "Standard"
+    },
+    "detail": {
+      "errorTitle": "Monster not found",
+      "errorDescription": "This monster id could not be loaded from DofusDB.",
+      "mainLevel": "Main level",
+      "apMp": "AP / MP",
+      "lifePoints": "Life points",
+      "spells": "Spells",
+      "characteristics": "Characteristics",
+      "resistances": "Resistances",
+      "flags": "Flags",
+      "drops": "Drops",
+      "strength": "Strength",
+      "intelligence": "Intelligence",
+      "chance": "Chance",
+      "agility": "Agility",
+      "wisdom": "Wisdom",
+      "neutral": "Neutral",
+      "earth": "Earth",
+      "fire": "Fire",
+      "water": "Water",
+      "air": "Air",
+      "canPlay": "Can play",
+      "canTackle": "Can tackle",
+      "canUsePortal": "Can use portal",
+      "objectId": "Object #{id}",
+      "noDrops": "No drops exposed on this monster."
+    }
+  },
+  "items": {
     "backToHome": "Back to Home",
     "title": "Equipment Statistics",
     "subtitle": "Analyze equipment usage patterns and meta trends",

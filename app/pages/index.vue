@@ -335,6 +335,7 @@ const formatDuration = (value: number | null) => {
 }
 const quickItems = [
   { path: '/archimonstres', label: 'nav.archimonstres', icon: resolveComponent('IconsIconArchimonstres'), color: '#f87171' },
+  { path: '/monsters', label: 'nav.monsters', icon: resolveComponent('IconsIconMonsters'), color: '#f59e0b' },
   { path: '/items', label: 'nav.items', icon: resolveComponent('IconsIconItems'), color: '#60a5fa' },
   { path: '/resale', label: 'nav.resale', icon: resolveComponent('IconsIconItems'), color: '#22c55e' },
   { path: '/crafting', label: 'nav.crafting', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },

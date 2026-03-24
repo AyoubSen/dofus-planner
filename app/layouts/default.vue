@@ -212,6 +212,12 @@ const navItems = [
     color: 'bg-orange-500'
   },
   {
+    path: '/monsters',
+    label: 'nav.monsters',
+    icon: resolveComponent('IconsIconMonsters'),
+    color: 'bg-amber-500'
+  },
+  {
     path: '/items',
     label: 'nav.items',
     icon: resolveComponent('IconsIconItems'),
