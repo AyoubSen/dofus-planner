@@ -27,6 +27,12 @@
             </svg>
             Sell Only
           </button>
+          <button class="v2-toggle__btn" :class="{ 'v2-toggle__btn--on': mode === 'route-planner' }" @click="mode = 'route-planner'">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 01.553-.894L9 2l6 3 5.447-2.724A1 1 0 0121 3.17v13.212a1 1 0 01-.553.894L15 20l-6-3z" />
+            </svg>
+            Route Planner
+          </button>
         </div>
 
         <!-- Dofus-Ocre filters -->
@@ -104,6 +110,108 @@
           </div>
         </div>
       </template>
+
+      <!-- ── ROUTE PLANNER MODE ── -->
+      <div v-else-if="mode === 'route-planner'" class="v2-route">
+        <!-- Search bar -->
+        <div class="v2-route-bar">
+          <div ref="routeAutoEl" class="v2-autocomplete v2-route-bar__search">
+            <input
+              v-model="routeSearch"
+              type="text"
+              placeholder="Search an archimonstre to add…"
+              class="v2-add-input v2-add-input--wide"
+              @input="showRouteDropdown = true; selectedRouteMonster = null"
+              @focus="showRouteDropdown = true"
+              @keyup.escape="showRouteDropdown = false"
+            />
+            <div v-if="showRouteDropdown && routeMonsterSuggestions.length > 0" class="v2-dropdown">
+              <button
+                v-for="s in routeMonsterSuggestions"
+                :key="s.id"
+                class="v2-dropdown__item"
+                @mousedown.prevent="selectRouteMonster(s)"
+              >
+                <img :src="getMonsterImg(s)" class="v2-dropdown__img" @error="onImgErr" />
+                <span class="v2-dropdown__name">{{ s.nom }}</span>
+                <span class="v2-dropdown__zone">{{ s.souszone || s.zone }}</span>
+              </button>
+            </div>
+          </div>
+          <button
+            class="v2-add-btn"
+            :disabled="!selectedRouteMonster || resolvingRoute"
+            @click="addRouteTarget"
+          >
+            {{ resolvingRoute ? 'Resolving…' : 'Add' }}
+          </button>
+          <button v-if="routeTargets.length > 0" class="v2-clear-btn" @click="clearRouteTargets">Clear all</button>
+        </div>
+
+        <!-- Empty state -->
+        <div v-if="routeTargets.length === 0" class="v2-empty">
+          <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 01.553-.894L9 2l6 3 5.447-2.724A1 1 0 0121 3.17v13.212a1 1 0 01-.553.894L15 20l-6-3z" />
+          </svg>
+          <div>No route targets yet.</div>
+          <div class="v2-empty__sub">Search an archimonstre above and add it to build your farming loop.</div>
+        </div>
+
+        <!-- Two-column layout -->
+        <div v-else class="v2-route-layout">
+          <!-- Sidebar: compact tracked monsters -->
+          <div class="v2-route-sidebar">
+            <div class="v2-route-sidebar__title">Tracked <span class="v2-route-sidebar__count">{{ routeTargets.length }}</span></div>
+            <div class="v2-route-sidebar__filter">
+              <svg class="v2-route-sidebar__filter-icon w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input v-model="routeSidebarFilter" type="text" placeholder="Check a monster…" class="v2-route-sidebar__filter-input" />
+              <button v-if="routeSidebarFilter" class="v2-route-sidebar__filter-clear" @click="routeSidebarFilter = ''">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div
+              v-if="routeSidebarFilter && !routeTargets.some(t => t.monsterName.toLowerCase().includes(routeSidebarFilter.toLowerCase()))"
+              class="v2-route-sidebar__nomatch"
+            >Not in your route</div>
+            <div
+              v-for="target in routeTargets.filter(t => !routeSidebarFilter || t.monsterName.toLowerCase().includes(routeSidebarFilter.toLowerCase()))"
+              :key="target.monsterId"
+              class="v2-route-pill"
+              :class="{ 'v2-route-pill--match': !!routeSidebarFilter }">
+              <img :src="getMonsterImg(target)" class="v2-route-pill__img" @error="onImgErr" />
+              <span class="v2-route-pill__name">{{ target.monsterName }}</span>
+              <button class="v2-route-pill__del" @click="removeRouteTarget(target.monsterId)" title="Remove">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Main: route grouped by subarea -->
+          <div class="v2-route-main">
+            <div v-for="group in routeSubareaGroups" :key="group.name" class="v2-route-group">
+              <div class="v2-route-group__head">
+                <div>
+                  <div class="v2-route-group__name">{{ group.name }}</div>
+                  <div class="v2-route-group__zone">{{ group.zoneLabel }}</div>
+                </div>
+                <div class="v2-route-group__count">{{ group.monsters.length }} target{{ group.monsters.length > 1 ? 's' : '' }}</div>
+              </div>
+              <div class="v2-route-group__list">
+                <div v-for="monster in group.monsters" :key="`${group.name}-${monster.monsterId}`" class="v2-route-group__item">
+                  <img :src="getMonsterImg(monster)" class="v2-route-group__img" @error="onImgErr" />
+                  <div class="v2-route-group__monster">{{ monster.monsterName }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- ── SELL MODE ── -->
       <div v-else class="v2-sell">
@@ -610,7 +718,7 @@ const { appendActivity } = useAppDataStore()
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 
 // ── Shared ──────────────────────────────────────────────────────────────────
-const mode = ref<'dofus-ocre' | 'sell'>('dofus-ocre')
+const mode = ref<'dofus-ocre' | 'sell' | 'route-planner'>('dofus-ocre')
 const loading = ref(true)
 const monsters = ref<any[]>([])
 
@@ -821,11 +929,22 @@ interface SoldItem extends PendingItem {
   dateSold: string
   soldPrice: number
 }
+interface RouteTarget {
+  monsterId: string | number
+  monsterName: string
+  baseMonsterName: string
+  image_url: string
+  zone: string
+  souszone: string
+  subareas: string[]
+  addedAt: string
+}
 
 const sellTab = ref<'queue' | 'history' | 'analytics'>('queue')
 const pendingItems = ref<PendingItem[]>([])
 const soldItems = ref<SoldItem[]>([])
 const priceHistory = ref<Record<string, number[]>>({})
+const routeTargets = ref<RouteTarget[]>([])
 const slowMovingDays = ref(7)
 
 // Add form
@@ -834,6 +953,11 @@ const addQuantity = ref(1)
 const addPrice = ref(0)
 const selectedMonster = ref<any>(null)
 const showDropdown = ref(false)
+const routeSearch = ref('')
+const routeSidebarFilter = ref('')
+const selectedRouteMonster = ref<any>(null)
+const showRouteDropdown = ref(false)
+const resolvingRoute = ref(false)
 
 // Price editing
 const editingPriceId = ref<string | null>(null)
@@ -849,27 +973,54 @@ const soldKey = computed(() =>
 const historyKey = computed(() =>
   `selling_price_history_${selectedServer.value?.id}_${selectedCharacter.value?.id}`
 )
+const routeKey = computed(() =>
+  `archi_route_targets_${selectedServer.value?.id}_${selectedCharacter.value?.id}`
+)
 
 const loadSellData = () => {
   if (!hasContext.value) return
   const pRaw = localStorage.getItem(pendingKey.value)
   const sRaw = localStorage.getItem(soldKey.value)
   const hRaw = localStorage.getItem(historyKey.value)
+  const rRaw = localStorage.getItem(routeKey.value)
   pendingItems.value = pRaw ? JSON.parse(pRaw) : []
   soldItems.value = sRaw ? JSON.parse(sRaw) : []
   priceHistory.value = hRaw ? JSON.parse(hRaw) : {}
+  routeTargets.value = rRaw ? JSON.parse(rRaw) : []
 }
 
 const savePending = () => localStorage.setItem(pendingKey.value, JSON.stringify(pendingItems.value))
 const saveSold = () => localStorage.setItem(soldKey.value, JSON.stringify(soldItems.value))
 const saveHistory = () => localStorage.setItem(historyKey.value, JSON.stringify(priceHistory.value))
+const saveRouteTargets = () => localStorage.setItem(routeKey.value, JSON.stringify(routeTargets.value))
+
+const normalizeDofusdbSearch = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[’`]/g, "'")
+    .toLowerCase()
+    .trim()
+
+const getSuggestions = (query: string, archiOnly = false) => {
+  if (!query || query.length < 2) return []
+  const q = query.toLowerCase()
+  return monsters.value
+    .filter((monster) => {
+      if (archiOnly && monster.type !== 'archimonstre') return false
+      return [
+        monster.nom,
+        monster.nom_normal,
+        monster.zone,
+        monster.souszone,
+      ].some(value => value?.toLowerCase().includes(q))
+    })
+    .slice(0, 8)
+}
 
 // Monster autocomplete
-const monsterSuggestions = computed(() => {
-  if (!searchMonster.value || searchMonster.value.length < 2) return []
-  const q = searchMonster.value.toLowerCase()
-  return monsters.value.filter(m => m.nom?.toLowerCase().includes(q)).slice(0, 8)
-})
+const monsterSuggestions = computed(() => getSuggestions(searchMonster.value))
+const routeMonsterSuggestions = computed(() => getSuggestions(routeSearch.value, true))
 
 const suggestedPrice = computed(() => {
   if (!selectedMonster.value) return 0
@@ -886,6 +1037,64 @@ const selectMonster = (m: any) => {
   if (suggestedPrice.value > 0) addPrice.value = suggestedPrice.value
 }
 
+const selectRouteMonster = (m: any) => {
+  selectedRouteMonster.value = m
+  routeSearch.value = m.nom
+  showRouteDropdown.value = false
+}
+
+const resolveRouteSubareas = async (monster: any): Promise<{ subareas: string[]; baseMonsterName: string }> => {
+  const fallbackSubareas = [monster.souszone, monster.zone].filter(Boolean)
+  const searchTerms = [monster.nom_normal, monster.nom].filter(Boolean) as string[]
+
+  for (const term of searchTerms) {
+    try {
+      const res = await $fetch<{ data?: Array<{ id: number; name?: { fr?: string }; subareas?: number[] }> }>('/api/dofusdb/monsters', {
+        query: {
+          '$limit': 10,
+          '$populate': false,
+          lang: 'fr',
+          'slug.fr[$search]': normalizeDofusdbSearch(term),
+        },
+      })
+
+      const candidates = res.data ?? []
+      const exact = candidates.find((candidate) =>
+        normalizeDofusdbSearch(candidate.name?.fr ?? '') === normalizeDofusdbSearch(term)
+      ) ?? candidates[0]
+
+      const subareaIds = exact?.subareas ?? []
+      if (!subareaIds.length) {
+        if (fallbackSubareas.length) {
+          return { subareas: [...new Set(fallbackSubareas)], baseMonsterName: exact?.name?.fr ?? term }
+        }
+        continue
+      }
+
+      const subareasRes = await $fetch<{ data?: Array<{ id: number; name?: { fr?: string } }> }>('/api/dofusdb/subareas', {
+        query: { 'id[]': subareaIds, lang: 'fr', '$limit': Math.max(subareaIds.length, 20) },
+      })
+
+      const names = (subareasRes.data ?? [])
+        .map(subarea => subarea.name?.fr)
+        .filter((name): name is string => Boolean(name))
+
+      if (names.length) {
+        return {
+          subareas: [...new Set(names)],
+          baseMonsterName: exact?.name?.fr ?? term,
+        }
+      }
+    } catch {
+      // Keep fallback below.
+    }
+  }
+
+  return {
+    subareas: [...new Set(fallbackSubareas)],
+    baseMonsterName: monster.nom_normal || monster.nom,
+  }
+}
 
 const addToQueue = () => {
   if (!selectedMonster.value || addPrice.value <= 0 || addQuantity.value < 1) return
@@ -907,6 +1116,83 @@ const addToQueue = () => {
   addQuantity.value = 1
   addPrice.value = 0
 }
+
+const addRouteTarget = async () => {
+  if (!selectedRouteMonster.value || resolvingRoute.value) return
+  if (routeTargets.value.some(target => String(target.monsterId) === String(selectedRouteMonster.value.id))) {
+    routeSearch.value = ''
+    selectedRouteMonster.value = null
+    return
+  }
+
+  resolvingRoute.value = true
+  try {
+    const resolved = await resolveRouteSubareas(selectedRouteMonster.value)
+    routeTargets.value.unshift({
+      monsterId: selectedRouteMonster.value.id,
+      monsterName: selectedRouteMonster.value.nom,
+      baseMonsterName: resolved.baseMonsterName,
+      image_url: selectedRouteMonster.value.image_url,
+      zone: selectedRouteMonster.value.zone ?? '',
+      souszone: selectedRouteMonster.value.souszone ?? '',
+      subareas: resolved.subareas.length ? resolved.subareas : [selectedRouteMonster.value.souszone || selectedRouteMonster.value.zone].filter(Boolean),
+      addedAt: new Date().toISOString(),
+    })
+    saveRouteTargets()
+    routeSearch.value = ''
+    selectedRouteMonster.value = null
+  } finally {
+    resolvingRoute.value = false
+  }
+}
+
+const removeRouteTarget = (monsterId: string | number) => {
+  routeTargets.value = routeTargets.value.filter(target => String(target.monsterId) !== String(monsterId))
+  saveRouteTargets()
+}
+
+const clearRouteTargets = () => {
+  routeTargets.value = []
+  saveRouteTargets()
+}
+
+const routeSubareaGroups = computed(() => {
+  const groups = new Map<string, { name: string; zoneLabel: string; monsters: RouteTarget[] }>()
+
+  routeTargets.value.forEach((target) => {
+    target.subareas.forEach((subarea) => {
+      const existing = groups.get(subarea)
+      if (existing) {
+        existing.monsters.push(target)
+        return
+      }
+
+      groups.set(subarea, {
+        name: subarea,
+        zoneLabel: target.zone || 'Unknown zone',
+        monsters: [target],
+      })
+    })
+  })
+
+  return [...groups.values()]
+    .map(group => ({
+      ...group,
+      monsters: group.monsters.sort((a, b) => a.monsterName.localeCompare(b.monsterName, 'fr')),
+    }))
+    .sort((a, b) => {
+      if (b.monsters.length !== a.monsters.length) return b.monsters.length - a.monsters.length
+      return a.name.localeCompare(b.name, 'fr')
+    })
+})
+
+const routeSubareaSummary = computed(() =>
+  routeSubareaGroups.value.map(group => ({
+    name: group.name,
+    zoneLabel: group.zoneLabel,
+    count: group.monsters.length,
+  }))
+)
 
 const markSold = (item: PendingItem) => {
   const soldAt = new Date().toISOString()
@@ -1159,10 +1445,14 @@ const init = () => {
 }
 
 const monsterAutoEl = ref<HTMLElement | null>(null)
+const routeAutoEl = ref<HTMLElement | null>(null)
 
 const onDocMousedownArchi = (e: MouseEvent) => {
   if (monsterAutoEl.value && !monsterAutoEl.value.contains(e.target as Node)) {
     showDropdown.value = false
+  }
+  if (routeAutoEl.value && !routeAutoEl.value.contains(e.target as Node)) {
+    showRouteDropdown.value = false
   }
 }
 
@@ -1419,8 +1709,107 @@ watch([selectedServer, selectedCharacter], () => {
   padding: .0625rem .375rem; border-radius: 999px;
   background: var(--v2-border-med); color: var(--v2-accent); font-size: .625rem; font-weight: 700;
 }
+.v2-sell-tab__badge--blue { background: rgba(96,165,250,.2); color: #60a5fa; }
 .v2-sell-tab__badge--green { background: rgba(52,211,153,.2); color: #34d399; }
 .v2-sell-tab__badge--red { background: rgba(248,113,113,.2); color: #f87171; }
+
+/* Route planner */
+.v2-route { display: grid; gap: .875rem; }
+.v2-route-bar {
+  display: flex; align-items: center; gap: .625rem; flex-wrap: wrap;
+}
+.v2-route-bar__search { min-width: 260px; flex: 1; }
+.v2-route-layout {
+  display: grid; grid-template-columns: 220px 1fr; gap: 1rem; align-items: start;
+}
+/* Sidebar */
+.v2-route-sidebar {
+  position: sticky; top: 1rem;
+  background: rgba(255,255,255,.03); border: 1px solid var(--v2-border);
+  border-radius: 14px; padding: .75rem;
+  display: flex; flex-direction: column; gap: .375rem;
+  max-height: calc(100vh - 6rem); overflow-y: auto;
+}
+.v2-route-sidebar__title {
+  font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--v2-text-dim); margin-bottom: .25rem;
+  display: flex; align-items: center; gap: .4rem;
+}
+.v2-route-sidebar__count {
+  background: rgba(96,165,250,.15); color: #93c5fd;
+  font-size: .7rem; padding: .1rem .4rem; border-radius: 999px;
+}
+.v2-route-sidebar__filter {
+  display: flex; align-items: center; gap: .375rem;
+  background: rgba(255,255,255,.05); border: 1px solid var(--v2-border-subtle);
+  border-radius: 8px; padding: .3rem .5rem; margin-bottom: .125rem;
+}
+.v2-route-sidebar__filter-icon { color: var(--v2-text-dim); flex-shrink: 0; }
+.v2-route-sidebar__filter-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-size: .75rem; color: var(--v2-text); min-width: 0;
+}
+.v2-route-sidebar__filter-input::placeholder { color: var(--v2-text-dim); }
+.v2-route-sidebar__filter-clear {
+  background: none; border: none; cursor: pointer; padding: .1rem;
+  color: var(--v2-text-dim); display: flex; align-items: center;
+  border-radius: 4px; flex-shrink: 0;
+}
+.v2-route-sidebar__filter-clear:hover { color: var(--v2-text); }
+.v2-route-sidebar__nomatch {
+  font-size: .75rem; color: #f87171; text-align: center;
+  padding: .5rem .25rem; opacity: .85;
+}
+.v2-route-pill--match { border-color: rgba(96,165,250,.35); background: rgba(96,165,250,.08); }
+.v2-route-pill {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .375rem .5rem; border-radius: 10px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--v2-border-subtle);
+  transition: background .15s;
+}
+.v2-route-pill:hover { background: rgba(255,255,255,.07); }
+.v2-route-pill__img {
+  width: 28px; height: 28px; border-radius: 7px; object-fit: cover; flex-shrink: 0;
+  background: rgba(255,255,255,.04);
+}
+.v2-route-pill__name {
+  flex: 1; min-width: 0; font-size: .78rem; font-weight: 600; color: var(--v2-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.v2-route-pill__del {
+  flex-shrink: 0; color: var(--v2-text-dim); opacity: .5; padding: .1rem;
+  background: none; border: none; cursor: pointer; border-radius: 4px;
+  display: flex; align-items: center; transition: opacity .15s, color .15s;
+}
+.v2-route-pill__del:hover { opacity: 1; color: #f87171; }
+/* Main route groups */
+.v2-route-main { display: grid; gap: .75rem; }
+.v2-route-group {
+  background: rgba(0,0,0,.16); border: 1px solid var(--v2-border);
+  border-radius: 14px; padding: .875rem 1rem;
+}
+.v2-route-group__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: .75rem; margin-bottom: .75rem;
+}
+.v2-route-group__name { font-size: .95rem; font-weight: 700; color: var(--v2-text); }
+.v2-route-group__zone { font-size: .75rem; color: var(--v2-text-dim); margin-top: .125rem; }
+.v2-route-group__count {
+  padding: .25rem .55rem; border-radius: 999px; flex-shrink: 0;
+  background: rgba(52,211,153,.1); color: #6ee7b7; font-size: .6875rem; font-weight: 700;
+}
+.v2-route-group__list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .625rem;
+}
+.v2-route-group__item {
+  display: flex; align-items: center; gap: .625rem;
+  background: rgba(255,255,255,.03); border: 1px solid var(--v2-border-subtle);
+  border-radius: 12px; padding: .625rem .75rem;
+}
+.v2-route-group__img {
+  width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
+}
+.v2-route-group__monster { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
 
 /* Slow warning */
 .v2-slow-warn {
@@ -1608,6 +1997,12 @@ watch([selectedServer, selectedCharacter], () => {
   font-size: .75rem; cursor: pointer; transition: all .15s;
 }
 .v2-clear-btn:hover { background: rgba(248,113,113,.1); }
+
+@media (max-width: 720px) {
+  .v2-route-layout { grid-template-columns: 1fr; }
+  .v2-route-sidebar { position: static; }
+  .v2-route-group__head { flex-direction: column; align-items: stretch; }
+}
 </style>
 
 
