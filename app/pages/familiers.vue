@@ -30,6 +30,7 @@
       <span class="fam-budget__hint">
         {{ pricingMode === 'reference' ? 'Compare les prix max selon ton budget croquettes.' : 'Saisis tes prix HDV et vois le coût réel pour monter un familier niveau 100.' }}
       </span>
+      <button class="fam-help-btn" type="button" aria-label="Ouvrir l'aide de la page" @click="guideOpen = true">?</button>
     </div>
 
     <div v-if="pricingMode === 'reference'" class="fam-budget">
@@ -62,23 +63,82 @@
       <button class="fam-clear-btn" @click="clearManualPrices">Effacer les prix</button>
     </div>
 
-    <div class="fam-guide">
-      <div class="fam-guide__title">Comment lire la page</div>
-      <div class="fam-guide__grid">
-        <div class="fam-guide__item">
-          <div class="fam-guide__label">Mode référence</div>
-          <div class="fam-guide__text">Tu fixes un budget total pour monter un familier avec des croquettes. La colonne prix donne alors le prix cible maximum par unité pour un autre item, et le coût total montre combien reviendrait un familier niveau 100 si tu achètes uniquement cet item à ce prix cible.</div>
-        </div>
-        <div class="fam-guide__item">
-          <div class="fam-guide__label">Mode prix manuels</div>
-          <div class="fam-guide__text">Tu saisis ton prix HDV réel par item. Le tableau calcule ensuite directement le coût total pour monter un familier au niveau 100.</div>
-        </div>
-        <div class="fam-guide__item">
-          <div class="fam-guide__label">Lecture rapide</div>
-          <div class="fam-guide__text">Exemple : si un item affiche <strong>13 815</strong> en quantité et <strong>362 k</strong> en prix cible, cela veut dire qu'il te faut environ 13 815 unités pour passer 1→100, que 362 kamas/u est ton plafond d'achat, et qu'au total tu retombes sur un coût proche de ton budget de référence.</div>
+    <Transition name="fam-modal">
+      <div v-if="guideOpen" class="fam-guide-modal" role="dialog" aria-modal="true" aria-label="Guide familiers" @click.self="guideOpen = false">
+        <div class="fam-guide">
+          <div class="fam-guide__topbar">
+            <div>
+              <div class="fam-guide__eyebrow">Guide rapide</div>
+              <div class="fam-guide__title">Choisis un mode, repère un item, lis le coût final</div>
+            </div>
+            <button class="fam-guide__close" type="button" aria-label="Fermer l'aide" @click="guideOpen = false">×</button>
+          </div>
+
+          <div class="fam-guide__hero">
+            <div class="fam-guide__intro">
+              {{ pricingMode === 'reference'
+                ? 'Le mode référence part d’un budget croquettes pour te donner un plafond d’achat par item et le coût total si tu montes un familier 1→100 avec cet item seul.'
+                : 'Le mode prix manuels part de tes prix HDV réels et calcule directement combien te coûterait un familier 1→100 avec chaque item.' }}
+            </div>
+            <div class="fam-guide__mode-badge">
+              <span class="fam-guide__mode-label">Mode actif</span>
+              <strong>{{ pricingMode === 'reference' ? 'Référence croquettes' : 'Prix HDV manuels' }}</strong>
+            </div>
+          </div>
+
+          <div class="fam-guide__steps">
+            <div class="fam-guide-step">
+              <div class="fam-guide-step__num">1</div>
+              <div>
+                <div class="fam-guide-step__title">{{ pricingMode === 'reference' ? 'Définis ton budget croquettes' : 'Renseigne tes prix HDV' }}</div>
+                <div class="fam-guide-step__text">
+                  {{ pricingMode === 'reference'
+                    ? 'Entre le budget total que tu paierais pour monter un familier avec des croquettes. La page convertit ensuite ce budget en prix cible par XP.'
+                    : 'Tape le prix unitaire vu en HDV pour les items qui t’intéressent. Les autres lignes peuvent rester vides.' }}
+                </div>
+              </div>
+            </div>
+            <div class="fam-guide-step">
+              <div class="fam-guide-step__num">2</div>
+              <div>
+                <div class="fam-guide-step__title">Choisis un item ou une essence</div>
+                <div class="fam-guide-step__text">
+                  Utilise les onglets, la recherche et le tri pour isoler la source que tu veux comparer ou acheter en boucle.
+                </div>
+              </div>
+            </div>
+            <div class="fam-guide-step">
+              <div class="fam-guide-step__num">3</div>
+              <div>
+                <div class="fam-guide-step__title">Lis d’abord la dernière colonne</div>
+                <div class="fam-guide-step__text">
+                  {{ pricingMode === 'reference' ? 'Coût total au prix cible' : 'Coût total lvl 100' }} est le vrai total estimé pour monter un familier 1→100 avec cet item seul.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fam-guide__legend">
+            <div class="fam-guide-card">
+              <div class="fam-guide-card__title">Colonnes</div>
+              <div class="fam-guide-card__list">
+                <div><strong>XP / unité</strong> = XP donné par un item.</div>
+                <div><strong>Qté nécessaire</strong> = nombre d’unités nécessaires pour monter 1→100.</div>
+                <div><strong>{{ pricingMode === 'reference' ? 'Prix cible / unité' : 'Prix saisi / unité' }}</strong> = {{ pricingMode === 'reference' ? 'plafond d’achat conseillé par unité.' : 'prix HDV unitaire que tu as saisi.' }}</div>
+                <div><strong>{{ pricingMode === 'reference' ? 'Coût total au prix cible' : 'Coût total lvl 100' }}</strong> = montant final estimé.</div>
+              </div>
+            </div>
+            <div class="fam-guide-card">
+              <div class="fam-guide-card__title">Exemple</div>
+              <div class="fam-guide-card__list">
+                <div>Si une ligne affiche <strong>13 815</strong> en quantité et <strong>362 k</strong> en prix unitaire, il faut environ <strong>13 815</strong> unités.</div>
+                <div>Le total sera donc environ <strong>13 815 × 362</strong>, soit un coût proche du budget de référence.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
 
     <!-- ── Tab selector ──────────────────────────────────────────── -->
     <div class="fam-tabs">
@@ -285,6 +345,7 @@ const budget = ref(5_000_000)
 const pricePerKibble = computed(() => budget.value / KIBBLE_COUNT)
 const pricingMode = ref<'reference' | 'manual'>('reference')
 const manualPrices = ref<Record<string, number>>({})
+const guideOpen = ref(false)
 
 const TABS = [
   { id: 'zones', label: 'Par zone' },
@@ -462,6 +523,24 @@ watch(manualPrices, (value) => {
   transition: all .15s;
 }
 .fam-mode-toggle__btn--on { background: var(--v2-active-strong); color: var(--v2-text); }
+.fam-help-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--v2-active);
+  background: linear-gradient(180deg, var(--v2-active-strong), var(--v2-active));
+  color: var(--v2-text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--v2-active-strong) 35%, transparent), 0 8px 20px rgba(0, 0, 0, .18);
+  transition: all .15s;
+}
+.fam-help-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--v2-border-strong);
+  filter: brightness(1.05);
+}
 .fam-clear-btn {
   padding: .375rem .75rem;
   border-radius: 8px;
@@ -474,44 +553,171 @@ watch(manualPrices, (value) => {
   transition: all .15s;
 }
 .fam-clear-btn:hover { background: rgba(248,113,113,.1); }
-.fam-guide {
-  margin-bottom: .875rem;
-  padding: .9rem 1rem;
-  border-radius: 14px;
-  border: 1px solid var(--v2-active);
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
-    var(--v2-hover-subtle);
-}
-.fam-guide__title {
-  font-size: .9rem;
-  font-weight: 800;
-  color: var(--v2-text-hover);
-  margin-bottom: .75rem;
-}
-.fam-guide__grid {
+.fam-guide-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .75rem;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, .72);
 }
-.fam-guide__item {
-  padding: .75rem .85rem;
-  border-radius: 12px;
-  background: rgba(0,0,0,.15);
-  border: 1px solid var(--v2-border-subtle);
+.fam-guide {
+  width: min(960px, 100%);
+  max-height: min(88vh, 900px);
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid var(--v2-border-med);
+  background: var(--v2-bg);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
 }
-.fam-guide__label {
-  font-size: .75rem;
-  font-weight: 700;
+.fam-guide__topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: .8rem;
+}
+.fam-guide__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: #f2fff8;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.fam-guide__close:hover {
+  border-color: rgba(255,255,255,.2);
+  background: rgba(255,255,255,.1);
+}
+.fam-guide__hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: .9rem;
+}
+.fam-guide__eyebrow {
+  font-size: .6875rem;
+  font-weight: 800;
   color: var(--v2-accent);
   text-transform: uppercase;
-  letter-spacing: .04em;
-  margin-bottom: .3rem;
+  letter-spacing: .08em;
+  margin-bottom: .35rem;
 }
-.fam-guide__text {
-  font-size: .8125rem;
-  color: var(--v2-text-secondary);
+.fam-guide__title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--v2-text-hover);
+  line-height: 1.25;
+  margin-bottom: .35rem;
+}
+.fam-guide__intro {
+  max-width: 70ch;
+  font-size: .84rem;
+  color: #dbece4;
+  line-height: 1.5;
+}
+.fam-guide__mode-badge {
+  min-width: 180px;
+  padding: .75rem .85rem;
+  border-radius: 12px;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-border-subtle);
+}
+.fam-guide__mode-label {
+  display: block;
+  font-size: .6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--v2-text-muted);
+  margin-bottom: .2rem;
+}
+.fam-guide__mode-badge strong {
+  color: var(--v2-text-hover);
+  font-size: .86rem;
+}
+.fam-guide__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin-bottom: .85rem;
+}
+.fam-guide-step {
+  display: flex;
+  gap: .7rem;
+  padding: .85rem .9rem;
+  border-radius: 12px;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-border-subtle);
+}
+.fam-guide-step__num {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--v2-active-strong) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--v2-active-strong) 38%, transparent);
+  color: var(--v2-accent);
+  font-size: .8rem;
+  font-weight: 800;
+}
+.fam-guide-step__title {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--v2-text-hover);
+  margin-bottom: .22rem;
+}
+.fam-guide-step__text {
+  font-size: .8rem;
+  color: #d6e7de;
   line-height: 1.45;
+}
+.fam-guide__legend {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: .75rem;
+}
+.fam-guide-card {
+  padding: .85rem .95rem;
+  border-radius: 12px;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-border-subtle);
+}
+.fam-guide-card__title {
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--v2-text-hover);
+  margin-bottom: .45rem;
+}
+.fam-guide-card__list {
+  display: grid;
+  gap: .38rem;
+  font-size: .8rem;
+  color: #d8e8e1;
+  line-height: 1.45;
+}
+.fam-modal-enter-active,
+.fam-modal-leave-active {
+  transition: opacity .18s ease;
+}
+.fam-modal-enter-from,
+.fam-modal-leave-to {
+  opacity: 0;
+}
+.fam-modal-enter-from .fam-guide,
+.fam-modal-leave-to .fam-guide {
+  transform: translateY(10px) scale(.98);
+}
+.fam-guide {
+  transition: transform .18s ease;
 }
 .fam-budget__input-wrap { display: flex; align-items: center; gap: .375rem; }
 .fam-budget__input {
@@ -530,6 +736,20 @@ watch(manualPrices, (value) => {
 .fam-budget__unit { font-size: .8125rem; color: var(--v2-text-secondary); }
 .fam-budget__hint { font-size: .8125rem; color: var(--v2-text-muted); }
 .fam-budget__hint strong { color: var(--v2-text-hover); }
+
+@media (max-width: 900px) {
+  .fam-guide__hero,
+  .fam-guide__legend {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+  .fam-guide__mode-badge {
+    min-width: 0;
+  }
+  .fam-guide__steps {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ── Main tabs ─────────────────────────────────────────────── */
 .fam-tabs {
