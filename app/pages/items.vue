@@ -2,6 +2,14 @@
   <div>
     <!-- Filters bar -->
     <div class="v2-items-filters">
+      <div class="v2-items-filters__topbar">
+        <div>
+          <div class="v2-items-filters__title">Guide page</div>
+          <div class="v2-items-filters__subtitle">How to take screenshots and use the OCR flow consistently.</div>
+        </div>
+        <button class="v2-guide-btn" type="button" aria-label="Open items guide" @click="openGuide('main')">?</button>
+      </div>
+
       <!-- Element -->
       <div class="v2-filter-group">
         <span class="v2-filter-label">{{ $t('items.filters.elements.title') }}</span>
@@ -88,6 +96,134 @@
       </div>
     </div>
 
+    <Transition name="v2-guide-modal">
+      <div v-if="guideOpen" class="v2-guide-modal" role="dialog" aria-modal="true" aria-label="Items guide" @click.self="guideOpen = false">
+        <div class="v2-guide">
+          <div class="v2-guide__topbar">
+            <div>
+              <div class="v2-guide__eyebrow">Guide rapide</div>
+              <div class="v2-guide__title">
+                {{ guideMode === 'main'
+                  ? 'Items page: browse slots, inspect demand, then open a target item'
+                  : 'Item detail: use clean screenshots for reliable OCR' }}
+              </div>
+            </div>
+            <button class="v2-guide__close" type="button" aria-label="Close guide" @click="guideOpen = false">×</button>
+          </div>
+
+          <template v-if="guideMode === 'main'">
+            <div class="v2-guide__intro">
+              The main page helps you narrow the dataset first, then jump into a specific item when something looks worth investigating.
+            </div>
+
+            <div class="v2-guide__steps">
+              <div class="v2-guide-step">
+                <div class="v2-guide-step__num">1</div>
+                <div>
+                  <div class="v2-guide-step__title">Filter the dataset</div>
+                  <div class="v2-guide-step__text">Use element, mode, level, budget and class filters to reduce the item pool to the kind of builds you care about.</div>
+                </div>
+              </div>
+              <div class="v2-guide-step">
+                <div class="v2-guide-step__num">2</div>
+                <div>
+                  <div class="v2-guide-step__title">Choose a slot</div>
+                  <div class="v2-guide-step__text">The slot tabs are the main navigation. They let you focus on one equipment category and compare what appears most often there.</div>
+                </div>
+              </div>
+              <div class="v2-guide-step">
+                <div class="v2-guide-step__num">3</div>
+                <div>
+                  <div class="v2-guide-step__title">Open an item for detail</div>
+                  <div class="v2-guide-step__text">Once you click an item, you switch to the detailed recipe and OCR workflow. That view has its own dedicated guide.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="v2-guide__grid">
+              <section class="v2-guide-card">
+                <div class="v2-guide-card__title">What the main page shows</div>
+                <div class="v2-guide-card__text">The stat cards summarize the current slice, the context strip explains what you are looking at, and the slot tabs show where item variety is concentrated.</div>
+              </section>
+              <section class="v2-guide-card">
+                <div class="v2-guide-card__title">What to do next</div>
+                <div class="v2-guide-card__text">If an item looks promising, open it to inspect the recipe, save observed prices, run OCR on market screenshots, and compare real crafting costs.</div>
+              </section>
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="v2-guide__intro">
+              This view has two screenshot workflows: one to detect market prices, and one to extract stat lines from an observed item.
+              For both, the cleaner and more consistent the screenshot is, the better the OCR results will be.
+            </div>
+
+            <div class="v2-guide__steps">
+              <div class="v2-guide-step">
+                <div class="v2-guide-step__num">1</div>
+                <div>
+                  <div class="v2-guide-step__title">Keep only the useful game area</div>
+                  <div class="v2-guide-step__text">Avoid desktop borders, Discord, browser chrome, or extra UI around the Dofus window.</div>
+                </div>
+              </div>
+              <div class="v2-guide-step">
+                <div class="v2-guide-step__num">2</div>
+                <div>
+                  <div class="v2-guide-step__title">Use the same framing every time</div>
+                  <div class="v2-guide-step__text">Try to keep the price column and stats block in roughly the same position so OCR remains predictable.</div>
+                </div>
+              </div>
+              <div class="v2-guide-step">
+                <div class="v2-guide-step__num">3</div>
+                <div>
+                  <div class="v2-guide-step__title">Prefer sharp screenshots over compressed captures</div>
+                  <div class="v2-guide-step__text">Full-resolution screenshots work better than blurry phone photos or heavily compressed chat images.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="v2-guide__grid">
+            <section class="v2-guide-card">
+              <div class="v2-guide-card__title">Market screenshot</div>
+              <div class="v2-guide-card__text">Use this when clicking `OCR screenshot` or `Paste screenshot` in the recipe section. The price list should be clearly readable and centered in the capture.</div>
+              <div class="v2-guide-shot">
+                <img
+                  v-if="marketGuideImageVisible"
+                  :src="'/guide/items-market-example.png'"
+                  alt="Example market screenshot for OCR"
+                  class="v2-guide-shot__img"
+                  @error="marketGuideImageVisible = false"
+                />
+                <div v-else class="v2-guide-shot__placeholder">
+                  <strong>Placeholder image</strong>
+                  <span>`/public/guide/items-market-example.png`</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="v2-guide-card">
+              <div class="v2-guide-card__title">Stats screenshot</div>
+              <div class="v2-guide-card__text">Use this when saving observed item stats. The item stat block should be fully visible, without cutting lines or mixing in unrelated tooltips.</div>
+              <div class="v2-guide-shot">
+                <img
+                  v-if="statsGuideImageVisible"
+                  :src="'/guide/items-stats-example.png'"
+                  alt="Example stats screenshot for OCR"
+                  class="v2-guide-shot__img"
+                  @error="statsGuideImageVisible = false"
+                />
+                <div v-else class="v2-guide-shot__placeholder">
+                  <strong>Placeholder image</strong>
+                  <span>`/public/guide/items-stats-example.png`</span>
+                </div>
+              </div>
+            </section>
+            </div>
+          </template>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Stats strip -->
     <div class="v2-items-stats" v-if="stats">
       <div class="v2-stat-card">
@@ -148,7 +284,10 @@
                 </svg>
                 Back
               </button>
-              <span class="v2-recipe-kicker">Recipe proof of concept</span>
+              <div class="v2-recipe-top__meta">
+                <span class="v2-recipe-kicker">Recipe proof of concept</span>
+                <button class="v2-guide-btn v2-guide-btn--small" type="button" aria-label="Open item detail guide" @click="openGuide('recipe')">?</button>
+              </div>
             </div>
 
             <div class="v2-recipe-item">
@@ -1411,6 +1550,10 @@ const SLOT_KEY_TO_GROUP = Object.fromEntries(
 )
 
 const filters = reactive({ element: '', mode: '', classe: '', level: '', budget: '' })
+const guideOpen = ref(false)
+const guideMode = ref<'main' | 'recipe'>('main')
+const marketGuideImageVisible = ref(true)
+const statsGuideImageVisible = ref(true)
 const loading = ref(false)
 const activeSlot = ref('ar')
 const viewMode = ref<'grid' | 'list' | 'table'>('grid')
@@ -4320,6 +4463,11 @@ const noImg = (e: Event) => {
 const formatKamasFull = (value: number) =>
   new Intl.NumberFormat('fr-FR').format(Math.round(value || 0))
 
+const openGuide = (mode: 'main' | 'recipe') => {
+  guideMode.value = mode
+  guideOpen.value = true
+}
+
 onMounted(() => {
   resourcePrices.value = readResourcePrices()
   observedPrices.value = readObservedPrices()
@@ -4391,6 +4539,237 @@ watch(
   border-radius: 14px; padding: .875rem 1rem; margin-bottom: .875rem;
 }
 
+.v2-items-filters__topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: .25rem;
+  border-bottom: 1px solid var(--v2-border-subtle);
+}
+
+.v2-items-filters__title {
+  font-size: .6875rem;
+  font-weight: 700;
+  color: var(--v2-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: .2rem;
+}
+
+.v2-items-filters__subtitle {
+  font-size: .8125rem;
+  color: var(--v2-text-secondary);
+  line-height: 1.4;
+}
+
+.v2-guide-btn {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 999px;
+  border: 1px solid var(--v2-active);
+  background: linear-gradient(180deg, var(--v2-active-strong), var(--v2-active));
+  color: var(--v2-text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.v2-guide-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.v2-guide-btn--small {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  font-size: .9rem;
+}
+
+.v2-guide-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, .72);
+}
+
+.v2-guide {
+  width: min(1020px, 100%);
+  max-height: min(88vh, 900px);
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid var(--v2-border-med);
+  background: var(--v2-bg);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
+}
+
+.v2-guide__topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .8rem;
+}
+
+.v2-guide__eyebrow {
+  font-size: .6875rem;
+  font-weight: 700;
+  color: var(--v2-accent);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: .3rem;
+}
+
+.v2-guide__title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--v2-text-hover);
+  line-height: 1.25;
+}
+
+.v2-guide__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--v2-border-med);
+  background: var(--v2-hover-subtle);
+  color: var(--v2-text-hover);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.v2-guide__intro {
+  font-size: .85rem;
+  line-height: 1.5;
+  color: var(--v2-text-secondary);
+  margin-bottom: .9rem;
+  max-width: 74ch;
+}
+
+.v2-guide__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin-bottom: .9rem;
+}
+
+.v2-guide-step,
+.v2-guide-card {
+  padding: .9rem;
+  border-radius: 12px;
+  background: var(--v2-hover-subtle);
+  border: 1px solid var(--v2-border-subtle);
+}
+
+.v2-guide-step {
+  display: flex;
+  gap: .7rem;
+}
+
+.v2-guide-step__num {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--v2-active-strong) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--v2-active-strong) 38%, transparent);
+  color: var(--v2-accent);
+  font-size: .8rem;
+  font-weight: 800;
+}
+
+.v2-guide-step__title,
+.v2-guide-card__title {
+  font-size: .82rem;
+  font-weight: 800;
+  color: var(--v2-text-hover);
+  margin-bottom: .25rem;
+}
+
+.v2-guide-step__text,
+.v2-guide-card__text {
+  font-size: .8rem;
+  line-height: 1.45;
+  color: var(--v2-text-secondary);
+}
+
+.v2-guide__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.v2-guide-shot {
+  margin-top: .75rem;
+  height: clamp(220px, 48vh, 420px);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px dashed var(--v2-border-med);
+  background: color-mix(in srgb, var(--v2-hover-subtle) 82%, black 18%);
+}
+
+.v2-guide-shot__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center top;
+  background: color-mix(in srgb, var(--v2-hover-subtle) 82%, black 18%);
+}
+
+.v2-guide-shot__placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: .35rem;
+  padding: 1rem;
+  text-align: center;
+  color: var(--v2-text-secondary);
+  font-size: .8rem;
+}
+
+.v2-guide-shot__placeholder strong {
+  color: var(--v2-text-hover);
+  font-size: .85rem;
+}
+
+.v2-guide-modal-enter-active,
+.v2-guide-modal-leave-active {
+  transition: opacity .18s ease;
+}
+
+.v2-guide-modal-enter-from,
+.v2-guide-modal-leave-to {
+  opacity: 0;
+}
+
+.v2-guide-modal-enter-from .v2-guide,
+.v2-guide-modal-leave-to .v2-guide {
+  transform: translateY(10px) scale(.98);
+}
+
+.v2-guide {
+  transition: transform .18s ease;
+}
+
+.v2-recipe-top__meta {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
 .v2-filter-group {
   display: flex; align-items: center; gap: .625rem; flex-wrap: wrap;
 }
@@ -4447,6 +4826,13 @@ watch(
 }
 
 @media (max-width: 640px) { .v2-items-stats { grid-template-columns: repeat(2, 1fr); } }
+
+@media (max-width: 900px) {
+  .v2-guide__steps,
+  .v2-guide__grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 .v2-stat-card {
   background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
