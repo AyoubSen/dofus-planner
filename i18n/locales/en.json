@@ -537,6 +537,7 @@
     "subtitle": "Analyze equipment usage patterns and meta trends",
     "loading": "Loading statistics...",
     "noData": "No data available for this slot",
+    "contextTitle": "Current data slice",
     "uses": "uses",
     "viewModes": {
       "list": "List view",
@@ -621,6 +622,489 @@
       "mostDiverse": "Most Diverse Slots",
       "mostStandardized": "Most Standardized Slots",
       "itemsCount": "{count} items"
+    },
+    "recipe": {
+      "kicker": "Recipe proof of concept"
+    },
+    "detail": {
+      "common": {
+        "back": "Back",
+        "remove": "Remove",
+        "collapse": "Collapse",
+        "expand": "Expand",
+        "unknown": "Unknown",
+        "unknownItem": "Unknown item",
+        "emptySymbol": "∅",
+        "emptyValue": "—"
+      },
+      "context": {
+        "allModes": "All modes",
+        "allLevels": "All levels",
+        "allClasses": "All classes",
+        "allElements": "All elements",
+        "allBudgets": "All budgets",
+        "level": "Level {level}",
+        "budget": "{budget} budget",
+        "matchingBuilds": "{count} matching builds",
+        "slotSummary": "{count} unique items in {slot} · top pick appears in {topCount} builds"
+      },
+      "recipe": {
+        "sectionTitle": "Recipe",
+        "profession": "Profession",
+        "ingredients": "Ingredients",
+        "id": "Recipe ID",
+        "loading": "Loading recipe...",
+        "actions": {
+          "refetch": "Refetch recipe",
+          "ocrScreenshot": "OCR screenshot",
+          "pasteScreenshot": "Paste screenshot"
+        },
+        "confidence": {
+          "exact": "Exact match",
+          "approx": "Approx match"
+        },
+        "source": {
+          "cache": "Loaded from cache",
+          "fresh": "Fresh fetch"
+        },
+        "errors": {
+          "loadFailed": "Failed to load recipe for this item.",
+          "resolveFailed": "Could not resolve DofusDB item for \"{name}\""
+        }
+      },
+      "cost": {
+        "sectionTitle": "Craft cost",
+        "total": "Craft cost",
+        "pricedIngredients": "Priced ingredients",
+        "missingPrices": "Missing prices"
+      },
+      "pricing": {
+        "sectionTitle": "Pricing",
+        "sellPrice": "Sell price",
+        "margin": "Estimated margin",
+        "marginRate": "Margin rate"
+      },
+      "ocr": {
+        "loadingPrices": "Extracting price candidates from screenshot...",
+        "loadingStats": "Extracting stat lines from screenshot...",
+        "candidatesTitle": "OCR price candidates",
+        "clickHint": "Click one to fill the sell price",
+        "save": "Save OCR prices",
+        "debugTitle": "OCR debug rows",
+        "mode": "Mode",
+        "noTokens": "no tokens",
+        "rejected": "rejected",
+        "errors": {
+          "browserOnly": "OCR is only available in the browser.",
+          "noPriceCandidates": "OCR ran, but no price candidates were detected.",
+          "marketFailed": "Failed to run OCR on this screenshot.",
+          "statsFailed": "Failed to run OCR on the stats screenshot."
+        }
+      },
+      "valuation": {
+        "focusTitle": "Valuation focus",
+        "focusHint": "Choose which stats matter more for this item",
+        "listingTitle": "Listing valuation",
+        "buyCandidatesOnly": "Buy candidates only",
+        "model": "Model",
+        "score": "Score",
+        "fairValue": "Fair value",
+        "delta": "Delta",
+        "scoreBuildTitle": "How the score was built",
+        "scoreBuildHint": "Range progress × weight, with overmage preserved above max",
+        "comparablesTitle": "Comparable listings used",
+        "peersSummary": "{count} peer | {count} peers in the leave-one-out model",
+        "noComparables": "No comparable listings were available for this observation.",
+        "notEnoughData": "This listing does not have enough recognized stats or peers yet to explain a valuation.",
+        "noFilteredListings": "No selected listings match the current valuation filter.",
+        "note": "Negative delta means the listing is below the model fair value. Quick/fair/greedy are relist suggestions for undervalued buys.",
+        "overmage": "over",
+        "peerMetric": {
+          "pricePerPoint": "Price / point",
+          "adjustedPrice": "Adj. price"
+        },
+        "modeSummary": {
+          "score": "score model using nearest score peers",
+          "comparables": "stat-profile comparables with weighted peer pricing",
+          "auto": "auto mode: comparables first, score fallback"
+        },
+        "confidence": {
+          "high": "High confidence",
+          "medium": "Medium confidence",
+          "low": "Low confidence",
+          "noUsable": "No usable listings yet",
+          "detailsComparables": "{sample} usable · {avg} comps avg · {coverage}% stats coverage · {distance} median distance",
+          "detailsAuto": "{sample} usable · {avg} comps avg · {coverage}% stats coverage · {comparableCoverage}% comparable coverage",
+          "detailsScore": "{sample} usable · {avg} comps avg · {coverage}% stats coverage · {spread}% spread"
+        },
+        "models": {
+          "score": "Score",
+          "comparables": "Comparables",
+          "auto": "Auto"
+        },
+        "reference": {
+          "medianDistance": "Median distance",
+          "referencePerPoint": "Reference / point"
+        },
+        "summary": "{count} priced from all saved listings with stats · {mode}",
+        "table": {
+          "stat": "Stat",
+          "value": "Value",
+          "range": "Range",
+          "progress": "Progress",
+          "weight": "Weight",
+          "contribution": "Contribution"
+        },
+        "peerTable": {
+          "price": "Price",
+          "score": "Score",
+          "distance": "Distance"
+        }
+      },
+      "priceManager": {
+        "show": "Manage prices",
+        "hide": "Hide price manager",
+        "missingFirst": "Missing prices are shown first",
+        "title": "Current recipe prices",
+        "noSavedPrice": "No saved price",
+        "freshness": {
+          "ltHour": "Updated < 1h ago",
+          "hours": "Updated {count}h ago",
+          "days": "Updated {count}d ago"
+        }
+      },
+      "ingredients": {
+        "title": "Ingredients",
+        "level": "Level {level}",
+        "unitPrice": "Unit price",
+        "total": "Total",
+        "qty": "Qty",
+        "empty": "No ingredients found for this recipe.",
+        "badges": {
+          "monsterDrop": "Monster drop",
+          "crafted": "Crafted",
+          "special": "Special"
+        }
+      },
+      "observed": {
+        "kicker": "Observed listing stats",
+        "backToList": "Back to observed prices",
+        "price": "Observed price",
+        "listTitle": "Observed prices",
+        "savedCount": "{count} saved",
+        "screenshotSummary": "{market} market · {stats} stats screenshots",
+        "statsScreenshotAlt": "Observed stats screenshot",
+        "rawText": "Stats OCR raw text",
+        "badges": {
+          "missingStats": "Missing stats",
+          "underpriced": "Underpriced",
+          "overpriced": "Overpriced",
+          "bestBuy": "Best buy"
+        },
+        "relist": {
+          "label": "Relist",
+          "quick": "Quick",
+          "fair": "Fair",
+          "greedy": "Greedy"
+        },
+        "sort": {
+          "label": "Sort",
+          "newest": "Newest",
+          "priceAsc": "Price ↑",
+          "priceDesc": "Price ↓",
+          "delta": "Delta",
+          "bestBuy": "Best buy"
+        },
+        "tabs": {
+          "stats": "Stats",
+          "explain": "Valuation Explain"
+        },
+        "actions": {
+          "useAsSellPrice": "Use as sell price",
+          "removeMarketScreenshot": "Remove market screenshot",
+          "replaceStatsScreenshot": "Replace stats screenshot",
+          "uploadStatsScreenshot": "Upload stats screenshot",
+          "removeStatsScreenshot": "Remove stats screenshot",
+          "sendToTracker": "Send to tracker",
+          "tracked": "Tracked",
+          "openTracker": "Open tracker",
+          "clearScreenshots": "Clear screenshots",
+          "removeAll": "Remove all",
+          "viewStats": "View stats",
+          "addStats": "Add stats",
+          "addStatsScreenshot": "Add stats screenshot",
+          "trackResale": "Track resale"
+        },
+        "feedback": {
+          "savedToResale": "Saved to resale tracker.",
+          "sentToResaleActivity": "Sent observed listing to resale tracker",
+          "removedActivity": "Removed an observed listing"
+        },
+        "confirm": {
+          "clearScreenshots": "Remove {count} saved screenshots for this item?",
+          "removeAll": "Remove all {count} observed prices for this item?"
+        },
+        "statsHealth": {
+          "title": "Stats health",
+          "reviewOrRemove": "Review or remove",
+          "missingValue": "Missing value",
+          "entryCount": "{count} entries",
+          "lineFallback": "Line {index}",
+          "badges": {
+            "missing": "missing",
+            "unmatchedOfficial": "unmatched official",
+            "unexpected": "unexpected",
+            "duplicateKeys": "duplicate keys",
+            "incomplete": "incomplete"
+          },
+          "sections": {
+            "unmatchedOfficial": "Unmatched official DofusDB stats",
+            "missing": "Missing expected stats",
+            "unexpected": "Unexpected parsed stats",
+            "duplicates": "Duplicate stat keys",
+            "incomplete": "Incomplete stat rows"
+          },
+          "actions": {
+            "add": "Add"
+          }
+        },
+        "exactStats": {
+          "title": "Exact stats",
+          "add": "Add stat",
+          "empty": "No stat lines saved yet. Upload a stats screenshot or add them manually."
+        }
+      }
+    },
+    "aggregate": {
+      "kicker": "Aggregate recipe proof of concept",
+      "pressureTitle": "{slot} recipe pressure",
+      "meta": "Top {limit} items from current filters · counts ingredient presence per item recipe",
+      "loading": "Loading aggregate recipes...",
+      "selectedItems": "Selected items",
+      "resourcesTitle": "Resources ranked by recipe presence",
+      "usedIn": "Used in",
+      "itemsLabel": "Items",
+      "qty": "Qty {count}",
+      "builds": "Builds {count}",
+      "pressure": "Pressure {count}",
+      "stats": {
+        "selectedItems": "Selected items",
+        "uniqueResources": "Unique resources",
+        "metric": "Metric"
+      },
+      "sort": {
+        "label": "Sort by",
+        "items": "Items",
+        "qty": "Qty",
+        "itemsFirst": "Items first",
+        "qtyFirst": "Qty first"
+      },
+      "filters": {
+        "title": "Resource filters",
+        "hideSpecial": "Hide special",
+        "monsterDrops": "Monster drops",
+        "nonCrafted": "Non-crafted",
+        "itemsMinTwo": "Items >= 2"
+      },
+      "errors": {
+        "noItems": "No items available for this selection."
+      }
+    },
+    "guide": {
+      "entryTitle": "Page guide",
+      "entrySubtitle": "Understand the main items page and the screenshot/OCR workflow.",
+      "openAria": "Open items guide",
+      "openRecipeAria": "Open item detail guide",
+      "dialogAria": "Items guide",
+      "closeAria": "Close guide",
+      "eyebrow": "Quick guide",
+      "main": {
+        "title": "Items page: browse slots, inspect demand, then open a target item",
+        "intro": "The main page helps you narrow the dataset first, then jump into a specific item when something looks worth investigating.",
+        "steps": {
+          "filter": {
+            "title": "Filter the dataset",
+            "text": "Use element, mode, level, budget and class filters to reduce the item pool to the kind of builds you care about."
+          },
+          "slot": {
+            "title": "Choose a slot",
+            "text": "The slot tabs are the main navigation. They let you focus on one equipment category and compare what appears most often there."
+          },
+          "detail": {
+            "title": "Open an item for detail",
+            "text": "Once you click an item, you switch to the detailed recipe and OCR workflow. That view has its own dedicated guide."
+          }
+        },
+        "cards": {
+          "overview": {
+            "title": "What the main page shows",
+            "text": "The stat cards summarize the current slice, the context strip explains what you are looking at, and the slot tabs show where item variety is concentrated."
+          },
+          "next": {
+            "title": "What to do next",
+            "text": "If an item looks promising, open it to inspect the recipe, save observed prices, run OCR on market screenshots, and compare real crafting costs."
+          }
+        }
+      },
+      "recipe": {
+        "title": "Item detail: use clean screenshots for reliable OCR",
+        "intro": "This view has two screenshot workflows: one to detect market prices, and one to extract stat lines from an observed item. For both, the cleaner and more consistent the screenshot is, the better the OCR results will be.",
+        "steps": {
+          "crop": {
+            "title": "Keep only the useful game area",
+            "text": "Avoid desktop borders, Discord, browser chrome, or extra UI around the Dofus window."
+          },
+          "framing": {
+            "title": "Use the same framing every time",
+            "text": "Try to keep the price column and stats block in roughly the same position so OCR remains predictable."
+          },
+          "quality": {
+            "title": "Prefer sharp screenshots over compressed captures",
+            "text": "Full-resolution screenshots work better than blurry phone photos or heavily compressed chat images."
+          }
+        },
+        "cards": {
+          "market": {
+            "title": "Market screenshot",
+            "text": "Use this when clicking OCR screenshot or Paste screenshot in the recipe section. The price list should be clearly readable and centered in the capture."
+          },
+          "stats": {
+            "title": "Stats screenshot",
+            "text": "Use this when saving observed item stats. The item stat block should be fully visible, without cutting lines or mixing in unrelated tooltips."
+          }
+        },
+        "placeholderTitle": "Placeholder image"
+      }
+    }
+  },
+  "familiers": {
+    "page": {
+      "stats": {
+        "totalXp": "Total XP (1 to 100)",
+        "xpPerKibble": "XP per kibble",
+        "equivalentKibbles": "Equivalent kibbles",
+        "targetPricePerKibble": "Target price per kibble",
+        "manualPricedItems": "Items with manual price"
+      },
+      "mode": {
+        "label": "Calculation mode",
+        "reference": "Reference",
+        "manual": "Manual prices",
+        "referenceHint": "Compare max prices against your kibble budget.",
+        "manualHint": "Enter your real market prices and see the actual cost to level a level 100 familier."
+      },
+      "reference": {
+        "budgetLabel": "Total kibble budget",
+        "kamasUnit": "kamas",
+        "kamasShort": "k",
+        "formulaPrefix": "With this budget, 1 kibble costs",
+        "formulaMiddle": "so an item worth",
+        "formulaSuffix": "has a max value of",
+        "explainerPrefix": "This budget is only used as a benchmark to compute a",
+        "explainerSuffix": "The real amount paid for one familier is shown in the"
+      },
+      "manual": {
+        "label": "Manual prices",
+        "hintPrefix": "Level 100 cost =",
+        "hintFormula": "entered price × required quantity",
+        "hintSuffix": "Values are saved locally.",
+        "clear": "Clear prices"
+      },
+      "search": {
+        "placeholder": "Search for an item..."
+      },
+      "sort": {
+        "label": "Sort by",
+        "xp": "XP",
+        "qty": "Qty",
+        "price": "Max price",
+        "name": "Name"
+      },
+      "tabs": {
+        "zones": "By zone",
+        "essences": "Guardian essences",
+        "all": "Show all"
+      },
+      "sections": {
+        "essences": "Dungeon guardian essences",
+        "allItems": "All items"
+      },
+      "count": {
+        "items": "items",
+        "essences": "essences"
+      },
+      "table": {
+        "item": "Item",
+        "essence": "Essence",
+        "xpPerUnit": "XP / unit",
+        "qtyNeeded": "Required qty",
+        "targetPricePerUnit": "Target price / unit",
+        "manualPricePerUnit": "Entered price / unit",
+        "totalAtTargetPrice": "Total cost at target price",
+        "totalLevel100": "Total lvl 100 cost",
+        "dungeonLevel": "Dungeon lvl",
+        "zoneOrSource": "Zone / Source"
+      },
+      "empty": {
+        "items": "No items found.",
+        "essences": "No essences found."
+      },
+      "source": {
+        "essenceLevel": "Essence (lvl. {level})"
+      },
+      "misc": {
+        "emptyValue": "\u2014"
+      }
+    },
+    "guide": {
+      "openAria": "Open familiers guide",
+      "dialogAria": "Familiers guide",
+      "closeAria": "Close guide",
+      "eyebrow": "Quick guide",
+      "title": "Choose a mode, pick an item, read the final cost",
+      "referenceIntro": "Reference mode starts from a croquette budget to give you a maximum buy price per item and the total cost if you level a familier from 1 to 100 using only that item.",
+      "manualIntro": "Manual price mode starts from your real HDV prices and directly calculates how much a familier from 1 to 100 would cost with each item.",
+      "activeModeLabel": "Active mode",
+      "referenceModeName": "Croquette reference",
+      "manualModeName": "Manual HDV prices",
+      "steps": {
+        "step1": {
+          "referenceTitle": "Set your croquette budget",
+          "manualTitle": "Enter your HDV prices",
+          "referenceText": "Enter the total amount you would pay to level a familier with croquettes. The page then converts that budget into a target XP price.",
+          "manualText": "Type the unit price you saw in HDV for the items you care about. The other rows can stay empty."
+        },
+        "step2": {
+          "title": "Choose an item or an essence",
+          "text": "Use the tabs, search, and sorting to isolate the source you want to compare or buy in a loop."
+        },
+        "step3": {
+          "title": "Read the last column first",
+          "referenceText": "Coût total au prix cible is the real estimated total to level a familier from 1 to 100 with that item only.",
+          "manualText": "Coût total lvl 100 is the real estimated total to level a familier from 1 to 100 with that item only."
+        }
+      },
+      "cards": {
+        "columns": {
+          "title": "Columns",
+          "xpLabel": "XP / unité",
+          "xpText": "XP given by one item.",
+          "qtyLabel": "Qté nécessaire",
+          "qtyText": "Number of units needed to level from 1 to 100.",
+          "referencePriceLabel": "Prix cible / unité",
+          "referencePriceText": "recommended maximum buy price per unit.",
+          "manualPriceLabel": "Prix saisi / unité",
+          "manualPriceText": "HDV unit price you entered.",
+          "referenceTotalLabel": "Coût total au prix cible",
+          "manualTotalLabel": "Coût total lvl 100",
+          "totalText": "final estimated amount."
+        },
+        "example": {
+          "title": "Example",
+          "line1": "If a row shows 13 815 in quantity and 362 k in unit price, you need about 13 815 units.",
+          "line2": "The final total will therefore be about 13 815 × 362, which lands close to the reference budget."
+        }
+      }
     }
   },
   "succes": {

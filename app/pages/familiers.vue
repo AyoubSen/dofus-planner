@@ -4,37 +4,37 @@
     <div class="fam-stats">
       <div class="fam-stat">
         <div class="fam-stat__val">{{ fmt(TOTAL_XP) }}</div>
-        <div class="fam-stat__label">XP total (1→100)</div>
+        <div class="fam-stat__label">{{ $t('familiers.page.stats.totalXp') }}</div>
       </div>
       <div class="fam-stat">
         <div class="fam-stat__val">{{ XP_PER_KIBBLE }}</div>
-        <div class="fam-stat__label">XP / croquette</div>
+        <div class="fam-stat__label">{{ $t('familiers.page.stats.xpPerKibble') }}</div>
       </div>
       <div class="fam-stat">
         <div class="fam-stat__val">{{ fmtQty(KIBBLE_COUNT) }}</div>
-        <div class="fam-stat__label">Croquettes équivalentes</div>
+        <div class="fam-stat__label">{{ $t('familiers.page.stats.equivalentKibbles') }}</div>
       </div>
       <div class="fam-stat">
         <div class="fam-stat__val">{{ pricingMode === 'reference' ? `${fmt(Math.round(pricePerKibble))} k` : `${manualPricedCount}` }}</div>
-        <div class="fam-stat__label">{{ pricingMode === 'reference' ? 'Prix cible / croquette' : 'Items avec prix saisi' }}</div>
+        <div class="fam-stat__label">{{ pricingMode === 'reference' ? $t('familiers.page.stats.targetPricePerKibble') : $t('familiers.page.stats.manualPricedItems') }}</div>
       </div>
     </div>
 
     <!-- ── Budget control ────────────────────────────────────────── -->
     <div class="fam-budget fam-budget--mode">
-      <span class="fam-budget__label">Mode de calcul</span>
+      <span class="fam-budget__label">{{ $t('familiers.page.mode.label') }}</span>
       <div class="fam-mode-toggle">
-        <button class="fam-mode-toggle__btn" :class="{ 'fam-mode-toggle__btn--on': pricingMode === 'reference' }" @click="pricingMode = 'reference'">Référence</button>
-        <button class="fam-mode-toggle__btn" :class="{ 'fam-mode-toggle__btn--on': pricingMode === 'manual' }" @click="pricingMode = 'manual'">Prix manuels</button>
+        <button class="fam-mode-toggle__btn" :class="{ 'fam-mode-toggle__btn--on': pricingMode === 'reference' }" @click="pricingMode = 'reference'">{{ $t('familiers.page.mode.reference') }}</button>
+        <button class="fam-mode-toggle__btn" :class="{ 'fam-mode-toggle__btn--on': pricingMode === 'manual' }" @click="pricingMode = 'manual'">{{ $t('familiers.page.mode.manual') }}</button>
       </div>
       <span class="fam-budget__hint">
-        {{ pricingMode === 'reference' ? 'Compare les prix max selon ton budget croquettes.' : 'Saisis tes prix HDV et vois le coût réel pour monter un familier niveau 100.' }}
+        {{ pricingMode === 'reference' ? $t('familiers.page.mode.referenceHint') : $t('familiers.page.mode.manualHint') }}
       </span>
-      <button class="fam-help-btn" type="button" aria-label="Ouvrir l'aide de la page" @click="guideOpen = true">?</button>
+      <button class="fam-help-btn" type="button" :aria-label="$t('familiers.guide.openAria')" @click="guideOpen = true">?</button>
     </div>
 
     <div v-if="pricingMode === 'reference'" class="fam-budget">
-      <span class="fam-budget__label">Budget total croquettes</span>
+      <span class="fam-budget__label">{{ $t('familiers.page.reference.budgetLabel') }}</span>
       <div class="fam-budget__input-wrap">
         <input
           v-model.number="budget"
@@ -43,46 +43,50 @@
           step="100000"
           class="fam-budget__input"
         />
-        <span class="fam-budget__unit">kamas</span>
+        <span class="fam-budget__unit">{{ $t('familiers.page.reference.kamasUnit') }}</span>
       </div>
       <span class="fam-budget__hint">
-        → Avec ce budget, 1 croquette revient à <strong>{{ fmt(Math.round(pricePerKibble)) }} k</strong>, donc un item de <strong>X XP</strong> vaut max
-        <strong>{{ fmt(Math.round(pricePerKibble)) }} × X / {{ XP_PER_KIBBLE }}</strong> k par unité
+        {{ $t('familiers.page.reference.formulaPrefix') }}
+        <strong>{{ fmt(Math.round(pricePerKibble)) }} k</strong>, {{ $t('familiers.page.reference.formulaMiddle') }} <strong>X XP</strong>
+        {{ $t('familiers.page.reference.formulaSuffix') }}
+        <strong>{{ fmt(Math.round(pricePerKibble)) }} × X / {{ XP_PER_KIBBLE }}</strong> {{ $t('familiers.page.reference.kamasShort') }}
       </span>
       <span class="fam-budget__hint fam-budget__hint--soft">
-        Ce budget sert uniquement de repère pour calculer un <strong>prix cible par unité</strong>. Le montant réellement payé pour un familier est la colonne
-        <strong>Coût total au prix cible</strong>.
+        {{ $t('familiers.page.reference.explainerPrefix') }}
+        <strong>{{ $t('familiers.page.table.targetPricePerUnit') }}</strong>. {{ $t('familiers.page.reference.explainerSuffix') }}
+        <strong>{{ $t('familiers.page.table.totalAtTargetPrice') }}</strong>.
       </span>
     </div>
 
     <div v-else class="fam-budget">
-      <span class="fam-budget__label">Prix manuels</span>
+      <span class="fam-budget__label">{{ $t('familiers.page.manual.label') }}</span>
       <span class="fam-budget__hint">
-        Le coût niveau 100 = <strong>prix saisi × quantité nécessaire</strong>. Les valeurs sont sauvegardées localement.
+        {{ $t('familiers.page.manual.hintPrefix') }}
+        <strong>{{ $t('familiers.page.manual.hintFormula') }}</strong>. {{ $t('familiers.page.manual.hintSuffix') }}
       </span>
-      <button class="fam-clear-btn" @click="clearManualPrices">Effacer les prix</button>
+      <button class="fam-clear-btn" @click="clearManualPrices">{{ $t('familiers.page.manual.clear') }}</button>
     </div>
 
     <Transition name="fam-modal">
-      <div v-if="guideOpen" class="fam-guide-modal" role="dialog" aria-modal="true" aria-label="Guide familiers" @click.self="guideOpen = false">
+      <div v-if="guideOpen" class="fam-guide-modal" role="dialog" aria-modal="true" :aria-label="$t('familiers.guide.dialogAria')" @click.self="guideOpen = false">
         <div class="fam-guide">
           <div class="fam-guide__topbar">
             <div>
-              <div class="fam-guide__eyebrow">Guide rapide</div>
-              <div class="fam-guide__title">Choisis un mode, repère un item, lis le coût final</div>
+              <div class="fam-guide__eyebrow">{{ $t('familiers.guide.eyebrow') }}</div>
+              <div class="fam-guide__title">{{ $t('familiers.guide.title') }}</div>
             </div>
-            <button class="fam-guide__close" type="button" aria-label="Fermer l'aide" @click="guideOpen = false">×</button>
+            <button class="fam-guide__close" type="button" :aria-label="$t('familiers.guide.closeAria')" @click="guideOpen = false">×</button>
           </div>
 
           <div class="fam-guide__hero">
             <div class="fam-guide__intro">
               {{ pricingMode === 'reference'
-                ? 'Le mode référence part d’un budget croquettes pour te donner un plafond d’achat par item et le coût total si tu montes un familier 1→100 avec cet item seul.'
-                : 'Le mode prix manuels part de tes prix HDV réels et calcule directement combien te coûterait un familier 1→100 avec chaque item.' }}
+                ? $t('familiers.guide.referenceIntro')
+                : $t('familiers.guide.manualIntro') }}
             </div>
             <div class="fam-guide__mode-badge">
-              <span class="fam-guide__mode-label">Mode actif</span>
-              <strong>{{ pricingMode === 'reference' ? 'Référence croquettes' : 'Prix HDV manuels' }}</strong>
+              <span class="fam-guide__mode-label">{{ $t('familiers.guide.activeModeLabel') }}</span>
+              <strong>{{ pricingMode === 'reference' ? $t('familiers.guide.referenceModeName') : $t('familiers.guide.manualModeName') }}</strong>
             </div>
           </div>
 
@@ -90,29 +94,31 @@
             <div class="fam-guide-step">
               <div class="fam-guide-step__num">1</div>
               <div>
-                <div class="fam-guide-step__title">{{ pricingMode === 'reference' ? 'Définis ton budget croquettes' : 'Renseigne tes prix HDV' }}</div>
+                <div class="fam-guide-step__title">{{ pricingMode === 'reference' ? $t('familiers.guide.steps.step1.referenceTitle') : $t('familiers.guide.steps.step1.manualTitle') }}</div>
                 <div class="fam-guide-step__text">
                   {{ pricingMode === 'reference'
-                    ? 'Entre le budget total que tu paierais pour monter un familier avec des croquettes. La page convertit ensuite ce budget en prix cible par XP.'
-                    : 'Tape le prix unitaire vu en HDV pour les items qui t’intéressent. Les autres lignes peuvent rester vides.' }}
+                    ? $t('familiers.guide.steps.step1.referenceText')
+                    : $t('familiers.guide.steps.step1.manualText') }}
                 </div>
               </div>
             </div>
             <div class="fam-guide-step">
               <div class="fam-guide-step__num">2</div>
               <div>
-                <div class="fam-guide-step__title">Choisis un item ou une essence</div>
+                <div class="fam-guide-step__title">{{ $t('familiers.guide.steps.step2.title') }}</div>
                 <div class="fam-guide-step__text">
-                  Utilise les onglets, la recherche et le tri pour isoler la source que tu veux comparer ou acheter en boucle.
+                  {{ $t('familiers.guide.steps.step2.text') }}
                 </div>
               </div>
             </div>
             <div class="fam-guide-step">
               <div class="fam-guide-step__num">3</div>
               <div>
-                <div class="fam-guide-step__title">Lis d’abord la dernière colonne</div>
+                <div class="fam-guide-step__title">{{ $t('familiers.guide.steps.step3.title') }}</div>
                 <div class="fam-guide-step__text">
-                  {{ pricingMode === 'reference' ? 'Coût total au prix cible' : 'Coût total lvl 100' }} est le vrai total estimé pour monter un familier 1→100 avec cet item seul.
+                  {{ pricingMode === 'reference'
+                    ? $t('familiers.guide.steps.step3.referenceText')
+                    : $t('familiers.guide.steps.step3.manualText') }}
                 </div>
               </div>
             </div>
@@ -120,19 +126,19 @@
 
           <div class="fam-guide__legend">
             <div class="fam-guide-card">
-              <div class="fam-guide-card__title">Colonnes</div>
+              <div class="fam-guide-card__title">{{ $t('familiers.guide.cards.columns.title') }}</div>
               <div class="fam-guide-card__list">
-                <div><strong>XP / unité</strong> = XP donné par un item.</div>
-                <div><strong>Qté nécessaire</strong> = nombre d’unités nécessaires pour monter 1→100.</div>
-                <div><strong>{{ pricingMode === 'reference' ? 'Prix cible / unité' : 'Prix saisi / unité' }}</strong> = {{ pricingMode === 'reference' ? 'plafond d’achat conseillé par unité.' : 'prix HDV unitaire que tu as saisi.' }}</div>
-                <div><strong>{{ pricingMode === 'reference' ? 'Coût total au prix cible' : 'Coût total lvl 100' }}</strong> = montant final estimé.</div>
+                <div><strong>{{ $t('familiers.guide.cards.columns.xpLabel') }}</strong> = {{ $t('familiers.guide.cards.columns.xpText') }}</div>
+                <div><strong>{{ $t('familiers.guide.cards.columns.qtyLabel') }}</strong> = {{ $t('familiers.guide.cards.columns.qtyText') }}</div>
+                <div><strong>{{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referencePriceLabel') : $t('familiers.guide.cards.columns.manualPriceLabel') }}</strong> = {{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referencePriceText') : $t('familiers.guide.cards.columns.manualPriceText') }}</div>
+                <div><strong>{{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referenceTotalLabel') : $t('familiers.guide.cards.columns.manualTotalLabel') }}</strong> = {{ $t('familiers.guide.cards.columns.totalText') }}</div>
               </div>
             </div>
             <div class="fam-guide-card">
-              <div class="fam-guide-card__title">Exemple</div>
+              <div class="fam-guide-card__title">{{ $t('familiers.guide.cards.example.title') }}</div>
               <div class="fam-guide-card__list">
-                <div>Si une ligne affiche <strong>13 815</strong> en quantité et <strong>362 k</strong> en prix unitaire, il faut environ <strong>13 815</strong> unités.</div>
-                <div>Le total sera donc environ <strong>13 815 × 362</strong>, soit un coût proche du budget de référence.</div>
+                <div>{{ $t('familiers.guide.cards.example.line1') }}</div>
+                <div>{{ $t('familiers.guide.cards.example.line2') }}</div>
               </div>
             </div>
           </div>
@@ -156,31 +162,31 @@
       <input
         v-model="search"
         type="text"
-        placeholder="Rechercher un item…"
+        :placeholder="$t('familiers.page.search.placeholder')"
         class="fam-search"
       />
       <div class="fam-sort">
-        <span class="fam-sort__label">Trier par</span>
+        <span class="fam-sort__label">{{ $t('familiers.page.sort.label') }}</span>
         <button
           class="fam-sort__btn"
           :class="{ 'fam-sort__btn--on': sortBy === 'xp' }"
           @click="toggleSort('xp')"
-        >XP {{ sortBy === 'xp' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}</button>
+        >{{ $t('familiers.page.sort.xp') }} {{ sortBy === 'xp' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}</button>
         <button
           class="fam-sort__btn"
           :class="{ 'fam-sort__btn--on': sortBy === 'qty' }"
           @click="toggleSort('qty')"
-        >Qté {{ sortBy === 'qty' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}</button>
+        >{{ $t('familiers.page.sort.qty') }} {{ sortBy === 'qty' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}</button>
         <button
           class="fam-sort__btn"
           :class="{ 'fam-sort__btn--on': sortBy === 'price' }"
           @click="toggleSort('price')"
-        >Prix max {{ sortBy === 'price' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}</button>
+        >{{ $t('familiers.page.sort.price') }} {{ sortBy === 'price' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}</button>
         <button
           class="fam-sort__btn"
           :class="{ 'fam-sort__btn--on': sortBy === 'name' }"
           @click="toggleSort('name')"
-        >Nom {{ sortBy === 'name' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}</button>
+        >{{ $t('familiers.page.sort.name') }} {{ sortBy === 'name' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}</button>
       </div>
     </div>
 
@@ -201,16 +207,16 @@
       <div v-if="currentZone" class="fam-table-wrap">
         <div class="fam-table-head">
           <span class="fam-table-title">{{ currentZone.name }}</span>
-          <span class="fam-table-count">{{ filteredZoneItems.length }} items</span>
+          <span class="fam-table-count">{{ filteredZoneItems.length }} {{ $t('familiers.page.count.items') }}</span>
         </div>
         <table class="fam-table">
           <thead>
             <tr>
-              <th>Item</th>
-              <th class="text-right">XP / unité</th>
-              <th class="text-right">Qté nécessaire</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? 'Prix cible / unité' : 'Prix saisi / unité' }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? 'Coût total au prix cible' : 'Coût total lvl 100' }}</th>
+              <th>{{ $t('familiers.page.table.item') }}</th>
+              <th class="text-right">{{ $t('familiers.page.table.xpPerUnit') }}</th>
+              <th class="text-right">{{ $t('familiers.page.table.qtyNeeded') }}</th>
+              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.targetPricePerUnit') : $t('familiers.page.table.manualPricePerUnit') }}</th>
+              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.totalAtTargetPrice') : $t('familiers.page.table.totalLevel100') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -232,7 +238,7 @@
               <td class="fam-num fam-price text-right">{{ levelCostLabel(item) }}</td>
             </tr>
             <tr v-if="filteredZoneItems.length === 0">
-              <td colspan="5" class="fam-empty">Aucun item trouvé.</td>
+              <td colspan="5" class="fam-empty">{{ $t('familiers.page.empty.items') }}</td>
             </tr>
           </tbody>
         </table>
@@ -243,18 +249,18 @@
     <template v-else-if="activeTab === 'essences'">
       <div class="fam-table-wrap">
         <div class="fam-table-head">
-          <span class="fam-table-title">Essences de gardien de donjon</span>
-          <span class="fam-table-count">{{ filteredEssences.length }} essences</span>
+          <span class="fam-table-title">{{ $t('familiers.page.sections.essences') }}</span>
+          <span class="fam-table-count">{{ filteredEssences.length }} {{ $t('familiers.page.count.essences') }}</span>
         </div>
         <table class="fam-table">
           <thead>
             <tr>
-              <th>Essence</th>
-              <th class="text-right">Niv. donjon</th>
-              <th class="text-right">XP / unité</th>
-              <th class="text-right">Qté nécessaire</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? 'Prix cible / unité' : 'Prix saisi / unité' }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? 'Coût total au prix cible' : 'Coût total lvl 100' }}</th>
+              <th>{{ $t('familiers.page.table.essence') }}</th>
+              <th class="text-right">{{ $t('familiers.page.table.dungeonLevel') }}</th>
+              <th class="text-right">{{ $t('familiers.page.table.xpPerUnit') }}</th>
+              <th class="text-right">{{ $t('familiers.page.table.qtyNeeded') }}</th>
+              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.targetPricePerUnit') : $t('familiers.page.table.manualPricePerUnit') }}</th>
+              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.totalAtTargetPrice') : $t('familiers.page.table.totalLevel100') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -277,7 +283,7 @@
               <td class="fam-num fam-price text-right">{{ levelCostLabel(item) }}</td>
             </tr>
             <tr v-if="filteredEssences.length === 0">
-              <td colspan="6" class="fam-empty">Aucune essence trouvée.</td>
+              <td colspan="6" class="fam-empty">{{ $t('familiers.page.empty.essences') }}</td>
             </tr>
           </tbody>
         </table>
@@ -288,18 +294,18 @@
     <template v-else>
       <div class="fam-table-wrap">
         <div class="fam-table-head">
-          <span class="fam-table-title">Tous les items</span>
-          <span class="fam-table-count">{{ filteredAllItems.length }} items</span>
+          <span class="fam-table-title">{{ $t('familiers.page.sections.allItems') }}</span>
+          <span class="fam-table-count">{{ filteredAllItems.length }} {{ $t('familiers.page.count.items') }}</span>
         </div>
         <table class="fam-table">
           <thead>
             <tr>
-              <th>Item</th>
-              <th>Zone / Source</th>
-              <th class="text-right">XP / unité</th>
-              <th class="text-right">Qté nécessaire</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? 'Prix cible / unité' : 'Prix saisi / unité' }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? 'Coût total au prix cible' : 'Coût total lvl 100' }}</th>
+              <th>{{ $t('familiers.page.table.item') }}</th>
+              <th>{{ $t('familiers.page.table.zoneOrSource') }}</th>
+              <th class="text-right">{{ $t('familiers.page.table.xpPerUnit') }}</th>
+              <th class="text-right">{{ $t('familiers.page.table.qtyNeeded') }}</th>
+              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.targetPricePerUnit') : $t('familiers.page.table.manualPricePerUnit') }}</th>
+              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.totalAtTargetPrice') : $t('familiers.page.table.totalLevel100') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -322,7 +328,7 @@
               <td class="fam-num fam-price text-right">{{ levelCostLabel(item) }}</td>
             </tr>
             <tr v-if="filteredAllItems.length === 0">
-              <td colspan="6" class="fam-empty">Aucun item trouvé.</td>
+              <td colspan="6" class="fam-empty">{{ $t('familiers.page.empty.items') }}</td>
             </tr>
           </tbody>
         </table>
@@ -336,6 +342,8 @@ import familierData from '~/data/familiers.json'
 
 definePageMeta({ layout: 'v2' })
 
+const { t, locale } = useI18n()
+
 const data = familierData
 const TOTAL_XP = data.constants.totalXP
 const XP_PER_KIBBLE = data.constants.xpPerKibble
@@ -347,11 +355,11 @@ const pricingMode = ref<'reference' | 'manual'>('reference')
 const manualPrices = ref<Record<string, number>>({})
 const guideOpen = ref(false)
 
-const TABS = [
-  { id: 'zones', label: 'Par zone' },
-  { id: 'essences', label: 'Essences gardiens' },
-  { id: 'all', label: 'Tout afficher' },
-]
+const TABS = computed(() => [
+  { id: 'zones', label: t('familiers.page.tabs.zones') },
+  { id: 'essences', label: t('familiers.page.tabs.essences') },
+  { id: 'all', label: t('familiers.page.tabs.all') },
+])
 
 const activeTab = ref('zones')
 const activeZone = ref(data.zones[0]?.id ?? '')
@@ -372,7 +380,8 @@ const manualLevelCost = (item: { name: string; xp: number }) => {
   return Math.round(price * qtyNeeded(item.xp))
 }
 
-const fmt = (n: number) => n.toLocaleString('fr-FR')
+const numberLocale = computed(() => locale.value === 'fr' ? 'fr-FR' : 'en-US')
+const fmt = (n: number) => n.toLocaleString(numberLocale.value)
 const fmtQty = (n: number) => n % 1 === 0 ? n.toString() : n.toFixed(1)
 const manualPricedCount = computed(() =>
   Object.values(manualPrices.value).filter((value) => typeof value === 'number' && value > 0).length
@@ -395,7 +404,7 @@ const clearManualPrices = () => {
 
 const manualLevelCostLabel = (item: { name: string; xp: number }) => {
   const total = manualLevelCost(item)
-  return total === null ? '—' : `${fmt(total)} k`
+  return total === null ? t('familiers.page.misc.emptyValue') : `${fmt(total)} k`
 }
 const levelCostLabel = (item: { name: string; xp: number }) =>
   pricingMode.value === 'reference'
@@ -439,7 +448,10 @@ const filteredEssences = computed(() => {
 
 const allItems = computed(() => [
   ...data.zones.flatMap(z => z.items.map(i => ({ ...i, source: z.name }))),
-  ...data.essences.map(i => ({ ...i, source: `Essence (niv. ${i.dungeonLevel})` })),
+  ...data.essences.map(i => ({
+    ...i,
+    source: t('familiers.page.source.essenceLevel', { level: i.dungeonLevel }),
+  })),
 ])
 
 const filteredAllItems = computed(() => {

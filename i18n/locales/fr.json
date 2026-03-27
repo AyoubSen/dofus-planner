@@ -535,6 +535,7 @@
     "subtitle": "Analysez les tendances d'utilisation et la méta",
     "loading": "Chargement des statistiques...",
     "noData": "Aucune donnée disponible pour cet emplacement",
+    "contextTitle": "Tranche de données actuelle",
     "uses": "utilisations",
     "viewModes": {
       "list": "Vue liste",
@@ -619,6 +620,489 @@
       "mostDiverse": "Emplacements les Plus Diversifiés",
       "mostStandardized": "Emplacements les Plus Standardisés",
       "itemsCount": "{count} objets"
+    },
+    "recipe": {
+      "kicker": "Recette et relevés OCR"
+    },
+    "detail": {
+      "common": {
+        "back": "Retour",
+        "remove": "Supprimer",
+        "collapse": "Réduire",
+        "expand": "Déplier",
+        "unknown": "Inconnu",
+        "unknownItem": "Objet inconnu",
+        "emptySymbol": "∅",
+        "emptyValue": "—"
+      },
+      "context": {
+        "allModes": "Tous les modes",
+        "allLevels": "Tous les niveaux",
+        "allClasses": "Toutes les classes",
+        "allElements": "Tous les éléments",
+        "allBudgets": "Tous les budgets",
+        "level": "Niveau {level}",
+        "budget": "Budget {budget}",
+        "matchingBuilds": "{count} builds correspondants",
+        "slotSummary": "{count} objets uniques en {slot} · le top pick apparaît dans {topCount} builds"
+      },
+      "recipe": {
+        "sectionTitle": "Recette",
+        "profession": "Métier",
+        "ingredients": "Ingrédients",
+        "id": "ID recette",
+        "loading": "Chargement de la recette...",
+        "actions": {
+          "refetch": "Recharger la recette",
+          "ocrScreenshot": "Screenshot OCR",
+          "pasteScreenshot": "Coller le screenshot"
+        },
+        "confidence": {
+          "exact": "Correspondance exacte",
+          "approx": "Correspondance approximative"
+        },
+        "source": {
+          "cache": "Chargé depuis le cache",
+          "fresh": "Récupération fraîche"
+        },
+        "errors": {
+          "loadFailed": "Impossible de charger la recette pour cet objet.",
+          "resolveFailed": "Impossible de résoudre l'objet DofusDB pour \"{name}\""
+        }
+      },
+      "cost": {
+        "sectionTitle": "Coût de craft",
+        "total": "Coût de craft",
+        "pricedIngredients": "Ingrédients pricés",
+        "missingPrices": "Prix manquants"
+      },
+      "pricing": {
+        "sectionTitle": "Pricing",
+        "sellPrice": "Prix de vente",
+        "margin": "Marge estimée",
+        "marginRate": "Taux de marge"
+      },
+      "ocr": {
+        "loadingPrices": "Extraction des candidats de prix depuis le screenshot...",
+        "loadingStats": "Extraction des lignes de stats depuis le screenshot...",
+        "candidatesTitle": "Candidats de prix OCR",
+        "clickHint": "Clique sur l'un d'eux pour remplir le prix de vente",
+        "save": "Enregistrer les prix OCR",
+        "debugTitle": "Lignes debug OCR",
+        "mode": "Mode",
+        "noTokens": "aucun token",
+        "rejected": "rejeté",
+        "errors": {
+          "browserOnly": "L'OCR est disponible uniquement dans le navigateur.",
+          "noPriceCandidates": "L'OCR a tourné, mais aucun candidat de prix n'a été détecté.",
+          "marketFailed": "Impossible d'exécuter l'OCR sur ce screenshot.",
+          "statsFailed": "Impossible d'exécuter l'OCR sur le screenshot de stats."
+        }
+      },
+      "valuation": {
+        "focusTitle": "Focus de valorisation",
+        "focusHint": "Choisis quelles stats comptent le plus pour cet objet",
+        "listingTitle": "Valorisation des annonces",
+        "buyCandidatesOnly": "Uniquement les candidats d'achat",
+        "model": "Modèle",
+        "score": "Score",
+        "fairValue": "Juste valeur",
+        "delta": "Delta",
+        "scoreBuildTitle": "Comment le score a été construit",
+        "scoreBuildHint": "Progression dans la plage × poids, avec overmage conservé au-delà du max",
+        "comparablesTitle": "Annonces comparables utilisées",
+        "peersSummary": "{count} pair | {count} pairs dans le modèle leave-one-out",
+        "noComparables": "Aucune annonce comparable n'était disponible pour cette observation.",
+        "notEnoughData": "Cette annonce n'a pas encore assez de stats reconnues ou de pairs pour expliquer une valorisation.",
+        "noFilteredListings": "Aucune annonce sélectionnée ne correspond au filtre de valorisation actuel.",
+        "note": "Un delta négatif signifie que l'annonce est sous la juste valeur du modèle. Quick/fair/greedy sont des suggestions de remise en vente pour les bons achats.",
+        "overmage": "over",
+        "peerMetric": {
+          "pricePerPoint": "Prix / point",
+          "adjustedPrice": "Prix ajusté"
+        },
+        "modeSummary": {
+          "score": "modèle score basé sur les pairs les plus proches en score",
+          "comparables": "comparables de profil de stats avec pricing pondéré",
+          "auto": "mode auto : comparables d'abord, score en secours"
+        },
+        "confidence": {
+          "high": "Confiance élevée",
+          "medium": "Confiance moyenne",
+          "low": "Confiance faible",
+          "noUsable": "Aucune annonce exploitable pour l'instant",
+          "detailsComparables": "{sample} exploitables · {avg} comparables en moyenne · {coverage}% de couverture stats · {distance} de distance médiane",
+          "detailsAuto": "{sample} exploitables · {avg} comparables en moyenne · {coverage}% de couverture stats · {comparableCoverage}% de couverture comparable",
+          "detailsScore": "{sample} exploitables · {avg} comparables en moyenne · {coverage}% de couverture stats · {spread}% d'écart"
+        },
+        "models": {
+          "score": "Score",
+          "comparables": "Comparables",
+          "auto": "Auto"
+        },
+        "reference": {
+          "medianDistance": "Distance médiane",
+          "referencePerPoint": "Référence / point"
+        },
+        "summary": "{count} pricées à partir de toutes les annonces sauvegardées avec stats · {mode}",
+        "table": {
+          "stat": "Stat",
+          "value": "Valeur",
+          "range": "Plage",
+          "progress": "Progression",
+          "weight": "Poids",
+          "contribution": "Contribution"
+        },
+        "peerTable": {
+          "price": "Prix",
+          "score": "Score",
+          "distance": "Distance"
+        }
+      },
+      "priceManager": {
+        "show": "Gérer les prix",
+        "hide": "Masquer le gestionnaire de prix",
+        "missingFirst": "Les prix manquants sont affichés en premier",
+        "title": "Prix actuels de la recette",
+        "noSavedPrice": "Aucun prix sauvegardé",
+        "freshness": {
+          "ltHour": "Mis à jour il y a < 1h",
+          "hours": "Mis à jour il y a {count}h",
+          "days": "Mis à jour il y a {count}j"
+        }
+      },
+      "ingredients": {
+        "title": "Ingrédients",
+        "level": "Niveau {level}",
+        "unitPrice": "Prix unitaire",
+        "total": "Total",
+        "qty": "Qté",
+        "empty": "Aucun ingrédient trouvé pour cette recette.",
+        "badges": {
+          "monsterDrop": "Drop monstre",
+          "crafted": "Crafté",
+          "special": "Spécial"
+        }
+      },
+      "observed": {
+        "kicker": "Stats d'annonce observée",
+        "backToList": "Retour aux prix observés",
+        "price": "Prix observé",
+        "listTitle": "Prix observés",
+        "savedCount": "{count} sauvegardés",
+        "screenshotSummary": "{market} HDV · {stats} screenshots de stats",
+        "statsScreenshotAlt": "Screenshot de stats observées",
+        "rawText": "Texte brut OCR des stats",
+        "badges": {
+          "missingStats": "Stats manquantes",
+          "underpriced": "Sous-pricé",
+          "overpriced": "Sur-pricé",
+          "bestBuy": "Meilleur achat"
+        },
+        "relist": {
+          "label": "Relist",
+          "quick": "Quick",
+          "fair": "Fair",
+          "greedy": "Greedy"
+        },
+        "sort": {
+          "label": "Tri",
+          "newest": "Plus récent",
+          "priceAsc": "Prix ↑",
+          "priceDesc": "Prix ↓",
+          "delta": "Delta",
+          "bestBuy": "Meilleur achat"
+        },
+        "tabs": {
+          "stats": "Stats",
+          "explain": "Explication de valorisation"
+        },
+        "actions": {
+          "useAsSellPrice": "Utiliser comme prix de vente",
+          "removeMarketScreenshot": "Supprimer le screenshot HDV",
+          "replaceStatsScreenshot": "Remplacer le screenshot de stats",
+          "uploadStatsScreenshot": "Ajouter un screenshot de stats",
+          "removeStatsScreenshot": "Supprimer le screenshot de stats",
+          "sendToTracker": "Envoyer au tracker",
+          "tracked": "Tracké",
+          "openTracker": "Ouvrir le tracker",
+          "clearScreenshots": "Effacer les screenshots",
+          "removeAll": "Tout supprimer",
+          "viewStats": "Voir les stats",
+          "addStats": "Ajouter des stats",
+          "addStatsScreenshot": "Ajouter un screenshot de stats",
+          "trackResale": "Suivre la revente"
+        },
+        "feedback": {
+          "savedToResale": "Sauvegardé dans le tracker de revente.",
+          "sentToResaleActivity": "Annonce observée envoyée au tracker de revente",
+          "removedActivity": "Annonce observée supprimée"
+        },
+        "confirm": {
+          "clearScreenshots": "Supprimer les {count} screenshots sauvegardés pour cet objet ?",
+          "removeAll": "Supprimer tous les {count} prix observés pour cet objet ?"
+        },
+        "statsHealth": {
+          "title": "Santé des stats",
+          "reviewOrRemove": "Vérifier ou supprimer",
+          "missingValue": "Valeur manquante",
+          "entryCount": "{count} entrées",
+          "lineFallback": "Ligne {index}",
+          "badges": {
+            "missing": "manquantes",
+            "unmatchedOfficial": "officielles non matchées",
+            "unexpected": "inattendues",
+            "duplicateKeys": "clés dupliquées",
+            "incomplete": "incomplètes"
+          },
+          "sections": {
+            "unmatchedOfficial": "Stats DofusDB officielles non matchées",
+            "missing": "Stats attendues manquantes",
+            "unexpected": "Stats parsées inattendues",
+            "duplicates": "Clés de stats dupliquées",
+            "incomplete": "Lignes de stats incomplètes"
+          },
+          "actions": {
+            "add": "Ajouter"
+          }
+        },
+        "exactStats": {
+          "title": "Stats exactes",
+          "add": "Ajouter une stat",
+          "empty": "Aucune ligne de stat sauvegardée pour le moment. Ajoute un screenshot de stats ou saisis-les manuellement."
+        }
+      }
+    },
+    "aggregate": {
+      "kicker": "Proof of concept des recettes agrégées",
+      "pressureTitle": "Pression recette {slot}",
+      "meta": "Top {limit} objets depuis les filtres actuels · compte la présence des ingrédients dans la recette de chaque objet",
+      "loading": "Chargement des recettes agrégées...",
+      "selectedItems": "Objets sélectionnés",
+      "resourcesTitle": "Ressources classées par présence en recette",
+      "usedIn": "Utilisé dans",
+      "itemsLabel": "Objets",
+      "qty": "Qté {count}",
+      "builds": "Builds {count}",
+      "pressure": "Pression {count}",
+      "stats": {
+        "selectedItems": "Objets sélectionnés",
+        "uniqueResources": "Ressources uniques",
+        "metric": "Métrique"
+      },
+      "sort": {
+        "label": "Trier par",
+        "items": "Objets",
+        "qty": "Qté",
+        "itemsFirst": "Objets d'abord",
+        "qtyFirst": "Qté d'abord"
+      },
+      "filters": {
+        "title": "Filtres ressources",
+        "hideSpecial": "Masquer spéciaux",
+        "monsterDrops": "Drops monstres",
+        "nonCrafted": "Non craftés",
+        "itemsMinTwo": "Objets >= 2"
+      },
+      "errors": {
+        "noItems": "Aucun objet disponible pour cette sélection."
+      }
+    },
+    "guide": {
+      "entryTitle": "Guide de page",
+      "entrySubtitle": "Comprendre la page principale des objets et le workflow screenshots/OCR.",
+      "openAria": "Ouvrir le guide des objets",
+      "openRecipeAria": "Ouvrir le guide du détail d'objet",
+      "dialogAria": "Guide des objets",
+      "closeAria": "Fermer le guide",
+      "eyebrow": "Guide rapide",
+      "main": {
+        "title": "Page objets : filtre les slots, repère la demande, puis ouvre un objet cible",
+        "intro": "La page principale sert d'abord à réduire le dataset, puis à ouvrir un objet précis quand quelque chose mérite d'être inspecté.",
+        "steps": {
+          "filter": {
+            "title": "Filtre le dataset",
+            "text": "Utilise les filtres élément, mode, niveau, budget et classe pour réduire la liste aux builds qui t'intéressent."
+          },
+          "slot": {
+            "title": "Choisis un slot",
+            "text": "Les onglets de slot sont la navigation principale. Ils permettent de se concentrer sur une catégorie d'équipement et de comparer ce qui revient le plus souvent."
+          },
+          "detail": {
+            "title": "Ouvre un objet pour le détail",
+            "text": "Quand tu cliques sur un objet, tu passes au workflow détaillé recette + OCR. Cette vue a son propre guide."
+          }
+        },
+        "cards": {
+          "overview": {
+            "title": "Ce que montre la page principale",
+            "text": "Les cartes de stats résument la tranche actuelle, le bandeau contexte explique ce que tu regardes, et les onglets de slot montrent où la variété d'objets est la plus forte."
+          },
+          "next": {
+            "title": "Ce qu'il faut faire ensuite",
+            "text": "Si un objet paraît intéressant, ouvre-le pour inspecter la recette, enregistrer des prix observés, lancer l'OCR sur des screenshots HDV et comparer les coûts réels de craft."
+          }
+        }
+      },
+      "recipe": {
+        "title": "Détail d'objet : utilise des screenshots propres pour un OCR fiable",
+        "intro": "Cette vue contient deux workflows screenshots : un pour détecter les prix HDV, et un pour extraire les lignes de stats d'un objet observé. Plus le screenshot est propre et cohérent, meilleur sera l'OCR.",
+        "steps": {
+          "crop": {
+            "title": "Garde seulement la zone utile du jeu",
+            "text": "Évite les bordures du bureau, Discord, le navigateur ou toute UI parasite autour de la fenêtre Dofus."
+          },
+          "framing": {
+            "title": "Garde toujours le même cadrage",
+            "text": "Essaie de conserver la colonne des prix et le bloc de stats à peu près au même endroit pour rendre l'OCR plus prévisible."
+          },
+          "quality": {
+            "title": "Privilégie des screenshots nets",
+            "text": "Les captures en résolution native fonctionnent mieux que les photos floues ou les images compressées envoyées en chat."
+          }
+        },
+        "cards": {
+          "market": {
+            "title": "Screenshot HDV",
+            "text": "À utiliser quand tu cliques sur OCR screenshot ou Paste screenshot dans la section recette. La liste des prix doit être bien lisible et centrée dans la capture."
+          },
+          "stats": {
+            "title": "Screenshot de stats",
+            "text": "À utiliser quand tu enregistres les stats observées d'un objet. Le bloc de stats doit être entièrement visible, sans lignes coupées ni tooltips hors sujet."
+          }
+        },
+        "placeholderTitle": "Image d'exemple à ajouter"
+      }
+    }
+  },
+  "familiers": {
+    "page": {
+      "stats": {
+        "totalXp": "XP total (1→100)",
+        "xpPerKibble": "XP / croquette",
+        "equivalentKibbles": "Croquettes équivalentes",
+        "targetPricePerKibble": "Prix cible / croquette",
+        "manualPricedItems": "Items avec prix saisi"
+      },
+      "mode": {
+        "label": "Mode de calcul",
+        "reference": "Référence",
+        "manual": "Prix manuels",
+        "referenceHint": "Compare les prix max selon ton budget croquettes.",
+        "manualHint": "Saisis tes prix HDV et vois le coût réel pour monter un familier niveau 100."
+      },
+      "reference": {
+        "budgetLabel": "Budget total croquettes",
+        "kamasUnit": "kamas",
+        "kamasShort": "k",
+        "formulaPrefix": "Avec ce budget, 1 croquette revient à",
+        "formulaMiddle": "donc un item de",
+        "formulaSuffix": "vaut max",
+        "explainerPrefix": "Ce budget sert uniquement de repère pour calculer un",
+        "explainerSuffix": "Le montant réellement payé pour un familier est la colonne"
+      },
+      "manual": {
+        "label": "Prix manuels",
+        "hintPrefix": "Le coût niveau 100 =",
+        "hintFormula": "prix saisi × quantité nécessaire",
+        "hintSuffix": "Les valeurs sont sauvegardées localement.",
+        "clear": "Effacer les prix"
+      },
+      "search": {
+        "placeholder": "Rechercher un item..."
+      },
+      "sort": {
+        "label": "Trier par",
+        "xp": "XP",
+        "qty": "Qté",
+        "price": "Prix max",
+        "name": "Nom"
+      },
+      "tabs": {
+        "zones": "Par zone",
+        "essences": "Essences gardiens",
+        "all": "Tout afficher"
+      },
+      "sections": {
+        "essences": "Essences de gardien de donjon",
+        "allItems": "Tous les items"
+      },
+      "count": {
+        "items": "items",
+        "essences": "essences"
+      },
+      "table": {
+        "item": "Item",
+        "essence": "Essence",
+        "xpPerUnit": "XP / unité",
+        "qtyNeeded": "Qté nécessaire",
+        "targetPricePerUnit": "Prix cible / unité",
+        "manualPricePerUnit": "Prix saisi / unité",
+        "totalAtTargetPrice": "Coût total au prix cible",
+        "totalLevel100": "Coût total lvl 100",
+        "dungeonLevel": "Niv. donjon",
+        "zoneOrSource": "Zone / Source"
+      },
+      "empty": {
+        "items": "Aucun item trouvé.",
+        "essences": "Aucune essence trouvée."
+      },
+      "source": {
+        "essenceLevel": "Essence (niv. {level})"
+      },
+      "misc": {
+        "emptyValue": "\u2014"
+      }
+    },
+    "guide": {
+      "openAria": "Ouvrir le guide des familiers",
+      "dialogAria": "Guide des familiers",
+      "closeAria": "Fermer le guide",
+      "eyebrow": "Guide rapide",
+      "title": "Choisis un mode, repère un item, lis le coût final",
+      "referenceIntro": "Le mode référence part d’un budget croquettes pour te donner un plafond d’achat par item et le coût total si tu montes un familier 1→100 avec cet item seul.",
+      "manualIntro": "Le mode prix manuels part de tes prix HDV réels et calcule directement combien te coûterait un familier 1→100 avec chaque item.",
+      "activeModeLabel": "Mode actif",
+      "referenceModeName": "Référence croquettes",
+      "manualModeName": "Prix HDV manuels",
+      "steps": {
+        "step1": {
+          "referenceTitle": "Définis ton budget croquettes",
+          "manualTitle": "Renseigne tes prix HDV",
+          "referenceText": "Entre le budget total que tu paierais pour monter un familier avec des croquettes. La page convertit ensuite ce budget en prix cible par XP.",
+          "manualText": "Tape le prix unitaire vu en HDV pour les items qui t’intéressent. Les autres lignes peuvent rester vides."
+        },
+        "step2": {
+          "title": "Choisis un item ou une essence",
+          "text": "Utilise les onglets, la recherche et le tri pour isoler la source que tu veux comparer ou acheter en boucle."
+        },
+        "step3": {
+          "title": "Lis d’abord la dernière colonne",
+          "referenceText": "Coût total au prix cible est le vrai total estimé pour monter un familier 1→100 avec cet item seul.",
+          "manualText": "Coût total lvl 100 est le vrai total estimé pour monter un familier 1→100 avec cet item seul."
+        }
+      },
+      "cards": {
+        "columns": {
+          "title": "Colonnes",
+          "xpLabel": "XP / unité",
+          "xpText": "XP donné par un item.",
+          "qtyLabel": "Qté nécessaire",
+          "qtyText": "nombre d’unités nécessaires pour monter 1→100.",
+          "referencePriceLabel": "Prix cible / unité",
+          "referencePriceText": "plafond d’achat conseillé par unité.",
+          "manualPriceLabel": "Prix saisi / unité",
+          "manualPriceText": "prix HDV unitaire que tu as saisi.",
+          "referenceTotalLabel": "Coût total au prix cible",
+          "manualTotalLabel": "Coût total lvl 100",
+          "totalText": "montant final estimé."
+        },
+        "example": {
+          "title": "Exemple",
+          "line1": "Si une ligne affiche 13 815 en quantité et 362 k en prix unitaire, il faut environ 13 815 unités.",
+          "line2": "Le total sera donc environ 13 815 × 362, soit un coût proche du budget de référence."
+        }
+      }
     }
   },
   "succes": {

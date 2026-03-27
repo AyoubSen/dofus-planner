@@ -4,10 +4,10 @@
     <div class="v2-items-filters">
       <div class="v2-items-filters__topbar">
         <div>
-          <div class="v2-items-filters__title">Guide page</div>
-          <div class="v2-items-filters__subtitle">How to take screenshots and use the OCR flow consistently.</div>
+          <div class="v2-items-filters__title">{{ $t('items.guide.entryTitle') }}</div>
+          <div class="v2-items-filters__subtitle">{{ $t('items.guide.entrySubtitle') }}</div>
         </div>
-        <button class="v2-guide-btn" type="button" aria-label="Open items guide" @click="openGuide('main')">?</button>
+        <button class="v2-guide-btn" type="button" :aria-label="$t('items.guide.openAria')" @click="openGuide('main')">?</button>
       </div>
 
       <!-- Element -->
@@ -97,95 +97,94 @@
     </div>
 
     <Transition name="v2-guide-modal">
-      <div v-if="guideOpen" class="v2-guide-modal" role="dialog" aria-modal="true" aria-label="Items guide" @click.self="guideOpen = false">
+      <div v-if="guideOpen" class="v2-guide-modal" role="dialog" aria-modal="true" :aria-label="$t('items.guide.dialogAria')" @click.self="guideOpen = false">
         <div class="v2-guide">
           <div class="v2-guide__topbar">
             <div>
-              <div class="v2-guide__eyebrow">Guide rapide</div>
+              <div class="v2-guide__eyebrow">{{ $t('items.guide.eyebrow') }}</div>
               <div class="v2-guide__title">
                 {{ guideMode === 'main'
-                  ? 'Items page: browse slots, inspect demand, then open a target item'
-                  : 'Item detail: use clean screenshots for reliable OCR' }}
+                  ? $t('items.guide.main.title')
+                  : $t('items.guide.recipe.title') }}
               </div>
             </div>
-            <button class="v2-guide__close" type="button" aria-label="Close guide" @click="guideOpen = false">×</button>
+            <button class="v2-guide__close" type="button" :aria-label="$t('items.guide.closeAria')" @click="guideOpen = false">×</button>
           </div>
 
           <template v-if="guideMode === 'main'">
             <div class="v2-guide__intro">
-              The main page helps you narrow the dataset first, then jump into a specific item when something looks worth investigating.
+              {{ $t('items.guide.main.intro') }}
             </div>
 
             <div class="v2-guide__steps">
               <div class="v2-guide-step">
                 <div class="v2-guide-step__num">1</div>
                 <div>
-                  <div class="v2-guide-step__title">Filter the dataset</div>
-                  <div class="v2-guide-step__text">Use element, mode, level, budget and class filters to reduce the item pool to the kind of builds you care about.</div>
+                  <div class="v2-guide-step__title">{{ $t('items.guide.main.steps.filter.title') }}</div>
+                  <div class="v2-guide-step__text">{{ $t('items.guide.main.steps.filter.text') }}</div>
                 </div>
               </div>
               <div class="v2-guide-step">
                 <div class="v2-guide-step__num">2</div>
                 <div>
-                  <div class="v2-guide-step__title">Choose a slot</div>
-                  <div class="v2-guide-step__text">The slot tabs are the main navigation. They let you focus on one equipment category and compare what appears most often there.</div>
+                  <div class="v2-guide-step__title">{{ $t('items.guide.main.steps.slot.title') }}</div>
+                  <div class="v2-guide-step__text">{{ $t('items.guide.main.steps.slot.text') }}</div>
                 </div>
               </div>
               <div class="v2-guide-step">
                 <div class="v2-guide-step__num">3</div>
                 <div>
-                  <div class="v2-guide-step__title">Open an item for detail</div>
-                  <div class="v2-guide-step__text">Once you click an item, you switch to the detailed recipe and OCR workflow. That view has its own dedicated guide.</div>
+                  <div class="v2-guide-step__title">{{ $t('items.guide.main.steps.detail.title') }}</div>
+                  <div class="v2-guide-step__text">{{ $t('items.guide.main.steps.detail.text') }}</div>
                 </div>
               </div>
             </div>
 
             <div class="v2-guide__grid">
               <section class="v2-guide-card">
-                <div class="v2-guide-card__title">What the main page shows</div>
-                <div class="v2-guide-card__text">The stat cards summarize the current slice, the context strip explains what you are looking at, and the slot tabs show where item variety is concentrated.</div>
+                <div class="v2-guide-card__title">{{ $t('items.guide.main.cards.overview.title') }}</div>
+                <div class="v2-guide-card__text">{{ $t('items.guide.main.cards.overview.text') }}</div>
               </section>
               <section class="v2-guide-card">
-                <div class="v2-guide-card__title">What to do next</div>
-                <div class="v2-guide-card__text">If an item looks promising, open it to inspect the recipe, save observed prices, run OCR on market screenshots, and compare real crafting costs.</div>
+                <div class="v2-guide-card__title">{{ $t('items.guide.main.cards.next.title') }}</div>
+                <div class="v2-guide-card__text">{{ $t('items.guide.main.cards.next.text') }}</div>
               </section>
             </div>
           </template>
 
           <template v-else>
             <div class="v2-guide__intro">
-              This view has two screenshot workflows: one to detect market prices, and one to extract stat lines from an observed item.
-              For both, the cleaner and more consistent the screenshot is, the better the OCR results will be.
+              {{ $t('items.guide.recipe.intro') }}
             </div>
 
             <div class="v2-guide__steps">
               <div class="v2-guide-step">
                 <div class="v2-guide-step__num">1</div>
                 <div>
-                  <div class="v2-guide-step__title">Keep only the useful game area</div>
-                  <div class="v2-guide-step__text">Avoid desktop borders, Discord, browser chrome, or extra UI around the Dofus window.</div>
+                  <div class="v2-guide-step__title">{{ $t('items.guide.recipe.steps.crop.title') }}</div>
+                  <div class="v2-guide-step__text">{{ $t('items.guide.recipe.steps.crop.text') }}</div>
                 </div>
               </div>
               <div class="v2-guide-step">
                 <div class="v2-guide-step__num">2</div>
                 <div>
-                  <div class="v2-guide-step__title">Use the same framing every time</div>
-                  <div class="v2-guide-step__text">Try to keep the price column and stats block in roughly the same position so OCR remains predictable.</div>
+                  <div class="v2-guide-step__title">{{ $t('items.guide.recipe.steps.framing.title') }}</div>
+                  <div class="v2-guide-step__text">{{ $t('items.guide.recipe.steps.framing.text') }}</div>
                 </div>
               </div>
               <div class="v2-guide-step">
                 <div class="v2-guide-step__num">3</div>
                 <div>
-                  <div class="v2-guide-step__title">Prefer sharp screenshots over compressed captures</div>
-                  <div class="v2-guide-step__text">Full-resolution screenshots work better than blurry phone photos or heavily compressed chat images.</div>
+                  <div class="v2-guide-step__title">{{ $t('items.guide.recipe.steps.quality.title') }}</div>
+                  <div class="v2-guide-step__text">{{ $t('items.guide.recipe.steps.quality.text') }}</div>
                 </div>
               </div>
             </div>
 
             <div class="v2-guide__grid">
             <section class="v2-guide-card">
-              <div class="v2-guide-card__title">Market screenshot</div>
-              <div class="v2-guide-card__text">Use this when clicking `OCR screenshot` or `Paste screenshot` in the recipe section. The price list should be clearly readable and centered in the capture.</div>
+              <div class="v2-guide-card__title">{{ $t('items.guide.recipe.cards.market.title') }}</div>
+              <div class="v2-guide-card__text">{{ $t('items.guide.recipe.cards.market.text') }}</div>
               <div class="v2-guide-shot">
                 <img
                   v-if="marketGuideImageVisible"
@@ -195,15 +194,15 @@
                   @error="marketGuideImageVisible = false"
                 />
                 <div v-else class="v2-guide-shot__placeholder">
-                  <strong>Placeholder image</strong>
+                  <strong>{{ $t('items.guide.recipe.placeholderTitle') }}</strong>
                   <span>`/public/guide/items-market-example.png`</span>
                 </div>
               </div>
             </section>
 
             <section class="v2-guide-card">
-              <div class="v2-guide-card__title">Stats screenshot</div>
-              <div class="v2-guide-card__text">Use this when saving observed item stats. The item stat block should be fully visible, without cutting lines or mixing in unrelated tooltips.</div>
+              <div class="v2-guide-card__title">{{ $t('items.guide.recipe.cards.stats.title') }}</div>
+              <div class="v2-guide-card__text">{{ $t('items.guide.recipe.cards.stats.text') }}</div>
               <div class="v2-guide-shot">
                 <img
                   v-if="statsGuideImageVisible"
@@ -213,7 +212,7 @@
                   @error="statsGuideImageVisible = false"
                 />
                 <div v-else class="v2-guide-shot__placeholder">
-                  <strong>Placeholder image</strong>
+                  <strong>{{ $t('items.guide.recipe.placeholderTitle') }}</strong>
                   <span>`/public/guide/items-stats-example.png`</span>
                 </div>
               </div>
@@ -244,7 +243,7 @@
       </div>
     </div>
     <div v-if="stats" class="v2-context-strip">
-      <div class="v2-context-strip__title">Current data slice</div>
+      <div class="v2-context-strip__title">{{ $t('items.contextTitle') }}</div>
       <div class="v2-context-strip__subtitle">{{ itemsDataContextSubtitle }}</div>
     </div>
 
@@ -282,11 +281,11 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
-                Back
+                {{ $t('items.detail.common.back') }}
               </button>
               <div class="v2-recipe-top__meta">
-                <span class="v2-recipe-kicker">Recipe proof of concept</span>
-                <button class="v2-guide-btn v2-guide-btn--small" type="button" aria-label="Open item detail guide" @click="openGuide('recipe')">?</button>
+                <span class="v2-recipe-kicker">{{ $t('items.recipe.kicker') }}</span>
+                <button class="v2-guide-btn v2-guide-btn--small" type="button" :aria-label="$t('items.guide.openRecipeAria')" @click="openGuide('recipe')">?</button>
               </div>
             </div>
 
@@ -297,16 +296,16 @@
               </div>
               <div class="min-w-0">
                 <div class="v2-recipe-item__name">{{ selectedRecipeItem.name }}</div>
-                <div class="v2-recipe-item__meta">{{ $t(`items.slots.${activeSlot}`) }} · {{ selectedRecipeItem.count }} uses</div>
+                <div class="v2-recipe-item__meta">{{ $t(`items.slots.${activeSlot}`) }} · {{ selectedRecipeItem.count }} {{ $t('items.uses') }}</div>
                 <div class="v2-recipe-item__actions">
                   <button class="v2-recipe-refresh" @click="refetchSelectedRecipe">
-                    Refetch recipe
+                    {{ $t('items.detail.recipe.actions.refetch') }}
                   </button>
                   <button class="v2-recipe-refresh" @click="openOcrPicker">
-                    OCR screenshot
+                    {{ $t('items.detail.recipe.actions.ocrScreenshot') }}
                   </button>
                   <button class="v2-recipe-refresh" @click="pasteMarketScreenshot">
-                    Paste screenshot
+                    {{ $t('items.detail.recipe.actions.pasteScreenshot') }}
                   </button>
                   <input
                     ref="ocrFileInput"
@@ -323,17 +322,17 @@
                       'v2-recipe-confidence--approx': recipeLookupState.confidence === 'approx',
                     }"
                   >
-                    {{ recipeLookupState.confidence === 'exact' ? 'Exact match' : 'Approx match' }}
+                    {{ recipeLookupState.confidence === 'exact' ? $t('items.detail.recipe.confidence.exact') : $t('items.detail.recipe.confidence.approx') }}
                   </span>
                   <span v-if="recipeLookupState.source" class="v2-recipe-cache-hint">
-                    {{ recipeLookupState.source === 'cache' ? 'Loaded from cache' : 'Fresh fetch' }}
+                    {{ recipeLookupState.source === 'cache' ? $t('items.detail.recipe.source.cache') : $t('items.detail.recipe.source.fresh') }}
                   </span>
                 </div>
               </div>
             </div>
 
             <div v-if="ocrState.isLoading" class="v2-inline-ocr">
-              <div class="v2-spin-sm" /> Extracting price candidates from screenshot...
+              <div class="v2-spin-sm" /> {{ $t('items.detail.ocr.loadingPrices') }}
             </div>
 
             <div v-else-if="ocrState.error" class="v2-recipe-error">
@@ -342,15 +341,15 @@
 
             <div v-else-if="ocrState.candidates.length" class="v2-ocr-panel">
               <div class="v2-ocr-panel__head">
-                <span class="v2-rstat__label">OCR price candidates</span>
+                <span class="v2-rstat__label">{{ $t('items.detail.ocr.candidatesTitle') }}</span>
                 <div class="v2-recipe-item__actions">
-                  <span class="v2-recipe-cache-hint">Click one to fill the sell price</span>
+                  <span class="v2-recipe-cache-hint">{{ $t('items.detail.ocr.clickHint') }}</span>
                   <button
                     v-if="ocrState.screenshotDataUrl"
                     class="v2-recipe-refresh"
                     @click="saveOcrSnapshotPrices"
                   >
-                    Save OCR prices
+                    {{ $t('items.detail.ocr.save') }}
                   </button>
                 </div>
               </div>
@@ -366,8 +365,8 @@
               </div>
               <div v-if="ocrState.debugRows.length" class="v2-ocr-debug">
                 <div class="v2-ocr-debug__head">
-                  <span class="v2-rstat__label">OCR debug rows</span>
-                  <span class="v2-recipe-cache-hint">Mode: {{ ocrState.debugMode || 'unknown' }}</span>
+                  <span class="v2-rstat__label">{{ $t('items.detail.ocr.debugTitle') }}</span>
+                  <span class="v2-recipe-cache-hint">{{ $t('items.detail.ocr.mode') }}: {{ ocrState.debugMode || $t('items.detail.common.unknown') }}</span>
                 </div>
                 <div class="v2-ocr-debug__list">
                   <div
@@ -375,12 +374,12 @@
                     :key="`${row.source}-${index}-${row.raw}`"
                     class="v2-ocr-debug__row"
                   >
-                    <span class="v2-ocr-debug__raw">{{ row.raw || '∅' }}</span>
+                    <span class="v2-ocr-debug__raw">{{ row.raw || $t('items.detail.common.emptySymbol') }}</span>
                     <span class="v2-ocr-debug__tokens">
-                      [{{ row.tokens.join(', ') || 'no tokens' }}]
+                      [{{ row.tokens.join(', ') || $t('items.detail.ocr.noTokens') }}]
                     </span>
                     <span class="v2-ocr-debug__candidate">
-                      {{ row.candidate ? formatKamasFull(row.candidate) : 'rejected' }}
+                      {{ row.candidate ? formatKamasFull(row.candidate) : $t('items.detail.ocr.rejected') }}
                     </span>
                   </div>
                 </div>
@@ -388,7 +387,7 @@
             </div>
 
             <div v-if="recipeLookupState.isLoading" class="v2-center-loader">
-              <div class="v2-spin" /> Loading recipe...
+              <div class="v2-spin" /> {{ $t('items.detail.recipe.loading') }}
             </div>
 
             <div v-else-if="recipeLookupState.error" class="v2-recipe-error">
@@ -396,42 +395,42 @@
             </div>
 
             <template v-else-if="recipeLookupState.data">
-              <div class="v2-section-head">Recipe</div>
+              <div class="v2-section-head">{{ $t('items.detail.recipe.sectionTitle') }}</div>
               <div class="v2-recipe-stats">
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Profession</div>
-                  <div class="v2-rstat__val">{{ recipeLookupState.data.job?.name?.fr || recipeLookupState.data.job?.name?.en || 'Unknown' }}</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.recipe.profession') }}</div>
+                  <div class="v2-rstat__val">{{ recipeLookupState.data.job?.name?.fr || recipeLookupState.data.job?.name?.en || $t('items.detail.common.unknown') }}</div>
                 </div>
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Ingredients</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.recipe.ingredients') }}</div>
                   <div class="v2-rstat__val">{{ recipeIngredients.length }}</div>
                 </div>
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Recipe ID</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.recipe.id') }}</div>
                   <div class="v2-rstat__val">{{ recipeLookupState.data.id }}</div>
                 </div>
               </div>
 
-              <div class="v2-section-head">Craft cost</div>
+              <div class="v2-section-head">{{ $t('items.detail.cost.sectionTitle') }}</div>
               <div class="v2-recipe-cost">
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Craft cost</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.cost.total') }}</div>
                   <div class="v2-rstat__val">{{ formatKamasFull(recipeCostSummary.totalCost) }}</div>
                 </div>
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Priced ingredients</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.cost.pricedIngredients') }}</div>
                   <div class="v2-rstat__val">{{ recipeCostSummary.pricedCount }} / {{ recipeCostSummary.totalIngredients }}</div>
                 </div>
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Missing prices</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.cost.missingPrices') }}</div>
                   <div class="v2-rstat__val">{{ recipeCostSummary.missingCount }}</div>
                 </div>
               </div>
 
-              <div class="v2-section-head">Pricing</div>
+              <div class="v2-section-head">{{ $t('items.detail.pricing.sectionTitle') }}</div>
               <div class="v2-recipe-sell">
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Sell price</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.pricing.sellPrice') }}</div>
                   <input
                     v-model.number="selectedRecipeSellPrice"
                     type="number"
@@ -442,7 +441,7 @@
                   />
                 </div>
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Estimated margin</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.pricing.margin') }}</div>
                   <div
                     class="v2-rstat__val"
                     :class="{
@@ -454,7 +453,7 @@
                   </div>
                 </div>
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Margin rate</div>
+                  <div class="v2-rstat__label">{{ $t('items.detail.pricing.marginRate') }}</div>
                   <div
                     class="v2-rstat__val"
                     :class="{
@@ -469,9 +468,9 @@
 
               <div v-if="currentItemPriorityOptions.length" class="v2-priority-panel">
                 <div class="v2-price-manager__head v2-collapsible-head" @click="showValuationFocus = !showValuationFocus">
-                  <span class="v2-rstat__label">Valuation focus</span>
+                  <span class="v2-rstat__label">{{ $t('items.detail.valuation.focusTitle') }}</span>
                   <div class="v2-collapsible-right">
-                    <span class="v2-recipe-cache-hint">Choose which stats matter more for this item</span>
+                    <span class="v2-recipe-cache-hint">{{ $t('items.detail.valuation.focusHint') }}</span>
                     <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showValuationFocus }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </div>
@@ -506,48 +505,48 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
-                    Back to observed prices
+                    {{ $t('items.detail.observed.backToList') }}
                   </button>
-                  <span class="v2-recipe-kicker">Observed listing stats</span>
+                  <span class="v2-recipe-kicker">{{ $t('items.detail.observed.kicker') }}</span>
                 </div>
                 <div class="v2-observation-detail__head">
                   <div class="v2-rstat">
-                    <div class="v2-rstat__label">Observed price</div>
+                    <div class="v2-rstat__label">{{ $t('items.detail.observed.price') }}</div>
                     <div class="v2-rstat__val">{{ formatKamasFull(selectedObservationDetail.price) }}</div>
                   </div>
                   <div class="v2-observation-detail__actions">
                     <button class="v2-recipe-refresh" @click="selectedRecipeSellPrice = selectedObservationDetail.price">
-                      Use as sell price
+                      {{ $t('items.detail.observed.actions.useAsSellPrice') }}
                     </button>
                     <button
                       v-if="selectedObservationDetail.marketScreenshotDataUrl"
                       class="v2-recipe-refresh"
                       @click="clearObservationScreenshots(selectedObservationDetail.id, { market: true })"
                     >
-                      Remove market screenshot
+                      {{ $t('items.detail.observed.actions.removeMarketScreenshot') }}
                     </button>
                     <button class="v2-recipe-refresh" @click="openStatsScreenshotPicker(selectedObservationDetail.id)">
-                      {{ selectedObservationDetail.statsScreenshotDataUrl ? 'Replace stats screenshot' : 'Upload stats screenshot' }}
+                      {{ selectedObservationDetail.statsScreenshotDataUrl ? $t('items.detail.observed.actions.replaceStatsScreenshot') : $t('items.detail.observed.actions.uploadStatsScreenshot') }}
                     </button>
                     <button
                       v-if="selectedObservationDetail.statsScreenshotDataUrl"
                       class="v2-recipe-refresh"
                       @click="clearObservationScreenshots(selectedObservationDetail.id, { stats: true })"
                     >
-                      Remove stats screenshot
+                      {{ $t('items.detail.observed.actions.removeStatsScreenshot') }}
                     </button>
                     <button class="v2-recipe-refresh" @click="pasteStatsScreenshot(selectedObservationDetail.id)">
-                      Paste screenshot
+                      {{ $t('items.detail.recipe.actions.pasteScreenshot') }}
                     </button>
                     <button
                       class="v2-recipe-refresh"
                       :disabled="resaleTrackedObservationIds.has(selectedObservationDetail.id) || !selectedServer || !selectedCharacter"
                       @click="sendObservationToResaleTracker(selectedObservationDetail)"
                     >
-                      {{ resaleTrackedObservationIds.has(selectedObservationDetail.id) ? 'Tracked' : 'Send to tracker' }}
+                      {{ resaleTrackedObservationIds.has(selectedObservationDetail.id) ? $t('items.detail.observed.actions.tracked') : $t('items.detail.observed.actions.sendToTracker') }}
                     </button>
                     <NuxtLink to="/resale" class="v2-recipe-refresh">
-                      Open tracker
+                      {{ $t('items.detail.observed.actions.openTracker') }}
                     </NuxtLink>
                   </div>
                 </div>
@@ -561,19 +560,19 @@
                     :class="{ 'v2-fchip--on': observationDetailTab === 'stats' }"
                     @click="observationDetailTab = 'stats'"
                   >
-                    Stats
+                    {{ $t('items.detail.observed.tabs.stats') }}
                   </button>
                   <button
                     class="v2-fchip"
                     :class="{ 'v2-fchip--on': observationDetailTab === 'explain' }"
                     @click="observationDetailTab = 'explain'"
                   >
-                    Valuation Explain
+                    {{ $t('items.detail.observed.tabs.explain') }}
                   </button>
                 </div>
 
                 <div v-if="statsOcrState.isLoading" class="v2-inline-ocr">
-                  <div class="v2-spin-sm" /> Extracting stat lines from screenshot...
+                  <div class="v2-spin-sm" /> {{ $t('items.detail.ocr.loadingStats') }}
                 </div>
 
                 <div v-else-if="statsOcrState.error" class="v2-recipe-error">
@@ -583,7 +582,7 @@
                 <div v-if="selectedObservationDetail.statsScreenshotDataUrl" class="v2-observation-detail__image-wrap">
                   <img
                     :src="selectedObservationDetail.statsScreenshotDataUrl"
-                    alt="Observed stats screenshot"
+                    :alt="$t('items.detail.observed.statsScreenshotAlt')"
                     class="v2-observation-detail__image"
                   />
                 </div>
@@ -594,28 +593,28 @@
                   class="v2-stats-health"
                 >
                   <div class="v2-price-manager__head">
-                    <span class="v2-rstat__label">Stats health</span>
+                    <span class="v2-rstat__label">{{ $t('items.detail.observed.statsHealth.title') }}</span>
                     <div class="v2-observation-summary-actions">
                       <span v-if="selectedObservationStatsHealth.missing.length" class="v2-observed-badge v2-observed-badge--warn">
-                        {{ selectedObservationStatsHealth.missing.length }} missing
+                        {{ selectedObservationStatsHealth.missing.length }} {{ $t('items.detail.observed.statsHealth.badges.missing') }}
                       </span>
                       <span v-if="selectedObservationStatsHealth.unmatchedOfficial.length" class="v2-observed-badge v2-observed-badge--neutral">
-                        {{ selectedObservationStatsHealth.unmatchedOfficial.length }} unmatched official
+                        {{ selectedObservationStatsHealth.unmatchedOfficial.length }} {{ $t('items.detail.observed.statsHealth.badges.unmatchedOfficial') }}
                       </span>
                       <span v-if="selectedObservationStatsHealth.unexpected.length" class="v2-observed-badge v2-observed-badge--neutral">
-                        {{ selectedObservationStatsHealth.unexpected.length }} unexpected
+                        {{ selectedObservationStatsHealth.unexpected.length }} {{ $t('items.detail.observed.statsHealth.badges.unexpected') }}
                       </span>
                       <span v-if="selectedObservationStatsHealth.duplicates.length" class="v2-observed-badge v2-observed-badge--neutral">
-                        {{ selectedObservationStatsHealth.duplicates.length }} duplicate keys
+                        {{ selectedObservationStatsHealth.duplicates.length }} {{ $t('items.detail.observed.statsHealth.badges.duplicateKeys') }}
                       </span>
                       <span v-if="selectedObservationStatsHealth.incomplete.length" class="v2-observed-badge v2-observed-badge--warn">
-                        {{ selectedObservationStatsHealth.incomplete.length }} incomplete
+                        {{ selectedObservationStatsHealth.incomplete.length }} {{ $t('items.detail.observed.statsHealth.badges.incomplete') }}
                       </span>
                     </div>
                   </div>
 
                   <div v-if="selectedObservationStatsHealth.unmatchedOfficial.length" class="v2-stats-health__group">
-                    <div class="v2-stats-health__title">Unmatched official DofusDB stats</div>
+                    <div class="v2-stats-health__title">{{ $t('items.detail.observed.statsHealth.sections.unmatchedOfficial') }}</div>
                     <div class="v2-stats-health__list">
                       <div
                         v-for="entry in selectedObservationStatsHealth.unmatchedOfficial"
@@ -632,7 +631,7 @@
                   </div>
 
                   <div v-if="selectedObservationStatsHealth.missing.length" class="v2-stats-health__group">
-                    <div class="v2-stats-health__title">Missing expected stats</div>
+                    <div class="v2-stats-health__title">{{ $t('items.detail.observed.statsHealth.sections.missing') }}</div>
                     <div class="v2-stats-health__list">
                       <div
                         v-for="entry in selectedObservationStatsHealth.missing"
@@ -644,14 +643,14 @@
                           <span v-if="entry.rangeText" class="v2-stats-health__range">{{ entry.rangeText }}</span>
                         </div>
                         <button class="v2-recipe-refresh" @click="addExpectedObservationStat(entry.key)">
-                          Add
+                          {{ $t('items.detail.observed.statsHealth.actions.add') }}
                         </button>
                       </div>
                     </div>
                   </div>
 
                   <div v-if="selectedObservationStatsHealth.unexpected.length" class="v2-stats-health__group">
-                    <div class="v2-stats-health__title">Unexpected parsed stats</div>
+                    <div class="v2-stats-health__title">{{ $t('items.detail.observed.statsHealth.sections.unexpected') }}</div>
                     <div class="v2-stats-health__list">
                       <div
                         v-for="entry in selectedObservationStatsHealth.unexpected"
@@ -659,13 +658,13 @@
                         class="v2-stats-health__row"
                       >
                         <div class="v2-stats-health__label">{{ entry.label }}</div>
-                        <span class="v2-recipe-cache-hint">Review or remove</span>
+                        <span class="v2-recipe-cache-hint">{{ $t('items.detail.observed.statsHealth.reviewOrRemove') }}</span>
                       </div>
                     </div>
                   </div>
 
                   <div v-if="selectedObservationStatsHealth.duplicates.length" class="v2-stats-health__group">
-                    <div class="v2-stats-health__title">Duplicate stat keys</div>
+                    <div class="v2-stats-health__title">{{ $t('items.detail.observed.statsHealth.sections.duplicates') }}</div>
                     <div class="v2-stats-health__list">
                       <div
                         v-for="entry in selectedObservationStatsHealth.duplicates"
@@ -673,13 +672,13 @@
                         class="v2-stats-health__row"
                       >
                         <div class="v2-stats-health__label">{{ entry.label }}</div>
-                        <span class="v2-recipe-cache-hint">{{ entry.count }} entries</span>
+                        <span class="v2-recipe-cache-hint">{{ $t('items.detail.observed.statsHealth.entryCount', { count: entry.count }) }}</span>
                       </div>
                     </div>
                   </div>
 
                   <div v-if="selectedObservationStatsHealth.incomplete.length" class="v2-stats-health__group">
-                    <div class="v2-stats-health__title">Incomplete stat rows</div>
+                    <div class="v2-stats-health__title">{{ $t('items.detail.observed.statsHealth.sections.incomplete') }}</div>
                     <div class="v2-stats-health__list">
                       <div
                         v-for="entry in selectedObservationStatsHealth.incomplete"
@@ -687,7 +686,7 @@
                         class="v2-stats-health__row"
                       >
                         <div class="v2-stats-health__label">{{ entry.label }}</div>
-                        <span class="v2-recipe-cache-hint">Missing value</span>
+                        <span class="v2-recipe-cache-hint">{{ $t('items.detail.observed.statsHealth.missingValue') }}</span>
                       </div>
                     </div>
                   </div>
@@ -695,9 +694,9 @@
 
                 <div ref="exactStatsSectionRef" class="v2-observation-detail__stats">
                   <div class="v2-price-manager__head">
-                    <span class="v2-rstat__label">Exact stats</span>
+                    <span class="v2-rstat__label">{{ $t('items.detail.observed.exactStats.title') }}</span>
                     <button class="v2-recipe-refresh" @click="addObservationStatEntry">
-                      Add stat
+                      {{ $t('items.detail.observed.exactStats.add') }}
                     </button>
                   </div>
                   <div v-if="selectedObservationDetail.statsEntries.length" class="v2-observation-detail__stats-list">
@@ -737,18 +736,18 @@
                         <span v-if="entry.suffix" class="v2-observation-detail__stats-suffix">{{ entry.suffix }}</span>
                       </div>
                       <button class="v2-recipe-refresh" @click="removeObservationStatEntry(index)">
-                        Remove
+                        {{ $t('items.detail.common.remove') }}
                       </button>
                     </div>
                   </div>
                   <div v-else class="v2-empty-full">
-                    No stat lines saved yet. Upload a stats screenshot or add them manually.
+                    {{ $t('items.detail.observed.exactStats.empty') }}
                   </div>
                 </div>
 
                 <div v-if="selectedObservationDetail.statsRawText" class="v2-ocr-debug">
                   <div class="v2-ocr-debug__head">
-                    <span class="v2-rstat__label">Stats OCR raw text</span>
+                    <span class="v2-rstat__label">{{ $t('items.detail.observed.rawText') }}</span>
                   </div>
                   <pre class="v2-observation-detail__raw">{{ selectedObservationDetail.statsRawText }}</pre>
                 </div>
@@ -758,19 +757,19 @@
                   <div v-if="selectedObservationValuationExplanation" class="v2-valuation-explain__stack">
                     <div class="v2-valuation-explain__summary">
                       <div class="v2-rstat">
-                        <div class="v2-rstat__label">Model</div>
+                        <div class="v2-rstat__label">{{ $t('items.detail.valuation.model') }}</div>
                         <div class="v2-rstat__val">{{ selectedObservationValuationExplanation.methodLabel }}</div>
                       </div>
                       <div class="v2-rstat">
-                        <div class="v2-rstat__label">Score</div>
+                        <div class="v2-rstat__label">{{ $t('items.detail.valuation.score') }}</div>
                         <div class="v2-rstat__val">{{ selectedObservationValuationExplanation.score.toFixed(2) }}</div>
                       </div>
                       <div class="v2-rstat">
-                        <div class="v2-rstat__label">Fair value</div>
+                        <div class="v2-rstat__label">{{ $t('items.detail.valuation.fairValue') }}</div>
                         <div class="v2-rstat__val">{{ formatKamasFull(selectedObservationValuationExplanation.fairValue) }}</div>
                       </div>
                       <div class="v2-rstat">
-                        <div class="v2-rstat__label">Delta</div>
+                        <div class="v2-rstat__label">{{ $t('items.detail.valuation.delta') }}</div>
                         <div
                           class="v2-rstat__val"
                           :class="{
@@ -789,20 +788,20 @@
 
                     <div class="v2-priority-panel">
                       <div class="v2-price-manager__head">
-                        <span class="v2-rstat__label">How the score was built</span>
-                        <span class="v2-recipe-cache-hint">Range progress × weight, with overmage preserved above max</span>
+                        <span class="v2-rstat__label">{{ $t('items.detail.valuation.scoreBuildTitle') }}</span>
+                        <span class="v2-recipe-cache-hint">{{ $t('items.detail.valuation.scoreBuildHint') }}</span>
                       </div>
                       <div class="v2-explain-table v2-explain-table--score">
-                        <div class="v2-explain-table__head">Stat</div>
-                        <div class="v2-explain-table__head">Value</div>
-                        <div class="v2-explain-table__head">Range</div>
-                        <div class="v2-explain-table__head">Progress</div>
-                        <div class="v2-explain-table__head">Weight</div>
-                        <div class="v2-explain-table__head">Contribution</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.table.stat') }}</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.table.value') }}</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.table.range') }}</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.table.progress') }}</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.table.weight') }}</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.table.contribution') }}</div>
                         <template v-for="row in selectedObservationValuationExplanation.contributions" :key="`${selectedObservationDetail.id}-${row.index}-${row.key}`">
                           <div class="v2-explain-table__cell">
                             {{ row.label }}
-                            <span v-if="row.overmageAmount > 0" class="v2-recipe-cache-hint">+{{ row.overmageAmount }} over</span>
+                            <span v-if="row.overmageAmount > 0" class="v2-recipe-cache-hint">+{{ row.overmageAmount }} {{ $t('items.detail.valuation.overmage') }}</span>
                           </div>
                           <div class="v2-explain-table__cell">{{ row.value ?? '—' }}{{ row.suffix }}</div>
                           <div class="v2-explain-table__cell">{{ row.rangeText || '—' }}</div>
@@ -815,14 +814,14 @@
 
                     <div class="v2-priority-panel">
                       <div class="v2-price-manager__head">
-                        <span class="v2-rstat__label">Comparable listings used</span>
-                        <span class="v2-recipe-cache-hint">{{ selectedObservationValuationExplanation.peers.length }} peer{{ selectedObservationValuationExplanation.peers.length > 1 ? 's' : '' }} in the leave-one-out model</span>
+                        <span class="v2-rstat__label">{{ $t('items.detail.valuation.comparablesTitle') }}</span>
+                        <span class="v2-recipe-cache-hint">{{ $t('items.detail.valuation.peersSummary', { count: selectedObservationValuationExplanation.peers.length }) }}</span>
                       </div>
                       <div v-if="selectedObservationValuationExplanation.peers.length" class="v2-explain-table v2-explain-table--peer">
-                        <div class="v2-explain-table__head">Price</div>
-                        <div class="v2-explain-table__head">Score</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.peerTable.price') }}</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.peerTable.score') }}</div>
                         <div class="v2-explain-table__head">{{ selectedObservationValuationExplanation.peerMetricLabel }}</div>
-                        <div class="v2-explain-table__head">Distance</div>
+                        <div class="v2-explain-table__head">{{ $t('items.detail.valuation.peerTable.distance') }}</div>
                         <template v-for="peer in selectedObservationValuationExplanation.peers" :key="peer.id">
                           <div class="v2-explain-table__cell">{{ formatKamasFull(peer.price) }}</div>
                           <div class="v2-explain-table__cell">{{ peer.score.toFixed(2) }}</div>
@@ -831,12 +830,12 @@
                         </template>
                       </div>
                       <div v-else class="v2-empty-full">
-                        No comparable listings were available for this observation.
+                        {{ $t('items.detail.valuation.noComparables') }}
                       </div>
                     </div>
                   </div>
                   <div v-else class="v2-empty-full">
-                    This listing does not have enough recognized stats or peers yet to explain a valuation.
+                    {{ $t('items.detail.valuation.notEnoughData') }}
                   </div>
                 </div>
               </div>
@@ -847,31 +846,31 @@
                 class="v2-observed-prices"
               >
                 <div class="v2-price-manager__head">
-                  <span class="v2-rstat__label">Observed prices</span>
+                  <span class="v2-rstat__label">{{ $t('items.detail.observed.listTitle') }}</span>
                   <div class="v2-observation-summary-actions">
-                    <span class="v2-recipe-cache-hint">{{ selectedItemObservations.length }} saved</span>
+                    <span class="v2-recipe-cache-hint">{{ $t('items.detail.observed.savedCount', { count: selectedItemObservations.length }) }}</span>
                     <span
                       v-if="selectedItemScreenshotSummary.totalCount"
                       class="v2-recipe-cache-hint"
                     >
-                      {{ selectedItemScreenshotSummary.marketCount }} market · {{ selectedItemScreenshotSummary.statsCount }} stats screenshots
+                      {{ $t('items.detail.observed.screenshotSummary', { market: selectedItemScreenshotSummary.marketCount, stats: selectedItemScreenshotSummary.statsCount }) }}
                     </span>
                     <div class="v2-observed-sort">
-                      <span class="v2-recipe-cache-hint">Sort</span>
+                      <span class="v2-recipe-cache-hint">{{ $t('items.detail.observed.sort.label') }}</span>
                       <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'newest' }" @click="observedSortMode = 'newest'">
-                        Newest
+                        {{ $t('items.detail.observed.sort.newest') }}
                       </button>
                       <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'price_asc' }" @click="observedSortMode = 'price_asc'">
-                        Price ↑
+                        {{ $t('items.detail.observed.sort.priceAsc') }}
                       </button>
                       <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'price_desc' }" @click="observedSortMode = 'price_desc'">
-                        Price ↓
+                        {{ $t('items.detail.observed.sort.priceDesc') }}
                       </button>
                       <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'delta' }" @click="observedSortMode = 'delta'">
-                        Delta
+                        {{ $t('items.detail.observed.sort.delta') }}
                       </button>
                       <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': observedSortMode === 'best_buy' }" @click="observedSortMode = 'best_buy'">
-                        Best buy
+                        {{ $t('items.detail.observed.sort.bestBuy') }}
                       </button>
                     </div>
                     <button
@@ -879,14 +878,14 @@
                       class="v2-recipe-refresh"
                       @click.stop="clearAllObservationScreenshots"
                     >
-                      Clear screenshots
+                      {{ $t('items.detail.observed.actions.clearScreenshots') }}
                     </button>
                     <button class="v2-recipe-refresh v2-remove-all-btn" @click.stop="removeAllObservations">
-                      Remove all
+                      {{ $t('items.detail.observed.actions.removeAll') }}
                     </button>
                     <button class="v2-recipe-refresh v2-collapse-btn" @click.stop="showObservedPrices = !showObservedPrices">
                       <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showObservedPrices }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                      {{ showObservedPrices ? 'Collapse' : 'Expand' }}
+                      {{ showObservedPrices ? $t('items.detail.common.collapse') : $t('items.detail.common.expand') }}
                     </button>
                   </div>
                 </div>
@@ -922,15 +921,15 @@
                         </span>
                       </div>
                       <div v-if="allObservedValuationMap[observation.id]" class="v2-observed-prices__relist">
-                        <span class="v2-observed-prices__relist-label">Relist</span>
+                        <span class="v2-observed-prices__relist-label">{{ $t('items.detail.observed.relist.label') }}</span>
                         <span class="v2-observed-prices__relist-value">
-                          Quick {{ formatKamasFull(allObservedValuationMap[observation.id].quickRelist) }}
+                          {{ $t('items.detail.observed.relist.quick') }} {{ formatKamasFull(allObservedValuationMap[observation.id].quickRelist) }}
                         </span>
                         <span class="v2-observed-prices__relist-value">
-                          Fair {{ formatKamasFull(allObservedValuationMap[observation.id].fairRelist) }}
+                          {{ $t('items.detail.observed.relist.fair') }} {{ formatKamasFull(allObservedValuationMap[observation.id].fairRelist) }}
                         </span>
                         <span class="v2-observed-prices__relist-value">
-                          Greedy {{ formatKamasFull(allObservedValuationMap[observation.id].greedyRelist) }}
+                          {{ $t('items.detail.observed.relist.greedy') }} {{ formatKamasFull(allObservedValuationMap[observation.id].greedyRelist) }}
                         </span>
                       </div>
                     </div>
@@ -940,35 +939,35 @@
                         class="v2-recipe-refresh"
                         @click="clearObservationScreenshots(observation.id, { market: true, stats: true })"
                       >
-                        Clear screenshots
+                        {{ $t('items.detail.observed.actions.clearScreenshots') }}
                       </button>
                       <button
                         class="v2-recipe-refresh"
                         @click="openObservationDetail(observation.id)"
                       >
-                        {{ observation.statsEntries.length ? 'View stats' : 'Add stats' }}
+                        {{ observation.statsEntries.length ? $t('items.detail.observed.actions.viewStats') : $t('items.detail.observed.actions.addStats') }}
                       </button>
                       <button
                         class="v2-recipe-refresh"
                         @click="openStatsScreenshotPicker(observation.id)"
                       >
-                        {{ observation.statsScreenshotDataUrl ? 'Replace stats screenshot' : 'Add stats screenshot' }}
+                        {{ observation.statsScreenshotDataUrl ? $t('items.detail.observed.actions.replaceStatsScreenshot') : $t('items.detail.observed.actions.addStatsScreenshot') }}
                       </button>
                       <button
                         class="v2-recipe-refresh"
                         :disabled="resaleTrackedObservationIds.has(observation.id) || !selectedServer || !selectedCharacter"
                         @click="sendObservationToResaleTracker(observation)"
                       >
-                        {{ resaleTrackedObservationIds.has(observation.id) ? 'Tracked' : 'Track resale' }}
+                        {{ resaleTrackedObservationIds.has(observation.id) ? $t('items.detail.observed.actions.tracked') : $t('items.detail.observed.actions.trackResale') }}
                       </button>
                       <NuxtLink to="/resale" class="v2-recipe-refresh">
-                        Open tracker
+                        {{ $t('items.detail.observed.actions.openTracker') }}
                       </NuxtLink>
                       <button
                         class="v2-recipe-refresh"
                         @click="removeObservation(observation.id)"
                       >
-                        Remove
+                        {{ $t('items.detail.common.remove') }}
                       </button>
                     </div>
                   </div>
@@ -982,7 +981,7 @@
                 />
                 <div v-if="allObservedValuations.length >= 2 && showObservedPrices" class="v2-valuation-panel">
                   <div class="v2-price-manager__head">
-                    <span class="v2-rstat__label">Listing valuation</span>
+                    <span class="v2-rstat__label">{{ $t('items.detail.valuation.listingTitle') }}</span>
                     <div class="v2-observation-summary-actions">
                       <span
                         class="v2-recipe-confidence"
@@ -999,22 +998,22 @@
                           :checked="showOnlyUndervaluedListings"
                           @change="showOnlyUndervaluedListings = !showOnlyUndervaluedListings"
                         />
-                        Buy candidates only
+                        {{ $t('items.detail.valuation.buyCandidatesOnly') }}
                       </label>
                       <div class="v2-observed-sort">
-                        <span class="v2-recipe-cache-hint">Model</span>
+                        <span class="v2-recipe-cache-hint">{{ $t('items.detail.valuation.model') }}</span>
                         <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': valuationMode === 'score' }" @click="valuationMode = 'score'">
-                          Score
+                          {{ $t('items.detail.valuation.models.score') }}
                         </button>
                         <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': valuationMode === 'comparables' }" @click="valuationMode = 'comparables'">
-                          Comparables
+                          {{ $t('items.detail.valuation.models.comparables') }}
                         </button>
                         <button class="v2-recipe-refresh" :class="{ 'v2-fchip--on': valuationMode === 'auto' }" @click="valuationMode = 'auto'">
-                          Auto
+                          {{ $t('items.detail.valuation.models.auto') }}
                         </button>
                       </div>
                       <span class="v2-recipe-cache-hint">
-                        {{ allObservedValuations.length }} priced from all saved listings with stats · {{ valuationModeSummary }}
+                        {{ $t('items.detail.valuation.summary', { count: allObservedValuations.length, mode: valuationModeSummary }) }}
                       </span>
                       <span class="v2-recipe-cache-hint">
                         {{ valuationConfidence.details }}
@@ -1022,13 +1021,13 @@
                     </div>
                   </div>
                   <div v-if="displayedObservedValuations.length" class="v2-valuation-table">
-                    <div class="v2-valuation-table__head">Price</div>
-                    <div class="v2-valuation-table__head">Score</div>
-                    <div class="v2-valuation-table__head">Fair value</div>
-                    <div class="v2-valuation-table__head">Delta</div>
-                    <div class="v2-valuation-table__head">Quick</div>
-                    <div class="v2-valuation-table__head">Fair</div>
-                    <div class="v2-valuation-table__head">Greedy</div>
+                    <div class="v2-valuation-table__head">{{ $t('items.detail.valuation.peerTable.price') }}</div>
+                    <div class="v2-valuation-table__head">{{ $t('items.detail.valuation.peerTable.score') }}</div>
+                    <div class="v2-valuation-table__head">{{ $t('items.detail.valuation.fairValue') }}</div>
+                    <div class="v2-valuation-table__head">{{ $t('items.detail.valuation.delta') }}</div>
+                    <div class="v2-valuation-table__head">{{ $t('items.detail.observed.relist.quick') }}</div>
+                    <div class="v2-valuation-table__head">{{ $t('items.detail.observed.relist.fair') }}</div>
+                    <div class="v2-valuation-table__head">{{ $t('items.detail.observed.relist.greedy') }}</div>
                     <template v-for="row in displayedObservedValuations" :key="`valuation-${row.id}`">
                       <div class="v2-valuation-table__cell">
                         {{ formatKamasFull(row.price) }}
@@ -1060,26 +1059,26 @@
                     </template>
                   </div>
                   <div v-else class="v2-empty-full">
-                    No selected listings match the current valuation filter.
+                    {{ $t('items.detail.valuation.noFilteredListings') }}
                   </div>
                   <div class="v2-valuation-note">
-                    Negative delta means the listing is below the model fair value. Quick/fair/greedy are relist suggestions for undervalued buys.
+                    {{ $t('items.detail.valuation.note') }}
                   </div>
                 </div>
               </div>
 
               <div class="v2-recipe-toolbar">
                 <button class="v2-recipe-refresh" @click="showPriceManager = !showPriceManager">
-                  {{ showPriceManager ? 'Hide price manager' : 'Manage prices' }}
+                  {{ showPriceManager ? $t('items.detail.priceManager.hide') : $t('items.detail.priceManager.show') }}
                 </button>
                 <span class="v2-recipe-cache-hint">
-                  Missing prices are shown first
+                  {{ $t('items.detail.priceManager.missingFirst') }}
                 </span>
               </div>
 
               <div v-if="showPriceManager" class="v2-price-manager">
                 <div class="v2-price-manager__head">
-                  <span class="v2-rstat__label">Current recipe prices</span>
+                  <span class="v2-rstat__label">{{ $t('items.detail.priceManager.title') }}</span>
                 </div>
                 <div class="v2-price-manager__list">
                   <div v-for="ingredient in recipeIngredients" :key="`manager-${ingredient.id}`" class="v2-price-manager__row">
@@ -1094,7 +1093,7 @@
                       @input="upsertResourcePrice(ingredient, ($event.target as HTMLInputElement).value)"
                     />
                     <span class="v2-price-manager__freshness">
-                      {{ ingredient.priceUpdatedLabel || 'No saved price' }}
+                      {{ ingredient.priceUpdatedLabel || $t('items.detail.priceManager.noSavedPrice') }}
                     </span>
                   </div>
                 </div>
@@ -1102,7 +1101,7 @@
 
               <div class="v2-recipe-list">
                 <div class="v2-recipe-list__head v2-collapsible-head" @click="showIngredients = !showIngredients">
-                  Ingredients
+                  {{ $t('items.detail.ingredients.title') }}
                   <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showIngredients }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </div>
                 <div v-show="showIngredients">
@@ -1116,21 +1115,21 @@
                       <div class="v2-recipe-line__name">{{ ingredient.name }}</div>
                       <div class="v2-recipe-line__meta">
                         <span v-if="ingredient.typeName">{{ ingredient.typeName }}</span>
-                        <span v-if="ingredient.level !== null"> · Level {{ ingredient.level }}</span>
+                        <span v-if="ingredient.level !== null"> · {{ $t('items.detail.ingredients.level', { level: ingredient.level }) }}</span>
                       </div>
                       <div class="v2-resource-badges v2-resource-badges--compact">
                         <span v-if="ingredient.dropMonsterCount > 0" class="v2-resource-badge v2-resource-badge--drop">
-                          Monster drop
+                          {{ $t('items.detail.ingredients.badges.monsterDrop') }}
                         </span>
                         <span v-if="ingredient.hasRecipe" class="v2-resource-badge v2-resource-badge--crafted">
-                          Crafted
+                          {{ $t('items.detail.ingredients.badges.crafted') }}
                         </span>
                         <span v-if="ingredient.isSpecial" class="v2-resource-badge v2-resource-badge--special">
-                          Special
+                          {{ $t('items.detail.ingredients.badges.special') }}
                         </span>
                       </div>
                       <div class="v2-recipe-price-entry">
-                        <label class="v2-recipe-price-entry__label">Unit price</label>
+                        <label class="v2-recipe-price-entry__label">{{ $t('items.detail.ingredients.unitPrice') }}</label>
                         <input
                           :value="ingredient.unitPrice || ''"
                           type="number"
@@ -1141,21 +1140,21 @@
                           @input="upsertResourcePrice(ingredient, ($event.target as HTMLInputElement).value)"
                         />
                         <span class="v2-recipe-price-entry__total">
-                          Total {{ formatKamasFull(ingredient.unitPrice * ingredient.quantity) }}
+                          {{ $t('items.detail.ingredients.total') }} {{ formatKamasFull(ingredient.unitPrice * ingredient.quantity) }}
                         </span>
                         <span class="v2-recipe-price-entry__freshness">
-                          {{ ingredient.priceUpdatedLabel || 'No saved price' }}
+                          {{ ingredient.priceUpdatedLabel || $t('items.detail.priceManager.noSavedPrice') }}
                         </span>
                       </div>
                     </div>
                     <div class="v2-recipe-line__qty">
-                      <span class="v2-recipe-line__qty-label">Qty</span>
+                      <span class="v2-recipe-line__qty-label">{{ $t('items.detail.ingredients.qty') }}</span>
                       <strong>{{ ingredient.quantity }}</strong>
                     </div>
                   </div>
                 </div>
                 <div v-else class="v2-empty-full">
-                  No ingredients found for this recipe.
+                  {{ $t('items.detail.ingredients.empty') }}
                 </div>
                 </div>
               </div>
@@ -1170,18 +1169,18 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
-                Back
+                {{ $t('items.detail.common.back') }}
               </button>
-              <span class="v2-recipe-kicker">Aggregate recipe proof of concept</span>
+              <span class="v2-recipe-kicker">{{ $t('items.aggregate.kicker') }}</span>
             </div>
 
             <div class="v2-recipe-item">
               <div class="min-w-0 flex-1">
                 <div class="v2-recipe-item__name">
-                  {{ $t(`items.slots.${activeSlot}`) }} recipe pressure
+                  {{ $t('items.aggregate.pressureTitle', { slot: $t(`items.slots.${activeSlot}`) }) }}
                 </div>
                 <div class="v2-recipe-item__meta">
-                  Top {{ aggregateRecipeState.limit }} items from current filters · counts ingredient presence per item recipe
+                  {{ $t('items.aggregate.meta', { limit: aggregateRecipeState.limit }) }}
                 </div>
               </div>
               <div class="v2-bulk-limit">
@@ -1198,7 +1197,7 @@
             </div>
 
             <div v-if="aggregateRecipeState.isLoading" class="v2-center-loader">
-              <div class="v2-spin" /> Loading aggregate recipes...
+              <div class="v2-spin" /> {{ $t('items.aggregate.loading') }}
             </div>
 
             <div v-else-if="aggregateRecipeState.error" class="v2-recipe-error">
@@ -1208,75 +1207,75 @@
             <template v-else>
               <div class="v2-recipe-stats">
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Selected items</div>
+                  <div class="v2-rstat__label">{{ $t('items.aggregate.stats.selectedItems') }}</div>
                   <div class="v2-rstat__val">{{ aggregateRecipeState.selectedItems.length }}</div>
                 </div>
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Unique resources</div>
+                  <div class="v2-rstat__label">{{ $t('items.aggregate.stats.uniqueResources') }}</div>
                   <div class="v2-rstat__val">{{ aggregateIngredients.length }}</div>
                 </div>
                 <div class="v2-rstat">
-                  <div class="v2-rstat__label">Metric</div>
-                  <div class="v2-rstat__val">{{ aggregateSortMode === 'items' ? 'Items first' : 'Qty first' }}</div>
+                  <div class="v2-rstat__label">{{ $t('items.aggregate.stats.metric') }}</div>
+                  <div class="v2-rstat__val">{{ aggregateSortMode === 'items' ? $t('items.aggregate.sort.itemsFirst') : $t('items.aggregate.sort.qtyFirst') }}</div>
                 </div>
               </div>
 
               <div class="v2-aggregate-sort">
-                <span class="v2-aggregate-sort__label">Sort by</span>
+                <span class="v2-aggregate-sort__label">{{ $t('items.aggregate.sort.label') }}</span>
                 <div class="v2-bulk-limit">
                   <button
                     class="v2-bulk-limit__btn"
                     :class="{ 'v2-bulk-limit__btn--on': aggregateSortMode === 'items' }"
                     @click="aggregateSortMode = 'items'"
                   >
-                    Items
+                    {{ $t('items.aggregate.sort.items') }}
                   </button>
                   <button
                     class="v2-bulk-limit__btn"
                     :class="{ 'v2-bulk-limit__btn--on': aggregateSortMode === 'quantity' }"
                     @click="aggregateSortMode = 'quantity'"
                   >
-                    Qty
+                    {{ $t('items.aggregate.sort.qty') }}
                   </button>
                 </div>
               </div>
 
               <div class="v2-aggregate-filters">
-                <span class="v2-aggregate-sort__label">Resource filters</span>
+                <span class="v2-aggregate-sort__label">{{ $t('items.aggregate.filters.title') }}</span>
                 <div class="v2-aggregate-filters__row">
                   <button
                     class="v2-bulk-limit__btn"
                     :class="{ 'v2-bulk-limit__btn--on': aggregateResourceFilters.hideSpecial }"
                     @click="aggregateResourceFilters.hideSpecial = !aggregateResourceFilters.hideSpecial"
                   >
-                    Hide special
+                    {{ $t('items.aggregate.filters.hideSpecial') }}
                   </button>
                   <button
                     class="v2-bulk-limit__btn"
                     :class="{ 'v2-bulk-limit__btn--on': aggregateResourceFilters.onlyMonsterDrops }"
                     @click="aggregateResourceFilters.onlyMonsterDrops = !aggregateResourceFilters.onlyMonsterDrops"
                   >
-                    Monster drops
+                    {{ $t('items.aggregate.filters.monsterDrops') }}
                   </button>
                   <button
                     class="v2-bulk-limit__btn"
                     :class="{ 'v2-bulk-limit__btn--on': aggregateResourceFilters.onlyNonCrafted }"
                     @click="aggregateResourceFilters.onlyNonCrafted = !aggregateResourceFilters.onlyNonCrafted"
                   >
-                    Non-crafted
+                    {{ $t('items.aggregate.filters.nonCrafted') }}
                   </button>
                   <button
                     class="v2-bulk-limit__btn"
                     :class="{ 'v2-bulk-limit__btn--on': aggregateResourceFilters.minItemUsage === 2 }"
                     @click="aggregateResourceFilters.minItemUsage = aggregateResourceFilters.minItemUsage === 2 ? 1 : 2"
                   >
-                    Items >= 2
+                    {{ $t('items.aggregate.filters.itemsMinTwo') }}
                   </button>
                 </div>
               </div>
 
               <div v-if="aggregateRecipeState.selectedItems.length" class="v2-selected-items">
-                <span class="v2-selected-items__label">Selected items</span>
+                <span class="v2-selected-items__label">{{ $t('items.aggregate.selectedItems') }}</span>
                 <div class="v2-selected-items__list">
                   <button
                     v-for="item in aggregateRecipeState.selectedItems"
@@ -1290,7 +1289,7 @@
               </div>
 
               <div class="v2-recipe-list">
-                <div class="v2-recipe-list__head">Resources ranked by recipe presence</div>
+                <div class="v2-recipe-list__head">{{ $t('items.aggregate.resourcesTitle') }}</div>
                 <div v-if="aggregateIngredients.length" class="v2-recipe-lines">
                   <div v-for="ingredient in aggregateIngredients" :key="ingredient.id" class="v2-recipe-line">
                       <div class="v2-recipe-line__img-wrap">
@@ -1301,21 +1300,21 @@
                         <div class="v2-recipe-line__name">{{ ingredient.name }}</div>
                         <div class="v2-recipe-line__meta">
                         <span v-if="ingredient.typeName">{{ ingredient.typeName }}</span>
-                        <span v-if="ingredient.level !== null"> · Level {{ ingredient.level }}</span>
+                        <span v-if="ingredient.level !== null"> · {{ $t('items.detail.ingredients.level', { level: ingredient.level }) }}</span>
                       </div>
                       <div class="v2-resource-badges v2-resource-badges--compact">
                         <span v-if="ingredient.dropMonsterCount > 0" class="v2-resource-badge v2-resource-badge--drop">
-                          Monster drop
+                          {{ $t('items.detail.ingredients.badges.monsterDrop') }}
                         </span>
                         <span v-if="ingredient.hasRecipe" class="v2-resource-badge v2-resource-badge--crafted">
-                          Crafted
+                          {{ $t('items.detail.ingredients.badges.crafted') }}
                         </span>
                         <span v-if="ingredient.isSpecial" class="v2-resource-badge v2-resource-badge--special">
-                          Special
+                          {{ $t('items.detail.ingredients.badges.special') }}
                         </span>
                       </div>
                       <div v-if="ingredient.items.length" class="v2-recipe-line__links">
-                      <span class="v2-recipe-line__links-label">Used in</span>
+                      <span class="v2-recipe-line__links-label">{{ $t('items.aggregate.usedIn') }}</span>
                       <button
                         v-for="item in ingredient.items"
                         :key="item.name"
@@ -1327,11 +1326,11 @@
                     </div>
                     </div>
                     <div class="v2-recipe-line__qty">
-                      <span class="v2-recipe-line__qty-label">Items</span>
+                      <span class="v2-recipe-line__qty-label">{{ $t('items.aggregate.itemsLabel') }}</span>
                       <strong>{{ ingredient.usageCount }}</strong>
-                      <span class="v2-recipe-line__qty-sub">Qty {{ ingredient.totalQuantity }}</span>
-                      <span class="v2-recipe-line__qty-sub">Builds {{ ingredient.buildUsageCount }}</span>
-                      <span class="v2-recipe-line__qty-sub">Pressure {{ ingredient.pressureScore }}</span>
+                      <span class="v2-recipe-line__qty-sub">{{ $t('items.aggregate.qty', { count: ingredient.totalQuantity }) }}</span>
+                      <span class="v2-recipe-line__qty-sub">{{ $t('items.aggregate.builds', { count: ingredient.buildUsageCount }) }}</span>
+                      <span class="v2-recipe-line__qty-sub">{{ $t('items.aggregate.pressure', { count: ingredient.pressureScore }) }}</span>
                     </div>
                   </div>
                 </div>
@@ -1847,15 +1846,15 @@ const titleCase = (value: string) =>
 
 const itemsDataContextSubtitle = computed(() => {
   const parts = [
-    filters.mode ? filters.mode.toUpperCase() : 'All modes',
-    filters.level ? `Level ${filters.level}` : 'All levels',
-    filters.classe ? titleCase(filters.classe) : 'All classes',
-    filters.element ? titleCase(filters.element) : 'All elements',
-    filters.budget ? `${titleCase(filters.budget)} budget` : 'All budgets',
+    filters.mode ? filters.mode.toUpperCase() : t('items.detail.context.allModes'),
+    filters.level ? t('items.detail.context.level', { level: filters.level }) : t('items.detail.context.allLevels'),
+    filters.classe ? titleCase(filters.classe) : t('items.detail.context.allClasses'),
+    filters.element ? titleCase(filters.element) : t('items.detail.context.allElements'),
+    filters.budget ? t('items.detail.context.budget', { budget: titleCase(filters.budget) }) : t('items.detail.context.allBudgets'),
   ]
 
   const count = stats.value?.totalEquipments ?? 0
-  return `${parts.join(' · ')} · ${count} matching builds`
+  return `${parts.join(' · ')} · ${t('items.detail.context.matchingBuilds', { count })}`
 })
 
 const activeSlotContextSubtitle = computed(() => {
@@ -1865,7 +1864,11 @@ const activeSlotContextSubtitle = computed(() => {
   const topCount = slot.topItems?.[0]?.count ?? 0
   const totalItems = slot.totalItems ?? 0
   const slotName = t(`items.slots.${activeSlot.value}`)
-  return `${totalItems} unique items in ${slotName.toLowerCase()} · top pick appears in ${topCount} builds`
+  return t('items.detail.context.slotSummary', {
+    count: totalItems,
+    slot: slotName.toLowerCase(),
+    topCount,
+  })
 })
 
 const normalizeDofusdbSearch = (value: string) =>
@@ -2468,7 +2471,7 @@ const computeScoreModelValuation = (
     referencePricePerPoint,
     comparableCount: peers.length,
     medianPeerDistance: medianOf(peers.map((peer) => Math.abs(peer.score - entry.score))),
-    peerMetricLabel: 'Price / point',
+    peerMetricLabel: t('items.detail.valuation.peerMetric.pricePerPoint'),
     peerMetricKind: 'currency' as const,
     peerMetricValues: Object.fromEntries(peers.map((peer) => [peer.id, peer.price / peer.score])),
     peers: peers.map((peer) => ({
@@ -2529,7 +2532,7 @@ const computeComparableModelValuation = (
     referencePricePerPoint: localReferencePricePerPoint,
     comparableCount: peers.length,
     medianPeerDistance: medianOf(peers.map((candidate) => candidate.distance)),
-    peerMetricLabel: 'Adj. price',
+    peerMetricLabel: t('items.detail.valuation.peerMetric.adjustedPrice'),
     peerMetricKind: 'currency' as const,
     peerMetricValues: Object.fromEntries(weightedAdjustedPrices.map((candidate) => [candidate.peer.id, candidate.adjustedPrice])),
     peers: peers.map(({ peer, distance, overlapRatio }) => ({
@@ -2579,7 +2582,7 @@ const allObservedValuations = computed(() => {
       referencePricePerPoint: 0,
       comparableCount: 0,
       medianPeerDistance: Number.POSITIVE_INFINITY,
-      peerMetricLabel: 'Price / point',
+      peerMetricLabel: t('items.detail.valuation.peerMetric.pricePerPoint'),
       peerMetricKind: 'currency' as const,
       peerMetricValues: {},
       peers: [],
@@ -2641,14 +2644,14 @@ const displayedObservedValuations = computed(() => {
 
 const valuationModeSummary = computed(() => {
   if (valuationMode.value === 'score') {
-    return 'score model using nearest score peers'
+    return t('items.detail.valuation.modeSummary.score')
   }
 
   if (valuationMode.value === 'comparables') {
-    return 'stat-profile comparables with weighted peer pricing'
+    return t('items.detail.valuation.modeSummary.comparables')
   }
 
-  return 'auto mode: comparables first, score fallback'
+  return t('items.detail.valuation.modeSummary.auto')
 })
 
 const medianAbsoluteDeviation = (values: number[]) => {
@@ -2666,8 +2669,8 @@ const valuationConfidence = computed(() => {
   if (!sample) {
     return {
       level: 'low' as const,
-      label: 'Low confidence',
-      details: 'No usable listings yet',
+      label: t('items.detail.valuation.confidence.low'),
+      details: t('items.detail.valuation.confidence.noUsable'),
     }
   }
 
@@ -2738,12 +2741,31 @@ const valuationConfidence = computed(() => {
 
   return {
     level,
-    label: level === 'high' ? 'High confidence' : level === 'medium' ? 'Medium confidence' : 'Low confidence',
+    label: level === 'high'
+      ? t('items.detail.valuation.confidence.high')
+      : level === 'medium'
+        ? t('items.detail.valuation.confidence.medium')
+        : t('items.detail.valuation.confidence.low'),
     details: valuationMode.value === 'comparables'
-      ? `${sample} usable · ${avgComparableCount.toFixed(1)} comps avg · ${completenessPct}% stats coverage · ${medianPeerDistance.toFixed(2)} median distance`
+      ? t('items.detail.valuation.confidence.detailsComparables', {
+        sample,
+        avg: avgComparableCount.toFixed(1),
+        coverage: completenessPct,
+        distance: medianPeerDistance.toFixed(2),
+      })
       : valuationMode.value === 'auto'
-        ? `${sample} usable · ${avgComparableCount.toFixed(1)} comps avg · ${completenessPct}% stats coverage · ${coveragePct}% comparable coverage`
-        : `${sample} usable · ${avgComparableCount.toFixed(1)} comps avg · ${completenessPct}% stats coverage · ${spreadPct}% spread`,
+        ? t('items.detail.valuation.confidence.detailsAuto', {
+          sample,
+          avg: avgComparableCount.toFixed(1),
+          coverage: completenessPct,
+          comparableCoverage: coveragePct,
+        })
+        : t('items.detail.valuation.confidence.detailsScore', {
+          sample,
+          avg: avgComparableCount.toFixed(1),
+          coverage: completenessPct,
+          spread: spreadPct,
+        }),
   }
 })
 
@@ -2752,23 +2774,23 @@ const getObservationBadges = (observation: StoredObservedPriceEntry) => {
   const valuation = allObservedValuationMap.value[observation.id]
 
   if (!observationHasUsableStats(observation)) {
-    badges.push({ label: 'Missing stats', tone: 'warn' })
+    badges.push({ label: t('items.detail.observed.badges.missingStats'), tone: 'warn' })
   }
 
   if (valuation) {
     if (valuation.delta < 0) {
-      badges.push({ label: 'Underpriced', tone: 'good' })
+      badges.push({ label: t('items.detail.observed.badges.underpriced'), tone: 'good' })
     } else if (valuation.delta > 0) {
-      badges.push({ label: 'Overpriced', tone: 'bad' })
+      badges.push({ label: t('items.detail.observed.badges.overpriced'), tone: 'bad' })
     }
 
     if (bestBuyObservationId.value === observation.id) {
-      badges.push({ label: 'Best buy', tone: 'good' })
+      badges.push({ label: t('items.detail.observed.badges.bestBuy'), tone: 'good' })
     }
   }
 
   if (valuationConfidence.value.level === 'low') {
-    badges.push({ label: 'Low confidence', tone: 'neutral' })
+    badges.push({ label: t('items.detail.valuation.confidence.low'), tone: 'neutral' })
   }
 
   return badges
@@ -2827,7 +2849,7 @@ const selectedObservationStatsHealth = computed(() => {
   const unexpected = observation.statsEntries
     .map((entry, index) => ({ entry, index }))
     .filter(({ entry }) => !expectedKeys.has(entry.key) && !specialMageStatKeys.has(entry.key))
-    .map(({ entry, index }) => ({ index, label: entry.label || entry.key || `Line ${index + 1}` }))
+    .map(({ entry, index }) => ({ index, label: entry.label || entry.key || t('items.detail.observed.statsHealth.lineFallback', { index: index + 1 }) }))
 
   const duplicates = Array.from(keyCounts.entries())
     .filter(([, count]) => count > 1)
@@ -2840,7 +2862,7 @@ const selectedObservationStatsHealth = computed(() => {
   const incomplete = observation.statsEntries
     .map((entry, index) => ({ entry, index }))
     .filter(({ entry }) => entry.value === null || entry.value === undefined || Number.isNaN(Number(entry.value)))
-    .map(({ entry, index }) => ({ index, label: entry.label || entry.key || `Line ${index + 1}` }))
+    .map(({ entry, index }) => ({ index, label: entry.label || entry.key || t('items.detail.observed.statsHealth.lineFallback', { index: index + 1 }) }))
 
   return {
     missing,
@@ -2884,8 +2906,8 @@ const selectedObservationValuationExplanation = computed(() => {
     fairValue: valuation.fairValue,
     delta: valuation.delta,
     referencePricePerPoint: valuation.referencePricePerPoint,
-    methodLabel: valuation.modelUsed === 'comparables' ? 'Comparables' : 'Score',
-    referenceLabel: valuation.modelUsed === 'comparables' ? 'Median distance' : 'Reference / point',
+    methodLabel: valuation.modelUsed === 'comparables' ? t('items.detail.valuation.models.comparables') : t('items.detail.valuation.models.score'),
+    referenceLabel: valuation.modelUsed === 'comparables' ? t('items.detail.valuation.reference.medianDistance') : t('items.detail.valuation.reference.referencePerPoint'),
     referenceDisplay: valuation.modelUsed === 'comparables'
       ? valuation.medianPeerDistance.toFixed(2)
       : formatKamasFull(Math.round(valuation.referencePricePerPoint)),
@@ -2897,7 +2919,7 @@ const selectedObservationValuationExplanation = computed(() => {
       score: peer.score,
       metricDisplay: valuation.peerMetricKind === 'currency'
         ? formatKamasFull(Math.round(valuation.peerMetricValues[peer.id] ?? 0))
-        : String(valuation.peerMetricValues[peer.id] ?? '—'),
+        : String(valuation.peerMetricValues[peer.id] ?? t('items.detail.common.emptyValue')),
       distance: peer.distance,
     })),
   }
@@ -2945,7 +2967,7 @@ const fetchResolvedRecipe = async (item: { name: string }, options: { forceRefre
     const matchedItem = searchResponse?.data?.[0]
 
     if (!matchedItem?.id) {
-      throw new Error(`Could not resolve DofusDB item for "${item.name}"`)
+      throw new Error(t('items.detail.recipe.errors.resolveFailed', { name: item.name }))
     }
 
     dofusdbId = matchedItem.id
@@ -3342,7 +3364,7 @@ let tesseractModulePromise: Promise<any> | null = null
 
 const loadTesseractModule = async () => {
   if (!import.meta.client) {
-    throw new Error('OCR is only available in the browser.')
+    throw new Error(t('items.detail.ocr.errors.browserOnly'))
   }
 
   if (!tesseractModulePromise) {
@@ -3678,7 +3700,7 @@ const processMarketScreenshotImage = async (imageBase64: string) => {
 
     ocrState.value = {
       isLoading: false,
-      error: result.candidates.length ? '' : 'OCR ran, but no price candidates were detected.',
+      error: result.candidates.length ? '' : t('items.detail.ocr.errors.noPriceCandidates'),
       candidates: result.candidates,
       rawText: result.text,
       debugMode: result.debugMode || '',
@@ -3689,7 +3711,7 @@ const processMarketScreenshotImage = async (imageBase64: string) => {
     console.error('Error running OCR:', error)
     ocrState.value = {
       isLoading: false,
-      error: 'Failed to run OCR on this screenshot.',
+      error: t('items.detail.ocr.errors.marketFailed'),
       candidates: [],
       rawText: '',
       debugMode: '',
@@ -3731,7 +3753,7 @@ const processStatsScreenshotImage = async (imageBase64: string, observationId: s
     console.error('Error running stats OCR:', error)
     statsOcrState.value = {
       isLoading: false,
-      error: 'Failed to run OCR on the stats screenshot.',
+      error: t('items.detail.ocr.errors.statsFailed'),
     }
   } finally {
     pendingStatsObservationId.value = ''
@@ -3933,7 +3955,7 @@ const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) =
   createResaleTrackerEntry({
     itemKey,
     itemId: item?.id ?? null,
-    itemName: observation.itemName || item?.name || 'Unknown item',
+      itemName: observation.itemName || item?.name || t('items.detail.common.unknownItem'),
     itemImageUrl: item?.image_url ?? item?.img ?? '',
     status: 'watched',
     source: 'observed',
@@ -3961,15 +3983,15 @@ const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) =
 
   resaleTrackerFeedback.value = {
     ...resaleTrackerFeedback.value,
-    [observation.id]: 'Saved to resale tracker.',
+    [observation.id]: t('items.detail.observed.feedback.savedToResale'),
   }
   appendActivity({
     type: 'items',
     action: 'sent-to-resale',
     serverId: String(selectedServer.value.id),
     characterId: String(selectedCharacter.value.id),
-    title: observation.itemName || item?.name || 'Unknown item',
-    description: 'Sent observed listing to resale tracker',
+    title: observation.itemName || item?.name || t('items.detail.common.unknownItem'),
+    description: t('items.detail.observed.feedback.sentToResaleActivity'),
     path: '/items',
     imageUrl: item?.image_url || item?.img || '',
     meta: {
@@ -4002,8 +4024,8 @@ const removeObservation = (observationId: string) => {
       action: 'observation-removed',
       serverId: String(selectedServer.value.id),
       characterId: String(selectedCharacter.value.id),
-      title: removedObservation.itemName || item?.name || 'Unknown item',
-      description: 'Removed an observed listing',
+      title: removedObservation.itemName || item?.name || t('items.detail.common.unknownItem'),
+      description: t('items.detail.observed.feedback.removedActivity'),
       path: '/items',
       imageUrl: item?.image_url || item?.img || '',
       meta: {
@@ -4041,7 +4063,7 @@ const clearAllObservationScreenshots = () => {
   const itemKey = selectedObservationKey.value
   const summary = selectedItemScreenshotSummary.value
   if (!itemKey || !summary.totalCount) return
-  if (!confirm(`Remove ${summary.totalCount} saved screenshots for this item?`)) return
+  if (!confirm(t('items.detail.observed.confirm.clearScreenshots', { count: summary.totalCount }))) return
 
   updateObservationEntries(itemKey, (entry) => ({
     ...entry,
@@ -4054,7 +4076,7 @@ const clearAllObservationScreenshots = () => {
 const removeAllObservations = () => {
   const itemKey = selectedObservationKey.value
   if (!itemKey) return
-  if (!confirm(`Remove all ${(observedPrices.value[itemKey] || []).length} observed prices for this item?`)) return
+  if (!confirm(t('items.detail.observed.confirm.removeAll', { count: (observedPrices.value[itemKey] || []).length }))) return
 
   const nextObserved = { ...observedPrices.value, [itemKey]: [] }
   observedPrices.value = nextObserved
@@ -4219,10 +4241,10 @@ const handleStatsScreenshotChange = async (event: Event) => {
 const formatPriceFreshness = (iso: string) => {
   const diffMs = Date.now() - new Date(iso).getTime()
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  if (diffHours < 1) return 'Updated < 1h ago'
-  if (diffHours < 24) return `Updated ${diffHours}h ago`
+  if (diffHours < 1) return t('items.detail.priceManager.freshness.ltHour')
+  if (diffHours < 24) return t('items.detail.priceManager.freshness.hours', { count: diffHours })
   const diffDays = Math.floor(diffHours / 24)
-  return `Updated ${diffDays}d ago`
+  return t('items.detail.priceManager.freshness.days', { count: diffDays })
 }
 
 const resetRecipeView = () => {
@@ -4283,7 +4305,7 @@ const loadRecipeIntoView = async (
     console.error('Error fetching recipe:', error)
     recipeLookupState.value = {
       isLoading: false,
-      error: 'Failed to load recipe for this item.',
+      error: t('items.detail.recipe.errors.loadFailed'),
       data: null,
       source: '',
       confidence: '',
@@ -4319,7 +4341,7 @@ const openAggregateRecipeView = async (limit: number) => {
     aggregateRecipeState.value = {
       ...aggregateRecipeState.value,
       isLoading: false,
-      error: 'No items available for this selection.',
+      error: t('items.aggregate.errors.noItems'),
     }
     return
   }
