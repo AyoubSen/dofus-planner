@@ -65,7 +65,9 @@
       "search": "Rechercher...",
       "searchItems": "Rechercher des objets...",
       "searching": "Recherche...",
-      "loading": "Chargement..."
+      "loading": "Chargement...",
+      "selectOption": "Sélectionner une option",
+      "pickDate": "Choisir une date"
     },
     "archi": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour commencer le suivi des archimonstres.",
@@ -80,10 +82,225 @@
     "crafting": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos crafts.",
       "findItem": "Trouver un objet à craft",
-      "loadingEffects": "Chargement des effets..."
+      "loadingEffects": "Chargement des effets...",
+      "stats": {
+        "sessions": "Sessions",
+        "itemsLogged": "Objets suivis",
+        "invested": "Investi",
+        "realized": "Réalisé",
+        "netPL": "P/L net",
+        "expected": "Attendu",
+        "assets": "Actifs",
+        "bankrollDelta": "Delta de bankroll"
+      },
+      "index": {
+        "createSession": "Créer une session",
+        "createSessionDesc": "Démarrez une nouvelle session Craft / FM et suivez chaque objet crafté séparément.",
+        "sessions": "Sessions",
+        "sessionHistory": "Historique des sessions",
+        "emptySessions": "Aucune session Craft / FM enregistrée.",
+        "itemsCount": "{count} objet | {count} objets"
+      },
+      "editor": {
+        "newSession": "Nouvelle session",
+        "editSession": "Modifier la session",
+        "emptyDraft": "Recherchez un objet et ajoutez-le à cette session pour commencer à suivre son coût de craft et de FM."
+      },
+      "sections": {
+        "sessionBankroll": "Bankroll de session",
+        "addItems": "Ajouter des objets à cette session",
+        "fmCost": "Coût FM",
+        "sale": "Vente",
+        "recipeChecklist": "Checklist des ressources"
+      },
+      "fields": {
+        "date": "Date",
+        "workflow": "Flux",
+        "sessionFocus": "Focus de session",
+        "notes": "Notes",
+        "startingKamas": "Kamas de départ",
+        "currentKamas": "Kamas actuels",
+        "startingRuneStockValue": "Valeur initiale du stock de runes",
+        "currentRuneStockValue": "Valeur actuelle du stock de runes",
+        "globalExpenses": "Dépenses globales",
+        "acquisition": "Acquisition",
+        "craftKamasBefore": "Kamas avant craft",
+        "craftKamasAfter": "Kamas après craft",
+        "craftCost": "Coût du craft",
+        "extraItemExpenses": "Dépenses supplémentaires de l'objet",
+        "targetMode": "Mode cible",
+        "expectedSellPrice": "Prix de vente estimé",
+        "listPrice": "Prix de mise en vente",
+        "outcome": "Résultat",
+        "runeValueBeforeFm": "Valeur des runes avant FM",
+        "runePurchases": "Achats de runes pour cet objet",
+        "runeValueAfterFm": "Valeur des runes après FM",
+        "fmCost": "Coût FM",
+        "soldPrice": "Prix vendu",
+        "brisageRecovery": "Récupération via brisage"
+      },
+      "placeholders": {
+        "selectWorkflow": "Sélectionner un flux",
+        "selectFocus": "Sélectionner un focus",
+        "sessionNotes": "Sur quoi travailles-tu dans cette session ?",
+        "globalExpenses": "Taxes, déplacements, consommables...",
+        "selectAcquisition": "Sélectionner le mode d'acquisition",
+        "selectTargetMode": "Sélectionner le mode cible",
+        "selectOutcome": "Sélectionner le résultat"
+      },
+      "actions": {
+        "newSession": "Nouvelle session",
+        "backToSessions": "Retour aux sessions",
+        "edit": "Modifier",
+        "hideDetails": "Masquer les détails",
+        "showDetails": "Afficher les détails",
+        "editDetails": "Modifier les détails",
+        "add": "Ajouter",
+        "added": "Ajouté",
+        "fetchRecipes": "Récupérer les recettes",
+        "saveSession": "Enregistrer la session",
+        "updateSession": "Mettre à jour la session",
+        "deleteSession": "Supprimer la session",
+        "removeItem": "Retirer l'objet"
+      },
+      "messages": {
+        "noItemsFound": "Aucun objet trouvé pour \"{search}\""
+      },
+      "summary": {
+        "startingBankroll": "Bankroll de départ",
+        "currentAssets": "Actifs actuels",
+        "itemsBuiltValue": "Valeur des objets créés",
+        "bankrollDelta": "Delta de bankroll",
+        "invested": "Investi",
+        "realized": "Réalisé",
+        "fmCost": "Coût FM",
+        "totalInvested": "Investissement total",
+        "realizedValue": "Valeur réalisée",
+        "pl": "P/L",
+        "craft": "Craft",
+        "fm": "FM",
+        "list": "Mise en vente"
+      },
+      "options": {
+        "workflow": {
+          "craft": "Craft uniquement",
+          "fm": "FM uniquement",
+          "craftFm": "Craft + FM"
+        },
+        "focus": {
+          "clean": "Revente propre",
+          "perfect": "Presque parfait",
+          "over": "Overmage",
+          "exo": "Exo",
+          "mixed": "Mixte"
+        },
+        "acquisition": {
+          "crafted": "Crafté",
+          "bought": "Acheté",
+          "mixed": "Mixte"
+        },
+        "targetMode": {
+          "clean": "Revente propre",
+          "perfect": "Presque parfait",
+          "over": "Overmage",
+          "exo": "Exo"
+        },
+        "outcome": {
+          "inProgress": "En cours",
+          "listed": "En vente",
+          "sold": "Vendu",
+          "kept": "Gardé",
+          "brisaged": "Brisé",
+          "failed": "Raté"
+        }
+      },
+      "common": {
+        "resource": "Ressource"
+      }
     },
     "brisage": {
-      "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos sessions de brisage."
+      "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos sessions de brisage.",
+      "stats": {
+        "sessions": "Sessions",
+        "itemsLogged": "Objets suivis",
+        "totalPL": "P/L total",
+        "avgSessionPL": "P/L moyen par session"
+      },
+      "sections": {
+        "sessionBuilder": "Créateur de session",
+        "addItems": "Ajouter des objets à cette session",
+        "resourceChecklist": "Checklist des ressources",
+        "sessionHistory": "Historique des sessions"
+      },
+      "fields": {
+        "date": "Date",
+        "focusCategory": "Catégorie ciblée",
+        "levelMin": "Niveau min",
+        "levelMax": "Niveau max",
+        "sessionNotes": "Notes de session",
+        "startingKamas": "Kamas de départ",
+        "endingKamas": "Kamas de fin",
+        "qtyCrafted": "Qté craftée",
+        "kamasBeforeBuying": "Kamas avant achat",
+        "kamasAfterBuying": "Kamas après achat",
+        "estimatedRuneValue": "Valeur estimée des runes",
+        "runNote": "Note du run",
+        "itemNote": "Note sur l'objet"
+      },
+      "placeholders": {
+        "selectCategory": "Sélectionner une catégorie",
+        "sessionNotes": "Que cibles-tu dans ce batch ?",
+        "runNote": "Coef, pression du marché, décision de retry...",
+        "itemNote": "Conclusion globale pour cet objet"
+      },
+      "actions": {
+        "loadingBatch": "Chargement du batch...",
+        "loadMatchingItems": "Charger les objets correspondants",
+        "add": "Ajouter",
+        "added": "Ajouté",
+        "hideDetails": "Masquer les détails",
+        "showDetails": "Afficher les détails",
+        "editDetails": "Modifier les détails",
+        "remove": "Retirer",
+        "removeRun": "Retirer le run",
+        "addAnotherRun": "Ajouter un autre run",
+        "hide": "Masquer",
+        "show": "Afficher",
+        "loadingResources": "Chargement des ressources...",
+        "fetchRecipesForDraft": "Récupérer les recettes du draft",
+        "saveSession": "Enregistrer la session",
+        "deleteSession": "Supprimer la session"
+      },
+      "messages": {
+        "batchHelp": "Utilise la catégorie et la plage de niveaux sélectionnées pour récupérer les objets correspondants depuis DofusDB.",
+        "noItemsFound": "Aucun objet trouvé pour \"{search}\"",
+        "emptyDraft": "Recherchez un objet, ajoutez-le à la session de draft, puis saisissez la valeur totale des runes obtenues après l'avoir brisé en jeu.",
+        "recipeHelp": "Agrège tous les ingrédients de recette des objets du draft selon leur quantité totale craftée.",
+        "noSessions": "Aucune session de brisage enregistrée.",
+        "noSessionsHint": "Créez une session de draft à gauche puis enregistrez-la une fois votre batch saisi."
+      },
+      "summary": {
+        "draftItems": "Objets du draft",
+        "craftTotal": "Total craft",
+        "realizedValue": "Valeur réalisée",
+        "sessionPL": "P/L de session",
+        "craft": "Craft",
+        "realized": "Réalisé",
+        "runCraftCost": "Coût du run",
+        "runPL": "P/L du run",
+        "avgPerCopy": "Moyenne par copie",
+        "totalItems": "Total objets",
+        "margin": "Marge",
+        "cost": "Coût"
+      },
+      "labels": {
+        "runNumber": "Run {index}",
+        "generalSession": "Session générale",
+        "runCount": "{count} run | {count} runs"
+      },
+      "common": {
+        "resource": "Ressource"
+      }
     },
     "succes": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos succès.",

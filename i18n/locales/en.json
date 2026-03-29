@@ -65,7 +65,9 @@
       "search": "Search...",
       "searchItems": "Search items...",
       "searching": "Searching...",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "selectOption": "Select an option",
+      "pickDate": "Pick a date"
     },
     "archi": {
       "noCharacterDesc": "Select a character in the sidebar to start tracking your archimonstres.",
@@ -80,10 +82,225 @@
     "crafting": {
       "noCharacterDesc": "Select a character in the sidebar to track your crafted items.",
       "findItem": "Find item to craft",
-      "loadingEffects": "Loading effects..."
+      "loadingEffects": "Loading effects...",
+      "stats": {
+        "sessions": "Sessions",
+        "itemsLogged": "Items logged",
+        "invested": "Invested",
+        "realized": "Realized",
+        "netPL": "Net P/L",
+        "expected": "Expected",
+        "assets": "Assets",
+        "bankrollDelta": "Bankroll delta"
+      },
+      "index": {
+        "createSession": "Create Session",
+        "createSessionDesc": "Start a new Craft / FM session and track each crafted item separately.",
+        "sessions": "Sessions",
+        "sessionHistory": "Session History",
+        "emptySessions": "No Craft / FM sessions recorded yet.",
+        "itemsCount": "{count} item | {count} items"
+      },
+      "editor": {
+        "newSession": "New Session",
+        "editSession": "Edit Session",
+        "emptyDraft": "Search for an item and add it to this session to start tracking its craft and FM cost."
+      },
+      "sections": {
+        "sessionBankroll": "Session bankroll",
+        "addItems": "Add items to this session",
+        "fmCost": "FM cost",
+        "sale": "Sale",
+        "recipeChecklist": "Recipe checklist"
+      },
+      "fields": {
+        "date": "Date",
+        "workflow": "Workflow",
+        "sessionFocus": "Session focus",
+        "notes": "Notes",
+        "startingKamas": "Starting kamas",
+        "currentKamas": "Current kamas",
+        "startingRuneStockValue": "Starting rune stock value",
+        "currentRuneStockValue": "Current rune stock value",
+        "globalExpenses": "Global expenses",
+        "acquisition": "Acquisition",
+        "craftKamasBefore": "Craft starting kamas",
+        "craftKamasAfter": "Craft ending kamas",
+        "craftCost": "Craft cost",
+        "extraItemExpenses": "Extra item expenses",
+        "targetMode": "Target mode",
+        "expectedSellPrice": "Expected sell price",
+        "listPrice": "List price",
+        "outcome": "Outcome",
+        "runeValueBeforeFm": "Rune value before FM",
+        "runePurchases": "Rune purchases for this item",
+        "runeValueAfterFm": "Rune value after FM",
+        "fmCost": "FM cost",
+        "soldPrice": "Sold price",
+        "brisageRecovery": "Brisage recovery"
+      },
+      "placeholders": {
+        "selectWorkflow": "Select workflow",
+        "selectFocus": "Select focus",
+        "sessionNotes": "What are you working on in this session?",
+        "globalExpenses": "Taxes, travel, consumables...",
+        "selectAcquisition": "Select acquisition mode",
+        "selectTargetMode": "Select target mode",
+        "selectOutcome": "Select outcome"
+      },
+      "actions": {
+        "newSession": "New Session",
+        "backToSessions": "Back To Sessions",
+        "edit": "Edit",
+        "hideDetails": "Hide details",
+        "showDetails": "Show details",
+        "editDetails": "Edit details",
+        "add": "Add",
+        "added": "Added",
+        "fetchRecipes": "Fetch recipes",
+        "saveSession": "Save Session",
+        "updateSession": "Update Session",
+        "deleteSession": "Delete session",
+        "removeItem": "Remove item"
+      },
+      "messages": {
+        "noItemsFound": "No items found for \"{search}\""
+      },
+      "summary": {
+        "startingBankroll": "Starting bankroll",
+        "currentAssets": "Current assets",
+        "itemsBuiltValue": "Items built value",
+        "bankrollDelta": "Bankroll delta",
+        "invested": "Invested",
+        "realized": "Realized",
+        "fmCost": "FM cost",
+        "totalInvested": "Total invested",
+        "realizedValue": "Realized value",
+        "pl": "P/L",
+        "craft": "Craft",
+        "fm": "FM",
+        "list": "List"
+      },
+      "options": {
+        "workflow": {
+          "craft": "Craft only",
+          "fm": "FM only",
+          "craftFm": "Craft + FM"
+        },
+        "focus": {
+          "clean": "Clean resale",
+          "perfect": "Near-perfect",
+          "over": "Overmage",
+          "exo": "Exo",
+          "mixed": "Mixed"
+        },
+        "acquisition": {
+          "crafted": "Crafted",
+          "bought": "Bought",
+          "mixed": "Mixed"
+        },
+        "targetMode": {
+          "clean": "Clean resale",
+          "perfect": "Near-perfect",
+          "over": "Overmage",
+          "exo": "Exo"
+        },
+        "outcome": {
+          "inProgress": "In progress",
+          "listed": "Listed",
+          "sold": "Sold",
+          "kept": "Kept",
+          "brisaged": "Brisaged",
+          "failed": "Failed"
+        }
+      },
+      "common": {
+        "resource": "Resource"
+      }
     },
     "brisage": {
-      "noCharacterDesc": "Select a character in the sidebar to track your brisage sessions."
+      "noCharacterDesc": "Select a character in the sidebar to track your brisage sessions.",
+      "stats": {
+        "sessions": "Sessions",
+        "itemsLogged": "Items logged",
+        "totalPL": "Total P/L",
+        "avgSessionPL": "Avg session P/L"
+      },
+      "sections": {
+        "sessionBuilder": "Session builder",
+        "addItems": "Add items to this session",
+        "resourceChecklist": "Resource checklist",
+        "sessionHistory": "Session history"
+      },
+      "fields": {
+        "date": "Date",
+        "focusCategory": "Focus category",
+        "levelMin": "Level min",
+        "levelMax": "Level max",
+        "sessionNotes": "Session notes",
+        "startingKamas": "Starting kamas",
+        "endingKamas": "Ending kamas",
+        "qtyCrafted": "Qty crafted",
+        "kamasBeforeBuying": "Kamas before buying",
+        "kamasAfterBuying": "Kamas after buying",
+        "estimatedRuneValue": "Estimated rune value",
+        "runNote": "Run note",
+        "itemNote": "Item note"
+      },
+      "placeholders": {
+        "selectCategory": "Select category",
+        "sessionNotes": "What are you targeting in this batch?",
+        "runNote": "Coef, market pressure, retry decision...",
+        "itemNote": "Overall conclusion for this item"
+      },
+      "actions": {
+        "loadingBatch": "Loading batch...",
+        "loadMatchingItems": "Load matching items",
+        "add": "Add",
+        "added": "Added",
+        "hideDetails": "Hide details",
+        "showDetails": "Show details",
+        "editDetails": "Edit details",
+        "remove": "Remove",
+        "removeRun": "Remove run",
+        "addAnotherRun": "Add another run",
+        "hide": "Hide",
+        "show": "Show",
+        "loadingResources": "Loading resources...",
+        "fetchRecipesForDraft": "Fetch recipes for current draft",
+        "saveSession": "Save session",
+        "deleteSession": "Delete session"
+      },
+      "messages": {
+        "batchHelp": "Uses the selected category and level range to fetch matching items from DofusDB.",
+        "noItemsFound": "No items found for \"{search}\"",
+        "emptyDraft": "Search for an item, add it to the draft session, then enter the total rune value you realized after breaking it in game.",
+        "recipeHelp": "Aggregates all recipe ingredients from the current draft items using their total crafted quantity.",
+        "noSessions": "No brisage sessions recorded yet.",
+        "noSessionsHint": "Create a draft session on the left and save it once your batch is logged."
+      },
+      "summary": {
+        "draftItems": "Draft items",
+        "craftTotal": "Craft total",
+        "realizedValue": "Realized value",
+        "sessionPL": "Session P/L",
+        "craft": "Craft",
+        "realized": "Realized",
+        "runCraftCost": "Run craft cost",
+        "runPL": "Run P/L",
+        "avgPerCopy": "Avg per copy",
+        "totalItems": "Total items",
+        "margin": "Margin",
+        "cost": "Cost"
+      },
+      "labels": {
+        "runNumber": "Run {index}",
+        "generalSession": "General session",
+        "runCount": "{count} run | {count} runs"
+      },
+      "common": {
+        "resource": "Resource"
+      }
     },
     "succes": {
       "noCharacterDesc": "Select a character in the sidebar to track your achievements.",

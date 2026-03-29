@@ -20,7 +20,7 @@
           </div>
           <div class="br-stat__body">
             <div class="br-stat__val">{{ sessions.length }}</div>
-            <div class="br-stat__lbl">Sessions</div>
+            <div class="br-stat__lbl">{{ $t('v2.brisage.stats.sessions') }}</div>
           </div>
         </div>
 
@@ -32,7 +32,7 @@
           </div>
           <div class="br-stat__body">
             <div class="br-stat__val">{{ totalItemsLogged }}</div>
-            <div class="br-stat__lbl">Items logged</div>
+            <div class="br-stat__lbl">{{ $t('v2.brisage.stats.itemsLogged') }}</div>
           </div>
         </div>
 
@@ -46,7 +46,7 @@
             <div class="br-stat__val" :style="totalPL >= 0 ? 'color:#34d399' : 'color:#f87171'">
               {{ totalPL >= 0 ? '+' : '' }}{{ formatKamas(totalPL) }}
             </div>
-            <div class="br-stat__lbl">Total P/L</div>
+            <div class="br-stat__lbl">{{ $t('v2.brisage.stats.totalPL') }}</div>
           </div>
         </div>
 
@@ -60,7 +60,7 @@
             <div class="br-stat__val" :style="avgSessionPL >= 0 ? 'color:#34d399' : 'color:#f87171'">
               {{ avgSessionPL >= 0 ? '+' : '' }}{{ formatKamas(avgSessionPL) }}
             </div>
-            <div class="br-stat__lbl">Avg session P/L</div>
+            <div class="br-stat__lbl">{{ $t('v2.brisage.stats.avgSessionPL') }}</div>
           </div>
         </div>
       </div>
@@ -71,68 +71,63 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
             </svg>
-            Session builder
+            {{ $t('v2.brisage.sections.sessionBuilder') }}
           </div>
 
           <div class="br-form">
             <div class="br-form__row">
               <div class="br-form__field">
-                <label class="br-field-lbl">Date</label>
-                <input v-model="draftSession.date" type="date" class="br-field-input" />
+                <label class="br-field-lbl">{{ $t('v2.brisage.fields.date') }}</label>
+                <V2DateInput v-model="draftSession.date" />
               </div>
               <div class="br-form__field">
-                <label class="br-field-lbl">Focus category</label>
-                <select v-model.number="draftSession.categoryTypeId" class="br-field-input">
-                  <option :value="null">Select category</option>
-                  <option v-for="option in BRISAGE_CATEGORY_OPTIONS" :key="option.typeId" :value="option.typeId">
-                    {{ option.label }}
-                  </option>
-                </select>
+                <label class="br-field-lbl">{{ $t('v2.brisage.fields.focusCategory') }}</label>
+                <V2Select v-model="draftSession.categoryTypeId" :options="categoryOptions" :placeholder="$t('v2.brisage.placeholders.selectCategory')" />
               </div>
             </div>
 
             <div class="br-form__row">
               <div class="br-form__field">
-                <label class="br-field-lbl">Level min</label>
+                <label class="br-field-lbl">{{ $t('v2.brisage.fields.levelMin') }}</label>
                 <input v-model.number="draftSession.levelMin" type="number" min="1" max="200" class="br-field-input" />
               </div>
               <div class="br-form__field">
-                <label class="br-field-lbl">Level max</label>
+                <label class="br-field-lbl">{{ $t('v2.brisage.fields.levelMax') }}</label>
                 <input v-model.number="draftSession.levelMax" type="number" min="1" max="200" class="br-field-input" />
               </div>
             </div>
 
             <div class="br-form__field">
-              <label class="br-field-lbl">Session notes</label>
-              <input v-model="draftSession.notes" type="text" placeholder="What are you targeting in this batch?" class="br-field-input" />
+              <label class="br-field-lbl">{{ $t('v2.brisage.fields.sessionNotes') }}</label>
+              <input v-model="draftSession.notes" type="text" :placeholder="$t('v2.brisage.placeholders.sessionNotes')" class="br-field-input" />
             </div>
 
             <div class="br-form__row br-form__row--triple">
               <div class="br-form__field">
-                <label class="br-field-lbl">Starting kamas</label>
+                <label class="br-field-lbl">{{ $t('v2.brisage.fields.startingKamas') }}</label>
                 <input v-model.number="draftSession.startingKamas" type="number" step="1000" class="br-field-input" />
               </div>
               <div class="br-form__field">
-                <label class="br-field-lbl">Ending kamas</label>
+                <label class="br-field-lbl">{{ $t('v2.brisage.fields.endingKamas') }}</label>
                 <input v-model.number="draftSession.endingKamas" type="number" step="1000" class="br-field-input" />
               </div>
             </div>
 
             <div class="br-session-summary">
               <div class="br-session-summary__item">
-                <div class="br-session-summary__label">Draft items</div>
+                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.draftItems') }}</div>
                 <div class="br-session-summary__value">{{ draftItems.length }}</div>
               </div>
               <div class="br-session-summary__item">
-                <div class="br-session-summary__label">Craft total</div>
+                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.craftTotal') }}</div>
                 <div class="br-session-summary__value">{{ formatKamas(draftTotals.craft) }}</div>
               </div>
               <div class="br-session-summary__item">
-                <div class="br-session-summary__label">Realized value</div>
+                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.realizedValue') }}</div>
                 <div class="br-session-summary__value">{{ formatKamas(draftTotals.realized) }}</div>
               </div>
               <div class="br-session-summary__item">
-                <div class="br-session-summary__label">Session P/L</div>
+                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.sessionPL') }}</div>
                 <div class="br-session-summary__value" :class="draftTotals.profit >= 0 ? 'br-profit--up' : 'br-profit--down'">
                   {{ draftTotals.profit >= 0 ? '+' : '' }}{{ formatKamas(draftTotals.profit) }}
                 </div>
@@ -144,7 +139,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Add items to this session
+            {{ $t('v2.brisage.sections.addItems') }}
           </div>
 
           <div class="br-batch-controls">
@@ -156,9 +151,9 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.836 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-13.837-2m13.837 2H15" />
               </svg>
-              {{ loadingBatchResults ? 'Loading batch…' : 'Load matching items' }}
+              {{ loadingBatchResults ? $t('v2.brisage.actions.loadingBatch') : $t('v2.brisage.actions.loadMatchingItems') }}
             </button>
-            <div class="br-field-help">Uses the selected category and level range to fetch matching items from DofusDB.</div>
+            <div class="br-field-help">{{ $t('v2.brisage.messages.batchHelp') }}</div>
           </div>
 
           <div ref="searchAreaEl" class="br-search-area">
@@ -189,10 +184,10 @@
                   <div class="br-result__name">{{ item.name?.fr ?? item.id }}</div>
                   <div class="br-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
                 </div>
-                <span class="br-result__cta">{{ draftItemIdSet.has(String(item.id)) ? 'Added' : 'Add' }}</span>
+                <span class="br-result__cta">{{ draftItemIdSet.has(String(item.id)) ? $t('v2.brisage.actions.added') : $t('v2.brisage.actions.add') }}</span>
               </button>
             </div>
-            <div v-else-if="search && !searching" class="br-empty-hint">No items found for "{{ search }}"</div>
+            <div v-else-if="search && !searching" class="br-empty-hint">{{ $t('v2.brisage.messages.noItemsFound', { search }) }}</div>
           </div>
 
           <div v-if="draftItems.length" class="br-draft-list">
@@ -207,9 +202,9 @@
                 </div>
                 <div class="br-draft-card__actions">
                   <button class="br-draft-card__toggle" @click="toggleDraftItem(draftItem.id)">
-                    {{ isDraftItemExpanded(draftItem.id) ? 'Hide details' : 'Edit details' }}
+                    {{ isDraftItemExpanded(draftItem.id) ? $t('v2.brisage.actions.hideDetails') : $t('v2.brisage.actions.editDetails') }}
                   </button>
-                  <button class="br-entry__del" @click="removeDraftItem(draftItem.id)" title="Remove">
+                  <button class="br-entry__del" @click="removeDraftItem(draftItem.id)" :title="$t('v2.brisage.actions.remove')">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -220,8 +215,8 @@
               <div class="br-draft-card__summary">
                 <span>{{ draftItem.runs.length }} run{{ draftItem.runs.length !== 1 ? 's' : '' }}</span>
                 <span>x{{ itemQuantityTotal(draftItem) }}</span>
-                <span>Craft {{ formatKamas(itemCraftTotal(draftItem)) }}</span>
-                <span>Realized {{ formatKamas(itemRealizedTotal(draftItem)) }}</span>
+                <span>{{ $t('v2.brisage.summary.craft') }} {{ formatKamas(itemCraftTotal(draftItem)) }}</span>
+                <span>{{ $t('v2.brisage.summary.realized') }} {{ formatKamas(itemRealizedTotal(draftItem)) }}</span>
                 <span :class="itemProfit(draftItem) >= 0 ? 'br-profit--up' : 'br-profit--down'">
                   {{ itemProfit(draftItem) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(draftItem)) }}
                 </span>
@@ -231,49 +226,49 @@
                 <div class="br-item-runs">
                   <div v-for="(run, runIndex) in draftItem.runs" :key="run.id" class="br-item-run">
                     <div class="br-item-run__head">
-                      <div class="br-item-run__title">Run {{ runIndex + 1 }}</div>
-                      <button class="br-item-run__del" @click="removeRunFromDraftItem(draftItem.id, run.id)">Remove run</button>
+                      <div class="br-item-run__title">{{ $t('v2.brisage.labels.runNumber', { index: runIndex + 1 }) }}</div>
+                      <button class="br-item-run__del" @click="removeRunFromDraftItem(draftItem.id, run.id)">{{ $t('v2.brisage.actions.removeRun') }}</button>
                     </div>
 
                     <div class="br-form__row br-form__row--triple">
                       <div class="br-form__field">
-                        <label class="br-field-lbl">Qty crafted</label>
+                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.qtyCrafted') }}</label>
                         <input v-model.number="run.quantity" type="number" min="1" class="br-field-input" />
                       </div>
                       <div class="br-form__field">
-                        <label class="br-field-lbl">Kamas before buying</label>
+                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.kamasBeforeBuying') }}</label>
                         <input v-model.number="run.buyStartKamas" type="number" min="0" step="1000" class="br-field-input" />
                       </div>
                       <div class="br-form__field">
-                        <label class="br-field-lbl">Kamas after buying</label>
+                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.kamasAfterBuying') }}</label>
                         <input v-model.number="run.buyEndKamas" type="number" min="0" step="1000" class="br-field-input" />
                       </div>
                     </div>
 
                     <div class="br-form__row">
                       <div class="br-form__field">
-                        <label class="br-field-lbl">Estimated rune value</label>
+                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.estimatedRuneValue') }}</label>
                         <input v-model.number="run.realizedRuneValue" type="number" min="0" step="1000" class="br-field-input" />
                       </div>
                       <div class="br-form__field">
-                        <label class="br-field-lbl">Run note</label>
-                        <input v-model="run.notes" type="text" placeholder="Coef, market pressure, retry decision..." class="br-field-input" />
+                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.runNote') }}</label>
+                        <input v-model="run.notes" type="text" :placeholder="$t('v2.brisage.placeholders.runNote')" class="br-field-input" />
                       </div>
                     </div>
 
                     <div class="br-profit-preview">
                       <div class="br-profit-row">
-                        <span>Run craft cost</span>
+                        <span>{{ $t('v2.brisage.summary.runCraftCost') }}</span>
                         <span>{{ formatKamas(runCraftCost(run)) }}</span>
                       </div>
                       <div class="br-profit-row">
-                        <span>Run P/L</span>
+                        <span>{{ $t('v2.brisage.summary.runPL') }}</span>
                         <span :class="runProfit(run) >= 0 ? 'br-profit--up' : 'br-profit--down'">
                           {{ runProfit(run) >= 0 ? '+' : '' }}{{ formatKamas(runProfit(run)) }}
                         </span>
                       </div>
                       <div class="br-profit-row" v-if="run.quantity > 0">
-                        <span>Avg per copy</span>
+                        <span>{{ $t('v2.brisage.summary.avgPerCopy') }}</span>
                         <span>{{ formatKamas(Math.round(runProfit(run) / run.quantity)) }}</span>
                       </div>
                     </div>
@@ -282,8 +277,8 @@
 
                 <div class="br-form__row">
                   <div class="br-form__field">
-                    <label class="br-field-lbl">Item note</label>
-                    <input v-model="draftItem.notes" type="text" placeholder="Overall conclusion for this item" class="br-field-input" />
+                    <label class="br-field-lbl">{{ $t('v2.brisage.fields.itemNote') }}</label>
+                    <input v-model="draftItem.notes" type="text" :placeholder="$t('v2.brisage.placeholders.itemNote')" class="br-field-input" />
                   </div>
                 </div>
 
@@ -291,23 +286,23 @@
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
-                  Add another run
+                  {{ $t('v2.brisage.actions.addAnotherRun') }}
                 </button>
               </div>
             </div>
           </div>
 
           <div v-else class="br-log-empty br-log-empty--compact">
-            Search for an item, add it to the draft session, then enter the total rune value you realized after breaking it in game.
+            {{ $t('v2.brisage.messages.emptyDraft') }}
           </div>
 
           <div class="br-panel-title br-panel-title--sub">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V7a2 2 0 00-2-2h-4M4 7h10M4 7v10a2 2 0 002 2h12a2 2 0 002-2v-4M4 7l4 4m0 0l4-4m-4 4V3" />
             </svg>
-            Resource checklist
+            {{ $t('v2.brisage.sections.resourceChecklist') }}
             <button class="br-collapse-toggle" @click="showDraftResourceChecklist = !showDraftResourceChecklist">
-              {{ showDraftResourceChecklist ? 'Hide' : 'Show' }}
+              {{ showDraftResourceChecklist ? $t('v2.brisage.actions.hide') : $t('v2.brisage.actions.show') }}
             </button>
           </div>
 
@@ -320,9 +315,9 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.836 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-13.837-2m13.837 2H15" />
               </svg>
-              {{ recipeChecklistState.isLoading ? 'Loading resources…' : 'Fetch recipes for current draft' }}
+              {{ recipeChecklistState.isLoading ? $t('v2.brisage.actions.loadingResources') : $t('v2.brisage.actions.fetchRecipesForDraft') }}
             </button>
-            <div class="br-field-help">Aggregates all recipe ingredients from the current draft items using their total crafted quantity.</div>
+            <div class="br-field-help">{{ $t('v2.brisage.messages.recipeHelp') }}</div>
           </div>
 
           <div v-if="showDraftResourceChecklist">
@@ -340,7 +335,7 @@
                 <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
                 <div class="br-resource-row__meta">
                   <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
-                  <div class="br-resource-row__sub">{{ resource.typeName ?? 'Resource' }}</div>
+                  <div class="br-resource-row__sub">{{ resource.typeName ?? $t('v2.brisage.common.resource') }}</div>
                 </div>
                 <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
               </label>
@@ -351,7 +346,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            Save session
+            {{ $t('v2.brisage.actions.saveSession') }}
           </button>
         </div>
 
@@ -360,7 +355,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
             </svg>
-            Session history
+            {{ $t('v2.brisage.sections.sessionHistory') }}
             <span class="br-badge">{{ sessions.length }}</span>
           </div>
 
@@ -368,19 +363,19 @@
             <svg class="w-10 h-10 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
             </svg>
-            No brisage sessions recorded yet.<br />
-            <span style="font-size:.8125rem;opacity:.5">Create a draft session on the left and save it once your batch is logged.</span>
+            {{ $t('v2.brisage.messages.noSessions') }}<br />
+            <span style="font-size:.8125rem;opacity:.5">{{ $t('v2.brisage.messages.noSessionsHint') }}</span>
           </div>
 
           <div v-else class="br-log-scroll">
             <div v-for="session in sessions" :key="session.id" class="br-entry">
               <div class="br-entry__header">
                 <div class="br-entry__meta">
-                  <div class="br-entry__name">{{ session.categoryLabel || 'General session' }}</div>
+                  <div class="br-entry__name">{{ session.categoryLabel || $t('v2.brisage.labels.generalSession') }}</div>
                   <div class="br-entry__sub">{{ describeSessionScope(session) }}</div>
                   <div class="br-entry__date">{{ formatDisplayDate(session.date) }}</div>
                 </div>
-                <button class="br-entry__del" @click="deleteSession(session.id)" title="Delete session">
+                <button class="br-entry__del" @click="deleteSession(session.id)" :title="$t('v2.brisage.actions.deleteSession')">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
@@ -389,28 +384,28 @@
 
               <div class="br-entry__prices">
                 <div class="br-price-cell br-price-cell--craft">
-                  <div class="br-price-cell__lbl">Craft total</div>
+                  <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.craftTotal') }}</div>
                   <div class="br-price-cell__val">{{ formatKamas(sessionTotals(session).craft) }}</div>
                 </div>
                 <div class="br-price-cell br-price-cell--hdv">
-                  <div class="br-price-cell__lbl">Total items</div>
+                  <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.totalItems') }}</div>
                   <div class="br-price-cell__val">{{ sessionQuantityTotal(session) }}</div>
                 </div>
                 <div class="br-price-cell br-price-cell--rune">
-                  <div class="br-price-cell__lbl">Realized value</div>
+                  <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.realizedValue') }}</div>
                   <div class="br-price-cell__val" style="color:var(--v2-accent)">{{ formatKamas(sessionTotals(session).realized) }}</div>
                 </div>
               </div>
 
               <div class="br-entry__profits">
                 <div class="br-profit-pill" :class="sessionTotals(session).profit >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                  Session P/L: {{ sessionTotals(session).profit >= 0 ? '+' : '' }}{{ formatKamas(sessionTotals(session).profit) }}
+                  {{ $t('v2.brisage.summary.sessionPL') }}: {{ sessionTotals(session).profit >= 0 ? '+' : '' }}{{ formatKamas(sessionTotals(session).profit) }}
                 </div>
                 <div class="br-profit-pill" :class="sessionMargin(session) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                  Margin: {{ sessionMargin(session) >= 0 ? '+' : '' }}{{ sessionMargin(session) }}%
+                  {{ $t('v2.brisage.summary.margin') }}: {{ sessionMargin(session) >= 0 ? '+' : '' }}{{ sessionMargin(session) }}%
                 </div>
                 <button class="br-collapse-toggle br-collapse-toggle--inline" @click="toggleSession(session.id)">
-                  {{ isSessionExpanded(session.id) ? 'Hide details' : 'Show details' }}
+                  {{ isSessionExpanded(session.id) ? $t('v2.brisage.actions.hideDetails') : $t('v2.brisage.actions.showDetails') }}
                 </button>
               </div>
 
@@ -420,7 +415,7 @@
                     <img :src="getItemImg(item.item)" :alt="item.item?.name?.fr ?? ''" class="br-session-item-row__img" @error="onImgErr" />
                     <div>
                       <div class="br-session-item-row__name">{{ item.item?.name?.fr ?? item.itemId }}</div>
-                      <div class="br-session-item-row__sub">{{ item.runs.length }} run{{ item.runs.length !== 1 ? 's' : '' }} · x{{ itemQuantityTotal(item) }} · Cost {{ formatKamas(itemCraftTotal(item)) }} · Realized {{ formatKamas(itemRealizedTotal(item)) }}</div>
+                      <div class="br-session-item-row__sub">{{ t('v2.brisage.labels.runCount', { count: item.runs.length }) }} · x{{ itemQuantityTotal(item) }} · {{ $t('v2.brisage.summary.cost') }} {{ formatKamas(itemCraftTotal(item)) }} · {{ $t('v2.brisage.summary.realized') }} {{ formatKamas(itemRealizedTotal(item)) }}</div>
                     </div>
                   </div>
                   <div class="br-session-item-row__profit" :class="itemProfit(item) >= 0 ? 'br-profit--up' : 'br-profit--down'">
@@ -436,7 +431,7 @@
                   <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
                   <div class="br-resource-row__meta">
                     <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
-                    <div class="br-resource-row__sub">{{ resource.typeName ?? 'Resource' }}</div>
+                    <div class="br-resource-row__sub">{{ resource.typeName ?? $t('v2.brisage.common.resource') }}</div>
                   </div>
                   <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
                 </div>
@@ -455,6 +450,7 @@
 import { BRISAGE_CATEGORY_OPTIONS } from '@/data/brisageCategories'
 
 definePageMeta({ layout: 'v2' })
+const { t } = useI18n()
 
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 
@@ -747,6 +743,15 @@ const clearSearch = () => {
 const selectedCategoryOption = computed(() =>
   BRISAGE_CATEGORY_OPTIONS.find(option => option.typeId === draftSession.value.categoryTypeId) ?? null,
 )
+
+const categoryOptions = computed(() => ([
+  { key: 'none', label: t('v2.brisage.placeholders.selectCategory'), value: null },
+  ...BRISAGE_CATEGORY_OPTIONS.map(option => ({
+    key: String(option.typeId),
+    label: option.label,
+    value: option.typeId,
+  })),
+]))
 
 const draftItemIdSet = computed(() =>
   new Set(draftItems.value.map(item => String(item.itemId))),
