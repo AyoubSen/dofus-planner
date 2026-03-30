@@ -223,6 +223,92 @@
       </div>
     </Transition>
 
+    <Transition name="v2-guide-modal">
+      <div
+        v-if="craftingPickerState.isOpen"
+        class="v2-guide-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add item to crafting session"
+        @click.self="closeCraftingPicker"
+      >
+        <div class="v2-guide v2-crafting-picker">
+          <div class="v2-guide__topbar">
+            <div>
+              <div class="v2-guide__eyebrow">Crafting / FM</div>
+              <div class="v2-guide__title">Add to session</div>
+            </div>
+            <button class="v2-guide__close" type="button" aria-label="Close add to session dialog" @click="closeCraftingPicker">×</button>
+          </div>
+
+          <div v-if="craftingPickerState.item" class="v2-crafting-picker__intro">
+            <div class="v2-crafting-picker__item">
+              <div class="v2-crafting-picker__thumb">
+                <img
+                  v-if="craftingPickerState.item.image_url"
+                  :src="craftingPickerState.item.image_url"
+                  :alt="craftingPickerState.item.name"
+                  class="v2-crafting-picker__thumb-img"
+                  @error="noImg"
+                />
+                <div v-else class="v2-crafting-picker__thumb-ph" />
+              </div>
+              <div>
+                <div class="v2-crafting-picker__name">{{ craftingPickerState.item.name }}</div>
+                <div class="v2-crafting-picker__meta">{{ craftingPickerState.item.count }} uses in current results</div>
+              </div>
+            </div>
+
+            <button
+              class="v2-crafting-picker__new"
+              type="button"
+              :disabled="craftingPickerState.isSaving || !selectedServer || !selectedCharacter"
+              @click="createCraftingSessionFromPicker"
+            >
+              {{ craftingPickerState.isSaving ? 'Saving…' : 'Create new session' }}
+            </button>
+          </div>
+
+          <div v-if="!selectedServer || !selectedCharacter" class="v2-crafting-picker__empty">
+            Select a server and character first. Sessions are saved per character.
+          </div>
+
+          <div v-else-if="craftingSessionsPreview.length" class="v2-crafting-picker__list">
+            <button
+              v-for="session in craftingSessionsPreview"
+              :key="session.id"
+              class="v2-crafting-picker__session"
+              type="button"
+              :disabled="craftingPickerState.isSaving"
+              @click="addItemToExistingCraftingSession(session.id)"
+            >
+              <div class="v2-crafting-picker__session-main">
+                <div class="v2-crafting-picker__session-title">{{ getCraftingSessionTitle(session) }}</div>
+                <div class="v2-crafting-picker__session-meta">
+                  {{ session.date || todayISO() }} · {{ formatWorkflowShortLabel(session.workflow) }} · {{ session.items?.length || 0 }} items
+                </div>
+              </div>
+              <div class="v2-crafting-picker__session-cta">Add</div>
+            </button>
+          </div>
+
+          <div v-else-if="selectedServer && selectedCharacter" class="v2-crafting-picker__empty">
+            No crafting sessions yet. Create one with default settings and the selected item will be added immediately.
+          </div>
+
+          <div v-if="craftingPickerState.error" class="v2-crafting-picker__error">
+            {{ craftingPickerState.error }}
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <Transition name="v2-session-toast">
+      <div v-if="craftingToast.message" class="v2-session-toast" :class="`v2-session-toast--${craftingToast.tone}`">
+        {{ craftingToast.message }}
+      </div>
+    </Transition>
+
     <!-- Stats strip -->
     <div class="v2-items-stats" v-if="stats">
       <div class="v2-stat-card">
@@ -1379,7 +1465,7 @@
               class="v2-item-card"
               @click="openRecipeView(item)"
             >
-              <div class="v2-item-card__rank">#{{ i + 1 }}</div>
+              <div class="v2-item-card__rank">#{{ Number(i) + 1 }}</div>
               <div class="v2-item-card__img-wrap">
                 <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-item-card__img" @error="noImg" />
                 <div v-else class="v2-item-card__img-ph">
@@ -1389,6 +1475,14 @@
               <div class="v2-item-card__name" :title="item.name">{{ item.name }}</div>
               <div class="v2-item-card__usage">{{ item.count }} · {{ pct(item.count) }}%</div>
               <div class="v2-item-bar"><div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" /></div>
+              <button
+                class="v2-item-card__action"
+                type="button"
+                :disabled="!selectedServer || !selectedCharacter"
+                @click.stop="openCraftingPicker(item)"
+              >
+                Add to session
+              </button>
             </div>
           </div>
 
@@ -1399,7 +1493,7 @@
               class="v2-item-row"
               @click="openRecipeView(item)"
             >
-              <span class="v2-item-row__rank">#{{ i + 1 }}</span>
+              <span class="v2-item-row__rank">#{{ Number(i) + 1 }}</span>
               <div class="v2-item-row__img-wrap">
                 <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-item-row__img" @error="noImg" />
                 <div v-else class="v2-item-row__img-ph" />
@@ -1410,6 +1504,14 @@
                   <div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" />
                 </div>
               </div>
+              <button
+                class="v2-item-row__action"
+                type="button"
+                :disabled="!selectedServer || !selectedCharacter"
+                @click.stop="openCraftingPicker(item)"
+              >
+                Add
+              </button>
               <span class="v2-item-row__count">{{ item.count }}</span>
               <span class="v2-item-row__pct">{{ pct(item.count) }}%</span>
             </div>
@@ -1425,11 +1527,12 @@
                   <th class="text-right">{{ $t('items.table.count') }}</th>
                   <th class="text-right">%</th>
                   <th>{{ $t('items.table.distribution') }}</th>
+                  <th class="text-right">Craft/FM</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(item, i) in currentSlotStats.topItems.slice(0, 20)" :key="item.name" @click="openRecipeView(item)">
-                  <td class="v2-table-rank">{{ i + 1 }}</td>
+                  <td class="v2-table-rank">{{ Number(i) + 1 }}</td>
                   <td>
                     <div class="v2-table-img-wrap">
                       <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-table-img" @error="noImg" />
@@ -1443,6 +1546,16 @@
                     <div class="v2-item-bar v2-item-bar--sm">
                       <div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" />
                     </div>
+                  </td>
+                  <td class="v2-table-action-cell text-right">
+                    <button
+                      class="v2-table-action-btn"
+                      type="button"
+                      :disabled="!selectedServer || !selectedCharacter"
+                      @click.stop="openCraftingPicker(item)"
+                    >
+                      Add
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -1603,6 +1716,84 @@ type StoredObservedPriceEntry = {
   }>
 }
 
+type WorkflowMode = 'craft' | 'fm' | 'craft_fm'
+type SessionFocus = 'clean' | 'perfect' | 'over' | 'exo' | 'mixed'
+type AcquisitionMode = 'crafted' | 'bought' | 'mixed'
+type TargetMode = 'clean' | 'perfect' | 'over' | 'exo'
+type OutcomeMode = 'in_progress' | 'listed' | 'sold' | 'kept' | 'brisaged' | 'failed'
+type AttemptTag = 'setup' | 'upgrade' | 'stabilized' | 'exo_hit' | 'brick' | 'stop'
+type TargetPriority = 'ignore' | 'low' | 'normal' | 'high' | 'critical'
+
+interface DraftTargetStat {
+  id: string
+  effectId: number
+  label: string
+  min: number
+  max: number
+  baseValue: number
+  targetValue: number
+  priority: TargetPriority
+}
+
+interface DraftAttempt {
+  id: string
+  date: string
+  runeCost: number
+  estimatedValue: number
+  tag: AttemptTag
+  statsNote: string
+  notes: string
+}
+
+interface DraftCraftFmItem {
+  id: string
+  itemId: string | number
+  item: any
+  acquisitionMode: AcquisitionMode
+  craftKamasBefore: number
+  craftKamasAfter: number
+  extraExpenses: number
+  runeValueBeforeFm: number
+  runePurchases: number
+  runeValueAfterFm: number
+  targetMode: TargetMode
+  targetSummary: string
+  stopRule: string
+  expectedSalePrice: number
+  listedPrice: number
+  realizedSalePrice: number
+  brisageRecovery: number
+  outcome: OutcomeMode
+  notes: string
+  targetStats: DraftTargetStat[]
+  attempts: DraftAttempt[]
+}
+
+interface RecipeChecklistResource {
+  id: number
+  name: string
+  image: string | null
+  typeName: string | null
+  totalQuantity: number
+  hasRecipe: boolean
+  isDone: boolean
+}
+
+interface CraftFmSession {
+  id: string
+  date: string
+  workflow: WorkflowMode
+  focus: SessionFocus
+  startingKamas: number
+  currentKamas: number
+  startingRuneStockValue: number
+  currentRuneStockValue: number
+  sessionExpenses: number
+  notes: string
+  items: DraftCraftFmItem[]
+  resourceChecklist: RecipeChecklistResource[]
+}
+
 type OcrWord = {
   text?: string
   confidence?: number
@@ -1619,6 +1810,7 @@ const ITEM_RESOURCE_PRICES_KEY = 'dofus-items-resource-prices-v1'
 const ITEM_OBSERVED_PRICES_KEY = 'dofus-items-observed-prices-v1'
 const DOFUS_EFFECT_CACHE_KEY = 'dofus-items-effect-cache-v1'
 const ITEM_STAT_PRIORITY_KEY = 'dofus-items-stat-priority-v1'
+const CRAFT_FM_SESSIONS_KEY_PREFIX = 'craft_fm_sessions_'
 
 const recipeLookupState = ref<{
   isLoading: boolean
@@ -1699,6 +1891,23 @@ type ValuationMode = 'score' | 'comparables' | 'auto'
 const valuationMode = ref<ValuationMode>('auto')
 const effectCache = ref<Record<string, CachedEffectEntry>>({})
 const itemStatPriorities = ref<Record<string, Record<string, number>>>({})
+const craftingSessionsPreview = ref<CraftFmSession[]>([])
+const craftingPickerState = ref<{
+  isOpen: boolean
+  isSaving: boolean
+  item: { name: string; image_url?: string | null; count: number; rawItem?: any } | null
+  error: string
+}>({
+  isOpen: false,
+  isSaving: false,
+  item: null,
+  error: '',
+})
+const craftingToast = ref<{ message: string; tone: 'success' | 'error' }>({
+  message: '',
+  tone: 'success',
+})
+let craftingToastTimer: ReturnType<typeof setTimeout> | null = null
 const observationStatOptions = [
   { key: 'vitalite', label: 'Vitalité', suffix: '' },
   { key: 'force', label: 'Force', suffix: '' },
@@ -1869,6 +2078,11 @@ const activeSlotContextSubtitle = computed(() => {
     slot: slotName.toLowerCase(),
     topCount,
   })
+})
+
+const craftingSessionsKey = computed(() => {
+  if (!selectedServer.value?.id || !selectedCharacter.value?.id) return ''
+  return `${CRAFT_FM_SESSIONS_KEY_PREFIX}${selectedServer.value.id}_${selectedCharacter.value.id}`
 })
 
 const normalizeDofusdbSearch = (value: string) =>
@@ -2052,6 +2266,250 @@ const formatEffectLabel = (effData: any, eff: any): string => {
       .trim()
   }
   return desc.replace(/\s{2,}/g, ' ').trim()
+}
+
+const readCraftingSessions = (): CraftFmSession[] => {
+  if (!import.meta.client || !craftingSessionsKey.value) return []
+
+  try {
+    const raw = localStorage.getItem(craftingSessionsKey.value)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((session): session is CraftFmSession =>
+      Boolean(session && typeof session === 'object' && session.id),
+    )
+  } catch {
+    return []
+  }
+}
+
+const writeCraftingSessions = (sessions: CraftFmSession[]) => {
+  if (!import.meta.client || !craftingSessionsKey.value) return
+  localStorage.setItem(craftingSessionsKey.value, JSON.stringify(sessions))
+}
+
+const refreshCraftingSessionsPreview = () => {
+  craftingSessionsPreview.value = readCraftingSessions()
+}
+
+const showCraftingToast = (message: string, tone: 'success' | 'error' = 'success') => {
+  craftingToast.value = { message, tone }
+  if (craftingToastTimer) clearTimeout(craftingToastTimer)
+  craftingToastTimer = setTimeout(() => {
+    craftingToast.value = { message: '', tone: 'success' }
+  }, 2600)
+}
+
+const getCraftingSessionTitle = (session: CraftFmSession) => {
+  const first = session.items?.[0]
+  if (!first) return 'Empty session'
+  if ((session.items?.length || 0) === 1) return first.item?.name?.fr ?? first.item?.name?.en ?? String(first.itemId)
+  return `${first.item?.name?.fr ?? first.item?.name?.en ?? first.itemId} + ${(session.items?.length || 0) - 1} more`
+}
+
+const formatWorkflowShortLabel = (value: WorkflowMode | string | undefined) =>
+  value === 'craft'
+    ? 'Craft'
+    : value === 'fm'
+      ? 'FM'
+      : 'Craft + FM'
+
+function todayISO() {
+  const date = new Date()
+  return date.toISOString().slice(0, 10)
+}
+
+const createCraftingAttempt = (): DraftAttempt => ({
+  id: crypto.randomUUID(),
+  date: todayISO(),
+  runeCost: 0,
+  estimatedValue: 0,
+  tag: 'setup',
+  statsNote: '',
+  notes: '',
+})
+
+const buildCraftingTargetStats = async (item: any): Promise<DraftTargetStat[]> => {
+  if (!Array.isArray(item?.effects) || !item.effects.length) return []
+
+  await ensureEffectLabels(item.effects)
+
+  return item.effects
+    .map((effect: any, index: number) => {
+      const effectId = Number(effect.effectId ?? effect.id ?? 0)
+      if (!effectId) return null
+
+      const effectData = effectCache.value[String(effectId)]?.data
+      const min = Number(effect.from ?? effect.value ?? 0)
+      const max = Number(effect.to ?? effect.value ?? 0)
+
+      return {
+        id: `${effectId}-${index}`,
+        effectId,
+        label: formatEffectLabel(effectData, effect),
+        min,
+        max: max || min,
+        baseValue: Number(effect.value ?? effect.from ?? 0),
+        targetValue: max || min,
+        priority: 'normal' as TargetPriority,
+      }
+    })
+    .filter(Boolean) as DraftTargetStat[]
+}
+
+const buildCraftingDraftItem = async (item: any): Promise<DraftCraftFmItem> => ({
+  id: crypto.randomUUID(),
+  itemId: item.id,
+  item,
+  acquisitionMode: 'crafted',
+  craftKamasBefore: 0,
+  craftKamasAfter: 0,
+  extraExpenses: 0,
+  runeValueBeforeFm: 0,
+  runePurchases: 0,
+  runeValueAfterFm: 0,
+  targetMode: 'clean',
+  targetSummary: '',
+  stopRule: '',
+  expectedSalePrice: 0,
+  listedPrice: 0,
+  realizedSalePrice: 0,
+  brisageRecovery: 0,
+  outcome: 'in_progress',
+  notes: '',
+  targetStats: await buildCraftingTargetStats(item),
+  attempts: [createCraftingAttempt()],
+})
+
+const resolveCraftingItem = async (item: { name: string; rawItem?: any }) => {
+  const rawItem = item.rawItem
+  if (rawItem?.id && Array.isArray(rawItem?.effects)) return rawItem
+
+  if (
+    selectedRecipeItem.value?.name === item.name &&
+    recipeLookupState.value.data?.result?.id &&
+    Array.isArray(recipeLookupState.value.data?.result?.effects)
+  ) {
+    return recipeLookupState.value.data.result
+  }
+
+  const searchResponse = await $fetch<any>('/api/dofusdb/items', {
+    query: {
+      'typeId[$ne]': 203,
+      '$sort': '-id',
+      'slug.fr[$search]': normalizeDofusdbSearch(item.name),
+      'level[$gte]': 0,
+      'level[$lte]': 200,
+      '$skip': 0,
+      lang: 'fr',
+    },
+  })
+
+  const results = Array.isArray(searchResponse?.data) ? searchResponse.data : []
+  const exactMatch = results.find((entry: any) =>
+    normalizeDofusdbSearch(entry?.name?.fr || entry?.name?.en || '') === normalizeDofusdbSearch(item.name),
+  )
+  const matchedItem = exactMatch || results[0]
+
+  if (!matchedItem?.id) {
+    throw new Error(`Could not resolve "${item.name}" from DofusDB.`)
+  }
+
+  return matchedItem
+}
+
+const closeCraftingPicker = () => {
+  craftingPickerState.value = {
+    isOpen: false,
+    isSaving: false,
+    item: null,
+    error: '',
+  }
+}
+
+const openCraftingPicker = (item: { name: string; image_url?: string | null; count: number; rawItem?: any }) => {
+  craftingPickerState.value = {
+    isOpen: true,
+    isSaving: false,
+    item,
+    error: '',
+  }
+  refreshCraftingSessionsPreview()
+}
+
+const appendItemToCraftingSession = async (sessionId?: string) => {
+  const pickedItem = craftingPickerState.value.item
+  if (!pickedItem) return
+  if (!selectedServer.value?.id || !selectedCharacter.value?.id) {
+    craftingPickerState.value.error = 'Select a server and character first.'
+    return
+  }
+
+  craftingPickerState.value.isSaving = true
+  craftingPickerState.value.error = ''
+
+  try {
+    const resolvedItem = await resolveCraftingItem(pickedItem)
+    const nextItem = await buildCraftingDraftItem(resolvedItem)
+    const sessions = readCraftingSessions()
+
+    if (sessionId) {
+      const targetSession = sessions.find((session) => session.id === sessionId)
+      if (!targetSession) {
+        throw new Error('The selected session was not found.')
+      }
+
+      const alreadyTracked = (targetSession.items || []).some((entry) => String(entry.itemId) === String(resolvedItem.id))
+      if (alreadyTracked) {
+        throw new Error(`"${pickedItem.name}" is already in that session.`)
+      }
+
+      targetSession.items = [nextItem, ...(targetSession.items || [])]
+    } else {
+      sessions.unshift({
+        id: crypto.randomUUID(),
+        date: todayISO(),
+        workflow: 'craft_fm',
+        focus: 'mixed',
+        startingKamas: 0,
+        currentKamas: 0,
+        startingRuneStockValue: 0,
+        currentRuneStockValue: 0,
+        sessionExpenses: 0,
+        notes: '',
+        items: [nextItem],
+        resourceChecklist: [],
+      })
+    }
+
+    writeCraftingSessions(sessions)
+    refreshCraftingSessionsPreview()
+    closeCraftingPicker()
+    showCraftingToast(
+      sessionId
+        ? `Added ${pickedItem.name} to crafting session.`
+        : `Created a new crafting session with ${pickedItem.name}.`,
+      'success',
+    )
+  } catch (error: any) {
+    craftingPickerState.value = {
+      ...craftingPickerState.value,
+      isSaving: false,
+      error: error?.message || 'Failed to save the item to a crafting session.',
+    }
+    return
+  }
+
+  craftingPickerState.value.isSaving = false
+}
+
+const createCraftingSessionFromPicker = async () => {
+  await appendItemToCraftingSession()
+}
+
+const addItemToExistingCraftingSession = async (sessionId: string) => {
+  await appendItemToCraftingSession(sessionId)
 }
 
 const selectedObservationKey = computed(() =>
@@ -5433,6 +5891,38 @@ watch(
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .v2-item-card__usage { font-size: .6875rem; color: var(--v2-text-muted); }
+.v2-item-card__action,
+.v2-item-row__action,
+.v2-table-action-btn,
+.v2-crafting-picker__new {
+  border: 1px solid var(--v2-border);
+  background: rgba(0,0,0,.22);
+  color: var(--v2-text);
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+}
+.v2-item-card__action:hover,
+.v2-item-row__action:hover,
+.v2-table-action-btn:hover,
+.v2-crafting-picker__new:hover {
+  border-color: var(--v2-border-strong);
+  background: var(--v2-hover-subtle);
+}
+.v2-item-card__action:disabled,
+.v2-item-row__action:disabled,
+.v2-table-action-btn:disabled,
+.v2-crafting-picker__new:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.v2-item-card__action {
+  width: 100%;
+  margin-top: .35rem;
+  padding: .45rem .55rem;
+  font-size: .72rem;
+}
 
 /* ── List view ───────────────────────────────────────────── */
 .v2-items-list { display: flex; flex-direction: column; gap: 4px; }
@@ -5453,6 +5943,7 @@ watch(
 .v2-item-row__img-ph { width: 100%; height: 100%; background: var(--v2-hover); }
 .v2-item-row__name { flex: 1; font-size: .875rem; font-weight: 600; color: var(--v2-text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v2-item-row__bar-wrap { flex: 1; min-width: 60px; max-width: 200px; }
+.v2-item-row__action { padding: .4rem .65rem; font-size: .72rem; flex-shrink: 0; }
 .v2-item-row__count { font-size: .8125rem; color: var(--v2-text-hover); font-weight: 600; min-width: 32px; text-align: right; }
 .v2-item-row__pct { font-size: .75rem; color: var(--v2-text-secondary); min-width: 42px; text-align: right; }
 
@@ -5483,8 +5974,173 @@ watch(
 .v2-table-img { width: 100%; height: 100%; object-fit: cover; }
 .v2-table-img-ph { width: 100%; height: 100%; background: var(--v2-hover); }
 .v2-table-name { font-size: .875rem; font-weight: 600; color: var(--v2-text); min-width: 160px; }
+.v2-table-action-cell { white-space: nowrap; }
+.v2-table-action-btn { padding: .4rem .65rem; font-size: .72rem; }
 .v2-table-num { font-size: .875rem; color: var(--v2-text-hover); font-weight: 600; }
 .v2-table-pct { font-size: .8125rem; color: var(--v2-accent); font-weight: 600; white-space: nowrap; }
+
+.v2-crafting-picker {
+  width: min(640px, calc(100vw - 32px));
+}
+.v2-crafting-picker__intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .9rem;
+  margin-bottom: 1rem;
+  padding: .875rem 1rem;
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 14px;
+  background: rgba(0,0,0,.14);
+}
+.v2-crafting-picker__item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
+}
+.v2-crafting-picker__thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(0,0,0,.2);
+  border: 1px solid var(--v2-active);
+}
+.v2-crafting-picker__thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.v2-crafting-picker__thumb-ph {
+  width: 100%;
+  height: 100%;
+  background: var(--v2-hover);
+}
+.v2-crafting-picker__name {
+  color: var(--v2-text);
+  font-size: .95rem;
+  font-weight: 700;
+}
+.v2-crafting-picker__meta {
+  color: var(--v2-text-secondary);
+  font-size: .76rem;
+  margin-top: .15rem;
+}
+.v2-crafting-picker__new {
+  padding: .7rem .9rem;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+.v2-crafting-picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+.v2-crafting-picker__session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--v2-border-subtle);
+  background: rgba(0,0,0,.14);
+  border-radius: 12px;
+  padding: .85rem .95rem;
+  color: var(--v2-text);
+  cursor: pointer;
+  transition: all .15s;
+}
+.v2-crafting-picker__session:hover {
+  border-color: var(--v2-border-strong);
+  background: rgba(255,255,255,.03);
+}
+.v2-crafting-picker__session:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+.v2-crafting-picker__session-main {
+  min-width: 0;
+}
+.v2-crafting-picker__session-title {
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--v2-text);
+}
+.v2-crafting-picker__session-meta {
+  margin-top: .2rem;
+  color: var(--v2-text-secondary);
+  font-size: .74rem;
+}
+.v2-crafting-picker__session-cta {
+  color: var(--v2-accent);
+  font-size: .75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.v2-crafting-picker__empty,
+.v2-crafting-picker__error {
+  margin-top: .75rem;
+  border-radius: 12px;
+  padding: .85rem .95rem;
+  font-size: .82rem;
+}
+.v2-crafting-picker__empty {
+  color: var(--v2-text-secondary);
+  background: rgba(0,0,0,.14);
+  border: 1px solid var(--v2-border-subtle);
+}
+.v2-crafting-picker__error {
+  color: #fecaca;
+  background: rgba(127, 29, 29, .28);
+  border: 1px solid rgba(248, 113, 113, .28);
+}
+
+.v2-session-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 90;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: .8rem .95rem;
+  border-radius: 12px;
+  border: 1px solid var(--v2-border-subtle);
+  background: rgba(15, 23, 42, .94);
+  color: var(--v2-text);
+  font-size: .82rem;
+  font-weight: 700;
+  box-shadow: 0 16px 40px rgba(0,0,0,.32);
+}
+.v2-session-toast--success {
+  border-color: rgba(52, 211, 153, .32);
+}
+.v2-session-toast--error {
+  border-color: rgba(248, 113, 113, .3);
+}
+.v2-session-toast-enter-active,
+.v2-session-toast-leave-active {
+  transition: opacity .18s ease, transform .18s ease;
+}
+.v2-session-toast-enter-from,
+.v2-session-toast-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+@media (max-width: 720px) {
+  .v2-crafting-picker__intro {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .v2-crafting-picker__new {
+    width: 100%;
+  }
+  .v2-crafting-picker__session {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
 
 /* ── Recipe view ─────────────────────────────────────────── */
 .v2-recipe-shell { display: flex; flex-direction: column; gap: 1.375rem; }
