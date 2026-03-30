@@ -109,9 +109,14 @@
       "sections": {
         "sessionBankroll": "Session bankroll",
         "addItems": "Add items to this session",
+        "craft": "Craft",
         "fmCost": "FM cost",
         "sale": "Sale",
-        "recipeChecklist": "Recipe checklist"
+        "recipeChecklist": "Recipe checklist",
+        "bankrollStart": "Start",
+        "bankrollCurrent": "Current",
+        "bankrollKamas": "Kamas",
+        "bankrollRunes": "Rune stock"
       },
       "fields": {
         "date": "Date",

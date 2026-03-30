@@ -180,27 +180,37 @@
           </div>
 
           <div class="cf-targets">
-              <div class="cf-panel__subtitle">{{ $t('v2.crafting.sections.sessionBankroll') }}</div>
-            <div class="cf-form-grid">
-              <div class="cf-field">
-                  <label class="cf-field__label">{{ $t('v2.crafting.fields.startingKamas') }}</label>
-                <input v-model.number="draftSession.startingKamas" type="number" min="0" step="1000" class="cf-input" />
+            <div class="cf-panel__subtitle">{{ $t('v2.crafting.sections.sessionBankroll') }}</div>
+            <div class="cf-bankroll-group">
+              <div class="cf-bankroll-group__label">{{ $t('v2.crafting.sections.bankrollStart') }}</div>
+              <div class="cf-form-grid">
+                <div class="cf-field">
+                  <label class="cf-field__label">{{ $t('v2.crafting.sections.bankrollKamas') }}</label>
+                  <input v-model.number="draftSession.startingKamas" type="number" min="0" step="1000" class="cf-input" />
+                </div>
+                <div class="cf-field">
+                  <label class="cf-field__label">{{ $t('v2.crafting.sections.bankrollRunes') }}</label>
+                  <input v-model.number="draftSession.startingRuneStockValue" type="number" min="0" step="1000" class="cf-input" />
+                </div>
               </div>
-              <div class="cf-field">
-                  <label class="cf-field__label">{{ $t('v2.crafting.fields.currentKamas') }}</label>
-                <input v-model.number="draftSession.currentKamas" type="number" min="0" step="1000" class="cf-input" />
+            </div>
+            <div class="cf-bankroll-group">
+              <div class="cf-bankroll-group__label">{{ $t('v2.crafting.sections.bankrollCurrent') }}</div>
+              <div class="cf-form-grid">
+                <div class="cf-field">
+                  <label class="cf-field__label">{{ $t('v2.crafting.sections.bankrollKamas') }}</label>
+                  <input v-model.number="draftSession.currentKamas" type="number" min="0" step="1000" class="cf-input" />
+                </div>
+                <div class="cf-field">
+                  <label class="cf-field__label">{{ $t('v2.crafting.sections.bankrollRunes') }}</label>
+                  <input v-model.number="draftSession.currentRuneStockValue" type="number" min="0" step="1000" class="cf-input" />
+                </div>
               </div>
-              <div class="cf-field">
-                  <label class="cf-field__label">{{ $t('v2.crafting.fields.startingRuneStockValue') }}</label>
-                <input v-model.number="draftSession.startingRuneStockValue" type="number" min="0" step="1000" class="cf-input" />
-              </div>
-              <div class="cf-field">
-                  <label class="cf-field__label">{{ $t('v2.crafting.fields.currentRuneStockValue') }}</label>
-                <input v-model.number="draftSession.currentRuneStockValue" type="number" min="0" step="1000" class="cf-input" />
-              </div>
+            </div>
+            <div class="cf-form-grid" style="margin-top:.75rem;">
               <div class="cf-field cf-field--full">
-                  <label class="cf-field__label">{{ $t('v2.crafting.fields.globalExpenses') }}</label>
-                  <input v-model.number="draftSession.sessionExpenses" type="number" min="0" step="1000" class="cf-input" :placeholder="$t('v2.crafting.placeholders.globalExpenses')" />
+                <label class="cf-field__label">{{ $t('v2.crafting.fields.globalExpenses') }}</label>
+                <input v-model.number="draftSession.sessionExpenses" type="number" min="0" step="1000" class="cf-input" :placeholder="$t('v2.crafting.placeholders.globalExpenses')" />
               </div>
             </div>
 
@@ -302,32 +312,8 @@
                     <V2Select v-model="draftItem.acquisitionMode" :options="acquisitionOptions" :placeholder="$t('v2.crafting.placeholders.selectAcquisition')" />
                   </div>
                   <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.craftKamasBefore') }}</label>
-                    <input v-model.number="draftItem.craftKamasBefore" type="number" min="0" step="1000" class="cf-input" />
-                  </div>
-                  <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.craftKamasAfter') }}</label>
-                    <input v-model.number="draftItem.craftKamasAfter" type="number" min="0" step="1000" class="cf-input" />
-                  </div>
-                  <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.craftCost') }}</label>
-                    <input :value="formatKamas(itemCraftCost(draftItem))" type="text" class="cf-input" readonly />
-                  </div>
-                  <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.extraItemExpenses') }}</label>
-                    <input v-model.number="draftItem.extraExpenses" type="number" min="0" step="1000" class="cf-input" />
-                  </div>
-                  <div class="cf-field">
                     <label class="cf-field__label">{{ $t('v2.crafting.fields.targetMode') }}</label>
                     <V2Select v-model="draftItem.targetMode" :options="targetModeOptions" :placeholder="$t('v2.crafting.placeholders.selectTargetMode')" />
-                  </div>
-                  <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.expectedSellPrice') }}</label>
-                    <input v-model.number="draftItem.expectedSalePrice" type="number" min="0" step="1000" class="cf-input" />
-                  </div>
-                  <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.listPrice') }}</label>
-                    <input v-model.number="draftItem.listedPrice" type="number" min="0" step="1000" class="cf-input" />
                   </div>
                   <div class="cf-field">
                     <label class="cf-field__label">{{ $t('v2.crafting.fields.outcome') }}</label>
@@ -335,8 +321,42 @@
                   </div>
                 </div>
 
-                <div class="cf-targets">
-                  <div class="cf-panel__subtitle">{{ $t('v2.crafting.sections.fmCost') }}</div>
+                <div class="cf-tab-strip">
+                  <button class="cf-tab" :class="{ 'cf-tab--active': getItemTab(draftItem.id) === 'craft' }" @click="setItemTab(draftItem.id, 'craft')">
+                    {{ $t('v2.crafting.sections.craft') }}
+                    <span class="cf-tab__hint">{{ formatKamas(itemCraftCost(draftItem)) }}</span>
+                  </button>
+                  <button class="cf-tab" :class="{ 'cf-tab--active': getItemTab(draftItem.id) === 'fm' }" @click="setItemTab(draftItem.id, 'fm')">
+                    FM
+                    <span class="cf-tab__hint">{{ formatKamas(itemFmCost(draftItem)) }}</span>
+                  </button>
+                  <button class="cf-tab" :class="{ 'cf-tab--active': getItemTab(draftItem.id) === 'sale' }" @click="setItemTab(draftItem.id, 'sale')">
+                    {{ $t('v2.crafting.sections.sale') }}
+                  </button>
+                </div>
+
+                <template v-if="getItemTab(draftItem.id) === 'craft'">
+                  <div class="cf-form-grid">
+                    <div class="cf-field">
+                      <label class="cf-field__label">{{ $t('v2.crafting.fields.craftKamasBefore') }}</label>
+                      <input v-model.number="draftItem.craftKamasBefore" type="number" min="0" step="1000" class="cf-input" />
+                    </div>
+                    <div class="cf-field">
+                      <label class="cf-field__label">{{ $t('v2.crafting.fields.craftKamasAfter') }}</label>
+                      <input v-model.number="draftItem.craftKamasAfter" type="number" min="0" step="1000" class="cf-input" />
+                    </div>
+                    <div class="cf-field">
+                      <label class="cf-field__label">{{ $t('v2.crafting.fields.craftCost') }}</label>
+                      <input :value="formatKamas(itemCraftCost(draftItem))" type="text" class="cf-input" readonly />
+                    </div>
+                    <div class="cf-field">
+                      <label class="cf-field__label">{{ $t('v2.crafting.fields.extraItemExpenses') }}</label>
+                      <input v-model.number="draftItem.extraExpenses" type="number" min="0" step="1000" class="cf-input" />
+                    </div>
+                  </div>
+                </template>
+
+                <template v-else-if="getItemTab(draftItem.id) === 'fm'">
                   <div class="cf-form-grid">
                     <div class="cf-field">
                       <label class="cf-field__label">{{ $t('v2.crafting.fields.runeValueBeforeFm') }}</label>
@@ -355,11 +375,18 @@
                       <input :value="formatKamas(itemFmCost(draftItem))" type="text" class="cf-input" readonly />
                     </div>
                   </div>
-                </div>
+                </template>
 
-                <div class="cf-targets">
-                  <div class="cf-panel__subtitle">{{ $t('v2.crafting.sections.sale') }}</div>
+                <template v-else-if="getItemTab(draftItem.id) === 'sale'">
                   <div class="cf-form-grid">
+                    <div class="cf-field">
+                      <label class="cf-field__label">{{ $t('v2.crafting.fields.expectedSellPrice') }}</label>
+                      <input v-model.number="draftItem.expectedSalePrice" type="number" min="0" step="1000" class="cf-input" />
+                    </div>
+                    <div class="cf-field">
+                      <label class="cf-field__label">{{ $t('v2.crafting.fields.listPrice') }}</label>
+                      <input v-model.number="draftItem.listedPrice" type="number" min="0" step="1000" class="cf-input" />
+                    </div>
                     <div class="cf-field">
                       <label class="cf-field__label">{{ $t('v2.crafting.fields.soldPrice') }}</label>
                       <input v-model.number="draftItem.realizedSalePrice" type="number" min="0" step="1000" class="cf-input" />
@@ -369,7 +396,6 @@
                       <input v-model.number="draftItem.brisageRecovery" type="number" min="0" step="1000" class="cf-input" />
                     </div>
                   </div>
-
                   <div class="cf-profit-preview">
                     <div class="cf-profit-preview__row">
                       <span>{{ $t('v2.crafting.summary.fmCost') }}</span>
@@ -390,7 +416,7 @@
                       </span>
                     </div>
                   </div>
-                </div>
+                </template>
               </div>
             </div>
           </div>
@@ -648,6 +674,10 @@ const sessions = ref<CraftFmSession[]>([])
 const draftItems = ref<DraftCraftFmItem[]>([])
 const expandedDraftItemIds = ref<string[]>([])
 const expandedSessionIds = ref<string[]>([])
+const itemTabs = ref<Record<string, 'craft' | 'fm' | 'sale'>>({})
+
+const getItemTab = (id: string): 'craft' | 'fm' | 'sale' => itemTabs.value[id] ?? 'craft'
+const setItemTab = (id: string, tab: 'craft' | 'fm' | 'sale') => { itemTabs.value[id] = tab }
 const editingSessionId = ref<string>('')
 const draftResourceChecklist = ref<RecipeChecklistResource[]>([])
 const recipeChecklistState = ref({
@@ -1126,6 +1156,7 @@ const sessionDraftSummary = computed(() => {
 const resetDraft = () => {
   draftItems.value = []
   expandedDraftItemIds.value = []
+  itemTabs.value = {}
   draftResourceChecklist.value = []
   recipeChecklistState.value = { hasFetched: false, isLoading: false, error: '' }
   draftSession.value = {
@@ -1991,4 +2022,65 @@ onUnmounted(() => {
 
 .cf-profit--up { color: #34d399; }
 .cf-profit--down { color: #f87171; }
+
+/* Bankroll groups */
+.cf-bankroll-group {
+  margin-top: .75rem;
+}
+
+.cf-bankroll-group__label {
+  font-size: .6875rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--v2-text-dim);
+  font-weight: 700;
+  margin-bottom: .45rem;
+}
+
+/* Item section tabs */
+.cf-tab-strip {
+  display: flex;
+  gap: .4rem;
+  margin-top: .85rem;
+  margin-bottom: .75rem;
+  border-bottom: 1px solid var(--v2-border-subtle);
+  padding-bottom: .65rem;
+}
+
+.cf-tab {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: .35rem .7rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--v2-text-secondary);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+
+.cf-tab:hover {
+  color: var(--v2-text);
+  border-color: var(--v2-border-subtle);
+}
+
+.cf-tab--active {
+  color: var(--v2-accent);
+  background: rgba(var(--v2-accent-rgb, 99,179,237), .1);
+  border-color: var(--v2-border-med);
+}
+
+.cf-tab__hint {
+  font-weight: 500;
+  color: var(--v2-text-muted);
+  font-size: .6875rem;
+}
+
+.cf-tab--active .cf-tab__hint {
+  color: var(--v2-text-secondary);
+}
+
 </style>
