@@ -7,94 +7,113 @@
           <div class="v2-items-filters__title">{{ $t('items.guide.entryTitle') }}</div>
           <div class="v2-items-filters__subtitle">{{ $t('items.guide.entrySubtitle') }}</div>
         </div>
-        <button class="v2-guide-btn" type="button" :aria-label="$t('items.guide.openAria')" @click="openGuide('main')">?</button>
-      </div>
-
-      <!-- Element -->
-      <div class="v2-filter-group">
-        <span class="v2-filter-label">{{ $t('items.filters.elements.title') }}</span>
-        <div class="v2-filter-chips">
+        <div class="v2-items-filters__actions">
           <button
-            class="v2-fchip"
-            :class="{ 'v2-fchip--on': !filters.element }"
-            @click="setFilter('element', '')"
-          >{{ $t('items.filters.elements.all') }}</button>
-          <button
-            v-for="el in ELEMENTS"
-            :key="el.name"
-            class="v2-fchip v2-fchip--icon"
-            :class="{ 'v2-fchip--on': filters.element === el.name }"
-            :title="el.name"
-            @click="setFilter('element', el.name)"
+            class="v2-filters-toggle"
+            type="button"
+            :title="filtersCollapsed ? $t('items.filters.showFilters') : $t('items.filters.hideFilters')"
+            @click="toggleFilters"
           >
-            <img :src="el.icon" :alt="el.name" class="w-4 h-4 object-contain" @error="noImg" />
+            <svg class="w-3.5 h-3.5" :style="filtersCollapsed ? 'transform:rotate(180deg)' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+            {{ filtersCollapsed ? $t('items.filters.showFilters') : $t('items.filters.hideFilters') }}
           </button>
+          <button class="v2-guide-btn" type="button" :aria-label="$t('items.guide.openAria')" @click="openGuide('main')">?</button>
         </div>
       </div>
 
-      <!-- Mode -->
-      <div class="v2-filter-group">
-        <span class="v2-filter-label">{{ $t('items.filters.mode.title') }}</span>
-        <div class="v2-filter-chips">
-          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.mode }" @click="setFilter('mode', '')">{{ $t('items.filters.mode.all') }}</button>
-          <button
-            v-for="m in MODES"
-            :key="m"
-            class="v2-fchip"
-            :class="{ 'v2-fchip--on': filters.mode === m }"
-            @click="setFilter('mode', m)"
-          >{{ m.toUpperCase() }}</button>
+      <div v-show="!filtersCollapsed" class="v2-filter-rows">
+        <!-- Element -->
+        <div class="v2-filter-group">
+          <span class="v2-filter-label">{{ $t('items.filters.elements.title') }}</span>
+          <div class="v2-filter-chips">
+            <button
+              class="v2-fchip"
+              :class="{ 'v2-fchip--on': !filters.element }"
+              @click="setFilter('element', '')"
+            >{{ $t('items.filters.elements.all') }}</button>
+            <button
+              v-for="el in ELEMENTS"
+              :key="el.name"
+              class="v2-fchip v2-fchip--icon"
+              :class="{ 'v2-fchip--on': filters.element === el.name }"
+              :title="$t('items.filters.elements.' + el.name)"
+              @click="setFilter('element', el.name)"
+            >
+              <img v-if="!elementIconErrors.has(el.name)" :src="el.icon" :alt="el.name" class="w-4 h-4 object-contain" @error="() => elementIconErrors.add(el.name)" />
+              <span v-else class="v2-fchip-text">{{ el.short }}</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Level -->
-      <div class="v2-filter-group">
-        <span class="v2-filter-label">{{ $t('items.filters.level.title') }}</span>
-        <div class="v2-filter-chips">
-          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.level }" @click="setFilter('level', '')">{{ $t('items.filters.level.all') }}</button>
-          <button
-            v-for="lv in LEVELS"
-            :key="lv"
-            class="v2-fchip"
-            :class="{ 'v2-fchip--on': filters.level === lv }"
-            @click="setFilter('level', lv)"
-          >{{ lv }}</button>
+        <!-- Mode -->
+        <div class="v2-filter-group">
+          <span class="v2-filter-label">{{ $t('items.filters.mode.title') }}</span>
+          <div class="v2-filter-chips">
+            <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.mode }" @click="setFilter('mode', '')">{{ $t('items.filters.mode.all') }}</button>
+            <button
+              v-for="m in MODES"
+              :key="m"
+              class="v2-fchip"
+              :class="{ 'v2-fchip--on': filters.mode === m }"
+              @click="setFilter('mode', m)"
+            >{{ $t('items.filters.mode.' + m) }}</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Budget -->
-      <div class="v2-filter-group">
-        <span class="v2-filter-label">{{ $t('items.filters.budget.title') }}</span>
-        <div class="v2-filter-chips">
-          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.budget }" @click="setFilter('budget', '')">{{ $t('items.filters.budget.all') }}</button>
-          <button
-            v-for="b in BUDGETS"
-            :key="b"
-            class="v2-fchip"
-            :class="{ 'v2-fchip--on': filters.budget === b }"
-            @click="setFilter('budget', b)"
-          >{{ b.charAt(0).toUpperCase() + b.slice(1) }}</button>
+        <!-- Level -->
+        <div class="v2-filter-group">
+          <span class="v2-filter-label">{{ $t('items.filters.level.title') }}</span>
+          <div class="v2-filter-chips">
+            <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.level }" @click="setFilter('level', '')">{{ $t('items.filters.level.all') }}</button>
+            <button
+              v-for="lv in LEVELS"
+              :key="lv"
+              class="v2-fchip"
+              :class="{ 'v2-fchip--on': filters.level === lv }"
+              @click="setFilter('level', lv)"
+            >{{ lv }}</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Class -->
-      <div class="v2-filter-group">
-        <span class="v2-filter-label">{{ $t('items.filters.classes.title') }}</span>
-        <div class="v2-filter-chips">
-          <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.classe }" @click="setFilter('classe', '')">{{ $t('items.filters.classes.all') }}</button>
-          <button
-            v-for="cl in CLASSES"
-            :key="cl.name"
-            class="v2-fchip v2-fchip--icon"
-            :class="{ 'v2-fchip--on': filters.classe === cl.name }"
-            :title="cl.name"
-            @click="setFilter('classe', cl.name)"
-          >
-            <img :src="cl.icon" :alt="cl.name" class="w-5 h-5 object-cover object-top rounded" @error="noImg" />
-          </button>
+        <!-- Price range -->
+        <div class="v2-filter-group">
+          <span class="v2-filter-label">{{ $t('items.filters.budget.title') }}</span>
+          <div class="v2-filter-chips">
+            <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.budget }" @click="setFilter('budget', '')">{{ $t('items.filters.budget.all') }}</button>
+            <button
+              v-for="b in BUDGETS"
+              :key="b"
+              class="v2-fchip"
+              :class="{ 'v2-fchip--on': filters.budget === b }"
+              @click="setFilter('budget', b)"
+            >{{ $t('items.filters.budget.' + b) }}</button>
+          </div>
+        </div>
+
+        <!-- Class -->
+        <div class="v2-filter-group">
+          <span class="v2-filter-label">{{ $t('items.filters.classes.title') }}</span>
+          <div class="v2-filter-chips">
+            <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.classe }" @click="setFilter('classe', '')">{{ $t('items.filters.classes.all') }}</button>
+            <button
+              v-for="cl in CLASSES"
+              :key="cl.name"
+              class="v2-fchip v2-fchip--icon"
+              :class="{ 'v2-fchip--on': filters.classe === cl.name }"
+              :title="cl.name.charAt(0).toUpperCase() + cl.name.slice(1)"
+              @click="setFilter('classe', cl.name)"
+            >
+              <img v-if="!classIconErrors.has(cl.name)" :src="cl.icon" :alt="cl.name" class="w-5 h-5 object-cover object-top rounded" @error="() => classIconErrors.add(cl.name)" />
+              <span v-else class="v2-fchip-text">{{ cl.short }}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="v2-items-hint">{{ $t('items.usageHint') }}</div>
 
     <Transition name="v2-guide-modal">
       <div v-if="guideOpen" class="v2-guide-modal" role="dialog" aria-modal="true" :aria-label="$t('items.guide.dialogAria')" @click.self="guideOpen = false">
@@ -1591,14 +1610,14 @@ const route = useRoute()
 const router = useRouter()
 
 const ELEMENTS = [
-  { name: 'eau', icon: '/eau.png' },
-  { name: 'feu', icon: '/feu.png' },
-  { name: 'terre', icon: '/terre.png' },
-  { name: 'air', icon: '/air.png' },
-  { name: 'multi', icon: '/multi.png' },
-  { name: 'tank', icon: '/tank.png' },
-  { name: 'doPou', icon: '/doPou.png' },
-  { name: 'pp', icon: '/pp.png' },
+  { name: 'eau', icon: '/eau.png', short: 'Eau' },
+  { name: 'feu', icon: '/feu.png', short: 'Feu' },
+  { name: 'terre', icon: '/terre.png', short: 'Ter' },
+  { name: 'air', icon: '/air.png', short: 'Air' },
+  { name: 'multi', icon: '/multi.png', short: 'Mul' },
+  { name: 'tank', icon: '/tank.png', short: 'Tnk' },
+  { name: 'doPou', icon: '/doPou.png', short: 'DP' },
+  { name: 'pp', icon: '/pp.png', short: 'PP' },
 ]
 
 const MODES = ['pvm', 'pvp']
@@ -1608,25 +1627,25 @@ const LEVELS = ['20', '40', '60', '80', '110', '130', '160', '180', '199', '200'
 const BUDGETS = ['low', 'mid', 'high']
 
 const CLASSES = [
-  { name: 'iop', icon: '/Iop.png' },
-  { name: 'cra', icon: '/Cra.png' },
-  { name: 'sacrieur', icon: '/Sacrieur.png' },
-  { name: 'eniripsa', icon: '/Eniripsa.png' },
-  { name: 'sram', icon: '/Sram.png' },
-  { name: 'ouginak', icon: '/Ouginak.png' },
-  { name: 'forgelance', icon: '/Forgelance.png' },
-  { name: 'osamodas', icon: '/Osamodas.png' },
-  { name: 'enutrof', icon: '/Enutrof.png' },
-  { name: 'ecaflip', icon: '/Ecaflip.png' },
-  { name: 'steamer', icon: '/Steamer.png' },
-  { name: 'feca', icon: '/Feca.png' },
-  { name: 'huppermage', icon: '/Huppermage.png' },
-  { name: 'zobal', icon: '/Zobal.png' },
-  { name: 'pandawa', icon: '/Pandawa.png' },
-  { name: 'eliotrope', icon: '/Eliotrope.png' },
-  { name: 'sadida', icon: '/Sadida.png' },
-  { name: 'roublard', icon: '/Roublard.png' },
-  { name: 'xelor', icon: '/Xelor.png' },
+  { name: 'iop', icon: '/Iop.png', short: 'Iop' },
+  { name: 'cra', icon: '/Cra.png', short: 'Cra' },
+  { name: 'sacrieur', icon: '/Sacrieur.png', short: 'Sac' },
+  { name: 'eniripsa', icon: '/Eniripsa.png', short: 'Eni' },
+  { name: 'sram', icon: '/Sram.png', short: 'Sra' },
+  { name: 'ouginak', icon: '/Ouginak.png', short: 'Oug' },
+  { name: 'forgelance', icon: '/Forgelance.png', short: 'For' },
+  { name: 'osamodas', icon: '/Osamodas.png', short: 'Osa' },
+  { name: 'enutrof', icon: '/Enutrof.png', short: 'Enu' },
+  { name: 'ecaflip', icon: '/Ecaflip.png', short: 'Eca' },
+  { name: 'steamer', icon: '/Steamer.png', short: 'Ste' },
+  { name: 'feca', icon: '/Feca.png', short: 'Fec' },
+  { name: 'huppermage', icon: '/Huppermage.png', short: 'Hup' },
+  { name: 'zobal', icon: '/Zobal.png', short: 'Zob' },
+  { name: 'pandawa', icon: '/Pandawa.png', short: 'Pan' },
+  { name: 'eliotrope', icon: '/Eliotrope.png', short: 'Eli' },
+  { name: 'sadida', icon: '/Sadida.png', short: 'Sad' },
+  { name: 'roublard', icon: '/Roublard.png', short: 'Rou' },
+  { name: 'xelor', icon: '/Xelor.png', short: 'Xel' },
 ]
 
 const SLOT_GROUPS = [
@@ -1662,6 +1681,13 @@ const SLOT_KEY_TO_GROUP = Object.fromEntries(
 )
 
 const filters = reactive({ element: '', mode: '', classe: '', level: '', budget: '' })
+const filtersCollapsed = ref(false)
+const elementIconErrors = reactive(new Set<string>())
+const classIconErrors = reactive(new Set<string>())
+const toggleFilters = () => {
+  filtersCollapsed.value = !filtersCollapsed.value
+  localStorage.setItem('items-filters-collapsed', String(filtersCollapsed.value))
+}
 const guideOpen = ref(false)
 const guideMode = ref<'main' | 'recipe'>('main')
 const marketGuideImageVisible = ref(true)
@@ -4949,6 +4975,7 @@ const openGuide = (mode: 'main' | 'recipe') => {
 }
 
 onMounted(() => {
+  filtersCollapsed.value = localStorage.getItem('items-filters-collapsed') === 'true'
   resourcePrices.value = readResourcePrices()
   observedPrices.value = readObservedPrices()
   effectCache.value = readEffectCache()
@@ -5026,6 +5053,21 @@ watch(
   gap: 1rem;
   padding-bottom: .25rem;
   border-bottom: 1px solid var(--v2-border-subtle);
+}
+.v2-items-filters__actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.v2-filters-toggle {
+  display: flex; align-items: center; gap: .375rem;
+  padding: .3rem .7rem; border-radius: 8px;
+  border: 1px solid var(--v2-border); background: transparent;
+  color: var(--v2-text-secondary); font-size: .75rem; font-weight: 600;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.v2-filters-toggle:hover { border-color: var(--v2-border-strong); color: var(--v2-text); }
+.v2-filter-rows { display: flex; flex-direction: column; gap: .625rem; }
+.v2-fchip-text { font-size: .6875rem; font-weight: 700; line-height: 1; }
+.v2-items-hint {
+  font-size: .8125rem; color: var(--v2-text-dim);
+  margin-bottom: .75rem; padding: 0 .25rem;
 }
 
 .v2-items-filters__title {

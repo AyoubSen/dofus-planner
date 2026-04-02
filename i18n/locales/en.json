@@ -43,13 +43,22 @@
       "welcomeBack": "Welcome back, {name}",
       "welcome": "Welcome to Dofus Tools",
       "startHint": "Click the character button in the sidebar to get started",
-      "beta": "v2 beta",
       "itemsSold": "Items sold",
       "kamasEarned": "{amount} kamas earned",
       "characters": "Characters",
       "acrossServers": "across {count} server | across {count} servers",
       "overallCompletion": "Overall completion",
       "monstersCollected": "{count} monsters collected",
+      "currentCharacter": "Current character",
+      "allCharacters": "All characters",
+      "noCharacterSelected": "No character selected",
+      "selectCharacterHint": "Select a character",
+      "recentActivity": "Recent activity",
+      "activityEmpty": "No tracked activity yet.",
+      "startTrackingHint": "Open a section to start tracking:",
+      "achievementsDone": "Achievements done",
+      "resaleNotTracked": "Not tracked yet",
+      "startTrackingResale": "Start tracking →",
       "recentSales": "Recent Sales",
       "viewAll": "View all",
       "noSales": "No sales recorded yet",
@@ -754,6 +763,7 @@
     }
   },
   "items": {
+    "usageHint": "Select your filters above, then pick a slot to start scanning prices.",
     "backToHome": "Back to Home",
     "title": "Equipment Statistics",
     "subtitle": "Analyze equipment usage patterns and meta trends",
@@ -788,8 +798,8 @@
         "pp": "Prospection"
       },
       "mode": {
-        "title": "Mode",
-        "all": "All Modes",
+        "title": "Build type",
+        "all": "All",
         "pvm": "PVM",
         "pvp": "PVP"
       },
@@ -802,12 +812,14 @@
         "all": "All Levels"
       },
       "budget": {
-        "title": "Budget",
-        "all": "All Budgets",
+        "title": "Price range",
+        "all": "All",
         "low": "Low",
         "mid": "Mid",
         "high": "High"
-      }
+      },
+      "showFilters": "Show filters",
+      "hideFilters": "Hide filters"
     },
     "stats": {
       "totalEquipment": "Total Equipment",
@@ -1245,11 +1257,13 @@
       "tabs": {
         "zones": "By zone",
         "essences": "Guardian essences",
-        "all": "Show all"
+        "all": "Show all",
+        "complete": "Complete list"
       },
       "sections": {
         "essences": "Dungeon guardian essences",
-        "allItems": "All items"
+        "allItems": "All items",
+        "completeList": "Complete resource list (2 130 items)"
       },
       "count": {
         "items": "items",

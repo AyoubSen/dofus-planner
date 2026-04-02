@@ -146,17 +146,6 @@
       </div>
     </Transition>
 
-    <!-- ── Tab selector ──────────────────────────────────────────── -->
-    <div class="fam-tabs">
-      <button
-        v-for="tab in TABS"
-        :key="tab.id"
-        class="fam-tab"
-        :class="{ 'fam-tab--on': activeTab === tab.id }"
-        @click="activeTab = tab.id; search = ''"
-      >{{ tab.label }}</button>
-    </div>
-
     <!-- ── Search + sort ─────────────────────────────────────────── -->
     <div class="fam-controls">
       <input
@@ -190,163 +179,59 @@
       </div>
     </div>
 
-    <!-- ── Zone mode ─────────────────────────────────────────────── -->
-    <template v-if="activeTab === 'zones'">
-      <!-- Zone tabs -->
-      <div class="fam-zones">
-        <button
-          v-for="zone in data.zones"
-          :key="zone.id"
-          class="fam-zone-chip"
-          :class="{ 'fam-zone-chip--on': activeZone === zone.id }"
-          @click="activeZone = zone.id"
-        >{{ zone.name }}</button>
+    <!-- ── Complete resource list ───────────────────────────────── -->
+    <div class="fam-table-wrap">
+      <div class="fam-table-head">
+        <span class="fam-table-title">{{ $t('familiers.page.sections.completeList') }}</span>
+        <span class="fam-table-count">{{ filteredCompleteItems.length }} {{ $t('familiers.page.count.items') }}</span>
       </div>
-
-      <!-- Items table for selected zone -->
-      <div v-if="currentZone" class="fam-table-wrap">
-        <div class="fam-table-head">
-          <span class="fam-table-title">{{ currentZone.name }}</span>
-          <span class="fam-table-count">{{ filteredZoneItems.length }} {{ $t('familiers.page.count.items') }}</span>
-        </div>
-        <table class="fam-table">
-          <thead>
-            <tr>
-              <th>{{ $t('familiers.page.table.item') }}</th>
-              <th class="text-right">{{ $t('familiers.page.table.xpPerUnit') }}</th>
-              <th class="text-right">{{ $t('familiers.page.table.qtyNeeded') }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.targetPricePerUnit') : $t('familiers.page.table.manualPricePerUnit') }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.totalAtTargetPrice') : $t('familiers.page.table.totalLevel100') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in filteredZoneItems" :key="item.name">
-              <td class="fam-item-name">{{ item.name }}</td>
-              <td class="fam-num fam-xp text-right">{{ item.xp }}</td>
-              <td class="fam-num text-right">{{ fmtQty(qtyNeeded(item.xp)) }}</td>
-              <td v-if="pricingMode === 'reference'" class="fam-num fam-price text-right">{{ fmt(maxPrice(item.xp)) }} k</td>
-              <td v-else class="text-right">
-                <input
-                  :value="manualPrices[item.name] ?? ''"
-                  type="number"
-                  min="0"
-                  step="1"
-                  class="fam-price-input"
-                  @input="setManualPrice(item.name, ($event.target as HTMLInputElement).value)"
-                />
-              </td>
-              <td class="fam-num fam-price text-right">{{ levelCostLabel(item) }}</td>
-            </tr>
-            <tr v-if="filteredZoneItems.length === 0">
-              <td colspan="5" class="fam-empty">{{ $t('familiers.page.empty.items') }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </template>
-
-    <!-- ── Essences mode ─────────────────────────────────────────── -->
-    <template v-else-if="activeTab === 'essences'">
-      <div class="fam-table-wrap">
-        <div class="fam-table-head">
-          <span class="fam-table-title">{{ $t('familiers.page.sections.essences') }}</span>
-          <span class="fam-table-count">{{ filteredEssences.length }} {{ $t('familiers.page.count.essences') }}</span>
-        </div>
-        <table class="fam-table">
-          <thead>
-            <tr>
-              <th>{{ $t('familiers.page.table.essence') }}</th>
-              <th class="text-right">{{ $t('familiers.page.table.dungeonLevel') }}</th>
-              <th class="text-right">{{ $t('familiers.page.table.xpPerUnit') }}</th>
-              <th class="text-right">{{ $t('familiers.page.table.qtyNeeded') }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.targetPricePerUnit') : $t('familiers.page.table.manualPricePerUnit') }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.totalAtTargetPrice') : $t('familiers.page.table.totalLevel100') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in filteredEssences" :key="item.name">
-              <td class="fam-item-name">{{ item.name }}</td>
-              <td class="fam-num fam-lvl text-right">{{ item.dungeonLevel }}</td>
-              <td class="fam-num fam-xp text-right">{{ item.xp }}</td>
-              <td class="fam-num text-right">{{ fmtQty(qtyNeeded(item.xp)) }}</td>
-              <td v-if="pricingMode === 'reference'" class="fam-num fam-price text-right">{{ fmt(maxPrice(item.xp)) }} k</td>
-              <td v-else class="text-right">
-                <input
-                  :value="manualPrices[item.name] ?? ''"
-                  type="number"
-                  min="0"
-                  step="1"
-                  class="fam-price-input"
-                  @input="setManualPrice(item.name, ($event.target as HTMLInputElement).value)"
-                />
-              </td>
-              <td class="fam-num fam-price text-right">{{ levelCostLabel(item) }}</td>
-            </tr>
-            <tr v-if="filteredEssences.length === 0">
-              <td colspan="6" class="fam-empty">{{ $t('familiers.page.empty.essences') }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </template>
-
-    <!-- ── All items mode ────────────────────────────────────────── -->
-    <template v-else>
-      <div class="fam-table-wrap">
-        <div class="fam-table-head">
-          <span class="fam-table-title">{{ $t('familiers.page.sections.allItems') }}</span>
-          <span class="fam-table-count">{{ filteredAllItems.length }} {{ $t('familiers.page.count.items') }}</span>
-        </div>
-        <table class="fam-table">
-          <thead>
-            <tr>
-              <th>{{ $t('familiers.page.table.item') }}</th>
-              <th>{{ $t('familiers.page.table.zoneOrSource') }}</th>
-              <th class="text-right">{{ $t('familiers.page.table.xpPerUnit') }}</th>
-              <th class="text-right">{{ $t('familiers.page.table.qtyNeeded') }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.targetPricePerUnit') : $t('familiers.page.table.manualPricePerUnit') }}</th>
-              <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.totalAtTargetPrice') : $t('familiers.page.table.totalLevel100') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in filteredAllItems" :key="item.name + item.source">
-              <td class="fam-item-name">{{ item.name }}</td>
-              <td class="fam-source">{{ item.source }}</td>
-              <td class="fam-num fam-xp text-right">{{ item.xp }}</td>
-              <td class="fam-num text-right">{{ fmtQty(qtyNeeded(item.xp)) }}</td>
-              <td v-if="pricingMode === 'reference'" class="fam-num fam-price text-right">{{ fmt(maxPrice(item.xp)) }} k</td>
-              <td v-else class="text-right">
-                <input
-                  :value="manualPrices[item.name] ?? ''"
-                  type="number"
-                  min="0"
-                  step="1"
-                  class="fam-price-input"
-                  @input="setManualPrice(item.name, ($event.target as HTMLInputElement).value)"
-                />
-              </td>
-              <td class="fam-num fam-price text-right">{{ levelCostLabel(item) }}</td>
-            </tr>
-            <tr v-if="filteredAllItems.length === 0">
-              <td colspan="6" class="fam-empty">{{ $t('familiers.page.empty.items') }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </template>
+      <table class="fam-table">
+        <thead>
+          <tr>
+            <th>{{ $t('familiers.page.table.item') }}</th>
+            <th class="text-right">{{ $t('familiers.page.table.xpPerUnit') }}</th>
+            <th class="text-right">{{ $t('familiers.page.table.qtyNeeded') }}</th>
+            <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.targetPricePerUnit') : $t('familiers.page.table.manualPricePerUnit') }}</th>
+            <th class="text-right">{{ pricingMode === 'reference' ? $t('familiers.page.table.totalAtTargetPrice') : $t('familiers.page.table.totalLevel100') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in filteredCompleteItems" :key="item.name">
+            <td class="fam-item-name">{{ item.name }}</td>
+            <td class="fam-num fam-xp text-right">{{ item.xp }}</td>
+            <td class="fam-num text-right">{{ fmtQty(qtyNeeded(item.xp)) }}</td>
+            <td v-if="pricingMode === 'reference'" class="fam-num fam-price text-right">{{ fmt(maxPrice(item.xp)) }} k</td>
+            <td v-else class="text-right">
+              <input
+                :value="manualPrices[item.name] ?? ''"
+                type="number"
+                min="0"
+                step="1"
+                class="fam-price-input"
+                @input="setManualPrice(item.name, ($event.target as HTMLInputElement).value)"
+              />
+            </td>
+            <td class="fam-num fam-price text-right">{{ levelCostLabel(item) }}</td>
+          </tr>
+          <tr v-if="filteredCompleteItems.length === 0">
+            <td colspan="5" class="fam-empty">{{ $t('familiers.page.empty.items') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import familierData from '~/data/familiers.json'
+import { constants, essences } from '~/data/familiers.json'
+import allResources from '~/data/familiers-resources.json'
 
 definePageMeta({ layout: 'v2' })
 
 const { t, locale } = useI18n()
 
-const data = familierData
-const TOTAL_XP = data.constants.totalXP
-const XP_PER_KIBBLE = data.constants.xpPerKibble
+const TOTAL_XP = constants.totalXP
+const XP_PER_KIBBLE = constants.xpPerKibble
 const KIBBLE_COUNT = TOTAL_XP / XP_PER_KIBBLE
 
 const budget = ref(5_000_000)
@@ -355,20 +240,10 @@ const pricingMode = ref<'reference' | 'manual'>('reference')
 const manualPrices = ref<Record<string, number>>({})
 const guideOpen = ref(false)
 
-const TABS = computed(() => [
-  { id: 'zones', label: t('familiers.page.tabs.zones') },
-  { id: 'essences', label: t('familiers.page.tabs.essences') },
-  { id: 'all', label: t('familiers.page.tabs.all') },
-])
-
-const activeTab = ref('zones')
-const activeZone = ref(data.zones[0]?.id ?? '')
 const search = ref('')
 const sortBy = ref<'xp' | 'qty' | 'price' | 'name'>('xp')
 const sortDir = ref<'desc' | 'asc'>('desc')
 const MANUAL_PRICES_KEY = 'familiers_manual_prices_v1'
-
-const currentZone = computed(() => data.zones.find(z => z.id === activeZone.value) ?? null)
 
 // Formulas
 const qtyNeeded = (xp: number) => TOTAL_XP / xp
@@ -431,32 +306,11 @@ const sortItems = <T extends { name: string; xp: number }>(items: T[]): T[] => {
   })
 }
 
-const filteredZoneItems = computed(() => {
-  const items = currentZone.value?.items ?? []
-  const q = search.value.toLowerCase()
-  const filtered = q ? items.filter(i => i.name.toLowerCase().includes(q)) : items
-  return sortItems(filtered)
-})
+const completeItems = [...allResources, ...essences.map(({ name, xp }) => ({ name, xp }))]
 
-const filteredEssences = computed(() => {
+const filteredCompleteItems = computed(() => {
   const q = search.value.toLowerCase()
-  const filtered = q
-    ? data.essences.filter(i => i.name.toLowerCase().includes(q))
-    : data.essences
-  return sortItems(filtered)
-})
-
-const allItems = computed(() => [
-  ...data.zones.flatMap(z => z.items.map(i => ({ ...i, source: z.name }))),
-  ...data.essences.map(i => ({
-    ...i,
-    source: t('familiers.page.source.essenceLevel', { level: i.dungeonLevel }),
-  })),
-])
-
-const filteredAllItems = computed(() => {
-  const q = search.value.toLowerCase()
-  const filtered = q ? allItems.value.filter(i => i.name.toLowerCase().includes(q)) : allItems.value
+  const filtered = q ? completeItems.filter(i => i.name.toLowerCase().includes(q)) : completeItems
   return sortItems(filtered)
 })
 
@@ -763,32 +617,6 @@ watch(manualPrices, (value) => {
   }
 }
 
-/* ── Main tabs ─────────────────────────────────────────────── */
-.fam-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: .75rem;
-  background: rgba(0,0,0,.15);
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 12px;
-  padding: .375rem;
-}
-.fam-tab {
-  flex: 1;
-  padding: .375rem .625rem;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: var(--v2-text-secondary);
-  font-size: .8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .15s;
-  white-space: nowrap;
-}
-.fam-tab:hover { background: var(--v2-border-subtle); color: var(--v2-text-hover); }
-.fam-tab--on { background: var(--v2-active-strong); color: var(--v2-text); font-weight: 700; }
-
 /* ── Controls ──────────────────────────────────────────────── */
 .fam-controls {
   display: flex;
@@ -839,28 +667,6 @@ watch(manualPrices, (value) => {
 }
 .fam-sort__btn:hover { border-color: var(--v2-border-strong); color: var(--v2-text-hover); }
 .fam-sort__btn--on { background: var(--v2-border-med); border-color: var(--v2-border-strong); color: var(--v2-text); }
-
-/* ── Zone chips ────────────────────────────────────────────── */
-.fam-zones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: .75rem;
-}
-.fam-zone-chip {
-  padding: .3125rem .75rem;
-  border-radius: 999px;
-  border: 1px solid var(--v2-border);
-  background: transparent;
-  color: var(--v2-text-muted);
-  font-size: .75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .15s;
-  white-space: nowrap;
-}
-.fam-zone-chip:hover { border-color: var(--v2-border-strong); color: var(--v2-text-hover); }
-.fam-zone-chip--on { background: var(--v2-active-strong); border-color: var(--v2-border-focus); color: var(--v2-text); }
 
 /* ── Table ─────────────────────────────────────────────────── */
 .fam-table-wrap {
@@ -918,11 +724,6 @@ watch(manualPrices, (value) => {
   color: var(--v2-text);
   min-width: 180px;
 }
-.fam-source {
-  font-size: .8125rem;
-  color: var(--v2-text-muted);
-  white-space: nowrap;
-}
 .fam-num {
   font-size: .875rem;
   white-space: nowrap;
@@ -943,7 +744,6 @@ watch(manualPrices, (value) => {
 .fam-price-input:focus { border-color: var(--v2-border-focus); }
 .fam-xp { color: var(--v2-text-hover); font-weight: 600; }
 .fam-price { color: var(--v2-accent); font-weight: 700; }
-.fam-lvl { color: var(--v2-text-secondary); }
 
 @media (max-width: 720px) {
   .fam-guide__grid { grid-template-columns: 1fr; }

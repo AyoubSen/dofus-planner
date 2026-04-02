@@ -23,7 +23,6 @@
           </p>
         </div>
       </div>
-      <div class="v2-topbar__badge" style="font-size:0.75rem;padding:0.25rem 0.625rem;">{{ t('v2.dashboard.beta') }}</div>
     </div>
 
     <!-- Stats grid -->
@@ -39,7 +38,7 @@
             {{ monstersCompleted }}<span class="v2-stat-card__of">/{{ totalMonsters }}</span>
           </div>
           <div class="v2-stat-card__label">Archimonstres</div>
-          <div class="v2-stat-card__sub">{{ hasContext ? 'Current character' : 'Select a character' }}</div>
+          <div class="v2-stat-card__sub">{{ hasContext ? t('v2.dashboard.currentCharacter') : t('v2.dashboard.selectCharacterHint') }}</div>
           <div class="v2-progress" style="margin-top:0.5rem">
             <div class="v2-progress__fill" :style="{ width: `${monstersPercent}%` }" />
           </div>
@@ -61,30 +60,31 @@
 
       <div class="v2-stat-card">
         <div class="v2-stat-card__icon" style="background:rgba(96,165,250,.12);color:#60a5fa">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+          <IconsIconResale class="w-5 h-5" />
         </div>
-        <div class="v2-stat-card__body">
+        <div v-if="resaleActiveCount > 0 || resaleSoldCount > 0" class="v2-stat-card__body">
           <div class="v2-stat-card__value">{{ resaleActiveCount }}</div>
-          <div class="v2-stat-card__label">Resale</div>
+          <div class="v2-stat-card__label">{{ $t('nav.resale') }}</div>
           <div class="v2-stat-card__sub">
             {{ resaleScopeLabel }} · {{ resaleSoldCount }} sold · {{ realizedProfitLabel }}
           </div>
           <div class="v2-stat-card__sub">{{ resaleHoldLabel }}</div>
         </div>
+        <div v-else class="v2-stat-card__body">
+          <div class="v2-stat-card__label" style="margin-top:.25rem">{{ $t('nav.resale') }}</div>
+          <div class="v2-stat-card__sub" style="margin-top:.375rem">{{ t('v2.dashboard.resaleNotTracked') }}</div>
+          <NuxtLink :to="localePath('/resale')" class="v2-stat-card__action">{{ t('v2.dashboard.startTrackingResale') }}</NuxtLink>
+        </div>
       </div>
 
       <div class="v2-stat-card">
-        <div class="v2-stat-card__icon" style="background:rgba(52,211,153,.12);color:#34d399">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-          </svg>
+        <div class="v2-stat-card__icon" style="background:rgba(252,211,77,.12);color:#fcd34d">
+          <IconsIconSucces class="w-5 h-5" />
         </div>
         <div class="v2-stat-card__body">
-          <div class="v2-stat-card__value">{{ monstersPercent }}<span style="font-size:1.1rem">%</span></div>
-          <div class="v2-stat-card__label">{{ t('v2.dashboard.overallCompletion') }}</div>
-          <div class="v2-stat-card__sub">{{ hasContext ? 'Current character' : 'No character selected' }} · {{ t('v2.dashboard.monstersCollected', { count: monstersCompleted }) }}</div>
+          <div class="v2-stat-card__value">{{ succesCompletedCount }}</div>
+          <div class="v2-stat-card__label">{{ t('v2.dashboard.achievementsDone') }}</div>
+          <div class="v2-stat-card__sub">{{ hasContext ? t('v2.dashboard.currentCharacter') : t('v2.dashboard.noCharacterSelected') }}</div>
         </div>
       </div>
     </div>
@@ -102,10 +102,14 @@
           <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:.2">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p>{{ activityFeedEmptyMessage }}</p>
-          <NuxtLink :to="localePath('/archimonstres')" class="v2-btn-gold mt-3 px-4 py-2 text-sm font-semibold inline-block">
-            Open a tracker →
-          </NuxtLink>
+          <p>{{ t('v2.dashboard.activityEmpty') }}</p>
+          <p class="v2-dash-empty__hint">{{ t('v2.dashboard.startTrackingHint') }}</p>
+          <div class="v2-dash-empty-links">
+            <NuxtLink :to="localePath('/archimonstres')" class="v2-dash-empty-link">{{ $t('nav.archimonstres') }}</NuxtLink>
+            <NuxtLink :to="localePath('/items')" class="v2-dash-empty-link">{{ $t('nav.items') }}</NuxtLink>
+            <NuxtLink :to="localePath('/crafting')" class="v2-dash-empty-link">{{ $t('nav.crafting') }}</NuxtLink>
+            <NuxtLink :to="localePath('/brisage')" class="v2-dash-empty-link">{{ $t('nav.brisage') }}</NuxtLink>
+          </div>
         </div>
 
         <div v-else class="v2-dash-sales">
@@ -178,6 +182,17 @@ const charColor = computed(() => {
   return COLORS[h % COLORS.length]
 })
 
+const succesCompletedCount = computed(() => {
+  if (!hasContext.value || !selectedCharacter.value || !selectedServer.value) return 0
+  try {
+    const key = `achievements-${selectedServer.value.id}-${selectedCharacter.value.id}`
+    const raw = localStorage.getItem(key)
+    if (!raw) return 0
+    const parsed = JSON.parse(raw)
+    return (parsed.completedIds ?? []).length
+  } catch { return 0 }
+})
+
 const archiMonsters = monstersJson.filter((monster) => monster.type === 'archimonstre')
 const totalMonsters = archiMonsters.length
 const monstersCompleted = computed(() => {
@@ -212,10 +227,9 @@ const selectedCharacterSales = computed(() => {
 const scopedSales = computed(() => (hasContext.value ? selectedCharacterSales.value : allSales.value))
 const scopedSalesCount = computed(() => scopedSales.value.length)
 const scopedTotalKamas = computed(() => scopedSales.value.reduce((sum, sale) => sum + (sale.price || 0), 0))
-const salesScopeLabel = computed(() => hasContext.value ? 'Current character' : 'All accounts')
-const activityScopeLabel = computed(() => hasContext.value ? 'Current character' : 'All accounts')
-const activityFeedTitle = computed(() => hasContext.value ? 'Recent activity for current character' : 'Recent activity')
-const activityFeedEmptyMessage = computed(() => hasContext.value ? 'No tracked activity for this character yet.' : 'No tracked activity yet.')
+const salesScopeLabel = computed(() => hasContext.value ? t('v2.dashboard.currentCharacter') : t('v2.dashboard.allCharacters'))
+const activityScopeLabel = computed(() => hasContext.value ? t('v2.dashboard.currentCharacter') : t('v2.dashboard.allCharacters'))
+const activityFeedTitle = computed(() => t('v2.dashboard.recentActivity'))
 const scopedActivityEntries = computed(() => {
   const entries = data.value.activity?.entries ?? []
   if (!hasContext.value || !selectedCharacter.value || !selectedServer.value) return entries
@@ -256,7 +270,7 @@ const averageResaleHoldDurationMs = computed(() => {
   if (!values.length) return null
   return values.reduce((sum, value) => sum + value, 0) / values.length
 })
-const resaleScopeLabel = computed(() => hasContext.value ? 'Current character' : 'All accounts')
+const resaleScopeLabel = computed(() => hasContext.value ? t('v2.dashboard.currentCharacter') : t('v2.dashboard.allCharacters'))
 const realizedProfitLabel = computed(() =>
   `${realizedProfit.value >= 0 ? '+' : ''}${formatKamas(Math.abs(realizedProfit.value))}${realizedProfit.value < 0 ? ' loss' : ' realized'}`
 )
@@ -290,7 +304,7 @@ const activityFeed = computed(() =>
             : '#60a5fa',
       icon: resolveComponent(
         entry.type === 'resale'
-          ? 'IconsIconItems'
+          ? 'IconsIconResale'
           : entry.type === 'archimonstres'
             ? 'IconsIconArchimonstres'
             : 'IconsIconItems'
@@ -337,7 +351,7 @@ const quickItems = [
   { path: '/archimonstres', label: 'nav.archimonstres', icon: resolveComponent('IconsIconArchimonstres'), color: '#f87171' },
   { path: '/monsters', label: 'nav.monsters', icon: resolveComponent('IconsIconMonsters'), color: '#f59e0b' },
   { path: '/items', label: 'nav.items', icon: resolveComponent('IconsIconItems'), color: '#60a5fa' },
-  { path: '/resale', label: 'nav.resale', icon: resolveComponent('IconsIconItems'), color: '#22c55e' },
+  { path: '/resale', label: 'nav.resale', icon: resolveComponent('IconsIconResale'), color: '#22c55e' },
   { path: '/crafting', label: 'nav.crafting', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },
   { path: '/brisage', label: 'nav.brisage', icon: resolveComponent('IconsIconBrisage'), color: '#a78bfa' },
   { path: '/succes', label: 'nav.succes', icon: resolveComponent('IconsIconSucces'), color: '#fcd34d' },
@@ -417,6 +431,24 @@ onMounted(() => { initContext() })
   display: flex; flex-direction: column; align-items: center;
   padding: 2.5rem; color: var(--v2-text-dim); font-size: .875rem; text-align: center;
 }
+.v2-dash-empty__hint { font-size: .8125rem; color: var(--v2-text-dim); margin-top: .5rem; }
+.v2-dash-empty-links {
+  display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-top: .875rem;
+}
+.v2-dash-empty-link {
+  padding: .375rem .875rem; border-radius: 8px;
+  border: 1px solid var(--v2-border-subtle);
+  background: var(--v2-hover-subtle);
+  font-size: .8125rem; font-weight: 600; color: var(--v2-text-secondary);
+  text-decoration: none; transition: all .15s;
+}
+.v2-dash-empty-link:hover { border-color: var(--v2-accent); color: var(--v2-accent); background: var(--v2-hover); }
+.v2-stat-card__action {
+  display: inline-block; margin-top: .5rem;
+  font-size: .75rem; font-weight: 600; color: var(--v2-accent);
+  text-decoration: none; opacity: .85;
+}
+.v2-stat-card__action:hover { opacity: 1; }
 
 .v2-dash-sales { display: flex; flex-direction: column; gap: 2px; }
 .v2-dash-sale {

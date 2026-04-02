@@ -43,13 +43,22 @@
       "welcomeBack": "Bon retour, {name}",
       "welcome": "Bienvenue sur Dofus Tools",
       "startHint": "Cliquez sur le bouton personnage dans la barre latérale pour commencer",
-      "beta": "v2 bêta",
       "itemsSold": "Objets vendus",
       "kamasEarned": "{amount} kamas gagnés",
       "characters": "Personnages",
       "acrossServers": "sur {count} serveur | sur {count} serveurs",
       "overallCompletion": "Progression globale",
       "monstersCollected": "{count} monstres collectés",
+      "currentCharacter": "Personnage actuel",
+      "allCharacters": "Tous les personnages",
+      "noCharacterSelected": "Aucun personnage sélectionné",
+      "selectCharacterHint": "Sélectionner un personnage",
+      "recentActivity": "Activité récente",
+      "activityEmpty": "Aucune activité enregistrée.",
+      "startTrackingHint": "Ouvrez une section pour commencer :",
+      "achievementsDone": "Succès complétés",
+      "resaleNotTracked": "Pas encore suivi",
+      "startTrackingResale": "Commencer le suivi →",
       "recentSales": "Ventes récentes",
       "viewAll": "Voir tout",
       "noSales": "Aucune vente enregistrée",
@@ -752,6 +761,7 @@
     }
   },
   "items": {
+    "usageHint": "Sélectionnez vos filtres, puis choisissez un emplacement pour analyser les prix.",
     "backToHome": "Retour à l'accueil",
     "title": "Statistiques d'Équipement",
     "subtitle": "Analysez les tendances d'utilisation et la méta",
@@ -786,8 +796,8 @@
         "pp": "Prospection"
       },
       "mode": {
-        "title": "Mode",
-        "all": "Tous les Modes",
+        "title": "Type de build",
+        "all": "Tous",
         "pvm": "PVM",
         "pvp": "PVP"
       },
@@ -800,12 +810,14 @@
         "all": "Tous les Niveaux"
       },
       "budget": {
-        "title": "Budget",
-        "all": "Tous les Budgets",
+        "title": "Fourchette de prix",
+        "all": "Tous",
         "low": "Bas",
         "mid": "Moyen",
         "high": "Élevé"
-      }
+      },
+      "showFilters": "Afficher les filtres",
+      "hideFilters": "Masquer les filtres"
     },
     "stats": {
       "totalEquipment": "Équipements Totaux",
@@ -1243,11 +1255,13 @@
       "tabs": {
         "zones": "Par zone",
         "essences": "Essences gardiens",
-        "all": "Tout afficher"
+        "all": "Tout afficher",
+        "complete": "Liste complète"
       },
       "sections": {
         "essences": "Essences de gardien de donjon",
-        "allItems": "Tous les items"
+        "allItems": "Tous les items",
+        "completeList": "Liste complète des ressources (2 130 items)"
       },
       "count": {
         "items": "items",
