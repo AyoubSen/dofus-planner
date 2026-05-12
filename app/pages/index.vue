@@ -25,6 +25,38 @@
       </div>
     </div>
 
+    <div v-if="!hasContext" class="v2-onboarding">
+      <div class="v2-onboarding__head">
+        <div>
+          <div class="v2-onboarding__eyebrow">{{ t('v2.dashboard.onboarding.eyebrow') }}</div>
+          <h2 class="v2-onboarding__title">{{ t('v2.dashboard.onboarding.title') }}</h2>
+        </div>
+      </div>
+      <div class="v2-onboarding__steps">
+        <div class="v2-onboarding-step">
+          <span class="v2-onboarding-step__num">1</span>
+          <div>
+            <div class="v2-onboarding-step__title">{{ t('v2.dashboard.onboarding.serverCharacter') }}</div>
+            <div class="v2-onboarding-step__desc">{{ t('v2.dashboard.onboarding.serverCharacterDesc') }}</div>
+          </div>
+        </div>
+        <div class="v2-onboarding-step">
+          <span class="v2-onboarding-step__num">2</span>
+          <div>
+            <div class="v2-onboarding-step__title">{{ t('v2.dashboard.onboarding.pickTool') }}</div>
+            <div class="v2-onboarding-step__desc">{{ t('v2.dashboard.onboarding.pickToolDesc') }}</div>
+          </div>
+        </div>
+        <div class="v2-onboarding-step">
+          <span class="v2-onboarding-step__num">3</span>
+          <div>
+            <div class="v2-onboarding-step__title">{{ t('v2.dashboard.onboarding.backup') }}</div>
+            <div class="v2-onboarding-step__desc">{{ t('v2.dashboard.onboarding.backupDesc') }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Stats grid -->
     <div class="v2-dash-stats">
       <div class="v2-stat-card">
@@ -385,6 +417,74 @@ onMounted(() => { initContext() })
 .v2-dash-hero__title { font-size: 1.375rem; font-weight: 800; color: var(--v2-text); letter-spacing: -.02em; }
 .v2-dash-hero__sub { font-size: .875rem; color: var(--v2-text-secondary); margin-top: .125rem; }
 
+.v2-onboarding {
+  padding: 1.125rem;
+  margin-bottom: 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--v2-border-focus);
+  background: linear-gradient(135deg, var(--v2-active-strong), var(--v2-hover-subtle));
+}
+.v2-onboarding__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .875rem;
+}
+.v2-onboarding__eyebrow {
+  font-size: .625rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--v2-accent);
+}
+.v2-onboarding__title {
+  margin-top: .25rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--v2-text);
+}
+.v2-onboarding__steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .75rem;
+}
+.v2-onboarding-step {
+  display: flex;
+  gap: .75rem;
+  min-width: 0;
+  padding: .75rem;
+  border-radius: 11px;
+  background: rgba(0,0,0,.16);
+  border: 1px solid var(--v2-border-subtle);
+}
+.v2-onboarding-step__num {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--v2-accent);
+  color: var(--v2-bg);
+  font-size: .75rem;
+  font-weight: 900;
+}
+.v2-onboarding-step__title {
+  font-size: .875rem;
+  font-weight: 800;
+  color: var(--v2-text);
+}
+.v2-onboarding-step__desc {
+  margin-top: .2rem;
+  font-size: .75rem;
+  line-height: 1.4;
+  color: var(--v2-text-secondary);
+}
+@media (max-width: 760px) {
+  .v2-onboarding__steps { grid-template-columns: 1fr; }
+}
+
 .v2-dash-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -494,6 +594,5 @@ onMounted(() => { initContext() })
 .v2-dash-quicklink__arrow { color: var(--v2-text-dim); flex-shrink: 0; }
 .v2-dash-quicklink:hover .v2-dash-quicklink__arrow { color: var(--v2-accent); }
 </style>
-
 
 

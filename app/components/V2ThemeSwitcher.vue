@@ -34,6 +34,21 @@
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
           </svg>
         </button>
+
+        <div class="v2-ts__divider" />
+        <div class="v2-ts__drop-header">Font Size</div>
+        <div class="v2-ts__scale-row">
+          <button
+            v-for="scale in fontScales"
+            :key="scale.id"
+            class="v2-ts__scale-btn"
+            :class="{ 'v2-ts__scale-btn--active': currentScale === scale.id }"
+            @click="pickScale(scale.id)"
+          >
+            <span class="v2-ts__scale-letter" :style="{ fontSize: scaleLetter(scale.id) }">A</span>
+            <span class="v2-ts__scale-label">{{ scale.label }}</span>
+          </button>
+        </div>
       </div>
     </Transition>
   </div>
@@ -41,6 +56,7 @@
 
 <script setup lang="ts">
 const { currentV2Theme, v2Themes, setV2Theme } = useV2Theme()
+const { currentScale, fontScales, setFontScale } = useFontScale()
 const isOpen = ref(false)
 const wrapEl = ref<HTMLElement | null>(null)
 
@@ -50,6 +66,17 @@ const pick = (id: typeof v2Themes[number]['id']) => {
   setV2Theme(id)
   isOpen.value = false
 }
+
+const pickScale = (id: typeof fontScales[number]['id']) => {
+  setFontScale(id)
+}
+
+const scaleLetter = (id: string) => ({
+  sm: '0.75rem',
+  md: '0.9375rem',
+  lg: '1.125rem',
+  xl: '1.3125rem',
+}[id] ?? '0.9375rem')
 
 const previewBorder = (id: string) => ({
   'classic':     'v2-ts__preview--classic',
@@ -159,6 +186,34 @@ onUnmounted(() => document.removeEventListener('mousedown', onClickOutside))
 .v2-ts__preview-bot--blue     { background: linear-gradient(90deg, rgba(96,165,250,.6), rgba(147,197,253,.4)); }
 .v2-ts__preview-bot--amethyst { background: linear-gradient(90deg, rgba(167,139,250,.6), rgba(196,181,253,.4)); }
 .v2-ts__preview-bot--void     { background: linear-gradient(90deg, rgba(148,163,184,.5), rgba(203,213,225,.3)); }
+
+.v2-ts__divider {
+  height: 1px; background: var(--v2-border-med);
+  margin: .375rem 0;
+}
+
+.v2-ts__scale-row {
+  display: flex; gap: .25rem;
+  padding: .25rem .375rem .375rem;
+}
+
+.v2-ts__scale-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 2px; padding: .375rem .25rem; border-radius: 8px;
+  border: 1px solid var(--v2-border-med);
+  background: transparent; cursor: pointer;
+  color: var(--v2-text-secondary); transition: all .15s;
+}
+.v2-ts__scale-btn:hover {
+  background: var(--v2-hover); color: var(--v2-text);
+  border-color: var(--v2-border-strong);
+}
+.v2-ts__scale-btn--active {
+  background: var(--v2-active); color: var(--v2-accent);
+  border-color: var(--v2-accent);
+}
+.v2-ts__scale-letter { font-weight: 700; line-height: 1; }
+.v2-ts__scale-label  { font-size: .5625rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
 
 /* Transition */
 .v2-ts-drop-enter-active, .v2-ts-drop-leave-active { transition: opacity .18s, transform .18s; }

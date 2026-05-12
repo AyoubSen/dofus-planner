@@ -20,8 +20,11 @@
       "collapseSidebar": "Collapse sidebar",
       "navigation": "Navigation",
       "selectCharacter": "Select character",
-      "clickToStart": "Click to get started",
-      "backToV1": "Back to v1",
+      "clickToStart": "Create or choose a character",
+      "firstStep": "First step",
+      "selectCharacterAction": "Select character",
+      "storage": "Storage",
+      "storageBreakdown": "Storage breakdown",
       "badge": "v2",
       "characters": "Characters",
       "charactersSubtitle": "Select or manage your characters",
@@ -67,7 +70,55 @@
       "quickAccess": "Quick Access",
       "today": "Today",
       "yesterday": "Yesterday",
-      "daysAgo": "{count}d ago"
+      "daysAgo": "{count}d ago",
+      "onboarding": {
+        "eyebrow": "First setup",
+        "title": "Get useful tracking data in three steps",
+        "serverCharacter": "Add server and character",
+        "serverCharacterDesc": "Most trackers save progress per character so your data stays separated.",
+        "pickTool": "Choose the job",
+        "pickToolDesc": "Track Ochre progress, sales, resale flips, crafting, brisage, achievements, or pet food prices.",
+        "backup": "Export a backup",
+        "backupDesc": "Your data lives in this browser, so keep a backup before switching devices."
+      }
+    },
+    "pageIntros": {
+      "dashboard": {
+        "title": "Your Dofus command center",
+        "desc": "Start with a character, then open a tool to track progress, market activity, or profit."
+      },
+      "archimonstres": {
+        "title": "Track Ochre quest captures and archimonstre sales",
+        "desc": "Use this page for Eternal Harvest progress, duplicate inventory, and route planning."
+      },
+      "monsters": {
+        "title": "Search the monster database",
+        "desc": "Find monsters by name, inspect levels and tags, then open details when you need more context."
+      },
+      "items": {
+        "title": "Find gear and market opportunities",
+        "desc": "Search items, narrow by build needs, compare prices, and send listings into resale tracking."
+      },
+      "resale": {
+        "title": "Track item flips from watched listing to sale",
+        "desc": "Follow each opportunity through watched, bought, listed, sold, or cancelled states."
+      },
+      "crafting": {
+        "title": "Measure Craft and FM profit",
+        "desc": "Create a session to track item costs, FM spend, listed price, sale revenue, and net profit."
+      },
+      "brisage": {
+        "title": "Track crushing sessions and rune profit",
+        "desc": "Log items you crush into runes, compare craft cost with realized value, and save session results."
+      },
+      "succes": {
+        "title": "Track achievements per character",
+        "desc": "Mark achievements complete, search categories, and keep completion progress tied to the selected character."
+      },
+      "familiers": {
+        "title": "Compare pet food value",
+        "desc": "Estimate level 100 feeding costs from kibble or manual market prices for each resource."
+      }
     },
     "common": {
       "noCharacterTitle": "No character selected",
@@ -87,6 +138,91 @@
       "history": "History",
       "analytics": "Analytics",
       "clearHistory": "Clear history"
+    },
+    "resale": {
+      "noCharacterDesc": "Select a server and character to track your resale flips.",
+      "stats": {
+        "tracked": "Tracked",
+        "active": "Active",
+        "sold": "Sold",
+        "realizedPL": "Realized P/L",
+        "avgHold": "Avg hold",
+        "avgReprices": "Avg reprices"
+      },
+      "status": {
+        "all": "All",
+        "watched": "Watched",
+        "bought": "Bought",
+        "listed": "Listed",
+        "sold": "Sold",
+        "cancelled": "Cancelled"
+      },
+      "transfer": {
+        "title": "Transfer character data",
+        "hint": "Reassign all resale entries from one character to another.",
+        "from": "From",
+        "to": "To",
+        "selectCharacter": "Select character",
+        "entriesCount": "{count} entry | {count} entries",
+        "action": "Transfer {count} entry | Transfer {count} entries",
+        "success": "{count} entry transferred successfully. | {count} entries transferred successfully."
+      },
+      "fields": {
+        "buyPrice": "Buy price",
+        "listPrice": "List price",
+        "soldPrice": "Sold price",
+        "newPrice": "New price",
+        "reason": "Reason",
+        "notes": "Notes"
+      },
+      "model": {
+        "observed": "Observed",
+        "quickTarget": "Quick target",
+        "fairTarget": "Fair target",
+        "greedyTarget": "Greedy target",
+        "predictedDelta": "Predicted delta"
+      },
+      "actions": {
+        "removeEntry": "Remove entry",
+        "markAsSold": "Mark as sold",
+        "cancel": "Cancel"
+      },
+      "adjustments": {
+        "title": "Price adjustments",
+        "desc": "Log each relist without losing history.",
+        "snapCurrentPrice": "Snap current price",
+        "empty": "No reprices logged yet.",
+        "save": "Save adjustment",
+        "manualRelist": "Manual relist"
+      },
+      "placeholders": {
+        "adjustmentReason": "Undercut, slow market..."
+      },
+      "footer": {
+        "pl": "P/L",
+        "held": "Held {duration}",
+        "market": "Market {duration}",
+        "reprices": "{count} reprice | {count} reprices",
+        "sold": "Sold {date}"
+      },
+      "empty": {
+        "titleAll": "No entries yet",
+        "titleFiltered": "No {status} entries",
+        "descAll": "Send an observed listing from the items page. New entries start as watched.",
+        "descFiltered": "Try a different status filter above."
+      },
+      "messages": {
+        "enterSoldPriceFirst": "Enter a sold price first",
+        "enterActualSoldPrice": "Enter the actual sold price before marking this entry as sold."
+      },
+      "source": {
+        "observed": "Observed",
+        "crafted": "Crafted",
+        "manual": "Manual"
+      },
+      "time": {
+        "now": "now"
+      }
     },
     "crafting": {
       "noCharacterDesc": "Select a character in the sidebar to track your crafted items.",

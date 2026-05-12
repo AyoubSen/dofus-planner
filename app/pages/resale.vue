@@ -7,8 +7,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
       </div>
-      <div class="v2-no-context__title">No character selected</div>
-      <div class="v2-no-context__desc">Select a server and character to track your resale flips.</div>
+      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
+      <div class="v2-no-context__desc">{{ $t('v2.resale.noCharacterDesc') }}</div>
     </div>
 
     <template v-else>
@@ -22,7 +22,7 @@
           </div>
           <div class="rt-stat__body">
             <div class="rt-stat__val">{{ filteredEntries.length }}</div>
-            <div class="rt-stat__lbl">Tracked</div>
+            <div class="rt-stat__lbl">{{ $t('v2.resale.stats.tracked') }}</div>
           </div>
         </div>
         <div class="rt-stat">
@@ -33,7 +33,7 @@
           </div>
           <div class="rt-stat__body">
             <div class="rt-stat__val">{{ activeEntries.length }}</div>
-            <div class="rt-stat__lbl">Active</div>
+            <div class="rt-stat__lbl">{{ $t('v2.resale.stats.active') }}</div>
           </div>
         </div>
         <div class="rt-stat">
@@ -44,7 +44,7 @@
           </div>
           <div class="rt-stat__body">
             <div class="rt-stat__val">{{ soldEntries.length }}</div>
-            <div class="rt-stat__lbl">Sold</div>
+            <div class="rt-stat__lbl">{{ $t('v2.resale.stats.sold') }}</div>
           </div>
         </div>
         <div class="rt-stat" :class="realizedProfit >= 0 ? 'rt-stat--pos' : 'rt-stat--neg'">
@@ -57,7 +57,7 @@
             <div class="rt-stat__val" :style="realizedProfit >= 0 ? 'color:#34d399' : 'color:#f87171'">
               {{ realizedProfit >= 0 ? '+' : '' }}{{ formatKamasFull(realizedProfit) }}
             </div>
-            <div class="rt-stat__lbl">Realized P/L</div>
+            <div class="rt-stat__lbl">{{ $t('v2.resale.stats.realizedPL') }}</div>
           </div>
         </div>
         <div class="rt-stat">
@@ -68,7 +68,7 @@
           </div>
           <div class="rt-stat__body">
             <div class="rt-stat__val" style="font-size:.9375rem">{{ formatDuration(averageHoldDurationMs) }}</div>
-            <div class="rt-stat__lbl">Avg hold</div>
+            <div class="rt-stat__lbl">{{ $t('v2.resale.stats.avgHold') }}</div>
           </div>
         </div>
         <div class="rt-stat">
@@ -79,7 +79,7 @@
           </div>
           <div class="rt-stat__body">
             <div class="rt-stat__val" style="font-size:.9375rem">{{ averageRepricesBeforeSale }}</div>
-            <div class="rt-stat__lbl">Avg reprices</div>
+            <div class="rt-stat__lbl">{{ $t('v2.resale.stats.avgReprices') }}</div>
           </div>
         </div>
       </div>
@@ -87,25 +87,25 @@
       <!-- Transfer panel -->
       <div class="rt-transfer-panel">
         <button class="rt-transfer-panel__head" @click="showTransferPanel = !showTransferPanel">
-          <span class="rt-transfer-panel__title">Transfer character data</span>
+          <span class="rt-transfer-panel__title">{{ $t('v2.resale.transfer.title') }}</span>
           <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showTransferPanel }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
         </button>
         <div v-show="showTransferPanel" class="rt-transfer-panel__body">
-          <p class="rt-transfer-hint">Reassign all resale entries from one character to another.</p>
+          <p class="rt-transfer-hint">{{ $t('v2.resale.transfer.hint') }}</p>
           <div class="rt-transfer-row">
             <div class="rt-transfer-col">
-              <label class="rt-transfer-label">From</label>
+              <label class="rt-transfer-label">{{ $t('v2.resale.transfer.from') }}</label>
               <select v-model="transferFromKey" class="rt-transfer-select">
-                <option value="">Select character</option>
+                <option value="">{{ $t('v2.resale.transfer.selectCharacter') }}</option>
                 <option v-for="opt in allCharacterOptions" :key="opt.key" :value="opt.key">{{ opt.label }}</option>
               </select>
-              <span v-if="transferFromKey" class="rt-transfer-count">{{ transferFromCount }} entries</span>
+              <span v-if="transferFromKey" class="rt-transfer-count">{{ $t('v2.resale.transfer.entriesCount', { count: transferFromCount }) }}</span>
             </div>
             <div class="rt-transfer-arrow">→</div>
             <div class="rt-transfer-col">
-              <label class="rt-transfer-label">To</label>
+              <label class="rt-transfer-label">{{ $t('v2.resale.transfer.to') }}</label>
               <select v-model="transferToKey" class="rt-transfer-select">
-                <option value="">Select character</option>
+                <option value="">{{ $t('v2.resale.transfer.selectCharacter') }}</option>
                 <option
                   v-for="opt in allCharacterOptions.filter(o => o.key !== transferFromKey)"
                   :key="opt.key"
@@ -119,7 +119,7 @@
             :disabled="!transferFromKey || !transferToKey || transferFromCount === 0"
             @click="doTransfer"
           >
-            Transfer {{ transferFromCount }} {{ transferFromCount === 1 ? 'entry' : 'entries' }}
+            {{ $t('v2.resale.transfer.action', { count: transferFromCount }) }}
           </button>
         </div>
       </div>
@@ -167,7 +167,7 @@
                 <span>{{ formatRelativeDate(entry.updatedAt) }}</span>
               </div>
             </div>
-            <button type="button" class="rt-del v2-btn-ghost" @click="removeEntry(entry.id)" title="Remove entry">
+            <button type="button" class="rt-del v2-btn-ghost" @click="removeEntry(entry.id)" :title="$t('v2.resale.actions.removeEntry')">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -177,7 +177,7 @@
           <!-- Price fields -->
           <div class="rt-prices">
             <label class="rt-field">
-              <span class="rt-field__lbl">Buy price</span>
+              <span class="rt-field__lbl">{{ $t('v2.resale.fields.buyPrice') }}</span>
               <input
                 :value="entry.buyPrice ?? ''"
                 type="number"
@@ -188,7 +188,7 @@
               >
             </label>
             <label class="rt-field">
-              <span class="rt-field__lbl">List price</span>
+              <span class="rt-field__lbl">{{ $t('v2.resale.fields.listPrice') }}</span>
               <input
                 :value="entry.listPrice ?? ''"
                 type="number"
@@ -199,7 +199,7 @@
               >
             </label>
             <label class="rt-field">
-              <span class="rt-field__lbl">Sold price</span>
+              <span class="rt-field__lbl">{{ $t('v2.resale.fields.soldPrice') }}</span>
               <input
                 :value="entry.soldPrice ?? ''"
                 type="number"
@@ -215,23 +215,23 @@
           <!-- Model estimates -->
           <div class="rt-model">
             <div class="rt-model__row">
-              <span>Observed</span>
+              <span>{{ $t('v2.resale.model.observed') }}</span>
               <strong>{{ formatKamasFull(entry.buyPrice ?? 0) }}</strong>
             </div>
             <div class="rt-model__row">
-              <span>Quick target</span>
+              <span>{{ $t('v2.resale.model.quickTarget') }}</span>
               <strong>{{ formatKamasOptional(getEstimate(entry, 'estimatedQuickRelistPrice', 'estimatedQuickRelist')) }}</strong>
             </div>
             <div class="rt-model__row">
-              <span>Fair target</span>
+              <span>{{ $t('v2.resale.model.fairTarget') }}</span>
               <strong>{{ formatKamasOptional(getEstimate(entry, 'estimatedFairRelistPrice', 'estimatedFairValue')) }}</strong>
             </div>
             <div class="rt-model__row">
-              <span>Greedy target</span>
+              <span>{{ $t('v2.resale.model.greedyTarget') }}</span>
               <strong>{{ formatKamasOptional(getEstimate(entry, 'estimatedGreedyRelistPrice', 'estimatedGreedyRelist')) }}</strong>
             </div>
             <div class="rt-model__row">
-              <span>Predicted delta</span>
+              <span>{{ $t('v2.resale.model.predictedDelta') }}</span>
               <strong :class="(getEstimate(entry, 'estimatedDelta') ?? 0) >= 0 ? 'rt-pos' : 'rt-neg'">
                 {{ formatKamasOptional(getEstimate(entry, 'estimatedDelta')) }}
               </strong>
@@ -247,7 +247,7 @@
               :disabled="entry.status === 'bought'"
               @click="setStatus(entry, 'bought')"
             >
-              Bought
+              {{ statusLabel('bought') }}
             </button>
             <button
               type="button"
@@ -256,7 +256,7 @@
               :disabled="entry.status === 'listed'"
               @click="setStatus(entry, 'listed')"
             >
-              Listed
+              {{ statusLabel('listed') }}
             </button>
             <button
               type="button"
@@ -264,9 +264,9 @@
               :class="{ 'rt-action-btn--on': entry.status === 'sold' }"
               :disabled="entry.status === 'sold' || !canMarkSold(entry)"
               @click="setStatus(entry, 'sold')"
-              :title="canMarkSold(entry) ? 'Mark as sold' : 'Enter a sold price first'"
+              :title="canMarkSold(entry) ? $t('v2.resale.actions.markAsSold') : $t('v2.resale.messages.enterSoldPriceFirst')"
             >
-              Sold
+              {{ statusLabel('sold') }}
             </button>
             <button
               type="button"
@@ -275,7 +275,7 @@
               :disabled="entry.status === 'cancelled'"
               @click="setStatus(entry, 'cancelled')"
             >
-              Cancel
+              {{ $t('v2.resale.actions.cancel') }}
             </button>
           </div>
 
@@ -283,8 +283,8 @@
           <div class="rt-adj">
             <div class="rt-adj__head">
               <div>
-                <div class="rt-adj__title">Price adjustments</div>
-                <div class="rt-adj__desc">Log each relist without losing history.</div>
+                <div class="rt-adj__title">{{ $t('v2.resale.adjustments.title') }}</div>
+                <div class="rt-adj__desc">{{ $t('v2.resale.adjustments.desc') }}</div>
               </div>
               <button
                 type="button"
@@ -292,7 +292,7 @@
                 :disabled="!canAddAdjustment(entry)"
                 @click="addAdjustmentFromCurrentPrice(entry)"
               >
-                Snap current price
+                {{ $t('v2.resale.adjustments.snapCurrentPrice') }}
               </button>
             </div>
 
@@ -315,11 +315,11 @@
                 </div>
               </div>
             </div>
-            <div v-else class="rt-adj__empty">No reprices logged yet.</div>
+            <div v-else class="rt-adj__empty">{{ $t('v2.resale.adjustments.empty') }}</div>
 
             <div class="rt-prices" style="margin-top:.75rem">
               <label class="rt-field">
-                <span class="rt-field__lbl">New price</span>
+                <span class="rt-field__lbl">{{ $t('v2.resale.fields.newPrice') }}</span>
                 <input
                   :value="adjustmentDrafts[entry.id]?.toPrice ?? ''"
                   type="number"
@@ -330,11 +330,11 @@
                 >
               </label>
               <label class="rt-field">
-                <span class="rt-field__lbl">Reason</span>
+                <span class="rt-field__lbl">{{ $t('v2.resale.fields.reason') }}</span>
                 <input
                   :value="adjustmentDrafts[entry.id]?.reason ?? ''"
                   type="text"
-                  placeholder="Undercut, slow market…"
+                  :placeholder="$t('v2.resale.placeholders.adjustmentReason')"
                   class="v2-input rt-field__input"
                   @input="updateAdjustmentDraft(entry.id, 'reason', ($event.target as HTMLInputElement).value)"
                 >
@@ -346,13 +346,13 @@
               :disabled="!canSaveAdjustment(entry)"
               @click="saveAdjustment(entry)"
             >
-              Save adjustment
+              {{ $t('v2.resale.adjustments.save') }}
             </button>
           </div>
 
           <!-- Notes -->
           <label class="rt-field rt-notes">
-            <span class="rt-field__lbl">Notes</span>
+            <span class="rt-field__lbl">{{ $t('v2.resale.fields.notes') }}</span>
             <textarea
               rows="2"
               :value="entry.notes ?? ''"
@@ -365,15 +365,15 @@
           <!-- Footer stats -->
           <div class="rt-entry__foot">
             <span>
-              P/L:
+              {{ $t('v2.resale.footer.pl') }}:
               <strong :class="realizedEntryProfit(entry) >= 0 ? 'rt-pos' : 'rt-neg'">
                 {{ realizedEntryProfit(entry) >= 0 ? '+' : '' }}{{ formatKamasFull(realizedEntryProfit(entry)) }}
               </strong>
             </span>
-            <span>Held {{ formatDuration(getHoldDurationMs(entry)) }}</span>
-            <span>Market {{ formatDuration(getMarketDurationMs(entry)) }}</span>
-            <span>{{ entry.priceAdjustments?.length ?? 0 }} reprice{{ (entry.priceAdjustments?.length ?? 0) !== 1 ? 's' : '' }}</span>
-            <span v-if="entry.soldAt">Sold {{ formatRelativeDate(entry.soldAt) }}</span>
+            <span>{{ $t('v2.resale.footer.held', { duration: formatDuration(getHoldDurationMs(entry)) }) }}</span>
+            <span>{{ $t('v2.resale.footer.market', { duration: formatDuration(getMarketDurationMs(entry)) }) }}</span>
+            <span>{{ $t('v2.resale.footer.reprices', { count: entry.priceAdjustments?.length ?? 0 }) }}</span>
+            <span v-if="entry.soldAt">{{ $t('v2.resale.footer.sold', { date: formatRelativeDate(entry.soldAt) }) }}</span>
           </div>
         </div>
       </div>
@@ -386,12 +386,12 @@
           </svg>
         </div>
         <div class="v2-no-context__title">
-          {{ statusFilter === 'all' ? 'No entries yet' : `No ${statusFilter} entries` }}
+          {{ emptyTitle }}
         </div>
         <div class="v2-no-context__desc">
           {{ statusFilter === 'all'
-            ? 'Send an observed listing from the items page. New entries start as watched.'
-            : 'Try a different status filter above.' }}
+            ? $t('v2.resale.empty.descAll')
+            : $t('v2.resale.empty.descFiltered') }}
         </div>
       </div>
     </template>
@@ -408,6 +408,7 @@ definePageMeta({
 
 const { hasContext, selectedServer, selectedCharacter, servers } = useV2Context()
 const { entries, upsertEntry, updateStatus, addPriceAdjustment, removeEntry, transferEntries } = useResaleTracker()
+const { t, locale } = useI18n()
 
 const showTransferPanel = ref(false)
 const transferFromKey = ref('')
@@ -439,7 +440,7 @@ const doTransfer = () => {
   if (!fromSid || !fromCid || !toSid || !toCid) return
   const count = transferEntries(fromSid, fromCid, toSid, toCid)
   if (!count) return
-  alert(`${count} entries transferred successfully.`)
+  alert(t('v2.resale.transfer.success', { count }))
   transferFromKey.value = ''
   transferToKey.value = ''
   showTransferPanel.value = false
@@ -448,13 +449,15 @@ const doTransfer = () => {
 const statusFilter = ref<'all' | ResaleTrackerStatus>('all')
 const adjustmentDrafts = ref<Record<string, { toPrice: string, reason: string }>>({})
 
-const statusLabelMap: Record<ResaleTrackerStatus, string> = {
-  watched: 'Watched',
-  bought: 'Bought',
-  listed: 'Listed',
-  sold: 'Sold',
-  cancelled: 'Cancelled',
-}
+const statusLabel = (status: ResaleTrackerStatus | 'all') => t(`v2.resale.status.${status}`)
+
+const statusLabelMap = computed<Record<ResaleTrackerStatus, string>>(() => ({
+  watched: statusLabel('watched'),
+  bought: statusLabel('bought'),
+  listed: statusLabel('listed'),
+  sold: statusLabel('sold'),
+  cancelled: statusLabel('cancelled'),
+}))
 
 const filteredEntries = computed(() =>
   entries.value.filter((entry) =>
@@ -509,13 +512,19 @@ const averageRepricesBeforeSale = computed(() => {
 })
 
 const statusFilters = computed(() => [
-  { id: 'all' as const, label: 'All', count: filteredEntries.value.length },
-  { id: 'watched' as const, label: 'Watched', count: filteredEntries.value.filter((entry) => entry.status === 'watched').length },
-  { id: 'bought' as const, label: 'Bought', count: filteredEntries.value.filter((entry) => entry.status === 'bought').length },
-  { id: 'listed' as const, label: 'Listed', count: filteredEntries.value.filter((entry) => entry.status === 'listed').length },
-  { id: 'sold' as const, label: 'Sold', count: filteredEntries.value.filter((entry) => entry.status === 'sold').length },
-  { id: 'cancelled' as const, label: 'Cancelled', count: filteredEntries.value.filter((entry) => entry.status === 'cancelled').length },
+  { id: 'all' as const, label: statusLabel('all'), count: filteredEntries.value.length },
+  { id: 'watched' as const, label: statusLabel('watched'), count: filteredEntries.value.filter((entry) => entry.status === 'watched').length },
+  { id: 'bought' as const, label: statusLabel('bought'), count: filteredEntries.value.filter((entry) => entry.status === 'bought').length },
+  { id: 'listed' as const, label: statusLabel('listed'), count: filteredEntries.value.filter((entry) => entry.status === 'listed').length },
+  { id: 'sold' as const, label: statusLabel('sold'), count: filteredEntries.value.filter((entry) => entry.status === 'sold').length },
+  { id: 'cancelled' as const, label: statusLabel('cancelled'), count: filteredEntries.value.filter((entry) => entry.status === 'cancelled').length },
 ])
+
+const emptyTitle = computed(() =>
+  statusFilter.value === 'all'
+    ? t('v2.resale.empty.titleAll')
+    : t('v2.resale.empty.titleFiltered', { status: statusLabel(statusFilter.value) }),
+)
 
 const visibleEntries = computed(() => {
   const source = statusFilter.value === 'all'
@@ -567,7 +576,7 @@ function updateTextField(
 
 function setStatus(entry: ResaleTrackerEntry, status: ResaleTrackerStatus) {
   if (status === 'sold' && !canMarkSold(entry)) {
-    setStatusMessage(entry.id, 'Enter the actual sold price before marking this entry as sold.')
+    setStatusMessage(entry.id, t('v2.resale.messages.enterActualSoldPrice'))
     return
   }
 
@@ -613,7 +622,7 @@ function addAdjustmentFromCurrentPrice(entry: ResaleTrackerEntry) {
   addPriceAdjustment(entry.id, {
     fromPrice: previousPrice,
     toPrice: nextPrice,
-    reason: 'Manual relist',
+    reason: t('v2.resale.adjustments.manualRelist'),
   })
 }
 
@@ -747,13 +756,13 @@ function getEstimate(entry: ResaleTrackerEntry, ...keys: string[]) {
 
 function sourceLabel(source: string) {
   if (source === 'observed') {
-    return 'Observed'
+    return t('v2.resale.source.observed')
   }
   if (source === 'crafted') {
-    return 'Crafted'
+    return t('v2.resale.source.crafted')
   }
 
-  return 'Manual'
+  return t('v2.resale.source.manual')
 }
 
 function formatKamasFull(value: number) {
@@ -790,17 +799,17 @@ function formatDuration(value: number | null) {
 
 function formatRelativeDate(value: string | null | undefined) {
   if (!value) {
-    return 'now'
+    return t('v2.resale.time.now')
   }
 
   const timestamp = new Date(value).getTime()
   if (Number.isNaN(timestamp)) {
-    return 'now'
+    return t('v2.resale.time.now')
   }
 
   const diffMs = timestamp - Date.now()
   const diffHours = Math.round(diffMs / (1000 * 60 * 60))
-  const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+  const formatter = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' })
 
   if (Math.abs(diffHours) < 24) {
     return formatter.format(diffHours, 'hour')

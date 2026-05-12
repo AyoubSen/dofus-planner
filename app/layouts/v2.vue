@@ -85,6 +85,7 @@
           </svg>
         </div>
         <div v-show="!sidebarCollapsed" class="v2-context__info">
+          <div v-if="!hasContext" class="v2-context__eyebrow">{{ $t('v2.layout.firstStep') }}</div>
           <div class="v2-context__name">
             {{ hasContext ? selectedCharacter?.name : $t('v2.layout.selectCharacter') }}
           </div>
@@ -103,20 +104,20 @@
       <div ref="storageBarRef">
         <div v-show="!sidebarCollapsed" class="v2-storage" @click="toggleStorageBreakdown">
           <div class="v2-storage__row">
-            <span class="v2-storage__label">Storage</span>
+            <span class="v2-storage__label">{{ $t('v2.layout.storage') }}</span>
             <span class="v2-storage__val" :class="storageClass">{{ storageUsed }} / {{ storageTotal }}</span>
           </div>
           <div class="v2-storage__bar">
             <div class="v2-storage__fill" :class="storageClass" :style="{ width: storagePct + '%' }" />
           </div>
         </div>
-        <div v-show="sidebarCollapsed" class="v2-storage-dot" :class="storageClass" :title="`Storage: ${storageUsed} / ${storageTotal}`" @click="toggleStorageBreakdown" />
+        <div v-show="sidebarCollapsed" class="v2-storage-dot" :class="storageClass" :title="`${$t('v2.layout.storage')}: ${storageUsed} / ${storageTotal}`" @click="toggleStorageBreakdown" />
       </div>
 
       <Teleport to="body">
         <div v-if="showStorageBreakdown" class="v2-storage-popover" :style="storagePopoverStyle">
           <div class="v2-storage-popover__head">
-            <span>Storage breakdown</span>
+            <span>{{ $t('v2.layout.storageBreakdown') }}</span>
             <span class="v2-storage-popover__total" :class="storageClass">{{ storageUsed }} / {{ storageTotal }}</span>
           </div>
           <div class="v2-storage-popover__list">
@@ -133,21 +134,6 @@
         </div>
       </Teleport>
 
-      <!-- Bottom: back to v1 -->
-      <div class="v2-sidebar__bottom">
-        <NuxtLink
-          :to="localePath('/v1')"
-          class="v2-nav__item"
-          :title="sidebarCollapsed ? $t('v2.layout.backToV1') : ''"
-        >
-          <div class="v2-nav__icon">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </div>
-          <span v-show="!sidebarCollapsed" class="v2-nav__label-text text-xs opacity-60">{{ $t('v2.layout.backToV1') }}</span>
-        </NuxtLink>
-      </div>
     </aside>
 
     <!-- ─── Main area ──────────────────────────────────────── -->
@@ -186,6 +172,16 @@
 
       <!-- Page content -->
       <main class="v2-content">
+        <section class="v2-page-intro" :class="{ 'v2-page-intro--setup': !hasContext }">
+          <div class="v2-page-intro__body">
+            <div class="v2-page-intro__eyebrow">{{ currentPageTitle }}</div>
+            <h1 class="v2-page-intro__title">{{ $t(currentPageIntro.title) }}</h1>
+            <p class="v2-page-intro__desc">{{ $t(currentPageIntro.desc) }}</p>
+          </div>
+          <button v-if="!hasContext && currentPageIntro.needsCharacter" class="v2-page-intro__cta" @click="openPicker">
+            {{ $t('v2.layout.selectCharacterAction') }}
+          </button>
+        </section>
         <slot />
       </main>
     </div>
@@ -348,6 +344,7 @@ const localePath = useLocalePath()
 const route = useRoute()
 const { t } = useI18n()
 const { currentV2Theme, initV2Theme } = useV2Theme()
+const { initFontScale } = useFontScale()
 const {
   servers,
   selectedServer,
@@ -413,6 +410,54 @@ const navItems = [
   { path: '/familiers', label: 'nav.familiers', icon: resolveComponent('IconsIconFamiliers'), color: '#fb923c' },
 ]
 
+const pageIntros: Record<string, { title: string, desc: string, needsCharacter: boolean }> = {
+  '/': {
+    title: 'v2.pageIntros.dashboard.title',
+    desc: 'v2.pageIntros.dashboard.desc',
+    needsCharacter: false,
+  },
+  '/archimonstres': {
+    title: 'v2.pageIntros.archimonstres.title',
+    desc: 'v2.pageIntros.archimonstres.desc',
+    needsCharacter: true,
+  },
+  '/monsters': {
+    title: 'v2.pageIntros.monsters.title',
+    desc: 'v2.pageIntros.monsters.desc',
+    needsCharacter: false,
+  },
+  '/items': {
+    title: 'v2.pageIntros.items.title',
+    desc: 'v2.pageIntros.items.desc',
+    needsCharacter: false,
+  },
+  '/resale': {
+    title: 'v2.pageIntros.resale.title',
+    desc: 'v2.pageIntros.resale.desc',
+    needsCharacter: true,
+  },
+  '/crafting': {
+    title: 'v2.pageIntros.crafting.title',
+    desc: 'v2.pageIntros.crafting.desc',
+    needsCharacter: true,
+  },
+  '/brisage': {
+    title: 'v2.pageIntros.brisage.title',
+    desc: 'v2.pageIntros.brisage.desc',
+    needsCharacter: true,
+  },
+  '/succes': {
+    title: 'v2.pageIntros.succes.title',
+    desc: 'v2.pageIntros.succes.desc',
+    needsCharacter: true,
+  },
+  '/familiers': {
+    title: 'v2.pageIntros.familiers.title',
+    desc: 'v2.pageIntros.familiers.desc',
+    needsCharacter: false,
+  },
+}
+
 const isActive = (path: string) => {
   const full = localePath(path)
   if (path === '/') return route.path === full
@@ -422,6 +467,11 @@ const isActive = (path: string) => {
 const currentPageTitle = computed(() => {
   const active = navItems.find((i) => isActive(i.path))
   return active ? t(active.label) : t('v2.layout.badge')
+})
+
+const currentPageIntro = computed(() => {
+  const active = navItems.find((i) => isActive(i.path))
+  return pageIntros[active?.path ?? '/'] ?? pageIntros['/']
 })
 
 const openPicker = () => {
@@ -559,6 +609,7 @@ const handleStorageClickOutside = (e: MouseEvent) => {
 
 onMounted(() => {
   initV2Theme()
+  initFontScale()
   initContext()
   measureStorage()
   setInterval(measureStorage, 30_000)
@@ -762,10 +813,30 @@ onBeforeUnmount(() => {
 .v2-context:hover {
   background: var(--v2-hover);
 }
+.v2-context--empty {
+  margin: 0.625rem;
+  width: calc(100% - 1.25rem);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--v2-active-strong), var(--v2-hover-subtle));
+  border: 1px solid var(--v2-border-focus);
+  box-shadow: 0 0 22px var(--v2-glow);
+}
+.v2-context--empty:hover {
+  background: var(--v2-active);
+  border-color: var(--v2-accent);
+}
 .v2-context--empty .v2-context__avatar {
   background: var(--v2-border-subtle) !important;
   border: 1px dashed var(--v2-border-med);
   color: var(--v2-text-muted);
+}
+.v2-context__eyebrow {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--v2-accent);
+  margin-bottom: 0.125rem;
 }
 .v2-context__avatar {
   width: 34px;
@@ -894,6 +965,59 @@ onBeforeUnmount(() => {
 .v2-content::-webkit-scrollbar-thumb {
   background: var(--v2-active-strong);
   border-radius: 3px;
+}
+
+.v2-page-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--v2-border);
+  border-radius: 14px;
+  background: var(--v2-hover-subtle);
+}
+.v2-page-intro--setup {
+  border-color: var(--v2-border-focus);
+  background: linear-gradient(135deg, var(--v2-active-strong), var(--v2-hover-subtle));
+}
+.v2-page-intro__body { min-width: 0; }
+.v2-page-intro__eyebrow {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--v2-text-dim);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+.v2-page-intro__title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--v2-text);
+}
+.v2-page-intro__desc {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--v2-text-secondary);
+}
+.v2-page-intro__cta {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9px;
+  padding: 0.625rem 0.875rem;
+  background: linear-gradient(135deg, var(--v2-accent), var(--v2-accent-dark));
+  color: var(--v2-bg);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+@media (max-width: 640px) {
+  .v2-page-intro {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 
 /* ── Character picker modal ──────────────────────────────── */

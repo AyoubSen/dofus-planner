@@ -20,8 +20,11 @@
       "collapseSidebar": "Replier la barre latérale",
       "navigation": "Navigation",
       "selectCharacter": "Sélectionner un personnage",
-      "clickToStart": "Cliquez pour commencer",
-      "backToV1": "Retour vers v1",
+      "clickToStart": "Créer ou choisir un personnage",
+      "firstStep": "Première étape",
+      "selectCharacterAction": "Sélectionner un personnage",
+      "storage": "Stockage",
+      "storageBreakdown": "Détail du stockage",
       "badge": "v2",
       "characters": "Personnages",
       "charactersSubtitle": "Sélectionnez ou gérez vos personnages",
@@ -67,7 +70,55 @@
       "quickAccess": "Accès rapide",
       "today": "Aujourd'hui",
       "yesterday": "Hier",
-      "daysAgo": "il y a {count}j"
+      "daysAgo": "il y a {count}j",
+      "onboarding": {
+        "eyebrow": "Première configuration",
+        "title": "Obtenez des données utiles en trois étapes",
+        "serverCharacter": "Ajouter serveur et personnage",
+        "serverCharacterDesc": "La plupart des suivis enregistrent la progression par personnage.",
+        "pickTool": "Choisir l'outil",
+        "pickToolDesc": "Suivez l'Ocre, les ventes, la revente, le craft, le brisage, les succès ou les prix familiers.",
+        "backup": "Exporter une sauvegarde",
+        "backupDesc": "Vos données restent dans ce navigateur, gardez une sauvegarde avant de changer d'appareil."
+      }
+    },
+    "pageIntros": {
+      "dashboard": {
+        "title": "Votre centre de contrôle Dofus",
+        "desc": "Commencez par un personnage, puis ouvrez un outil pour suivre progression, marché ou profit."
+      },
+      "archimonstres": {
+        "title": "Suivre les captures Ocre et les ventes d'archimonstres",
+        "desc": "Utilisez cette page pour l'Éternelle Moisson, les doublons et la planification de route."
+      },
+      "monsters": {
+        "title": "Rechercher dans la base des monstres",
+        "desc": "Trouvez des monstres par nom, vérifiez niveaux et tags, puis ouvrez le détail si besoin."
+      },
+      "items": {
+        "title": "Trouver des équipements et opportunités marché",
+        "desc": "Cherchez des objets, filtrez selon le build, comparez les prix et envoyez des listings en revente."
+      },
+      "resale": {
+        "title": "Suivre les flips de l'observation à la vente",
+        "desc": "Suivez chaque opportunité entre observé, acheté, listé, vendu ou annulé."
+      },
+      "crafting": {
+        "title": "Mesurer le profit Craft et FM",
+        "desc": "Créez une session pour suivre coûts, FM, prix listé, revenu de vente et profit net."
+      },
+      "brisage": {
+        "title": "Suivre les sessions de brisage et le profit runes",
+        "desc": "Enregistrez les objets brisés, comparez coût de craft et valeur réalisée, puis sauvegardez la session."
+      },
+      "succes": {
+        "title": "Suivre les succès par personnage",
+        "desc": "Marquez les succès terminés, cherchez par catégorie et gardez la progression liée au personnage."
+      },
+      "familiers": {
+        "title": "Comparer la valeur des nourritures familiers",
+        "desc": "Estimez le coût niveau 100 depuis les croquettes ou les prix marché saisis manuellement."
+      }
     },
     "common": {
       "noCharacterTitle": "Aucun personnage sélectionné",
@@ -87,6 +138,91 @@
       "history": "Historique",
       "analytics": "Analytiques",
       "clearHistory": "Effacer l'historique"
+    },
+    "resale": {
+      "noCharacterDesc": "Sélectionnez un serveur et un personnage pour suivre vos flips de revente.",
+      "stats": {
+        "tracked": "Suivis",
+        "active": "Actifs",
+        "sold": "Vendus",
+        "realizedPL": "P/L réalisé",
+        "avgHold": "Conservation moy.",
+        "avgReprices": "Reprix moy."
+      },
+      "status": {
+        "all": "Tous",
+        "watched": "Observé",
+        "bought": "Acheté",
+        "listed": "Listé",
+        "sold": "Vendu",
+        "cancelled": "Annulé"
+      },
+      "transfer": {
+        "title": "Transférer les données personnage",
+        "hint": "Réattribuez toutes les entrées de revente d'un personnage à un autre.",
+        "from": "De",
+        "to": "Vers",
+        "selectCharacter": "Sélectionner un personnage",
+        "entriesCount": "{count} entrée | {count} entrées",
+        "action": "Transférer {count} entrée | Transférer {count} entrées",
+        "success": "{count} entrée transférée avec succès. | {count} entrées transférées avec succès."
+      },
+      "fields": {
+        "buyPrice": "Prix d'achat",
+        "listPrice": "Prix listé",
+        "soldPrice": "Prix de vente",
+        "newPrice": "Nouveau prix",
+        "reason": "Raison",
+        "notes": "Notes"
+      },
+      "model": {
+        "observed": "Observé",
+        "quickTarget": "Cible rapide",
+        "fairTarget": "Cible juste",
+        "greedyTarget": "Cible haute",
+        "predictedDelta": "Delta prédit"
+      },
+      "actions": {
+        "removeEntry": "Supprimer l'entrée",
+        "markAsSold": "Marquer comme vendu",
+        "cancel": "Annuler"
+      },
+      "adjustments": {
+        "title": "Ajustements de prix",
+        "desc": "Enregistrez chaque relistage sans perdre l'historique.",
+        "snapCurrentPrice": "Capturer le prix actuel",
+        "empty": "Aucun reprix enregistré.",
+        "save": "Sauvegarder l'ajustement",
+        "manualRelist": "Relistage manuel"
+      },
+      "placeholders": {
+        "adjustmentReason": "Sous-cote, marché lent..."
+      },
+      "footer": {
+        "pl": "P/L",
+        "held": "Gardé {duration}",
+        "market": "Marché {duration}",
+        "reprices": "{count} reprix | {count} reprix",
+        "sold": "Vendu {date}"
+      },
+      "empty": {
+        "titleAll": "Aucune entrée",
+        "titleFiltered": "Aucune entrée {status}",
+        "descAll": "Envoyez une annonce observée depuis la page Objets. Les nouvelles entrées commencent en observé.",
+        "descFiltered": "Essayez un autre filtre de statut ci-dessus."
+      },
+      "messages": {
+        "enterSoldPriceFirst": "Saisissez d'abord un prix de vente",
+        "enterActualSoldPrice": "Saisissez le prix de vente réel avant de marquer cette entrée comme vendue."
+      },
+      "source": {
+        "observed": "Observé",
+        "crafted": "Crafté",
+        "manual": "Manuel"
+      },
+      "time": {
+        "now": "maintenant"
+      }
     },
     "crafting": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos crafts.",
