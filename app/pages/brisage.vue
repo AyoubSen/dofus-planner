@@ -912,7 +912,7 @@ const loadCategoryBatch = async () => {
           'typeId[$in][]': typeIds,
           'level[$gte]': levelMin,
           'level[$lte]': levelMax,
-          '$sort': '-id',
+          '$sort': 'level',
           '$skip': skip,
           'lang': 'fr',
         },
@@ -937,7 +937,11 @@ const loadCategoryBatch = async () => {
       deduped.set(item?.id ?? crypto.randomUUID(), item)
     })
 
-    results.value = Array.from(deduped.values())
+    results.value = Array.from(deduped.values()).sort((a, b) => {
+      const levelDiff = (Number(a?.level) || 0) - (Number(b?.level) || 0)
+      if (levelDiff) return levelDiff
+      return String(a?.name?.fr ?? a?.id ?? '').localeCompare(String(b?.name?.fr ?? b?.id ?? ''))
+    })
   }
   catch {
     results.value = []
