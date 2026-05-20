@@ -1,119 +1,25 @@
 # TODO
 
-Focused shortlist grouped by delivery priority.
+Clean slate.
 
-## Now
-- [ ] Fix TypeScript Errors (Start with V2 Archimonstres Analytics Tab)
-- [x] Replace Hardcoded V2 Page Colors With Theme Tokens
-- [ ] V2 i18n Parity (Replace Hardcoded Strings) - Remaining hardcoded strings in `archimonstres`, `crafting`, `brisage`, `succes`, `familiers`
-- [ ] Unify Feature Storage Into AppDataStore
-- [ ] Dashboard Init Unified AppDataStore (avoid empty/stale stats on first load)
-- [ ] Items Resale Tracker Data Model
-- [ ] Items Send Observed Listing To Resale Tracker
-- [ ] Items Resale Tracker Page (Watched / Bought / Listed / Sold / Cancelled)
-- [ ] Items Resale Price Adjustment History
-- [ ] Items Resale Realized Profit + Time-To-Sell Metrics
-- [ ] Dashboard Quick Nav: Add Familiers + Brisage
-- [ ] Dashboard Quick Nav: Add Resale
-- [ ] Dashboard Succes Progress Card (X/Total + Progress Bar)
-- [ ] Dashboard Daily Highlights (Today Earned + Sessions)
-- [ ] Dashboard Scope Pass (separate current-character metrics from account-wide totals)
-- [ ] Dashboard Resale Summary Card (Active / Sold / Realized P-L / Avg Hold)
-- [ ] Dashboard Brisage Summary Card (Sessions / Total P-L / Avg Margin)
-- [ ] Dashboard Crafting Summary Card (Count / Total Value / Recent Craft)
-- [ ] Dashboard Replace Recent Sales With Cross-Feature Activity Feed
-- [ ] Dashboard Alerts Panel (slow-moving items / watched flips / missing prices)
-- [ ] Familiers User Price Input + Deal Color Coding
-- [ ] Crafting Cost Field + Profit Margin Column
-- [ ] Archimonstres Missing-Only View Sorted by Etape
+We are reviewing the app page by page before deciding what should become actual work.
 
-## Later
-- [ ] Remove Duplicate V1/V2 Business Logic
-- [ ] V2 UX Consistency Pass
-- [ ] Add App Test Baseline (Critical Flows)
-- [ ] Dashboard Next Best Actions
-- [ ] Saved Filter Presets
-- [ ] Snapshot Compare (Weekly/Monthly)
-- [ ] Data Health Check + Repair Report
-- [ ] Type Hardening With Runtime Validation
-- [x] Items Page Data Context Subtitle
-- [x] Items Recipe Pressure View (POC done in V2)
-- [x] Items Recipe Pressure Follow-Up (single-item jump, richer metrics)
-- [x] Items Resource Pressure Filters
-- [x] Items Aggregate Sort/Metric Controls
-- [ ] Crafting Filter/Sort by Margin
-- [ ] Brisage P/L Over Time Chart
-- [ ] Familiers Budget Persistence
-- [ ] Familiers Pet Level Input
-- [ ] Dashboard Data Freshness + Backup Nudge
-- [ ] Archimonstres Progress by Etape Breakdown
-- [ ] Dashboard Account Overview Strip (characters / servers / total tracked systems)
-- [ ] Archimonstres Bulk Mark as Collected
-- [ ] Archimonstres Export Missing List (Clipboard/CSV)
-- [ ] Succes Category Progress Bars
-- [ ] Succes Sort by Reward Value
-- [x] Items DofusDB ID Cache / Mapping (persist resolved item -> dofusdb id locally)
-- [x] Items Recipe Cost Overlay (craft cost vs entered market price)
-- [x] Items Resource Source Context
-- [ ] Items Aggregate Diff Between Filters (Deprioritized)
-- [x] Items Confidence / Match Quality Indicator
-- [x] Items Observed Listing Badges (underpriced / overpriced / best buy / missing stats / confidence)
-- [x] Items Observed Row Relist Suggestions (quick / fair / greedy directly in the row)
-- [x] Items Smarter Valuation Confidence (sample + completeness + spread)
-- [x] Items Comparable-Only Valuation (score-band-aware comps instead of all selected listings)
-- [x] Items Observed Listing Dedupe Protection
-- [x] Items Observed Listing Sort Modes (price / delta / best buy / newest)
-- [x] Items OCR Stats Correction Assistant (flag suspicious lines and missing expected stats)
+## Review Queue
 
-## Valuation Hardening
-- [ ] Items Expand Curated Alias Coverage For Special Mage Lines
-- [ ] Items Add Stats Health Warnings For Possible Unmatched Special Mage Lines
-- [ ] Items Support More Binary Forge/Mage Flags Beyond Numeric Stats
-- [ ] Items Keep Canonical Internal Keys For All Special Mage Lines
-- [ ] Items Separate Base Stats / Overmage / Exo-Special Lines / Binary Forge States In Valuation Logic
-- [ ] Items Fix Baseline Stat Normalization So Minimum Rolls Still Carry Value
-- [ ] Items Add Explicit Penalties For Missing Mandatory Lines
-- [ ] Items Treat Overmax As A Separate Premium Layer Instead Of Only Linear Extra Progress
-- [ ] Items Strengthen Comparable Matching Penalties For Exo/Special-Line Mismatches
-- [ ] Items Prefer Peers With Similar Stat Completeness
-- [ ] Items Reject Weak Peers And Obvious Price Outliers Before Pricing
-- [ ] Items Require Exact Match On Critical Binary/Exo Flags Before Using A Peer
-- [ ] Items Add Explicit Premium Logic For PA / PM / PO / Invocation
-- [ ] Items Add Explicit Premium Logic For Dommages Au Sort / Distance / Melee
-- [ ] Items Add Explicit Premium Logic For Arme De Chasse
-- [ ] Items Lower Confidence When OCR Coverage Is Weak
-- [ ] Items Lower Confidence When Special Lines Are Unmatched
-- [ ] Items Lower Confidence When Comparable Peers Disagree Too Much
-- [ ] Items Explain Why Confidence Is Low Directly In The UI
-- [ ] Items Surface Unknown Lines That Were Manually Corrected
-- [ ] Items Learn New Aliases From Confirmed Manual Mappings
-- [ ] Items Keep A Small Local Alias Dictionary Per User
-- [ ] Items Add Valuation Regression Fixtures For Known Listing Scenarios
-- [ ] Items Verify Exo Listings Are Not Priced Like Clean Non-Exo Jets
-- [ ] Items Verify Arme De Chasse Recognition
-- [ ] Items Verify Dommages Au Sort Variant Recognition
-- [ ] Items Verify Low-Coverage OCR Does Not Produce False Confidence
+- [ ] Dashboard
+- [ ] Archimonstres
+- [ ] Items
+- [ ] Resale
+- [ ] Crafting
+- [ ] Brisage
+- [ ] Familiers
+- [ ] Succes
+- [ ] Monsters
 
-## Heavy
-- [ ] Archimonstres Zone Map Filter
-- [ ] Archimonstres Sort by Rarity/Difficulty
-- [ ] Crafting Ingredient Cost Breakdown
-- [ ] Crafting Sales Chart Over Time
-- [ ] Crafting Goal Tracker
-- [ ] Brisage Planner Mode (separate pre-brisage calculator from the current manual log)
-- [ ] Brisage Parse Selected Item Effects Into Rune Families
-- [ ] Brisage Normalized Rune Catalog (replace free-text rune names)
-- [ ] Brisage Coefficient-Aware EV Model
-- [ ] Brisage EV/Range/Break-Even Panel
-- [ ] Brisage Item History Aggregates (sample count, hit rate, avg realized rune value)
-- [ ] Brisage Best Item Recommendation Panel
-- [ ] Brisage Average Rune Output (Actual vs Theoretical)
-- [ ] Brisage Rune Price Presets
-- [ ] Brisage Export Sessions
-- [ ] Brisage Multi-Item Batch Session Logging
-- [ ] Succes Quick Win Filter
-- [ ] Succes Multi-Track Visual Diff
-- [ ] Succes Share Progress Snapshot
-- [ ] Succes Notes Per Achievement
-- [ ] Succes Completed Date Timeline
-- [ ] Familiers Multiple Pets Tracker
+## Agreed Work
+
+Nothing agreed yet.
+
+## Notes
+
+Use this file only for decisions we actually agree to keep.

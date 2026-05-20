@@ -65,8 +65,36 @@
         </div>
       </div>
 
-      <div class="br-layout">
-        <div class="br-panel">
+      <div class="br-flow">
+        <div class="br-flow__actions">
+          <button class="br-flow-tab" :class="{ 'br-flow-tab--active': brisageMode === 'history' }" @click="showSessionHistory">
+            {{ $t('v2.brisage.sections.sessionHistory') }}
+            <span class="br-badge">{{ sessions.length }}</span>
+          </button>
+          <button class="br-flow-tab" :class="{ 'br-flow-tab--active': brisageMode === 'builder' }" @click="startSessionBuilder">
+            {{ $t('v2.brisage.sections.sessionBuilder') }}
+            <span v-if="draftItems.length" class="br-badge">{{ draftItems.length }}</span>
+          </button>
+        </div>
+
+        <div v-if="brisageMode === 'builder'" class="br-flow-steps">
+          <div class="br-flow-step" :class="{ 'br-flow-step--done': draftSession.categoryTypeIds.length || draftSession.levelMin || draftSession.levelMax }">
+            <span>1</span>
+            {{ $t('v2.brisage.sections.sessionBuilder') }}
+          </div>
+          <div class="br-flow-step" :class="{ 'br-flow-step--done': draftItems.length > 0 }">
+            <span>2</span>
+            {{ $t('v2.brisage.sections.addItems') }}
+          </div>
+          <div class="br-flow-step" :class="{ 'br-flow-step--done': draftResourceChecklist.length > 0 }">
+            <span>3</span>
+            {{ $t('v2.brisage.sections.resourceChecklist') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="br-layout" :class="`br-layout--${brisageMode}`">
+        <div v-show="brisageMode === 'builder'" class="br-panel">
           <div class="br-panel-title">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
@@ -82,7 +110,30 @@
               </div>
               <div class="br-form__field">
                 <label class="br-field-lbl">{{ $t('v2.brisage.fields.focusCategory') }}</label>
-                <V2Select v-model="draftSession.categoryTypeId" :options="categoryOptions" :placeholder="$t('v2.brisage.placeholders.selectCategory')" />
+                <div ref="categoryPickerEl" class="br-multi">
+                  <button
+                    type="button"
+                    class="br-multi__trigger"
+                    :class="{ 'br-multi__trigger--placeholder': !selectedCategoryOptions.length }"
+                    @click="categoryPickerOpen = !categoryPickerOpen"
+                  >
+                    <span>{{ categoryPickerLabel }}</span>
+                    <svg class="w-4 h-4" :class="{ 'br-multi__chevron--open': categoryPickerOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div v-if="categoryPickerOpen" class="br-multi__menu">
+                    <label v-for="option in BRISAGE_CATEGORY_OPTIONS" :key="option.typeId" class="br-multi__option">
+                      <input
+                        type="checkbox"
+                        class="br-multi__check"
+                        :checked="draftSession.categoryTypeIds.includes(option.typeId)"
+                        @change="toggleCategoryType(option.typeId)"
+                      >
+                      <span>{{ option.label }}</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -145,7 +196,7 @@
           <div class="br-batch-controls">
             <button
               class="br-submit-btn br-submit-btn--secondary"
-              :disabled="!draftSession.categoryTypeId || !draftSession.levelMin || !draftSession.levelMax || loadingBatchResults"
+              :disabled="!draftSession.categoryTypeIds.length || !draftSession.levelMin || !draftSession.levelMax || loadingBatchResults"
               @click="loadCategoryBatch"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,15 +393,20 @@
             </div>
           </div>
 
-          <button class="br-submit-btn" :disabled="draftItems.length === 0" @click="saveSession">
+          <div class="br-builder-actions">
+            <button class="br-submit-btn br-submit-btn--secondary" @click="showSessionHistory">
+              {{ $t('v2.crafting.actions.backToSessions') }}
+            </button>
+            <button class="br-submit-btn" :disabled="draftItems.length === 0" @click="saveSession">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
             {{ $t('v2.brisage.actions.saveSession') }}
-          </button>
+            </button>
+          </div>
         </div>
 
-        <div class="br-panel">
+        <div v-show="brisageMode === 'history'" class="br-panel">
           <div class="br-panel-title">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
@@ -488,6 +544,7 @@ interface BrisageSession {
   endingKamas: number
   externalDelta: number
   categoryTypeId: number | null
+  categoryTypeIds: number[]
   levelMin: number | null
   levelMax: number | null
   categoryLabel: string
@@ -518,6 +575,7 @@ const sessions = ref<BrisageSession[]>([])
 const draftItems = ref<BrisageSessionItem[]>([])
 const expandedDraftItemIds = ref<string[]>([])
 const expandedSessionIds = ref<string[]>([])
+const brisageMode = ref<'history' | 'builder'>('history')
 const showDraftResourceChecklist = ref(true)
 const draftResourceChecklist = ref<BrisageSessionResource[]>([])
 const recipeChecklistState = ref({
@@ -531,6 +589,7 @@ const draftSession = ref({
   endingKamas: 0,
   externalDelta: 0,
   categoryTypeId: null as number | null,
+  categoryTypeIds: [] as number[],
   levelMin: null as number | null,
   levelMax: null as number | null,
   categoryLabel: '',
@@ -541,12 +600,30 @@ const search = ref('')
 const searching = ref(false)
 const results = ref<any[]>([])
 const loadingBatchResults = ref(false)
+const categoryPickerOpen = ref(false)
+const categoryPickerEl = ref<HTMLElement | null>(null)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const normalizeLevelValue = (value: unknown) => {
   const num = Number(value)
   if (!Number.isFinite(num) || num <= 0) return null
   return Math.max(1, Math.min(200, Math.round(num)))
+}
+
+const normalizeCategoryTypeIds = (value: unknown, fallback?: unknown) => {
+  const rawValues = Array.isArray(value)
+    ? value
+    : value != null
+      ? [value]
+      : fallback != null
+        ? [fallback]
+        : []
+
+  return Array.from(new Set(
+    rawValues
+      .map(typeId => Number(typeId))
+      .filter(typeId => Number.isFinite(typeId) && typeId > 0),
+  ))
 }
 
 const normalizeSessionItem = (record: any): BrisageSessionItem | null => {
@@ -606,6 +683,7 @@ const normalizeSessionRecord = (record: any): BrisageSession | null => {
     endingKamas: Number(record.endingKamas ?? 0) || 0,
     externalDelta: Number(record.externalDelta ?? 0) || 0,
     categoryTypeId: Number(record.categoryTypeId ?? 0) || null,
+    categoryTypeIds: normalizeCategoryTypeIds(record.categoryTypeIds, record.categoryTypeId),
     levelMin: normalizeLevelValue(record.levelMin),
     levelMax: normalizeLevelValue(record.levelMax),
     categoryLabel: String(record.categoryLabel ?? ''),
@@ -651,6 +729,7 @@ const migrateLegacyEntries = (legacyEntries: LegacyBrisageEntry[]) =>
     endingKamas: 0,
     externalDelta: 0,
     categoryTypeId: Number(entry.item?.type?.id ?? 0) || null,
+    categoryTypeIds: normalizeCategoryTypeIds(entry.item?.type?.id),
     levelMin: normalizeLevelValue(entry.item?.level),
     levelMax: normalizeLevelValue(entry.item?.level),
     categoryLabel: String(entry.item?.type?.name?.fr ?? ''),
@@ -740,18 +819,33 @@ const clearSearch = () => {
   results.value = []
 }
 
-const selectedCategoryOption = computed(() =>
-  BRISAGE_CATEGORY_OPTIONS.find(option => option.typeId === draftSession.value.categoryTypeId) ?? null,
+const selectedCategoryOptions = computed(() =>
+  BRISAGE_CATEGORY_OPTIONS.filter(option => draftSession.value.categoryTypeIds.includes(option.typeId)),
 )
 
-const categoryOptions = computed(() => ([
-  { key: 'none', label: t('v2.brisage.placeholders.selectCategory'), value: null },
-  ...BRISAGE_CATEGORY_OPTIONS.map(option => ({
-    key: String(option.typeId),
-    label: option.label,
-    value: option.typeId,
-  })),
-]))
+const categoryPickerLabel = computed(() => {
+  if (!selectedCategoryOptions.value.length) return t('v2.brisage.placeholders.selectCategory')
+  if (selectedCategoryOptions.value.length <= 2) {
+    return selectedCategoryOptions.value.map(option => option.label).join(', ')
+  }
+  return `${selectedCategoryOptions.value.length} ${t('v2.brisage.fields.focusCategory')}`
+})
+
+const selectedCategoryLabel = computed(() =>
+  selectedCategoryOptions.value.map(option => option.label).join(', '),
+)
+
+const syncDraftCategoryMeta = () => {
+  draftSession.value.categoryTypeId = draftSession.value.categoryTypeIds[0] ?? null
+  draftSession.value.categoryLabel = selectedCategoryLabel.value
+}
+
+const toggleCategoryType = (typeId: number) => {
+  draftSession.value.categoryTypeIds = draftSession.value.categoryTypeIds.includes(typeId)
+    ? draftSession.value.categoryTypeIds.filter(currentId => currentId !== typeId)
+    : [...draftSession.value.categoryTypeIds, typeId]
+  syncDraftCategoryMeta()
+}
 
 const draftItemIdSet = computed(() =>
   new Set(draftItems.value.map(item => String(item.itemId))),
@@ -781,6 +875,9 @@ const addItemToDraft = (item: any) => {
   if (draftSession.value.categoryTypeId == null) {
     draftSession.value.categoryTypeId = Number(item?.type?.id ?? 0) || null
   }
+  if (!draftSession.value.categoryTypeIds.length && draftSession.value.categoryTypeId != null) {
+    draftSession.value.categoryTypeIds = [draftSession.value.categoryTypeId]
+  }
   if (draftSession.value.levelMin == null && item?.level) {
     draftSession.value.levelMin = normalizeLevelValue(item.level)
   }
@@ -790,17 +887,17 @@ const addItemToDraft = (item: any) => {
 }
 
 const loadCategoryBatch = async () => {
-  const typeId = draftSession.value.categoryTypeId
+  const typeIds = draftSession.value.categoryTypeIds
   const levelMin = normalizeLevelValue(draftSession.value.levelMin)
   const levelMax = normalizeLevelValue(draftSession.value.levelMax)
 
-  if (!typeId || !levelMin || !levelMax) {
+  if (!typeIds.length || !levelMin || !levelMax) {
     results.value = []
     return
   }
 
   loadingBatchResults.value = true
-  draftSession.value.categoryLabel = selectedCategoryOption.value?.label ?? draftSession.value.categoryLabel
+  syncDraftCategoryMeta()
 
   try {
     const collected: any[] = []
@@ -812,7 +909,7 @@ const loadCategoryBatch = async () => {
       const res = await $fetch<any>('/api/dofusdb/items', {
         query: {
           'typeId[$ne]': 203,
-          'typeId[$in][]': typeId,
+          'typeId[$in][]': typeIds,
           'level[$gte]': levelMin,
           'level[$lte]': levelMax,
           '$sort': '-id',
@@ -1062,12 +1159,21 @@ const resetDraft = () => {
     endingKamas: 0,
     externalDelta: 0,
     categoryTypeId: null,
+    categoryTypeIds: [],
     levelMin: null,
     levelMax: null,
     categoryLabel: '',
     notes: '',
   }
   clearSearch()
+}
+
+const startSessionBuilder = () => {
+  brisageMode.value = 'builder'
+}
+
+const showSessionHistory = () => {
+  brisageMode.value = 'history'
 }
 
 const saveSession = () => {
@@ -1079,10 +1185,11 @@ const saveSession = () => {
     startingKamas: Number(draftSession.value.startingKamas) || 0,
     endingKamas: Number(draftSession.value.endingKamas) || 0,
     externalDelta: Number(draftSession.value.externalDelta) || 0,
-    categoryTypeId: draftSession.value.categoryTypeId,
+    categoryTypeId: draftSession.value.categoryTypeIds[0] ?? null,
+    categoryTypeIds: [...draftSession.value.categoryTypeIds],
     levelMin: normalizeLevelValue(draftSession.value.levelMin),
     levelMax: normalizeLevelValue(draftSession.value.levelMax),
-    categoryLabel: (selectedCategoryOption.value?.label ?? draftSession.value.categoryLabel).trim(),
+    categoryLabel: (selectedCategoryLabel.value || draftSession.value.categoryLabel).trim(),
     notes: draftSession.value.notes.trim(),
     items: draftItems.value.map(item => ({
       id: item.id,
@@ -1103,6 +1210,7 @@ const saveSession = () => {
 
   saveSessions()
   resetDraft()
+  showSessionHistory()
 }
 
 const deleteSession = (id: string) => {
@@ -1153,6 +1261,9 @@ const onDocMousedown = (e: MouseEvent) => {
   if (searchAreaEl.value && !searchAreaEl.value.contains(t)) {
     results.value = []
   }
+  if (categoryPickerEl.value && !categoryPickerEl.value.contains(t)) {
+    categoryPickerOpen.value = false
+  }
 }
 
 onMounted(() => {
@@ -1163,9 +1274,6 @@ onMounted(() => {
 
 onUnmounted(() => document.removeEventListener('mousedown', onDocMousedown))
 watch([selectedServer, selectedCharacter], loadData)
-watch(selectedCategoryOption, (option) => {
-  draftSession.value.categoryLabel = option?.label ?? ''
-})
 watch(draftRecipeSignature, async () => {
   if (!draftItems.value.length) {
     draftResourceChecklist.value = []
@@ -1223,11 +1331,101 @@ watch(draftRecipeSignature, async () => {
 .br-stat__val { font-size: 1.25rem; font-weight: 800; color: var(--v2-text); line-height: 1.2; }
 .br-stat__lbl { font-size: .6875rem; color: var(--v2-text-dim); margin-top: 1px; }
 
+.br-flow {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.br-flow__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.br-flow-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 38px;
+  padding: .5rem .875rem;
+  border-radius: 10px;
+  border: 1px solid var(--v2-active);
+  background: rgba(0,0,0,.16);
+  color: var(--v2-text-secondary);
+  font-size: .875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .16s ease;
+}
+
+.br-flow-tab:hover,
+.br-flow-tab--active {
+  border-color: var(--v2-border-strong);
+  background: var(--v2-hover);
+  color: var(--v2-text);
+}
+
+.br-flow-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.br-flow-step {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+  padding: .625rem .75rem;
+  border-radius: 10px;
+  border: 1px solid var(--v2-active);
+  background: rgba(0,0,0,.14);
+  color: var(--v2-text-secondary);
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.br-flow-step span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--v2-border-med);
+  color: var(--v2-text);
+  font-size: .75rem;
+}
+
+.br-flow-step--done {
+  border-color: rgba(52,211,153,.22);
+  background: rgba(52,211,153,.06);
+  color: var(--v2-text);
+}
+
+.br-flow-step--done span {
+  background: rgba(52,211,153,.18);
+  color: #86efac;
+}
+
+@media (max-width: 720px) {
+  .br-flow-steps { grid-template-columns: 1fr; }
+  .br-flow-tab { flex: 1; justify-content: center; }
+}
+
 .br-layout {
   display: grid;
   grid-template-columns: minmax(340px, 440px) 1fr;
   gap: 1rem;
   align-items: start;
+}
+
+.br-layout--builder,
+.br-layout--history {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 @media (max-width: 980px) {
@@ -1331,6 +1529,91 @@ watch(draftRecipeSignature, async () => {
 
 .br-field-input:focus { border-color: var(--v2-border-focus); }
 .br-field-input::placeholder { color: var(--v2-text-dim); }
+
+.br-multi {
+  position: relative;
+}
+
+.br-multi__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  border: 1px solid var(--v2-border-med);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--v2-hover-subtle) 88%, black 12%);
+  color: var(--v2-text);
+  padding: .5rem .75rem;
+  font-size: .875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease;
+}
+
+.br-multi__trigger:hover {
+  border-color: var(--v2-border-focus);
+  background: color-mix(in srgb, var(--v2-hover-subtle) 78%, black 22%);
+}
+
+.br-multi__trigger span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.br-multi__trigger--placeholder span {
+  color: var(--v2-text-dim);
+}
+
+.br-multi__chevron--open {
+  transform: rotate(180deg);
+}
+
+.br-multi__menu {
+  position: absolute;
+  top: calc(100% + .4rem);
+  left: 0;
+  right: 0;
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: .45rem;
+  border: 1px solid var(--v2-border-med);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--v2-hover-subtle) 96%, black 4%);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 16px 32px rgba(0,0,0,.42);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.br-multi__option {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  padding: .55rem .65rem;
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--v2-hover) 84%, black 16%);
+  color: var(--v2-text);
+  font-size: .8125rem;
+  cursor: pointer;
+}
+
+.br-multi__option:hover {
+  border-color: var(--v2-border-focus);
+  background: color-mix(in srgb, var(--v2-active-strong) 78%, black 22%);
+}
+
+.br-multi__check {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--v2-accent);
+}
 
 .br-session-summary {
   display: grid;
@@ -1678,6 +1961,24 @@ watch(draftRecipeSignature, async () => {
 .br-submit-btn:hover:not(:disabled) { background: var(--v2-border-strong); }
 .br-submit-btn:disabled { opacity: .35; cursor: not-allowed; }
 .br-submit-btn--secondary { width: auto; justify-content: flex-start; }
+
+.br-builder-actions {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr);
+  gap: .625rem;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .br-builder-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .br-builder-actions .br-submit-btn--secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
 
 .br-log-empty {
   padding: 2.5rem 1rem;
