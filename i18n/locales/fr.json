@@ -416,6 +416,8 @@
         "addAnotherRun": "Ajouter un autre run",
         "hide": "Masquer",
         "show": "Afficher",
+        "showAllIngredients": "Tous les ingrédients",
+        "showIngredientsPerItem": "Par objet",
         "loadingResources": "Chargement des ressources...",
         "fetchRecipesForDraft": "Récupérer les recettes du draft",
         "saveSession": "Enregistrer la session",
@@ -445,6 +447,8 @@
       },
       "labels": {
         "runNumber": "Run {index}",
+        "resourceViewMode": "Vue de la checklist des ressources",
+        "craftedQuantity": "x{quantity} craftés",
         "generalSession": "Session générale",
         "runCount": "{count} run | {count} runs"
       },

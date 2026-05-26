@@ -369,12 +369,30 @@
               {{ recipeChecklistState.isLoading ? $t('v2.brisage.actions.loadingResources') : $t('v2.brisage.actions.fetchRecipesForDraft') }}
             </button>
             <div class="br-field-help">{{ $t('v2.brisage.messages.recipeHelp') }}</div>
+            <div v-if="draftResourceChecklist.length" class="br-resource-view-toggle" role="group" :aria-label="$t('v2.brisage.labels.resourceViewMode')">
+              <button
+                type="button"
+                class="br-resource-view-toggle__btn"
+                :class="{ 'br-resource-view-toggle__btn--active': resourceChecklistView === 'all' }"
+                @click="resourceChecklistView = 'all'"
+              >
+                {{ $t('v2.brisage.actions.showAllIngredients') }}
+              </button>
+              <button
+                type="button"
+                class="br-resource-view-toggle__btn"
+                :class="{ 'br-resource-view-toggle__btn--active': resourceChecklistView === 'perItem' }"
+                @click="resourceChecklistView = 'perItem'"
+              >
+                {{ $t('v2.brisage.actions.showIngredientsPerItem') }}
+              </button>
+            </div>
           </div>
 
           <div v-if="showDraftResourceChecklist">
             <div v-if="recipeChecklistState.error" class="br-empty-hint">{{ recipeChecklistState.error }}</div>
 
-            <div v-if="draftResourceChecklist.length" class="br-resource-list">
+            <div v-if="draftResourceChecklist.length && resourceChecklistView === 'all'" class="br-resource-list">
               <label v-for="resource in draftResourceChecklist" :key="resource.id" class="br-resource-row">
                 <input
                   type="checkbox"
@@ -390,6 +408,37 @@
                 </div>
                 <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
               </label>
+            </div>
+
+            <div v-else-if="draftResourceChecklist.length" class="br-resource-groups">
+              <div v-for="group in draftResourceChecklistByItem" :key="group.itemKey" class="br-resource-group">
+                <div class="br-resource-group__head">
+                  <img v-if="group.image" :src="group.image" :alt="group.itemName" class="br-resource-group__img" @error="onImgErr" />
+                  <div v-else class="br-resource-group__img br-resource-row__img--fallback" />
+                  <div class="br-resource-group__meta">
+                    <div class="br-resource-group__name">{{ group.itemName }}</div>
+                    <div class="br-resource-group__sub">{{ $t('v2.brisage.labels.craftedQuantity', { quantity: group.quantity }) }}</div>
+                  </div>
+                </div>
+
+                <div class="br-resource-list br-resource-list--grouped">
+                  <label v-for="resource in group.resources" :key="`${group.itemKey}-${resource.id}`" class="br-resource-row">
+                    <input
+                      type="checkbox"
+                      :checked="resource.isDone"
+                      class="br-resource-row__check"
+                      @change="toggleDraftResourceDone(resource.id)"
+                    >
+                    <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
+                    <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
+                    <div class="br-resource-row__meta">
+                      <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
+                      <div class="br-resource-row__sub">{{ resource.typeName ?? $t('v2.brisage.common.resource') }}</div>
+                    </div>
+                    <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -535,6 +584,15 @@ interface BrisageSessionResource {
   totalQuantity: number
   hasRecipe: boolean
   isDone: boolean
+  sourceItems?: BrisageSessionResourceSource[]
+}
+
+interface BrisageSessionResourceSource {
+  itemKey: string
+  itemName: string
+  itemImage: string | null
+  quantity: number
+  totalQuantity: number
 }
 
 interface BrisageSession {
@@ -577,6 +635,7 @@ const expandedDraftItemIds = ref<string[]>([])
 const expandedSessionIds = ref<string[]>([])
 const brisageMode = ref<'history' | 'builder'>('history')
 const showDraftResourceChecklist = ref(true)
+const resourceChecklistView = ref<'all' | 'perItem'>('all')
 const draftResourceChecklist = ref<BrisageSessionResource[]>([])
 const recipeChecklistState = ref({
   hasFetched: false,
@@ -696,6 +755,16 @@ const normalizeSessionRecord = (record: any): BrisageSession | null => {
 const normalizeSessionResource = (record: any): BrisageSessionResource | null => {
   const id = Number(record?.id ?? 0)
   if (!id) return null
+  const sourceItems = Array.isArray(record?.sourceItems)
+    ? record.sourceItems.map((source: any) => ({
+        itemKey: String(source?.itemKey ?? ''),
+        itemName: String(source?.itemName ?? ''),
+        itemImage: typeof source?.itemImage === 'string' ? source.itemImage : null,
+        quantity: Math.max(0, Number(source?.quantity ?? 0) || 0),
+        totalQuantity: Math.max(0, Number(source?.totalQuantity ?? 0) || 0),
+      })).filter((source: BrisageSessionResourceSource) => source.itemKey && source.itemName && source.totalQuantity > 0)
+    : undefined
+
   return {
     id,
     name: String(record?.name ?? `Ingredient #${id}`),
@@ -704,6 +773,7 @@ const normalizeSessionResource = (record: any): BrisageSessionResource | null =>
     totalQuantity: Math.max(0, Number(record?.totalQuantity ?? 0) || 0),
     hasRecipe: Boolean(record?.hasRecipe),
     isDone: Boolean(record?.isDone),
+    sourceItems,
   }
 }
 
@@ -1027,6 +1097,43 @@ const draftRecipeSignature = computed(() =>
   ),
 )
 
+const draftResourceChecklistByItem = computed(() => {
+  const groups = new Map<string, {
+    itemKey: string
+    itemName: string
+    image: string | null
+    quantity: number
+    resources: BrisageSessionResource[]
+  }>()
+
+  draftResourceChecklist.value.forEach((resource) => {
+    resource.sourceItems?.forEach((source) => {
+      const group = groups.get(source.itemKey) ?? {
+        itemKey: source.itemKey,
+        itemName: source.itemName,
+        image: source.itemImage,
+        quantity: source.quantity,
+        resources: [],
+      }
+
+      group.resources.push({
+        ...resource,
+        totalQuantity: source.totalQuantity,
+      })
+      groups.set(source.itemKey, group)
+    })
+  })
+
+  return Array.from(groups.values()).map(group => ({
+    ...group,
+    resources: group.resources.sort((a, b) => {
+      if (a.isDone !== b.isDone) return Number(a.isDone) - Number(b.isDone)
+      if (b.totalQuantity !== a.totalQuantity) return b.totalQuantity - a.totalQuantity
+      return a.name.localeCompare(b.name)
+    }),
+  }))
+})
+
 const fetchRecipeChecklist = async () => {
   if (!draftItems.value.length) {
     draftResourceChecklist.value = []
@@ -1058,6 +1165,12 @@ const fetchRecipeChecklist = async () => {
       const { item, recipe } = result.value
       if (!recipe?.ingredientIds?.length || !recipe?.quantities?.length) return
       const multiplier = Math.max(1, itemQuantityTotal(item))
+      const source = {
+        itemKey: item.id,
+        itemName: item.item?.name?.fr || item.item?.name?.en || `Item #${item.itemId}`,
+        itemImage: getItemImg(item.item),
+        quantity: multiplier,
+      }
 
       recipe.ingredientIds.forEach((ingredientId: number, index: number) => {
         const ingredient = recipe.ingredients?.find((candidate: any) => candidate.id === ingredientId)
@@ -1067,6 +1180,13 @@ const fetchRecipeChecklist = async () => {
 
         if (existing) {
           existing.totalQuantity += totalQuantity
+          existing.sourceItems = [
+            ...(existing.sourceItems ?? []),
+            {
+              ...source,
+              totalQuantity,
+            },
+          ]
           return
         }
 
@@ -1078,6 +1198,12 @@ const fetchRecipeChecklist = async () => {
           totalQuantity,
           hasRecipe: Boolean(ingredient?.hasRecipe),
           isDone: existingChecks.get(ingredientId) ?? false,
+          sourceItems: [
+            {
+              ...source,
+              totalQuantity,
+            },
+          ],
         })
       })
     })
@@ -1859,6 +1985,84 @@ watch(draftRecipeSignature, async () => {
   gap: .375rem;
   margin-top: .75rem;
   margin-bottom: .875rem;
+}
+
+.br-resource-list--grouped {
+  margin-top: .5rem;
+  margin-bottom: 0;
+}
+
+.br-resource-view-toggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--v2-active);
+  border-radius: 10px;
+  background: rgba(0,0,0,.2);
+}
+
+.br-resource-view-toggle__btn {
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--v2-text-secondary);
+  padding: .375rem .625rem;
+  font-size: .75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.br-resource-view-toggle__btn:hover,
+.br-resource-view-toggle__btn--active {
+  background: var(--v2-active-strong);
+  color: var(--v2-text);
+}
+
+.br-resource-groups {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin-top: .75rem;
+  margin-bottom: .875rem;
+}
+
+.br-resource-group {
+  padding: .75rem;
+  border: 1px solid var(--v2-active);
+  border-radius: 12px;
+  background: rgba(0,0,0,.16);
+}
+
+.br-resource-group__head {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+}
+
+.br-resource-group__img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.br-resource-group__meta {
+  min-width: 0;
+}
+
+.br-resource-group__name {
+  font-size: .875rem;
+  font-weight: 800;
+  color: var(--v2-text);
+}
+
+.br-resource-group__sub {
+  font-size: .6875rem;
+  color: var(--v2-text-secondary);
+  margin-top: 2px;
 }
 
 .br-resource-row {
