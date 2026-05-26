@@ -658,6 +658,7 @@ const draftSession = ref({
 const search = ref('')
 const searching = ref(false)
 const results = ref<any[]>([])
+const loadedBatchResults = ref<any[]>([])
 const loadingBatchResults = ref(false)
 const categoryPickerOpen = ref(false)
 const categoryPickerEl = ref<HTMLElement | null>(null)
@@ -853,7 +854,35 @@ const loadData = () => {
 
 const onSearchInput = () => {
   if (searchTimer) clearTimeout(searchTimer)
+  if (loadedBatchResults.value.length) {
+    filterLoadedBatchResults()
+    return
+  }
   searchTimer = setTimeout(doSearch, 350)
+}
+
+const itemSearchHaystack = (item: any) =>
+  [
+    item?.name?.fr,
+    item?.name?.en,
+    item?.slug?.fr,
+    item?.slug?.en,
+    item?.type?.name?.fr,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+const filterLoadedBatchResults = () => {
+  const query = search.value.trim().toLowerCase()
+  results.value = query
+    ? loadedBatchResults.value.filter(item => itemSearchHaystack(item).includes(query))
+    : [...loadedBatchResults.value]
+}
+
+const clearLoadedBatchResults = () => {
+  loadedBatchResults.value = []
+  results.value = []
 }
 
 const doSearch = async () => {
@@ -886,7 +915,7 @@ const doSearch = async () => {
 
 const clearSearch = () => {
   search.value = ''
-  results.value = []
+  results.value = loadedBatchResults.value.length ? [...loadedBatchResults.value] : []
 }
 
 const selectedCategoryOptions = computed(() =>
@@ -962,6 +991,7 @@ const loadCategoryBatch = async () => {
   const levelMax = normalizeLevelValue(draftSession.value.levelMax)
 
   if (!typeIds.length || !levelMin || !levelMax) {
+    loadedBatchResults.value = []
     results.value = []
     return
   }
@@ -1007,13 +1037,15 @@ const loadCategoryBatch = async () => {
       deduped.set(item?.id ?? crypto.randomUUID(), item)
     })
 
-    results.value = Array.from(deduped.values()).sort((a, b) => {
+    loadedBatchResults.value = Array.from(deduped.values()).sort((a, b) => {
       const levelDiff = (Number(a?.level) || 0) - (Number(b?.level) || 0)
       if (levelDiff) return levelDiff
       return String(a?.name?.fr ?? a?.id ?? '').localeCompare(String(b?.name?.fr ?? b?.id ?? ''))
     })
+    filterLoadedBatchResults()
   }
   catch {
+    loadedBatchResults.value = []
     results.value = []
   }
   finally {
@@ -1404,6 +1436,14 @@ onMounted(() => {
 
 onUnmounted(() => document.removeEventListener('mousedown', onDocMousedown))
 watch([selectedServer, selectedCharacter], loadData)
+watch(
+  () => [
+    draftSession.value.categoryTypeIds.join(','),
+    draftSession.value.levelMin,
+    draftSession.value.levelMax,
+  ],
+  clearLoadedBatchResults,
+)
 watch(draftRecipeSignature, async () => {
   if (!draftItems.value.length) {
     draftResourceChecklist.value = []
