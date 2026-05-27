@@ -227,7 +227,6 @@
                 v-for="item in results"
                 :key="item.id"
                 class="br-result"
-                :class="{ 'br-result--disabled': draftItemIdSet.has(String(item.id)) }"
                 @click="addItemToDraft(item)"
               >
                 <img :src="getItemImg(item)" :alt="item.name?.fr ?? ''" class="br-result__img" @error="onImgErr" />
@@ -235,7 +234,7 @@
                   <div class="br-result__name">{{ item.name?.fr ?? item.id }}</div>
                   <div class="br-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
                 </div>
-                <span class="br-result__cta">{{ draftItemIdSet.has(String(item.id)) ? $t('v2.brisage.actions.added') : $t('v2.brisage.actions.add') }}</span>
+                <span class="br-result__cta">{{ $t('v2.brisage.actions.add') }}</span>
               </button>
             </div>
             <div v-else-if="search && !searching" class="br-empty-hint">{{ $t('v2.brisage.messages.noItemsFound', { search }) }}</div>
@@ -875,9 +874,10 @@ const itemSearchHaystack = (item: any) =>
 
 const filterLoadedBatchResults = () => {
   const query = search.value.trim().toLowerCase()
-  results.value = query
+  const filteredResults = query
     ? loadedBatchResults.value.filter(item => itemSearchHaystack(item).includes(query))
     : [...loadedBatchResults.value]
+  results.value = excludeDraftItems(filteredResults)
 }
 
 const clearLoadedBatchResults = () => {
@@ -915,7 +915,7 @@ const doSearch = async () => {
 
 const clearSearch = () => {
   search.value = ''
-  results.value = loadedBatchResults.value.length ? [...loadedBatchResults.value] : []
+  results.value = loadedBatchResults.value.length ? excludeDraftItems(loadedBatchResults.value) : []
 }
 
 const selectedCategoryOptions = computed(() =>
@@ -950,6 +950,9 @@ const draftItemIdSet = computed(() =>
   new Set(draftItems.value.map(item => String(item.itemId))),
 )
 
+const excludeDraftItems = (items: any[]) =>
+  items.filter(item => !draftItemIdSet.value.has(String(item?.id)))
+
 const addItemToDraft = (item: any) => {
   const existing = draftItems.value.find(draftItem => String(draftItem.itemId) === String(item?.id))
   if (existing) {
@@ -982,6 +985,9 @@ const addItemToDraft = (item: any) => {
   }
   if (draftSession.value.levelMax == null && item?.level) {
     draftSession.value.levelMax = normalizeLevelValue(item.level)
+  }
+  if (loadedBatchResults.value.length) {
+    filterLoadedBatchResults()
   }
 }
 
@@ -1056,6 +1062,9 @@ const loadCategoryBatch = async () => {
 const removeDraftItem = (id: string) => {
   draftItems.value = draftItems.value.filter(item => item.id !== id)
   expandedDraftItemIds.value = expandedDraftItemIds.value.filter(currentId => currentId !== id)
+  if (loadedBatchResults.value.length) {
+    filterLoadedBatchResults()
+  }
 }
 
 const isDraftItemExpanded = (id: string) => expandedDraftItemIds.value.includes(id)
