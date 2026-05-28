@@ -390,6 +390,7 @@
         "sessionNotes": "Notes de session",
         "startingKamas": "Kamas de départ",
         "endingKamas": "Kamas en HDV",
+        "collectedKamas": "Déjà récupéré",
         "qtyCrafted": "Qté craftée",
         "kamasBeforeBuying": "Kamas avant achat",
         "kamasAfterBuying": "Kamas après achat",
@@ -444,6 +445,8 @@
         "runPL": "P/L du run",
         "avgPerCopy": "Moyenne par copie",
         "totalItems": "Total objets",
+        "expectedEndKamas": "Kamas fin prévus",
+        "bankrollDelta": "Delta bankroll",
         "margin": "Marge",
         "cost": "Coût"
       },

@@ -162,6 +162,10 @@
                 <label class="br-field-lbl">{{ $t('v2.brisage.fields.endingKamas') }}</label>
                 <input v-model.number="draftSession.endingKamas" type="number" step="1000" class="br-field-input" />
               </div>
+              <div class="br-form__field">
+                <label class="br-field-lbl">{{ $t('v2.brisage.fields.collectedKamas') }}</label>
+                <input v-model.number="draftSession.externalDelta" type="number" step="1000" class="br-field-input" />
+              </div>
             </div>
 
             <div class="br-session-summary">
@@ -181,6 +185,16 @@
                 <div class="br-session-summary__label">{{ $t('v2.brisage.summary.sessionPL') }}</div>
                 <div class="br-session-summary__value" :class="draftTotals.profit >= 0 ? 'br-profit--up' : 'br-profit--down'">
                   {{ draftTotals.profit >= 0 ? '+' : '' }}{{ formatKamas(draftTotals.profit) }}
+                </div>
+              </div>
+              <div class="br-session-summary__item br-session-summary__item--wide">
+                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.expectedEndKamas') }}</div>
+                <div class="br-session-summary__value">{{ formatKamas(draftTotals.expectedEndKamas) }}</div>
+              </div>
+              <div class="br-session-summary__item br-session-summary__item--wide">
+                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.bankrollDelta') }}</div>
+                <div class="br-session-summary__value" :class="draftTotals.bankrollDelta >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                  {{ draftTotals.bankrollDelta >= 0 ? '+' : '' }}{{ formatKamas(draftTotals.bankrollDelta) }}
                 </div>
               </div>
             </div>
@@ -504,6 +518,10 @@
                   <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.realizedValue') }}</div>
                   <div class="br-price-cell__val" style="color:var(--v2-accent)">{{ formatKamas(sessionTotals(session).realized) }}</div>
                 </div>
+                <div class="br-price-cell br-price-cell--hdv">
+                  <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.expectedEndKamas') }}</div>
+                  <div class="br-price-cell__val">{{ formatKamas(sessionTotals(session).expectedEndKamas) }}</div>
+                </div>
               </div>
 
               <div class="br-entry__profits">
@@ -512,6 +530,9 @@
                 </div>
                 <div class="br-profit-pill" :class="sessionMargin(session) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
                   {{ $t('v2.brisage.summary.margin') }}: {{ sessionMargin(session) >= 0 ? '+' : '' }}{{ sessionMargin(session) }}%
+                </div>
+                <div class="br-profit-pill" :class="sessionTotals(session).bankrollDelta >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
+                  {{ $t('v2.brisage.summary.bankrollDelta') }}: {{ sessionTotals(session).bankrollDelta >= 0 ? '+' : '' }}{{ formatKamas(sessionTotals(session).bankrollDelta) }}
                 </div>
                 <button class="br-collapse-toggle br-collapse-toggle--inline" @click="toggleSession(session.id)">
                   {{ isSessionExpanded(session.id) ? $t('v2.brisage.actions.hideDetails') : $t('v2.brisage.actions.showDetails') }}
@@ -746,7 +767,7 @@ const normalizeSessionRecord = (record: any): BrisageSession | null => {
     date: String(record.date ?? todayISO()),
     startingKamas: Number(record.startingKamas ?? 0) || 0,
     endingKamas: Number(record.endingKamas ?? 0) || 0,
-    externalDelta: Number(record.externalDelta ?? 0) || 0,
+    externalDelta: Math.max(0, Number(record.externalDelta ?? 0) || 0),
     categoryTypeId: Number(record.categoryTypeId ?? 0) || null,
     categoryTypeIds: normalizeCategoryTypeIds(record.categoryTypeIds, record.categoryTypeId),
     levelMin: normalizeLevelValue(record.levelMin),
@@ -1297,13 +1318,33 @@ const itemProfit = (item: BrisageSessionItem) =>
 const sessionTotals = (session: BrisageSession) => {
   const craft = session.items.reduce((sum, item) => sum + itemCraftTotal(item), 0)
   const realized = session.items.reduce((sum, item) => sum + itemRealizedTotal(item), 0)
-  return { craft, realized, profit: realized - craft }
+  const startingKamas = Number(session.startingKamas) || 0
+  const hdvKamas = Number(session.endingKamas) || 0
+  const collectedKamas = Number(session.externalDelta) || 0
+  const expectedEndKamas = startingKamas - craft + hdvKamas + collectedKamas
+  return {
+    craft,
+    realized,
+    profit: realized - craft,
+    expectedEndKamas,
+    bankrollDelta: expectedEndKamas - startingKamas,
+  }
 }
 
 const draftTotals = computed(() => {
   const craft = draftItems.value.reduce((sum, item) => sum + itemCraftTotal(item), 0)
   const realized = draftItems.value.reduce((sum, item) => sum + itemRealizedTotal(item), 0)
-  return { craft, realized, profit: realized - craft }
+  const startingKamas = Number(draftSession.value.startingKamas) || 0
+  const hdvKamas = Number(draftSession.value.endingKamas) || 0
+  const collectedKamas = Number(draftSession.value.externalDelta) || 0
+  const expectedEndKamas = startingKamas - craft + hdvKamas + collectedKamas
+  return {
+    craft,
+    realized,
+    profit: realized - craft,
+    expectedEndKamas,
+    bankrollDelta: expectedEndKamas - startingKamas,
+  }
 })
 
 const totalItemsLogged = computed(() =>
@@ -1363,7 +1404,7 @@ const openSessionEditor = (id: string) => {
     date: session.date || todayISO(),
     startingKamas: Math.max(0, Number(session.startingKamas) || 0),
     endingKamas: Math.max(0, Number(session.endingKamas) || 0),
-    externalDelta: Number(session.externalDelta) || 0,
+    externalDelta: Math.max(0, Number(session.externalDelta) || 0),
     categoryTypeId: session.categoryTypeId,
     categoryTypeIds: [...session.categoryTypeIds],
     levelMin: normalizeLevelValue(session.levelMin),
@@ -1394,7 +1435,7 @@ const saveSession = () => {
     date: draftSession.value.date || todayISO(),
     startingKamas: Number(draftSession.value.startingKamas) || 0,
     endingKamas: Number(draftSession.value.endingKamas) || 0,
-    externalDelta: Number(draftSession.value.externalDelta) || 0,
+    externalDelta: Math.max(0, Number(draftSession.value.externalDelta) || 0),
     categoryTypeId: draftSession.value.categoryTypeIds[0] ?? null,
     categoryTypeIds: [...draftSession.value.categoryTypeIds],
     levelMin: normalizeLevelValue(draftSession.value.levelMin),
@@ -1849,6 +1890,10 @@ watch(draftRecipeSignature, async () => {
   border-radius: 10px;
   background: rgba(0,0,0,.22);
   border: 1px solid var(--v2-border-med);
+}
+
+.br-session-summary__item--wide {
+  grid-column: span 2;
 }
 
 .br-session-summary__label {
@@ -2359,7 +2404,7 @@ watch(draftRecipeSignature, async () => {
 
 .br-entry__prices {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .5rem;
 }
 
