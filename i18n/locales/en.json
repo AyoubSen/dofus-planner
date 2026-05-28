@@ -408,6 +408,7 @@
         "loadMatchingItems": "Load matching items",
         "add": "Add",
         "added": "Added",
+        "edit": "Edit",
         "hideDetails": "Hide details",
         "showDetails": "Show details",
         "editDetails": "Edit details",
@@ -421,6 +422,7 @@
         "loadingResources": "Loading resources...",
         "fetchRecipesForDraft": "Fetch recipes for current draft",
         "saveSession": "Save session",
+        "updateSession": "Update session",
         "deleteSession": "Delete session"
       },
       "messages": {

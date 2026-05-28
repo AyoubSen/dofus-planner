@@ -408,6 +408,7 @@
         "loadMatchingItems": "Charger les objets correspondants",
         "add": "Ajouter",
         "added": "Ajouté",
+        "edit": "Modifier",
         "hideDetails": "Masquer les détails",
         "showDetails": "Afficher les détails",
         "editDetails": "Modifier les détails",
@@ -421,6 +422,7 @@
         "loadingResources": "Chargement des ressources...",
         "fetchRecipesForDraft": "Récupérer les recettes du draft",
         "saveSession": "Enregistrer la session",
+        "updateSession": "Mettre à jour la session",
         "deleteSession": "Supprimer la session"
       },
       "messages": {

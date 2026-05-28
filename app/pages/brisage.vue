@@ -449,7 +449,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            {{ $t('v2.brisage.actions.saveSession') }}
+            {{ editingSessionId ? $t('v2.brisage.actions.updateSession') : $t('v2.brisage.actions.saveSession') }}
             </button>
           </div>
         </div>
@@ -479,11 +479,16 @@
                   <div class="br-entry__sub">{{ describeSessionScope(session) }}</div>
                   <div class="br-entry__date">{{ formatDisplayDate(session.date) }}</div>
                 </div>
-                <button class="br-entry__del" @click="deleteSession(session.id)" :title="$t('v2.brisage.actions.deleteSession')">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                <div class="br-entry__actions">
+                  <button class="br-entry__action" @click="openSessionEditor(session.id)">
+                    {{ $t('v2.brisage.actions.edit') }}
+                  </button>
+                  <button class="br-entry__del" @click="deleteSession(session.id)" :title="$t('v2.brisage.actions.deleteSession')">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div class="br-entry__prices">
@@ -633,6 +638,7 @@ const draftItems = ref<BrisageSessionItem[]>([])
 const expandedDraftItemIds = ref<string[]>([])
 const expandedSessionIds = ref<string[]>([])
 const brisageMode = ref<'history' | 'builder'>('history')
+const editingSessionId = ref<string | null>(null)
 const showDraftResourceChecklist = ref(true)
 const resourceChecklistView = ref<'all' | 'perItem'>('all')
 const draftResourceChecklist = ref<BrisageSessionResource[]>([])
@@ -1320,6 +1326,7 @@ const sessionMargin = (session: BrisageSession) => {
 }
 
 const resetDraft = () => {
+  editingSessionId.value = null
   draftItems.value = []
   expandedDraftItemIds.value = []
   draftResourceChecklist.value = []
@@ -1347,11 +1354,43 @@ const showSessionHistory = () => {
   brisageMode.value = 'history'
 }
 
+const openSessionEditor = (id: string) => {
+  const session = sessions.value.find(entry => entry.id === id)
+  if (!session) return
+
+  editingSessionId.value = session.id
+  draftSession.value = {
+    date: session.date || todayISO(),
+    startingKamas: Math.max(0, Number(session.startingKamas) || 0),
+    endingKamas: Math.max(0, Number(session.endingKamas) || 0),
+    externalDelta: Number(session.externalDelta) || 0,
+    categoryTypeId: session.categoryTypeId,
+    categoryTypeIds: [...session.categoryTypeIds],
+    levelMin: normalizeLevelValue(session.levelMin),
+    levelMax: normalizeLevelValue(session.levelMax),
+    categoryLabel: session.categoryLabel || '',
+    notes: session.notes || '',
+  }
+  draftItems.value = session.items.map(item => ({
+    ...item,
+    runs: item.runs.map(run => ({ ...run })),
+  }))
+  draftResourceChecklist.value = session.resourceChecklist.map(resource => ({
+    ...resource,
+    sourceItems: resource.sourceItems?.map(source => ({ ...source })),
+  }))
+  expandedDraftItemIds.value = []
+  recipeChecklistState.value = { hasFetched: Boolean(draftResourceChecklist.value.length), isLoading: false, error: '' }
+  clearSearch()
+  startSessionBuilder()
+}
+
 const saveSession = () => {
   if (!draftItems.value.length) return
 
-  sessions.value.unshift({
-    id: crypto.randomUUID(),
+  const sessionId = editingSessionId.value ?? crypto.randomUUID()
+  const nextSession: BrisageSession = {
+    id: sessionId,
     date: draftSession.value.date || todayISO(),
     startingKamas: Number(draftSession.value.startingKamas) || 0,
     endingKamas: Number(draftSession.value.endingKamas) || 0,
@@ -1377,7 +1416,11 @@ const saveSession = () => {
       })),
     })),
     resourceChecklist: draftResourceChecklist.value.map(resource => ({ ...resource })),
-  })
+  }
+
+  const existingIndex = sessions.value.findIndex(session => session.id === sessionId)
+  if (existingIndex >= 0) sessions.value[existingIndex] = nextSession
+  else sessions.value.unshift(nextSession)
 
   saveSessions()
   resetDraft()
@@ -1386,6 +1429,7 @@ const saveSession = () => {
 
 const deleteSession = (id: string) => {
   sessions.value = sessions.value.filter(session => session.id !== id)
+  if (editingSessionId.value === id) resetDraft()
   saveSessions()
 }
 
@@ -2280,6 +2324,23 @@ watch(draftRecipeSignature, async () => {
 .br-entry__name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
 .br-entry__sub { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 1px; }
 .br-entry__date { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 3px; }
+.br-entry__actions { display: flex; align-items: center; gap: .375rem; flex-shrink: 0; }
+.br-entry__action {
+  border: 1px solid var(--v2-border-med);
+  background: var(--v2-bg);
+  color: var(--v2-text-secondary);
+  border-radius: 6px;
+  padding: .25rem .5rem;
+  font-size: .6875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+}
+.br-entry__action:hover {
+  color: var(--v2-text);
+  border-color: var(--v2-border-strong);
+  background: var(--v2-hover);
+}
 
 .br-entry__del {
   flex-shrink: 0;
