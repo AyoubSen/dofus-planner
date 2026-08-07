@@ -652,13 +652,43 @@
         "kamasAfterBuying": "Kamas after buying",
         "estimatedRuneValue": "Estimated rune value",
         "runNote": "Run note",
-        "itemNote": "Item note"
+        "itemNote": "Item note",
+        "levelRange": "Level range",
+        "theoreticalRuneValue": "Theoretical rune value",
+        "actualSoldRuneValue": "Actual sold rune value",
+        "unsoldRuneValue": "Unsold rune value",
+        "saleNotes": "Sale notes",
+        "rune": "Rune",
+        "quantityGot": "Quantity got",
+        "soldQuantity": "Sold qty",
+        "soldValue": "Sold value",
+        "candidateCategory": "Candidate category",
+        "bankroll": "Bankroll",
+        "safetyMarkup": "Safety markup %",
+        "pessimisticMultiplier": "Pessimistic multiplier",
+        "batchBankrollPercent": "Batch bankroll %",
+        "maxBatchCap": "Max batch cap",
+        "status": "Status",
+        "manualRuneValue": "Manual estimated rune value",
+        "sampleSize": "Sample size",
+        "priceName": "Name",
+        "priceItemId": "Item / resource / rune id",
+        "priceKind": "Kind",
+        "price": "Price",
+        "quantityBasis": "Quantity basis",
+        "priceNote": "Note"
       },
       "placeholders": {
         "selectCategory": "Select category",
         "sessionNotes": "What are you targeting in this batch?",
         "runNote": "Coef, market pressure, retry decision...",
-        "itemNote": "Overall conclusion for this item"
+        "itemNote": "Overall conclusion for this item",
+        "saleNotes": "Sold price, date, undercut notes...",
+        "typeRuneName": "Or type rune name",
+        "selectRune": "Select rune",
+        "selectStatus": "Select status",
+        "selectKind": "Select kind",
+        "priceName": "Rune or resource name"
       },
       "actions": {
         "loadingBatch": "Loading batch...",
@@ -680,7 +710,13 @@
         "fetchRecipesForDraft": "Fetch recipes for current draft",
         "saveSession": "Save session",
         "updateSession": "Update session",
-        "deleteSession": "Delete session"
+        "deleteSession": "Delete session",
+        "addRune": "Add rune",
+        "removeEntry": "Remove entry",
+        "savePrice": "Save price",
+        "loadCandidates": "Load candidate items",
+        "trackEv": "Track EV",
+        "applyHistoryStatus": "Apply history status"
       },
       "messages": {
         "batchHelp": "Uses the selected category and level range to fetch matching items from DofusDB.",
@@ -688,7 +724,12 @@
         "emptyDraft": "Search for an item, add it to the draft session, then enter the total rune value you realized after breaking it in game.",
         "recipeHelp": "Aggregates all recipe ingredients from the current draft items using their total crafted quantity.",
         "noSessions": "No brisage sessions recorded yet.",
-        "noSessionsHint": "Create a draft session on the left and save it once your batch is logged."
+        "noSessionsHint": "Create a draft session on the left and save it once your batch is logged.",
+        "noRuneOutputs": "No rune outputs recorded for this run.",
+        "emptyOpportunities": "Add candidate items to calculate craft cost, EV, risk, and bankroll-aware batch sizing.",
+        "emptyPrices": "No manual market prices yet.",
+        "candidateHelp": "Uses the same category and level filters as the history builder, then add candidates below.",
+        "evNotGuaranteed": "EV, not guaranteed profit"
       },
       "summary": {
         "draftItems": "Draft items",
@@ -711,10 +752,86 @@
         "resourceViewMode": "Resource checklist view",
         "craftedQuantity": "x{quantity} crafted",
         "generalSession": "General session",
-        "runCount": "{count} run | {count} runs"
+        "runCount": "{count} run | {count} runs",
+        "soldConfirmed": "Sold runes confirmed",
+        "runeOutputs": "Rune outputs",
+        "runeOutputsHelp": "Enter how many of each rune you got. Paper value uses the latest rune price from Market Prices.",
+        "outputPaperValue": "Output paper value",
+        "outputSoldValue": "Output sold value",
+        "paperProfit": "Paper profit",
+        "realizedProfit": "Realized profit",
+        "unitPrice": "Unit",
+        "latestRunePrices": "Latest rune prices",
+        "latestResourcePrices": "Latest resource / item prices",
+        "recentPriceEntries": "Recent price entries",
+        "ev": "EV",
+        "batch": "Batch",
+        "missingPrices": "Missing prices",
+        "craftCost": "Craft cost",
+        "conservativeCost": "Conservative cost",
+        "estimatedRunes": "Estimated runes",
+        "pessimisticProfit": "Pessimistic profit",
+        "opportunityScope": "{status} · Risk {risk} · x{quantity} validation batch",
+        "soldConfirmedSessions": "Sold confirmed sessions: {count}",
+        "pricePoints": "{count} point | {count} points",
+        "vsPrevious": "vs previous",
+        "perBasis": "/ x{basis}",
+        "runCountShort": "x{count}",
+        "typeRuneManually": "Type rune name manually",
+        "eachFreshness": "{price} each · {freshness}"
       },
       "common": {
         "resource": "Resource"
+      },
+      "tabs": {
+        "history": "Realized history",
+        "opportunities": "Opportunities",
+        "prices": "Market prices"
+      },
+      "nextAction": {
+        "finishTitle": "Finish the current brisage log",
+        "finishDesc": "Save the session before checking more opportunities so paper value and realized rune sales stay tied to one experiment.",
+        "finishCta": "Continue session",
+        "pricesTitle": "Add rune prices before trusting opportunities",
+        "pricesDesc": "Brisage estimates are only useful when rune/resource prices are fresh. Start with the prices you actually check in HDV.",
+        "pricesCta": "Open prices",
+        "startTitle": "Log a small realized brisage session",
+        "startDesc": "Use history first. Opportunities are expected value only; profit becomes real when runes are sold or confirmed.",
+        "startCta": "Start session"
+      },
+      "warnings": {
+        "historical": "This is a historical result, not a future prediction. Rune value is theoretical until sold.",
+        "opportunities": "Future opportunities use manual market prices and risk assumptions. Validate with small batches first.",
+        "prices": "Manual price book. Add rune prices morning and evening; every save is kept as a timestamped history point. Fresh under 24h, aging 24-72h, stale over 72h.",
+        "runeTheoretical": "Rune value is theoretical until sold."
+      },
+      "freshness": {
+        "fresh": "Fresh",
+        "aging": "Aging",
+        "stale": "Stale"
+      },
+      "kind": {
+        "resource": "Resource",
+        "rune": "Rune",
+        "finishedItem": "Finished item"
+      },
+      "opportunityStatus": {
+        "idea": "Idea",
+        "ideaDesc": "Fresh lead, not tested yet.",
+        "testBatch": "Test batch",
+        "testBatchDesc": "One profitable sold-confirmed run.",
+        "validated": "Validated",
+        "validatedDesc": "Two separate profitable sold-confirmed runs.",
+        "scaled": "Scaled",
+        "scaledDesc": "Validated and being repeated cautiously.",
+        "retired": "Retired",
+        "retiredDesc": "No longer worth testing."
+      },
+      "scope": {
+        "none": "No explicit scope",
+        "range": "Lv {min}-{max}",
+        "minOnly": "Lv {min}+",
+        "maxOnly": "Up to Lv {max}"
       }
     },
     "succes": {

@@ -1,942 +1,1074 @@
 <template>
-  <div>
-    <div v-if="!hasContext" class="v2-no-context">
-      <div class="v2-no-context__icon">
-        <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
-        </svg>
-      </div>
-      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
-      <div class="v2-no-context__desc">{{ $t('v2.brisage.noCharacterDesc') }}</div>
-    </div>
-
-    <template v-else>
-      <section class="br-next">
-        <div>
-          <div class="br-next__eyebrow">Break Items</div>
-          <h2>{{ brisageNextAction.title }}</h2>
-          <p>{{ brisageNextAction.desc }}</p>
+  <div v-if="hasContext" class="flex flex-col gap-5">
+    <!-- ── Next action ──────────────────────────────────────────────────── -->
+    <UiCard variant="raised">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="min-w-0 flex-1">
+          <h2 class="text-sm font-semibold text-ink">{{ brisageNextAction.title }}</h2>
+          <p class="mt-1 text-xs text-muted">{{ brisageNextAction.desc }}</p>
         </div>
-        <button class="br-submit-btn br-submit-btn--secondary br-next__btn" @click="runBrisageNextAction">
+        <UiButton variant="primary" size="sm" @click="runBrisageNextAction">
           {{ brisageNextAction.cta }}
-        </button>
-      </section>
-
-      <div class="br-flow__actions br-main-tabs">
-        <button class="br-flow-tab" :class="{ 'br-flow-tab--active': activeMainTab === 'history' }" @click="activeMainTab = 'history'">
-          Realized Brisage History
-          <span class="br-badge">{{ sessions.length }}</span>
-        </button>
-        <button class="br-flow-tab" :class="{ 'br-flow-tab--active': activeMainTab === 'opportunities' }" @click="activeMainTab = 'opportunities'">
-          Brisage Opportunities
-          <span class="br-badge">{{ brisageOpportunities.length }}</span>
-        </button>
-        <button class="br-flow-tab" :class="{ 'br-flow-tab--active': activeMainTab === 'prices' }" @click="activeMainTab = 'prices'">
-          Market Prices
-          <span class="br-badge">{{ marketPrices.length }}</span>
-        </button>
+        </UiButton>
       </div>
+    </UiCard>
 
-      <div v-if="activeMainTab === 'history'" class="br-warning">
-        This is a historical result, not a future prediction. Rune value is theoretical until sold.
-      </div>
+    <UiSegmented
+      v-model="activeMainTab"
+      :options="mainTabOptions"
+      :aria-label="$t('v2.brisage.sections.sessionHistory')"
+    />
 
-      <div v-if="activeMainTab === 'history'" class="br-stats">
-        <div class="br-stat">
-          <div class="br-stat__icon">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </div>
-          <div class="br-stat__body">
-            <div class="br-stat__val">{{ sessions.length }}</div>
-            <div class="br-stat__lbl">{{ $t('v2.brisage.stats.sessions') }}</div>
-          </div>
-        </div>
+    <!-- ── Realized history ─────────────────────────────────────────────── -->
+    <template v-if="activeMainTab === 'history'">
+      <p class="text-xs text-warning">{{ $t('v2.brisage.warnings.historical') }}</p>
 
-        <div class="br-stat">
-          <div class="br-stat__icon">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          </div>
-          <div class="br-stat__body">
-            <div class="br-stat__val">{{ totalItemsLogged }}</div>
-            <div class="br-stat__lbl">{{ $t('v2.brisage.stats.itemsLogged') }}</div>
-          </div>
-        </div>
+      <UiStatRow min="10rem">
+        <UiStat :label="$t('v2.brisage.stats.sessions')" :value="sessions.length" />
+        <UiStat :label="$t('v2.brisage.stats.itemsLogged')" :value="totalItemsLogged" />
+        <UiStat :label="$t('v2.brisage.stats.totalPL')">
+          <UiMoney :value="totalPL" signed short size="lg" />
+        </UiStat>
+        <UiStat :label="$t('v2.brisage.stats.avgSessionPL')">
+          <UiMoney :value="avgSessionPL" signed short size="lg" />
+        </UiStat>
+      </UiStatRow>
 
-        <div class="br-stat" :class="totalPL >= 0 ? 'br-stat--green' : 'br-stat--red'">
-          <div class="br-stat__icon">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div class="br-stat__body">
-            <div class="br-stat__val" :style="totalPL >= 0 ? 'color:#34d399' : 'color:#f87171'">
-              {{ totalPL >= 0 ? '+' : '' }}{{ formatKamas(totalPL) }}
-            </div>
-            <div class="br-stat__lbl">{{ $t('v2.brisage.stats.totalPL') }}</div>
-          </div>
-        </div>
+      <UiSegmented
+        :model-value="brisageMode"
+        :options="modeOptions"
+        size="sm"
+        :aria-label="$t('v2.brisage.sections.sessionHistory')"
+        @update:model-value="onModeChange"
+      />
 
-        <div class="br-stat">
-          <div class="br-stat__icon">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4" />
-            </svg>
-          </div>
-          <div class="br-stat__body">
-            <div class="br-stat__val" :style="avgSessionPL >= 0 ? 'color:#34d399' : 'color:#f87171'">
-              {{ avgSessionPL >= 0 ? '+' : '' }}{{ formatKamas(avgSessionPL) }}
-            </div>
-            <div class="br-stat__lbl">{{ $t('v2.brisage.stats.avgSessionPL') }}</div>
-          </div>
-        </div>
-      </div>
+      <!-- ── Builder ────────────────────────────────────────────────────── -->
+      <div v-if="brisageMode === 'builder'" class="flex flex-col gap-4">
+        <UiCard :title="$t('v2.brisage.sections.sessionBuilder')">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <UiField :label="$t('v2.brisage.fields.date')">
+              <UiDateInput v-model="draftSession.date" />
+            </UiField>
 
-      <div v-if="activeMainTab === 'history'" class="br-flow">
-        <div class="br-flow__actions">
-          <button class="br-flow-tab" :class="{ 'br-flow-tab--active': brisageMode === 'history' }" @click="showSessionHistory">
-            {{ $t('v2.brisage.sections.sessionHistory') }}
-            <span class="br-badge">{{ sessions.length }}</span>
-          </button>
-          <button class="br-flow-tab" :class="{ 'br-flow-tab--active': brisageMode === 'builder' }" @click="startSessionBuilder">
-            {{ $t('v2.brisage.sections.sessionBuilder') }}
-            <span v-if="draftItems.length" class="br-badge">{{ draftItems.length }}</span>
-          </button>
-        </div>
-
-        <div v-if="brisageMode === 'builder'" class="br-flow-steps">
-          <div class="br-flow-step" :class="{ 'br-flow-step--done': draftSession.categoryTypeIds.length || draftSession.levelMin || draftSession.levelMax }">
-            <span>1</span>
-            {{ $t('v2.brisage.sections.sessionBuilder') }}
-          </div>
-          <div class="br-flow-step" :class="{ 'br-flow-step--done': draftItems.length > 0 }">
-            <span>2</span>
-            {{ $t('v2.brisage.sections.addItems') }}
-          </div>
-          <div class="br-flow-step" :class="{ 'br-flow-step--done': draftResourceChecklist.length > 0 }">
-            <span>3</span>
-            {{ $t('v2.brisage.sections.resourceChecklist') }}
-          </div>
-        </div>
-      </div>
-
-      <div v-if="activeMainTab === 'history'" class="br-layout" :class="`br-layout--${brisageMode}`">
-        <div v-show="brisageMode === 'builder'" class="br-panel">
-          <div class="br-panel-title">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
-            </svg>
-            {{ $t('v2.brisage.sections.sessionBuilder') }}
-          </div>
-
-          <div class="br-form">
-            <div class="br-form__row">
-              <div class="br-form__field">
-                <label class="br-field-lbl">{{ $t('v2.brisage.fields.date') }}</label>
-                <V2DateInput v-model="draftSession.date" />
-              </div>
-              <div class="br-form__field">
-                <label class="br-field-lbl">{{ $t('v2.brisage.fields.focusCategory') }}</label>
-                <div ref="categoryPickerEl" class="br-multi">
-                  <button
-                    type="button"
-                    class="br-multi__trigger"
-                    :class="{ 'br-multi__trigger--placeholder': !selectedCategoryOptions.length }"
-                    @click="categoryPickerOpen = !categoryPickerOpen"
+            <UiField :label="$t('v2.brisage.fields.focusCategory')">
+              <div ref="categoryPickerEl" class="relative">
+                <button
+                  type="button"
+                  class="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-line bg-sunken px-2.5 text-sm transition-colors hover:border-line-strong"
+                  :class="selectedCategoryOptions.length ? 'text-ink' : 'text-subtle'"
+                  @click="categoryPickerOpen = !categoryPickerOpen"
+                >
+                  <span class="truncate">{{ categoryPickerLabel }}</span>
+                  <UiIcon
+                    name="chevronDown"
+                    :class="['shrink-0 transition-transform', categoryPickerOpen && 'rotate-180']"
+                  />
+                </button>
+                <div
+                  v-if="categoryPickerOpen"
+                  class="absolute top-full left-0 z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-line bg-raised p-1 shadow-md"
+                >
+                  <label
+                    v-for="option in BRISAGE_CATEGORY_OPTIONS"
+                    :key="option.typeId"
+                    class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-ink transition-colors hover:bg-sunken"
                   >
-                    <span>{{ categoryPickerLabel }}</span>
-                    <svg class="w-4 h-4" :class="{ 'br-multi__chevron--open': categoryPickerOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  <div v-if="categoryPickerOpen" class="br-multi__menu">
-                    <label v-for="option in BRISAGE_CATEGORY_OPTIONS" :key="option.typeId" class="br-multi__option">
-                      <input
-                        type="checkbox"
-                        class="br-multi__check"
-                        :checked="draftSession.categoryTypeIds.includes(option.typeId)"
-                        @change="toggleCategoryType(option.typeId)"
-                      >
-                      <span>{{ option.label }}</span>
-                    </label>
-                  </div>
+                    <input
+                      type="checkbox"
+                      class="size-4 shrink-0 accent-[var(--c-accent)]"
+                      :checked="draftSession.categoryTypeIds.includes(option.typeId)"
+                      @change="toggleCategoryType(option.typeId)"
+                    >
+                    <span class="truncate">{{ option.label }}</span>
+                  </label>
                 </div>
               </div>
-            </div>
+            </UiField>
 
-            <div class="br-form__row">
-              <div class="br-form__field">
-                <label class="br-field-lbl">{{ $t('v2.brisage.fields.levelMin') }}</label>
-                <input v-model.number="draftSession.levelMin" type="number" min="1" max="200" class="br-field-input" />
+            <!-- Min and max are one decision, so they read as one control. -->
+            <UiField :label="$t('v2.brisage.fields.levelRange')">
+              <div class="flex items-center gap-2">
+                <UiNumberInput
+                  v-model="draftSession.levelMin"
+                  :min="1"
+                  :placeholder="$t('v2.brisage.fields.levelMin')"
+                />
+                <span class="shrink-0 text-sm text-subtle" aria-hidden="true">–</span>
+                <UiNumberInput
+                  v-model="draftSession.levelMax"
+                  :min="1"
+                  :placeholder="$t('v2.brisage.fields.levelMax')"
+                />
               </div>
-              <div class="br-form__field">
-                <label class="br-field-lbl">{{ $t('v2.brisage.fields.levelMax') }}</label>
-                <input v-model.number="draftSession.levelMax" type="number" min="1" max="200" class="br-field-input" />
-              </div>
-            </div>
+            </UiField>
 
-            <div class="br-form__field">
-              <label class="br-field-lbl">{{ $t('v2.brisage.fields.sessionNotes') }}</label>
-              <input v-model="draftSession.notes" type="text" :placeholder="$t('v2.brisage.placeholders.sessionNotes')" class="br-field-input" />
-            </div>
-
-            <div class="br-form__row br-form__row--triple">
-              <div class="br-form__field">
-                <label class="br-field-lbl">{{ $t('v2.brisage.fields.startingKamas') }}</label>
-                <input v-model.number="draftSession.startingKamas" type="number" step="1000" class="br-field-input" />
-              </div>
-              <div class="br-form__field">
-                <label class="br-field-lbl">{{ $t('v2.brisage.fields.endingKamas') }}</label>
-                <input v-model.number="draftSession.endingKamas" type="number" step="1000" class="br-field-input" />
-              </div>
-              <div class="br-form__field">
-                <label class="br-field-lbl">{{ $t('v2.brisage.fields.collectedKamas') }}</label>
-                <input v-model.number="draftSession.externalDelta" type="number" step="1000" class="br-field-input" />
-              </div>
-            </div>
-
-            <div class="br-session-summary">
-              <div class="br-session-summary__item">
-                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.draftItems') }}</div>
-                <div class="br-session-summary__value">{{ draftItems.length }}</div>
-              </div>
-              <div class="br-session-summary__item">
-                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.craftTotal') }}</div>
-                <div class="br-session-summary__value">{{ formatKamas(draftTotals.craft) }}</div>
-              </div>
-              <div class="br-session-summary__item">
-                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.realizedValue') }}</div>
-                <div class="br-session-summary__value">{{ formatKamas(draftTotals.realized) }}</div>
-              </div>
-              <div class="br-session-summary__item">
-                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.sessionPL') }}</div>
-                <div class="br-session-summary__value" :class="draftTotals.profit >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                  {{ draftTotals.profit >= 0 ? '+' : '' }}{{ formatKamas(draftTotals.profit) }}
-                </div>
-              </div>
-              <div class="br-session-summary__item br-session-summary__item--wide">
-                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.expectedEndKamas') }}</div>
-                <div class="br-session-summary__value">{{ formatKamas(draftTotals.expectedEndKamas) }}</div>
-              </div>
-              <div class="br-session-summary__item br-session-summary__item--wide">
-                <div class="br-session-summary__label">{{ $t('v2.brisage.summary.bankrollDelta') }}</div>
-                <div class="br-session-summary__value" :class="draftTotals.bankrollDelta >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                  {{ draftTotals.bankrollDelta >= 0 ? '+' : '' }}{{ formatKamas(draftTotals.bankrollDelta) }}
-                </div>
-              </div>
-            </div>
+            <UiField :label="$t('v2.brisage.fields.sessionNotes')">
+              <UiInput v-model="draftSession.notes" :placeholder="$t('v2.brisage.placeholders.sessionNotes')" />
+            </UiField>
           </div>
 
-          <div class="br-panel-title br-panel-title--sub">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            {{ $t('v2.brisage.sections.addItems') }}
+          <div class="mt-3 grid gap-3 sm:grid-cols-3">
+            <UiField :label="$t('v2.brisage.fields.startingKamas')">
+              <UiNumberInput v-model="draftSession.startingKamas" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.endingKamas')">
+              <UiNumberInput v-model="draftSession.endingKamas" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.collectedKamas')">
+              <UiNumberInput v-model="draftSession.externalDelta" />
+            </UiField>
           </div>
 
-          <div class="br-batch-controls">
-            <button
-              class="br-submit-btn br-submit-btn--secondary"
-              :disabled="!draftSession.categoryTypeIds.length || !draftSession.levelMin || !draftSession.levelMax || loadingBatchResults"
+          <dl class="mt-4 grid gap-x-6 gap-y-1.5 border-t border-line pt-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.draftItems') }}</dt>
+              <dd class="tabular text-sm text-ink">{{ draftItems.length }}</dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.craftTotal') }}</dt>
+              <dd><UiMoney :value="draftTotals.craft" short size="sm" /></dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.realizedValue') }}</dt>
+              <dd><UiMoney :value="draftTotals.realized" short size="sm" /></dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.sessionPL') }}</dt>
+              <dd><UiMoney :value="draftTotals.profit" signed short size="sm" /></dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.expectedEndKamas') }}</dt>
+              <dd><UiMoney :value="draftTotals.expectedEndKamas" short size="sm" /></dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.bankrollDelta') }}</dt>
+              <dd><UiMoney :value="draftTotals.bankrollDelta" signed short size="sm" /></dd>
+            </div>
+          </dl>
+        </UiCard>
+
+        <!-- Add items -->
+        <UiCard :title="$t('v2.brisage.sections.addItems')">
+          <template #actions>
+            <UiButton
+              size="sm"
+              :disabled="!canLoadBatch"
+              :loading="loadingBatchResults"
               @click="loadCategoryBatch"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.836 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-13.837-2m13.837 2H15" />
-              </svg>
-              {{ loadingBatchResults ? $t('v2.brisage.actions.loadingBatch') : $t('v2.brisage.actions.loadMatchingItems') }}
-            </button>
-            <div class="br-field-help">{{ $t('v2.brisage.messages.batchHelp') }}</div>
-          </div>
+              {{ $t('v2.brisage.actions.loadMatchingItems') }}
+            </UiButton>
+          </template>
 
-          <div ref="searchAreaEl" class="br-search-area">
-            <div class="br-search">
-              <svg class="br-search__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input v-model="search" type="text" :placeholder="$t('v2.common.searchItems')" class="br-search__input" @input="onSearchInput" />
-              <button v-if="search" class="br-search__clear" @click="clearSearch">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+          <p class="mb-3 text-xs text-subtle">{{ $t('v2.brisage.messages.batchHelp') }}</p>
+
+          <div ref="searchAreaEl">
+            <UiInput v-model="search" :placeholder="$t('v2.common.searchItems')" @update:model-value="onSearchInput">
+              <template #prefix><UiIcon name="search" /></template>
+              <template v-if="search" #suffix>
+                <button
+                  type="button"
+                  class="text-subtle transition-colors hover:text-ink"
+                  :aria-label="$t('v2.common.clearSearch')"
+                  @click="clearSearch"
+                >
+                  <UiIcon name="close" />
+                </button>
+              </template>
+            </UiInput>
+
+            <div v-if="searching" class="mt-3 flex flex-col gap-2">
+              <UiSkeleton v-for="i in 3" :key="i" height="3rem" />
             </div>
 
-            <div v-if="searching" class="br-inline-loader"><div class="br-spin" /> {{ $t('v2.common.searching') }}</div>
-
-            <div v-else-if="results.length" class="br-results">
+            <div v-else-if="results.length" class="mt-3 flex flex-col gap-1">
               <button
                 v-for="item in results"
                 :key="item.id"
-                class="br-result"
+                type="button"
+                class="flex items-center gap-3 rounded-md border border-line bg-surface p-2 text-left transition-colors hover:border-line-strong"
                 @click="addItemToDraft(item)"
               >
-                <img :src="getItemImg(item)" :alt="item.name?.fr ?? ''" class="br-result__img" @error="onImgErr" />
-                <div class="br-result__info">
-                  <div class="br-result__name">{{ item.name?.fr ?? item.id }}</div>
-                  <div class="br-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
+                <img
+                  :src="getItemImg(item)"
+                  :alt="''"
+                  class="size-9 shrink-0 rounded-md bg-sunken object-contain"
+                  @error="onImgErr"
+                >
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm text-ink">{{ item.name?.fr ?? item.id }}</div>
+                  <div class="truncate text-xs text-subtle">
+                    {{ item.type?.name?.fr ?? '' }}
+                    <span class="tabular">· {{ $t('monsters.level', { level: item.level ?? '?' }) }}</span>
+                  </div>
                 </div>
-                <span class="br-result__cta">{{ $t('v2.brisage.actions.add') }}</span>
+                <span class="shrink-0 text-xs text-accent">{{ $t('v2.brisage.actions.add') }}</span>
               </button>
             </div>
-            <div v-else-if="search && !searching" class="br-empty-hint">{{ $t('v2.brisage.messages.noItemsFound', { search }) }}</div>
+
+            <p v-else-if="search" class="mt-3 text-xs text-subtle">
+              {{ $t('v2.brisage.messages.noItemsFound', { search }) }}
+            </p>
           </div>
+        </UiCard>
 
-          <div v-if="draftItems.length" class="br-draft-list">
-            <div v-for="draftItem in draftItems" :key="draftItem.id" class="br-draft-card">
-              <div class="br-draft-card__header">
-                <div class="br-draft-card__meta">
-                  <img :src="getItemImg(draftItem.item)" :alt="draftItem.item?.name?.fr ?? ''" class="br-draft-card__img" @error="onImgErr" />
-                  <div>
-                    <div class="br-draft-card__name">{{ draftItem.item?.name?.fr ?? draftItem.itemId }}</div>
-                    <div class="br-draft-card__sub">{{ draftItem.item?.type?.name?.fr ?? '' }} · Lv {{ draftItem.item?.level ?? '?' }}</div>
-                  </div>
-                </div>
-                <div class="br-draft-card__actions">
-                  <button class="br-draft-card__toggle" @click="toggleDraftItem(draftItem.id)">
-                    {{ isDraftItemExpanded(draftItem.id) ? $t('v2.brisage.actions.hideDetails') : $t('v2.brisage.actions.editDetails') }}
-                  </button>
-                  <button class="br-entry__del" @click="removeDraftItem(draftItem.id)" :title="$t('v2.brisage.actions.remove')">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+        <!-- Draft items -->
+        <UiEmptyState v-if="!draftItems.length" :title="$t('v2.brisage.messages.emptyDraft')">
+          <template #icon><UiIcon name="brisage" /></template>
+        </UiEmptyState>
+
+        <UiCard v-for="draftItem in draftItems" v-else :key="draftItem.id">
+          <div class="flex flex-wrap items-start gap-3">
+            <img
+              :src="getItemImg(draftItem.item)"
+              :alt="''"
+              class="size-10 shrink-0 rounded-md bg-sunken object-contain"
+              @error="onImgErr"
+            >
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-sm font-semibold text-ink">
+                {{ draftItem.item?.name?.fr ?? draftItem.itemId }}
               </div>
-
-              <div class="br-draft-card__summary">
-                <span>{{ draftItem.runs.length }} run{{ draftItem.runs.length !== 1 ? 's' : '' }}</span>
-                <span>x{{ itemQuantityTotal(draftItem) }}</span>
-                <span>{{ $t('v2.brisage.summary.craft') }} {{ formatKamas(itemCraftTotal(draftItem)) }}</span>
-                <span>{{ $t('v2.brisage.summary.realized') }} {{ formatKamas(itemRealizedTotal(draftItem)) }}</span>
-                <span :class="itemProfit(draftItem) >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                  {{ itemProfit(draftItem) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(draftItem)) }}
-                </span>
+              <div class="truncate text-xs text-subtle">
+                {{ draftItem.item?.type?.name?.fr ?? '' }}
+                <span class="tabular">· {{ $t('monsters.level', { level: draftItem.item?.level ?? '?' }) }}</span>
               </div>
-
-              <div v-if="isDraftItemExpanded(draftItem.id)" class="br-draft-card__details">
-                <div class="br-item-runs">
-                  <div v-for="(run, runIndex) in draftItem.runs" :key="run.id" class="br-item-run">
-                    <div class="br-item-run__head">
-                      <div class="br-item-run__title">{{ $t('v2.brisage.labels.runNumber', { index: runIndex + 1 }) }}</div>
-                      <button class="br-item-run__del" @click="removeRunFromDraftItem(draftItem.id, run.id)">{{ $t('v2.brisage.actions.removeRun') }}</button>
-                    </div>
-
-                    <div class="br-form__row br-form__row--triple">
-                      <div class="br-form__field">
-                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.qtyCrafted') }}</label>
-                        <input v-model.number="run.quantity" type="number" min="1" class="br-field-input" />
-                      </div>
-                      <div class="br-form__field">
-                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.kamasBeforeBuying') }}</label>
-                        <input v-model.number="run.buyStartKamas" type="number" min="0" step="1000" class="br-field-input" />
-                      </div>
-                      <div class="br-form__field">
-                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.kamasAfterBuying') }}</label>
-                        <input v-model.number="run.buyEndKamas" type="number" min="0" step="1000" class="br-field-input" />
-                      </div>
-                    </div>
-
-                    <div class="br-form__row">
-                      <div class="br-form__field">
-                        <label class="br-field-lbl">Theoretical rune value</label>
-                        <input v-model.number="run.theoreticalRuneValue" type="number" min="0" step="1000" class="br-field-input" />
-                      </div>
-                      <div class="br-form__field">
-                        <label class="br-field-lbl">Actual sold rune value</label>
-                        <input v-model.number="run.actualSoldRuneValue" type="number" min="0" step="1000" class="br-field-input" />
-                      </div>
-                    </div>
-
-                    <div class="br-form__row">
-                      <div class="br-form__field">
-                        <label class="br-field-lbl">Unsold rune value</label>
-                        <input v-model.number="run.unsoldRuneValue" type="number" min="0" step="1000" class="br-field-input" />
-                      </div>
-                      <div class="br-form__field">
-                        <label class="br-field-lbl">Sale notes</label>
-                        <input v-model="run.saleNotes" type="text" placeholder="Sold price, date, undercut notes..." class="br-field-input" />
-                      </div>
-                    </div>
-
-                    <label class="br-check-row">
-                      <input v-model="run.soldConfirmed" type="checkbox">
-                      <span>Sold runes confirmed</span>
-                    </label>
-
-                    <div class="br-rune-output-box">
-                      <div class="br-rune-output-box__head">
-                        <div>
-                          <div class="br-rune-output-box__title">Rune outputs</div>
-                          <div class="br-field-help">Enter how many of each rune you got. Paper value uses the latest rune price from Market Prices.</div>
-                        </div>
-                        <button class="br-submit-btn br-submit-btn--secondary" @click="addRuneOutputToRun(run)">Add rune</button>
-                      </div>
-
-                      <div v-if="!run.runeOutputs.length" class="br-empty-hint">No rune outputs recorded for this run.</div>
-
-                      <div v-for="output in run.runeOutputs" :key="output.id" class="br-rune-output-row">
-                        <div class="br-form__field">
-                          <label class="br-field-lbl">Rune</label>
-                          <V2Select
-                            :model-value="output.runeName || null"
-                            :options="runePriceOptions"
-                            placeholder="Select rune"
-                            @update:model-value="setRuneOutputName(output, $event)"
-                          />
-                          <input v-model="output.runeName" type="text" class="br-field-input br-rune-output-row__manual" placeholder="Or type rune name" @change="refreshRuneOutputValue(output); refreshRunRuneValues(run)" />
-                        </div>
-                        <div class="br-form__field">
-                          <label class="br-field-lbl">Quantity got</label>
-                          <input v-model.number="output.quantity" type="number" min="0" class="br-field-input" @change="refreshRuneOutputValue(output); refreshRunRuneValues(run)" />
-                        </div>
-                        <div class="br-form__field">
-                          <label class="br-field-lbl">Sold qty</label>
-                          <input v-model.number="output.soldQuantity" type="number" min="0" class="br-field-input" @change="refreshRuneOutputValue(output); refreshRunRuneValues(run)" />
-                        </div>
-                        <div class="br-form__field">
-                          <label class="br-field-lbl">Sold value</label>
-                          <input v-model.number="output.actualSoldValue" type="number" min="0" step="1000" class="br-field-input" @change="refreshRunRuneValues(run)" />
-                        </div>
-                        <div class="br-rune-output-row__value">
-                          <span>Unit {{ formatKamas(outputUnitPrice(output)) }}</span>
-                          <strong>{{ formatKamas(output.theoreticalValue) }}</strong>
-                        </div>
-                        <button class="br-entry__del" @click="removeRuneOutputFromRun(run, output.id)">Remove</button>
-                      </div>
-
-                      <div v-if="run.runeOutputs.length" class="br-profit-preview">
-                        <div class="br-profit-row">
-                          <span>Output paper value</span>
-                          <span>{{ formatKamas(runRuneOutputTheoreticalValue(run)) }}</span>
-                        </div>
-                        <div class="br-profit-row">
-                          <span>Output sold value</span>
-                          <span>{{ formatKamas(runRuneOutputSoldValue(run)) }}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="br-form__field">
-                      <label class="br-field-lbl">{{ $t('v2.brisage.fields.runNote') }}</label>
-                      <input v-model="run.notes" type="text" :placeholder="$t('v2.brisage.placeholders.runNote')" class="br-field-input" />
-                    </div>
-
-                    <div class="br-warning br-warning--compact" v-if="!run.soldConfirmed">
-                      Rune value is theoretical until sold.
-                    </div>
-
-                    <div class="br-profit-preview">
-                      <div class="br-profit-row">
-                        <span>Paper profit</span>
-                        <span :class="runPaperProfit(run) >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                          {{ runPaperProfit(run) >= 0 ? '+' : '' }}{{ formatKamas(runPaperProfit(run)) }}
-                        </span>
-                      </div>
-                      <div class="br-profit-row">
-                        <span>Realized profit</span>
-                        <span :class="runRealizedProfit(run) >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                          {{ runRealizedProfit(run) >= 0 ? '+' : '' }}{{ formatKamas(runRealizedProfit(run)) }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="br-profit-preview">
-                      <div class="br-profit-row">
-                        <span>{{ $t('v2.brisage.summary.runCraftCost') }}</span>
-                        <span>{{ formatKamas(runCraftCost(run)) }}</span>
-                      </div>
-                      <div class="br-profit-row">
-                        <span>{{ $t('v2.brisage.summary.runPL') }}</span>
-                        <span :class="runProfit(run) >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                          {{ runProfit(run) >= 0 ? '+' : '' }}{{ formatKamas(runProfit(run)) }}
-                        </span>
-                      </div>
-                      <div class="br-profit-row" v-if="run.quantity > 0">
-                        <span>{{ $t('v2.brisage.summary.avgPerCopy') }}</span>
-                        <span>{{ formatKamas(Math.round(runProfit(run) / run.quantity)) }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="br-form__row">
-                  <div class="br-form__field">
-                    <label class="br-field-lbl">{{ $t('v2.brisage.fields.itemNote') }}</label>
-                    <input v-model="draftItem.notes" type="text" :placeholder="$t('v2.brisage.placeholders.itemNote')" class="br-field-input" />
-                  </div>
-                </div>
-
-                <button class="br-submit-btn br-submit-btn--secondary" @click="addRunToDraftItem(draftItem.id)">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  {{ $t('v2.brisage.actions.addAnotherRun') }}
-                </button>
-              </div>
+            </div>
+            <div class="flex shrink-0 items-center gap-2">
+              <UiButton variant="ghost" size="sm" @click="toggleDraftItem(draftItem.id)">
+                {{ isDraftItemExpanded(draftItem.id) ? $t('v2.brisage.actions.hideDetails') : $t('v2.brisage.actions.editDetails') }}
+              </UiButton>
+              <UiButton
+                variant="danger"
+                size="sm"
+                icon
+                :aria-label="$t('v2.brisage.actions.remove')"
+                @click="removeDraftItem(draftItem.id)"
+              >
+                <UiIcon name="trash" />
+              </UiButton>
             </div>
           </div>
 
-          <div v-else class="br-log-empty br-log-empty--compact">
-            {{ $t('v2.brisage.messages.emptyDraft') }}
+          <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-subtle">
+            <span>{{ t('v2.brisage.labels.runCount', { count: draftItem.runs.length }) }}</span>
+            <span class="tabular">{{ $t('v2.brisage.labels.runCountShort', { count: itemQuantityTotal(draftItem) }) }}</span>
+            <span>{{ $t('v2.brisage.summary.craft') }} <UiMoney :value="itemCraftTotal(draftItem)" short size="sm" /></span>
+            <span>{{ $t('v2.brisage.summary.realized') }} <UiMoney :value="itemRealizedTotal(draftItem)" short size="sm" /></span>
+            <UiMoney :value="itemProfit(draftItem)" signed short size="sm" />
           </div>
 
-          <div class="br-panel-title br-panel-title--sub">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V7a2 2 0 00-2-2h-4M4 7h10M4 7v10a2 2 0 002 2h12a2 2 0 002-2v-4M4 7l4 4m0 0l4-4m-4 4V3" />
-            </svg>
-            {{ $t('v2.brisage.sections.resourceChecklist') }}
-            <button class="br-collapse-toggle" @click="showDraftResourceChecklist = !showDraftResourceChecklist">
+          <div v-if="isDraftItemExpanded(draftItem.id)" class="mt-4 flex flex-col gap-4 border-t border-line pt-4">
+            <!-- Runs -->
+            <div
+              v-for="(run, runIndex) in draftItem.runs"
+              :key="run.id"
+              class="rounded-lg border border-line bg-sunken p-3"
+            >
+              <div class="mb-3 flex items-center gap-3">
+                <h3 class="flex-1 text-xs font-semibold tracking-wide text-muted uppercase">
+                  {{ $t('v2.brisage.labels.runNumber', { index: runIndex + 1 }) }}
+                </h3>
+                <UiButton variant="ghost" size="sm" @click="removeRunFromDraftItem(draftItem.id, run.id)">
+                  {{ $t('v2.brisage.actions.removeRun') }}
+                </UiButton>
+              </div>
+
+              <div class="grid gap-3 sm:grid-cols-3">
+                <UiField :label="$t('v2.brisage.fields.qtyCrafted')">
+                  <UiNumberInput v-model="run.quantity" :min="1" size="sm" />
+                </UiField>
+                <UiField :label="$t('v2.brisage.fields.kamasBeforeBuying')">
+                  <UiNumberInput v-model="run.buyStartKamas" :min="0" size="sm" />
+                </UiField>
+                <UiField :label="$t('v2.brisage.fields.kamasAfterBuying')">
+                  <UiNumberInput v-model="run.buyEndKamas" :min="0" size="sm" />
+                </UiField>
+              </div>
+
+              <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                <UiField :label="$t('v2.brisage.fields.theoreticalRuneValue')">
+                  <UiNumberInput v-model="run.theoreticalRuneValue" :min="0" size="sm" />
+                </UiField>
+                <UiField :label="$t('v2.brisage.fields.actualSoldRuneValue')">
+                  <UiNumberInput v-model="run.actualSoldRuneValue" :min="0" size="sm" />
+                </UiField>
+                <UiField :label="$t('v2.brisage.fields.unsoldRuneValue')">
+                  <UiNumberInput v-model="run.unsoldRuneValue" :min="0" size="sm" />
+                </UiField>
+              </div>
+
+              <UiField :label="$t('v2.brisage.fields.saleNotes')" class="mt-3">
+                <UiInput v-model="run.saleNotes" size="sm" :placeholder="$t('v2.brisage.placeholders.saleNotes')" />
+              </UiField>
+
+              <label class="mt-3 flex cursor-pointer items-center gap-2 text-sm text-ink">
+                <input v-model="run.soldConfirmed" type="checkbox" class="size-4 accent-[var(--c-accent)]">
+                {{ $t('v2.brisage.labels.soldConfirmed') }}
+              </label>
+
+              <!-- Rune outputs -->
+              <div class="mt-3 rounded-md border border-line bg-surface p-3">
+                <div class="flex flex-wrap items-start gap-3">
+                  <div class="min-w-0 flex-1">
+                    <h4 class="text-xs font-semibold text-ink">{{ $t('v2.brisage.labels.runeOutputs') }}</h4>
+                    <p class="mt-0.5 text-xs text-subtle">{{ $t('v2.brisage.labels.runeOutputsHelp') }}</p>
+                  </div>
+                  <UiButton size="sm" @click="addRuneOutputToRun(run)">
+                    <template #icon><UiIcon name="plus" /></template>
+                    {{ $t('v2.brisage.actions.addRune') }}
+                  </UiButton>
+                </div>
+
+                <p v-if="!run.runeOutputs.length" class="mt-3 text-xs text-subtle">
+                  {{ $t('v2.brisage.messages.noRuneOutputs') }}
+                </p>
+
+                <div
+                  v-for="output in run.runeOutputs"
+                  :key="output.id"
+                  class="mt-3 grid items-end gap-2 border-t border-line pt-3 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))_auto_auto]"
+                >
+                  <UiField :label="$t('v2.brisage.fields.rune')">
+                    <UiSelect
+                      :model-value="output.runeName || null"
+                      :options="runePriceOptions"
+                      size="sm"
+                      :placeholder="$t('v2.brisage.placeholders.selectRune')"
+                      @update:model-value="setRuneOutputName(output, $event)"
+                    />
+                    <UiInput
+                      v-model="output.runeName"
+                      size="sm"
+                      class="mt-1"
+                      :placeholder="$t('v2.brisage.placeholders.typeRuneName')"
+                      @update:model-value="refreshRuneOutputValue(output); refreshRunRuneValues(run)"
+                    />
+                  </UiField>
+                  <UiField :label="$t('v2.brisage.fields.quantityGot')">
+                    <UiNumberInput
+                      v-model="output.quantity"
+                      :min="0"
+                      size="sm"
+                      @update:model-value="refreshRuneOutputValue(output); refreshRunRuneValues(run)"
+                    />
+                  </UiField>
+                  <UiField :label="$t('v2.brisage.fields.soldQuantity')">
+                    <UiNumberInput
+                      v-model="output.soldQuantity"
+                      :min="0"
+                      size="sm"
+                      @update:model-value="refreshRuneOutputValue(output); refreshRunRuneValues(run)"
+                    />
+                  </UiField>
+                  <UiField :label="$t('v2.brisage.fields.soldValue')">
+                    <UiNumberInput
+                      v-model="output.actualSoldValue"
+                      :min="0"
+                      size="sm"
+                      @update:model-value="refreshRunRuneValues(run)"
+                    />
+                  </UiField>
+                  <div class="text-right">
+                    <div class="text-xs text-subtle">
+                      {{ $t('v2.brisage.labels.unitPrice') }}
+                      <UiMoney :value="outputUnitPrice(output)" short size="sm" />
+                    </div>
+                    <UiMoney :value="output.theoreticalValue" short size="sm" />
+                  </div>
+                  <UiButton
+                    variant="danger"
+                    size="sm"
+                    icon
+                    :aria-label="$t('v2.brisage.actions.remove')"
+                    @click="removeRuneOutputFromRun(run, output.id)"
+                  >
+                    <UiIcon name="trash" />
+                  </UiButton>
+                </div>
+
+                <dl v-if="run.runeOutputs.length" class="mt-3 grid gap-x-6 gap-y-1.5 border-t border-line pt-3 sm:grid-cols-2">
+                  <div class="flex items-baseline justify-between gap-3">
+                    <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.outputPaperValue') }}</dt>
+                    <dd><UiMoney :value="runRuneOutputTheoreticalValue(run)" short size="sm" /></dd>
+                  </div>
+                  <div class="flex items-baseline justify-between gap-3">
+                    <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.outputSoldValue') }}</dt>
+                    <dd><UiMoney :value="runRuneOutputSoldValue(run)" short size="sm" /></dd>
+                  </div>
+                </dl>
+              </div>
+
+              <UiField :label="$t('v2.brisage.fields.runNote')" class="mt-3">
+                <UiInput v-model="run.notes" size="sm" :placeholder="$t('v2.brisage.placeholders.runNote')" />
+              </UiField>
+
+              <p v-if="!run.soldConfirmed" class="mt-3 text-xs text-warning">
+                {{ $t('v2.brisage.warnings.runeTheoretical') }}
+              </p>
+
+              <dl class="mt-3 grid gap-x-6 gap-y-1.5 border-t border-line pt-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.paperProfit') }}</dt>
+                  <dd><UiMoney :value="runPaperProfit(run)" signed short size="sm" /></dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.realizedProfit') }}</dt>
+                  <dd><UiMoney :value="runRealizedProfit(run)" signed short size="sm" /></dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.runCraftCost') }}</dt>
+                  <dd><UiMoney :value="runCraftCost(run)" short size="sm" /></dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.runPL') }}</dt>
+                  <dd><UiMoney :value="runProfit(run)" signed short size="sm" /></dd>
+                </div>
+                <div v-if="run.quantity > 0" class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.avgPerCopy') }}</dt>
+                  <dd><UiMoney :value="Math.round(runProfit(run) / run.quantity)" short size="sm" /></dd>
+                </div>
+              </dl>
+            </div>
+
+            <UiField :label="$t('v2.brisage.fields.itemNote')">
+              <UiInput v-model="draftItem.notes" :placeholder="$t('v2.brisage.placeholders.itemNote')" />
+            </UiField>
+
+            <div>
+              <UiButton size="sm" @click="addRunToDraftItem(draftItem.id)">
+                <template #icon><UiIcon name="plus" /></template>
+                {{ $t('v2.brisage.actions.addAnotherRun') }}
+              </UiButton>
+            </div>
+          </div>
+        </UiCard>
+
+        <!-- Resource checklist -->
+        <UiCard :title="$t('v2.brisage.sections.resourceChecklist')">
+          <template #actions>
+            <UiButton variant="ghost" size="sm" @click="showDraftResourceChecklist = !showDraftResourceChecklist">
               {{ showDraftResourceChecklist ? $t('v2.brisage.actions.hide') : $t('v2.brisage.actions.show') }}
-            </button>
-          </div>
-
-          <div v-if="showDraftResourceChecklist" class="br-batch-controls">
-            <button
-              class="br-submit-btn br-submit-btn--secondary"
-              :disabled="draftItems.length === 0 || recipeChecklistState.isLoading"
+            </UiButton>
+            <UiButton
+              v-if="showDraftResourceChecklist"
+              size="sm"
+              :disabled="draftItems.length === 0"
+              :loading="recipeChecklistState.isLoading"
               @click="fetchRecipeChecklist"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.836 2A8.001 8.001 0 005.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-13.837-2m13.837 2H15" />
-              </svg>
-              {{ recipeChecklistState.isLoading ? $t('v2.brisage.actions.loadingResources') : $t('v2.brisage.actions.fetchRecipesForDraft') }}
-            </button>
-            <div class="br-field-help">{{ $t('v2.brisage.messages.recipeHelp') }}</div>
-            <div v-if="draftResourceChecklist.length" class="br-resource-view-toggle" role="group" :aria-label="$t('v2.brisage.labels.resourceViewMode')">
-              <button
-                type="button"
-                class="br-resource-view-toggle__btn"
-                :class="{ 'br-resource-view-toggle__btn--active': resourceChecklistView === 'all' }"
-                @click="resourceChecklistView = 'all'"
-              >
-                {{ $t('v2.brisage.actions.showAllIngredients') }}
-              </button>
-              <button
-                type="button"
-                class="br-resource-view-toggle__btn"
-                :class="{ 'br-resource-view-toggle__btn--active': resourceChecklistView === 'perItem' }"
-                @click="resourceChecklistView = 'perItem'"
-              >
-                {{ $t('v2.brisage.actions.showIngredientsPerItem') }}
-              </button>
-            </div>
-          </div>
+              {{ $t('v2.brisage.actions.fetchRecipesForDraft') }}
+            </UiButton>
+          </template>
 
-          <div v-if="showDraftResourceChecklist">
-            <div v-if="recipeChecklistState.error" class="br-empty-hint">{{ recipeChecklistState.error }}</div>
+          <template v-if="showDraftResourceChecklist">
+            <p class="text-xs text-subtle">{{ $t('v2.brisage.messages.recipeHelp') }}</p>
+            <p v-if="recipeChecklistState.error" class="mt-2 text-xs text-negative">
+              {{ recipeChecklistState.error }}
+            </p>
 
-            <div v-if="draftResourceChecklist.length && resourceChecklistView === 'all'" class="br-resource-list">
-              <label v-for="resource in draftResourceChecklist" :key="resource.id" class="br-resource-row">
+            <UiSegmented
+              v-if="draftResourceChecklist.length"
+              v-model="resourceChecklistView"
+              :options="resourceViewOptions"
+              size="sm"
+              class="mt-3"
+              :aria-label="$t('v2.brisage.labels.resourceViewMode')"
+            />
+
+            <div v-if="draftResourceChecklist.length && resourceChecklistView === 'all'" class="mt-3 flex flex-col gap-1">
+              <label
+                v-for="resource in draftResourceChecklist"
+                :key="resource.id"
+                class="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-raised"
+              >
                 <input
                   type="checkbox"
+                  class="size-4 shrink-0 accent-[var(--c-accent)]"
                   :checked="resource.isDone"
-                  class="br-resource-row__check"
                   @change="toggleDraftResourceDone(resource.id)"
                 >
-                <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
-                <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
-                <div class="br-resource-row__meta">
-                  <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
-                  <div class="br-resource-row__sub">{{ resource.typeName ?? $t('v2.brisage.common.resource') }}</div>
+                <img
+                  v-if="resource.image"
+                  :src="resource.image"
+                  :alt="''"
+                  class="size-7 shrink-0 rounded-md bg-sunken object-contain"
+                  @error="onImgErr"
+                >
+                <div v-else class="size-7 shrink-0 rounded-md bg-sunken" />
+                <div class="min-w-0 flex-1">
+                  <div :class="['truncate text-sm', resource.isDone ? 'text-subtle line-through' : 'text-ink']">
+                    {{ resource.name }}
+                  </div>
+                  <div class="truncate text-xs text-subtle">
+                    {{ resource.typeName ?? $t('v2.brisage.common.resource') }}
+                  </div>
                 </div>
-                <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
+                <span class="tabular shrink-0 text-sm text-muted">{{ resource.totalQuantity }}</span>
               </label>
             </div>
 
-            <div v-else-if="draftResourceChecklist.length" class="br-resource-groups">
-              <div v-for="group in draftResourceChecklistByItem" :key="group.itemKey" class="br-resource-group">
-                <div class="br-resource-group__head">
-                  <img v-if="group.image" :src="group.image" :alt="group.itemName" class="br-resource-group__img" @error="onImgErr" />
-                  <div v-else class="br-resource-group__img br-resource-row__img--fallback" />
-                  <div class="br-resource-group__meta">
-                    <div class="br-resource-group__name">{{ group.itemName }}</div>
-                    <div class="br-resource-group__sub">{{ $t('v2.brisage.labels.craftedQuantity', { quantity: group.quantity }) }}</div>
+            <div v-else-if="draftResourceChecklist.length" class="mt-3 flex flex-col gap-3">
+              <div v-for="group in draftResourceChecklistByItem" :key="group.itemKey">
+                <div class="mb-1.5 flex items-center gap-2">
+                  <img
+                    v-if="group.image"
+                    :src="group.image"
+                    :alt="''"
+                    class="size-7 shrink-0 rounded-md bg-sunken object-contain"
+                    @error="onImgErr"
+                  >
+                  <div v-else class="size-7 shrink-0 rounded-md bg-sunken" />
+                  <div class="min-w-0">
+                    <div class="truncate text-sm font-medium text-ink">{{ group.itemName }}</div>
+                    <div class="tabular truncate text-xs text-subtle">
+                      {{ $t('v2.brisage.labels.craftedQuantity', { quantity: group.quantity }) }}
+                    </div>
                   </div>
                 </div>
 
-                <div class="br-resource-list br-resource-list--grouped">
-                  <label v-for="resource in group.resources" :key="`${group.itemKey}-${resource.id}`" class="br-resource-row">
+                <div class="flex flex-col gap-1 border-l border-line pl-3">
+                  <label
+                    v-for="resource in group.resources"
+                    :key="`${group.itemKey}-${resource.id}`"
+                    class="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-raised"
+                  >
                     <input
                       type="checkbox"
+                      class="size-4 shrink-0 accent-[var(--c-accent)]"
                       :checked="resource.isDone"
-                      class="br-resource-row__check"
                       @change="toggleDraftResourceDone(resource.id)"
                     >
-                    <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
-                    <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
-                    <div class="br-resource-row__meta">
-                      <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
-                      <div class="br-resource-row__sub">{{ resource.typeName ?? $t('v2.brisage.common.resource') }}</div>
+                    <img
+                      v-if="resource.image"
+                      :src="resource.image"
+                      :alt="''"
+                      class="size-7 shrink-0 rounded-md bg-sunken object-contain"
+                      @error="onImgErr"
+                    >
+                    <div v-else class="size-7 shrink-0 rounded-md bg-sunken" />
+                    <div class="min-w-0 flex-1">
+                      <div :class="['truncate text-sm', resource.isDone ? 'text-subtle line-through' : 'text-ink']">
+                        {{ resource.name }}
+                      </div>
+                      <div class="truncate text-xs text-subtle">
+                        {{ resource.typeName ?? $t('v2.brisage.common.resource') }}
+                      </div>
                     </div>
-                    <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
+                    <span class="tabular shrink-0 text-sm text-muted">{{ resource.totalQuantity }}</span>
                   </label>
                 </div>
               </div>
             </div>
-          </div>
+          </template>
+        </UiCard>
 
-          <div class="br-builder-actions">
-            <button class="br-submit-btn br-submit-btn--secondary" @click="showSessionHistory">
-              {{ $t('v2.crafting.actions.backToSessions') }}
-            </button>
-            <button class="br-submit-btn" :disabled="draftItems.length === 0" @click="saveSession">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
+        <div class="flex flex-wrap items-center gap-2">
+          <UiButton size="sm" @click="showSessionHistory">
+            {{ $t('v2.crafting.actions.backToSessions') }}
+          </UiButton>
+          <UiButton variant="primary" size="sm" :disabled="draftItems.length === 0" @click="saveSession">
             {{ editingSessionId ? $t('v2.brisage.actions.updateSession') : $t('v2.brisage.actions.saveSession') }}
-            </button>
-          </div>
+          </UiButton>
         </div>
+      </div>
 
-        <div v-show="brisageMode === 'history'" class="br-panel">
-          <div class="br-panel-title">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
-            </svg>
-            {{ $t('v2.brisage.sections.sessionHistory') }}
-            <span class="br-badge">{{ sessions.length }}</span>
-          </div>
+      <!-- ── Session history ────────────────────────────────────────────── -->
+      <template v-else>
+        <UiEmptyState
+          v-if="sessions.length === 0"
+          :title="$t('v2.brisage.messages.noSessions')"
+          :description="$t('v2.brisage.messages.noSessionsHint')"
+        >
+          <template #icon><UiIcon name="brisage" /></template>
+          <template #action>
+            <UiButton variant="primary" size="sm" @click="startSessionBuilder">
+              {{ $t('v2.brisage.sections.sessionBuilder') }}
+            </UiButton>
+          </template>
+        </UiEmptyState>
 
-          <div v-if="sessions.length === 0" class="br-log-empty">
-            <svg class="w-10 h-10 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.5 3.5L21 10l-4 4M9.5 20.5L3 14l4-4m8-6.5l-9 9" />
-            </svg>
-            {{ $t('v2.brisage.messages.noSessions') }}<br />
-            <span style="font-size:.8125rem;opacity:.5">{{ $t('v2.brisage.messages.noSessionsHint') }}</span>
-          </div>
-
-          <div v-else class="br-log-scroll">
-            <div v-for="session in sessions" :key="session.id" class="br-entry">
-              <div class="br-entry__header">
-                <div class="br-entry__meta">
-                  <div class="br-entry__name">{{ session.categoryLabel || $t('v2.brisage.labels.generalSession') }}</div>
-                  <div class="br-entry__sub">{{ describeSessionScope(session) }}</div>
-                  <div class="br-entry__date">{{ formatDisplayDate(session.date) }}</div>
+        <div v-else class="flex flex-col gap-3">
+          <UiCard v-for="session in sessions" :key="session.id">
+            <div class="flex flex-wrap items-start gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-sm font-semibold text-ink">
+                  {{ session.categoryLabel || $t('v2.brisage.labels.generalSession') }}
                 </div>
-                <div class="br-entry__actions">
-                  <button class="br-entry__action" @click="openSessionEditor(session.id)">
-                    {{ $t('v2.brisage.actions.edit') }}
-                  </button>
-                  <button class="br-entry__del" @click="deleteSession(session.id)" :title="$t('v2.brisage.actions.deleteSession')">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                <div class="truncate text-xs text-subtle">
+                  {{ describeSessionScope(session) }} · {{ formatDisplayDate(session.date) }}
                 </div>
               </div>
-
-              <div class="br-entry__prices">
-                <div class="br-price-cell br-price-cell--craft">
-                  <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.craftTotal') }}</div>
-                  <div class="br-price-cell__val">{{ formatKamas(sessionTotals(session).craft) }}</div>
-                </div>
-                <div class="br-price-cell br-price-cell--hdv">
-                  <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.totalItems') }}</div>
-                  <div class="br-price-cell__val">{{ sessionQuantityTotal(session) }}</div>
-                </div>
-                <div class="br-price-cell br-price-cell--rune">
-                  <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.realizedValue') }}</div>
-                  <div class="br-price-cell__val" style="color:var(--v2-accent)">{{ formatKamas(sessionTotals(session).realized) }}</div>
-                </div>
-                <div class="br-price-cell br-price-cell--hdv">
-                  <div class="br-price-cell__lbl">{{ $t('v2.brisage.summary.expectedEndKamas') }}</div>
-                  <div class="br-price-cell__val">{{ formatKamas(sessionTotals(session).expectedEndKamas) }}</div>
-                </div>
-              </div>
-
-              <div class="br-entry__profits">
-                <div class="br-profit-pill" :class="sessionTotals(session).profit >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                  {{ $t('v2.brisage.summary.sessionPL') }}: {{ sessionTotals(session).profit >= 0 ? '+' : '' }}{{ formatKamas(sessionTotals(session).profit) }}
-                </div>
-                <div class="br-profit-pill" :class="sessionMargin(session) >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                  {{ $t('v2.brisage.summary.margin') }}: {{ sessionMargin(session) >= 0 ? '+' : '' }}{{ sessionMargin(session) }}%
-                </div>
-                <div class="br-profit-pill" :class="sessionTotals(session).bankrollDelta >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                  {{ $t('v2.brisage.summary.bankrollDelta') }}: {{ sessionTotals(session).bankrollDelta >= 0 ? '+' : '' }}{{ formatKamas(sessionTotals(session).bankrollDelta) }}
-                </div>
-                <button class="br-collapse-toggle br-collapse-toggle--inline" @click="toggleSession(session.id)">
+              <div class="flex shrink-0 items-center gap-2">
+                <UiButton variant="ghost" size="sm" @click="openSessionEditor(session.id)">
+                  {{ $t('v2.brisage.actions.edit') }}
+                </UiButton>
+                <UiButton variant="ghost" size="sm" @click="toggleSession(session.id)">
                   {{ isSessionExpanded(session.id) ? $t('v2.brisage.actions.hideDetails') : $t('v2.brisage.actions.showDetails') }}
-                </button>
+                </UiButton>
+                <UiButton
+                  variant="danger"
+                  size="sm"
+                  icon
+                  :aria-label="$t('v2.brisage.actions.deleteSession')"
+                  @click="deleteSession(session.id)"
+                >
+                  <UiIcon name="trash" />
+                </UiButton>
               </div>
+            </div>
 
-              <div v-if="isSessionExpanded(session.id)" class="br-session-items">
-                <div v-for="item in session.items" :key="item.id" class="br-session-item-row">
-                  <div class="br-session-item-row__meta">
-                    <img :src="getItemImg(item.item)" :alt="item.item?.name?.fr ?? ''" class="br-session-item-row__img" @error="onImgErr" />
-                    <div>
-                      <div class="br-session-item-row__name">{{ item.item?.name?.fr ?? item.itemId }}</div>
-                      <div class="br-session-item-row__sub">{{ t('v2.brisage.labels.runCount', { count: item.runs.length }) }} · x{{ itemQuantityTotal(item) }} · {{ $t('v2.brisage.summary.cost') }} {{ formatKamas(itemCraftTotal(item)) }} · {{ $t('v2.brisage.summary.realized') }} {{ formatKamas(itemRealizedTotal(item)) }}</div>
+            <dl class="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.craftTotal') }}</dt>
+                <dd class="mt-0.5"><UiMoney :value="sessionTotals(session).craft" short size="sm" /></dd>
+              </div>
+              <div>
+                <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.totalItems') }}</dt>
+                <dd class="tabular mt-0.5 text-sm text-ink">{{ sessionQuantityTotal(session) }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.realizedValue') }}</dt>
+                <dd class="mt-0.5"><UiMoney :value="sessionTotals(session).realized" short size="sm" /></dd>
+              </div>
+              <div>
+                <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.expectedEndKamas') }}</dt>
+                <dd class="mt-0.5"><UiMoney :value="sessionTotals(session).expectedEndKamas" short size="sm" /></dd>
+              </div>
+            </dl>
+
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-subtle">
+              <span>
+                {{ $t('v2.brisage.summary.sessionPL') }}
+                <UiMoney :value="sessionTotals(session).profit" signed short size="sm" />
+              </span>
+              <span>
+                {{ $t('v2.brisage.summary.margin') }}
+                <span :class="['tabular', sessionMargin(session) >= 0 ? 'text-positive' : 'text-negative']">
+                  {{ sessionMargin(session) >= 0 ? '+' : '' }}{{ sessionMargin(session) }}%
+                </span>
+              </span>
+              <span>
+                {{ $t('v2.brisage.summary.bankrollDelta') }}
+                <UiMoney :value="sessionTotals(session).bankrollDelta" signed short size="sm" />
+              </span>
+            </div>
+
+            <template v-if="isSessionExpanded(session.id)">
+              <div class="mt-3 flex flex-col gap-2 border-t border-line pt-3">
+                <div
+                  v-for="item in session.items"
+                  :key="item.id"
+                  class="flex flex-wrap items-center gap-3 rounded-md border border-line bg-sunken p-2.5"
+                >
+                  <img
+                    :src="getItemImg(item.item)"
+                    :alt="''"
+                    class="size-8 shrink-0 rounded-md bg-surface object-contain"
+                    @error="onImgErr"
+                  >
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate text-sm text-ink">{{ item.item?.name?.fr ?? item.itemId }}</div>
+                    <div class="flex flex-wrap items-center gap-x-2 text-xs text-subtle">
+                      <span>{{ t('v2.brisage.labels.runCount', { count: item.runs.length }) }}</span>
+                      <span class="tabular">· {{ $t('v2.brisage.labels.runCountShort', { count: itemQuantityTotal(item) }) }}</span>
+                      <span>· {{ $t('v2.brisage.summary.cost') }} <UiMoney :value="itemCraftTotal(item)" short size="sm" /></span>
+                      <span>· {{ $t('v2.brisage.summary.realized') }} <UiMoney :value="itemRealizedTotal(item)" short size="sm" /></span>
                     </div>
                   </div>
-                  <div class="br-session-item-row__profit" :class="itemProfit(item) >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                    {{ itemProfit(item) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(item)) }}
+                  <UiMoney :value="itemProfit(item)" signed short size="sm" />
+                </div>
+              </div>
+
+              <div v-if="session.resourceChecklist?.length" class="mt-3 flex flex-col gap-1 border-t border-line pt-3">
+                <div
+                  v-for="resource in session.resourceChecklist"
+                  :key="resource.id"
+                  class="flex items-center gap-3 px-2 py-1"
+                >
+                  <UiIcon v-if="resource.isDone" name="check" class="shrink-0 text-positive" />
+                  <span v-else class="w-[1em] shrink-0 text-center text-subtle">·</span>
+                  <img
+                    v-if="resource.image"
+                    :src="resource.image"
+                    :alt="''"
+                    class="size-7 shrink-0 rounded-md bg-sunken object-contain"
+                    @error="onImgErr"
+                  >
+                  <div v-else class="size-7 shrink-0 rounded-md bg-sunken" />
+                  <div class="min-w-0 flex-1">
+                    <div :class="['truncate text-sm', resource.isDone ? 'text-subtle line-through' : 'text-ink']">
+                      {{ resource.name }}
+                    </div>
+                    <div class="truncate text-xs text-subtle">
+                      {{ resource.typeName ?? $t('v2.brisage.common.resource') }}
+                    </div>
                   </div>
+                  <span class="tabular shrink-0 text-sm text-muted">{{ resource.totalQuantity }}</span>
                 </div>
               </div>
 
-              <div v-if="isSessionExpanded(session.id) && session.resourceChecklist?.length" class="br-resource-list br-resource-list--saved">
-                <div v-for="resource in session.resourceChecklist" :key="resource.id" class="br-resource-row br-resource-row--saved">
-                  <div class="br-resource-row__check br-resource-row__check--static">{{ resource.isDone ? '✓' : '•' }}</div>
-                  <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="br-resource-row__img" @error="onImgErr" />
-                  <div v-else class="br-resource-row__img br-resource-row__img--fallback" />
-                  <div class="br-resource-row__meta">
-                    <div class="br-resource-row__name" :class="{ 'br-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
-                    <div class="br-resource-row__sub">{{ resource.typeName ?? $t('v2.brisage.common.resource') }}</div>
-                  </div>
-                  <div class="br-resource-row__qty">{{ resource.totalQuantity }}</div>
+              <p v-if="session.notes" class="mt-3 border-t border-line pt-3 text-xs text-muted">
+                {{ session.notes }}
+              </p>
+            </template>
+          </UiCard>
+        </div>
+      </template>
+    </template>
+
+    <!-- ── Opportunities ────────────────────────────────────────────────── -->
+    <template v-else-if="activeMainTab === 'opportunities'">
+      <UiPageSection :title="$t('v2.brisage.tabs.opportunities')">
+        <template #actions>
+          <UiBadge tone="warning">{{ $t('v2.brisage.messages.evNotGuaranteed') }}</UiBadge>
+        </template>
+
+        <p class="mb-4 text-xs text-warning">{{ $t('v2.brisage.warnings.opportunities') }}</p>
+
+        <UiCard>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <UiField :label="$t('v2.brisage.fields.candidateCategory')">
+              <UiSelect
+                :model-value="draftSession.categoryTypeIds[0] ?? null"
+                :options="brisageCategorySelectOptions"
+                :placeholder="$t('v2.brisage.placeholders.selectCategory')"
+                @update:model-value="setSingleOpportunityCategory"
+              />
+            </UiField>
+
+            <UiField :label="$t('v2.brisage.fields.levelRange')">
+              <div class="flex items-center gap-2">
+                <UiNumberInput
+                  v-model="draftSession.levelMin"
+                  :min="1"
+                  :placeholder="$t('v2.brisage.fields.levelMin')"
+                />
+                <span class="shrink-0 text-sm text-subtle" aria-hidden="true">–</span>
+                <UiNumberInput
+                  v-model="draftSession.levelMax"
+                  :min="1"
+                  :placeholder="$t('v2.brisage.fields.levelMax')"
+                />
+              </div>
+            </UiField>
+
+            <UiField :label="$t('v2.brisage.fields.bankroll')">
+              <UiNumberInput v-model="opportunityConfig.bankroll" @update:model-value="saveOpportunitySettings" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.safetyMarkup')">
+              <UiNumberInput v-model="opportunityConfig.safetyMarkupPercent" :min="0" @update:model-value="saveOpportunitySettings" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.pessimisticMultiplier')">
+              <!-- The only fractional field on the page, so it stays a raw
+                   number input rather than the kamas-grouping UiNumberInput. -->
+              <UiInput
+                :model-value="opportunityConfig.pessimisticRuneMultiplier"
+                type="number"
+                inputmode="decimal"
+                @update:model-value="setPessimisticMultiplier"
+              />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.batchBankrollPercent')">
+              <UiNumberInput v-model="opportunityConfig.bankrollBatchPercent" :min="1" @update:model-value="saveOpportunitySettings" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.maxBatchCap')">
+              <UiNumberInput v-model="opportunityConfig.maxBatchCostCap" @update:model-value="saveOpportunitySettings" />
+            </UiField>
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-3">
+            <UiButton size="sm" :disabled="!canLoadBatch" :loading="loadingBatchResults" @click="loadCategoryBatch">
+              {{ $t('v2.brisage.actions.loadCandidates') }}
+            </UiButton>
+            <p class="text-xs text-subtle">{{ $t('v2.brisage.messages.candidateHelp') }}</p>
+          </div>
+
+          <div v-if="results.length" class="mt-3 flex flex-col gap-1">
+            <button
+              v-for="item in results.slice(0, 20)"
+              :key="`opp-${item.id}`"
+              type="button"
+              class="flex items-center gap-3 rounded-md border border-line bg-surface p-2 text-left transition-colors hover:border-line-strong"
+              @click="addOpportunityFromItem(item)"
+            >
+              <img
+                :src="getItemImg(item)"
+                :alt="''"
+                class="size-9 shrink-0 rounded-md bg-sunken object-contain"
+                @error="onImgErr"
+              >
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-sm text-ink">{{ item.name?.fr ?? item.id }}</div>
+                <div class="truncate text-xs text-subtle">
+                  {{ item.type?.name?.fr ?? '' }}
+                  <span class="tabular">· {{ $t('monsters.level', { level: item.level ?? '?' }) }}</span>
                 </div>
               </div>
+              <span class="shrink-0 text-xs text-accent">{{ $t('v2.brisage.actions.trackEv') }}</span>
+            </button>
+          </div>
+        </UiCard>
 
-              <div v-if="isSessionExpanded(session.id) && session.notes" class="br-entry__notes">{{ session.notes }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <UiEmptyState
+          v-if="!brisageOpportunities.length"
+          :title="$t('v2.brisage.messages.emptyOpportunities')"
+          class="mt-3"
+        >
+          <template #icon><UiIcon name="prices" /></template>
+        </UiEmptyState>
 
-      <div v-if="activeMainTab === 'opportunities'" class="br-panel br-op-panel">
-        <div class="br-panel-title">
-          Brisage Opportunities
-          <span class="br-badge">EV, not guaranteed profit</span>
-        </div>
-
-        <div class="br-warning">
-          Future opportunities use manual market prices and risk assumptions. Validate with small batches first, especially around an 8M bankroll.
-        </div>
-
-        <div class="br-form br-settings-grid">
-          <div class="br-form__field">
-            <label class="br-field-lbl">Candidate category</label>
-            <V2Select
-              :model-value="draftSession.categoryTypeIds[0] ?? null"
-              :options="brisageCategorySelectOptions"
-              placeholder="Select category"
-              @update:model-value="setSingleOpportunityCategory"
-            />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Level min</label>
-            <input v-model.number="draftSession.levelMin" type="number" min="1" max="200" class="br-field-input" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Level max</label>
-            <input v-model.number="draftSession.levelMax" type="number" min="1" max="200" class="br-field-input" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Bankroll</label>
-            <input v-model.number="opportunityConfig.bankroll" type="number" step="1000" class="br-field-input" @change="saveOpportunitySettings" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Safety markup %</label>
-            <input v-model.number="opportunityConfig.safetyMarkupPercent" type="number" min="0" class="br-field-input" @change="saveOpportunitySettings" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Pessimistic multiplier</label>
-            <input v-model.number="opportunityConfig.pessimisticRuneMultiplier" type="number" min="0" max="1" step="0.05" class="br-field-input" @change="saveOpportunitySettings" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Batch bankroll %</label>
-            <input v-model.number="opportunityConfig.bankrollBatchPercent" type="number" min="1" max="100" class="br-field-input" @change="saveOpportunitySettings" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Max batch cap</label>
-            <input v-model.number="opportunityConfig.maxBatchCostCap" type="number" step="1000" class="br-field-input" @change="saveOpportunitySettings" />
-          </div>
-        </div>
-
-        <div class="br-batch-controls">
-          <button
-            class="br-submit-btn br-submit-btn--secondary"
-            :disabled="!draftSession.categoryTypeIds.length || !draftSession.levelMin || !draftSession.levelMax || loadingBatchResults"
-            @click="loadCategoryBatch"
-          >
-            Load candidate items
-          </button>
-          <div class="br-field-help">Use the same category and level filters from the history builder, then add candidates below.</div>
-        </div>
-
-        <div class="br-results" v-if="results.length">
-          <button v-for="item in results.slice(0, 20)" :key="`opp-${item.id}`" class="br-result" @click="addOpportunityFromItem(item)">
-            <img :src="getItemImg(item)" :alt="item.name?.fr ?? ''" class="br-result__img" @error="onImgErr" />
-            <div class="br-result__info">
-              <div class="br-result__name">{{ item.name?.fr ?? item.id }}</div>
-              <div class="br-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
-            </div>
-            <span class="br-result__cta">Track EV</span>
-          </button>
-        </div>
-
-        <div v-if="!brisageOpportunities.length" class="br-log-empty">
-          Add candidate items to calculate craft cost, EV, risk, and bankroll-aware batch sizing.
-        </div>
-
-        <div v-else class="br-op-list">
-          <div v-for="opportunity in brisageOpportunities" :key="opportunity.id" class="br-entry">
-            <div class="br-entry__header">
-              <div class="br-entry__meta">
-                <div class="br-entry__name">{{ opportunity.itemName }}</div>
-                <div class="br-entry__sub">
-                  {{ opportunity.status }} · Risk {{ opportunity.riskLevel }} · x{{ opportunity.recommendedQuantity }} validation batch
+        <div v-else class="mt-3 flex flex-col gap-3">
+          <UiCard v-for="opportunity in brisageOpportunities" :key="opportunity.id">
+            <div class="flex flex-wrap items-start gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-sm font-semibold text-ink">{{ opportunity.itemName }}</div>
+                <div class="truncate text-xs text-subtle">
+                  {{ $t('v2.brisage.labels.opportunityScope', {
+                    status: opportunityStatusLabel(opportunity.status),
+                    risk: opportunity.riskLevel,
+                    quantity: opportunity.recommendedQuantity,
+                  }) }}
                 </div>
               </div>
-              <button class="br-entry__del" @click="removeOpportunityCandidate(opportunity.id)">Remove</button>
+              <UiButton
+                variant="danger"
+                size="sm"
+                icon
+                :aria-label="$t('v2.brisage.actions.remove')"
+                @click="removeOpportunityCandidate(opportunity.id)"
+              >
+                <UiIcon name="trash" />
+              </UiButton>
             </div>
 
-            <div class="br-entry__prices">
-              <div class="br-price-cell">
-                <div class="br-price-cell__lbl">Craft cost</div>
-                <div class="br-price-cell__val">{{ formatKamas(opportunity.craftCost) }}</div>
+            <dl class="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.craftCost') }}</dt>
+                <dd class="mt-0.5"><UiMoney :value="opportunity.craftCost" short size="sm" /></dd>
               </div>
-              <div class="br-price-cell">
-                <div class="br-price-cell__lbl">Conservative cost</div>
-                <div class="br-price-cell__val">{{ formatKamas(opportunity.conservativeCraftCost) }}</div>
+              <div>
+                <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.conservativeCost') }}</dt>
+                <dd class="mt-0.5"><UiMoney :value="opportunity.conservativeCraftCost" short size="sm" /></dd>
               </div>
-              <div class="br-price-cell">
-                <div class="br-price-cell__lbl">Estimated runes</div>
-                <div class="br-price-cell__val">{{ formatKamas(opportunity.estimatedRuneValue) }}</div>
+              <div>
+                <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.estimatedRunes') }}</dt>
+                <dd class="mt-0.5"><UiMoney :value="opportunity.estimatedRuneValue" short size="sm" /></dd>
               </div>
-              <div class="br-price-cell">
-                <div class="br-price-cell__lbl">Pessimistic profit</div>
-                <div class="br-price-cell__val" :class="opportunity.pessimisticProfit >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                  {{ opportunity.pessimisticProfit >= 0 ? '+' : '' }}{{ formatKamas(opportunity.pessimisticProfit) }}
-                </div>
+              <div>
+                <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.pessimisticProfit') }}</dt>
+                <dd class="mt-0.5"><UiMoney :value="opportunity.pessimisticProfit" signed short size="sm" /></dd>
               </div>
+            </dl>
+
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-subtle">
+              <span>
+                {{ $t('v2.brisage.labels.ev') }}
+                <UiMoney :value="opportunity.expectedProfit" signed short size="sm" />
+              </span>
+              <span>
+                {{ $t('v2.brisage.summary.margin') }}
+                <span class="tabular text-ink">
+                  {{ opportunity.marginPercent >= 0 ? '+' : '' }}{{ opportunity.marginPercent }}%
+                </span>
+              </span>
+              <span>
+                {{ $t('v2.brisage.labels.batch') }}
+                <UiMoney :value="opportunity.recommendedBatchCost" short size="sm" />
+                <span class="tabular"> / {{ opportunity.bankrollExposurePercent }}%</span>
+              </span>
+              <UiBadge v-if="opportunity.missingPriceCount" tone="warning">
+                {{ $t('v2.brisage.labels.missingPrices') }}: {{ opportunity.missingPriceCount }}
+              </UiBadge>
             </div>
 
-            <div class="br-entry__profits">
-              <div class="br-profit-pill" :class="opportunity.expectedProfit >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
-                EV: {{ opportunity.expectedProfit >= 0 ? '+' : '' }}{{ formatKamas(opportunity.expectedProfit) }}
-              </div>
-              <div class="br-profit-pill">
-                Margin: {{ opportunity.marginPercent >= 0 ? '+' : '' }}{{ opportunity.marginPercent }}%
-              </div>
-              <div class="br-profit-pill">
-                Batch: {{ formatKamas(opportunity.recommendedBatchCost) }} / {{ opportunity.bankrollExposurePercent }}%
-              </div>
-              <div class="br-profit-pill" v-if="opportunity.missingPriceCount">
-                Missing prices: {{ opportunity.missingPriceCount }}
-              </div>
-            </div>
+            <ul v-if="opportunity.warnings.length" class="mt-3 flex flex-col gap-1">
+              <li v-for="warning in opportunity.warnings" :key="warning" class="text-xs text-warning">
+                {{ warning }}
+              </li>
+            </ul>
 
-            <div v-if="opportunity.warnings.length" class="br-warning br-warning--compact">
-              <div v-for="warning in opportunity.warnings" :key="warning">{{ warning }}</div>
-            </div>
-
-            <div class="br-form br-settings-grid">
-              <template v-for="candidate in opportunityCandidates.filter(candidate => candidate.id === opportunity.id)" :key="candidate.id">
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Status</label>
-                  <V2Select
+            <template v-for="candidate in candidatesFor(opportunity.id)" :key="candidate.id">
+              <div class="mt-4 grid gap-3 border-t border-line pt-4 sm:grid-cols-2 lg:grid-cols-4">
+                <UiField :label="$t('v2.brisage.fields.status')">
+                  <UiSelect
                     v-model="candidate.status"
                     :options="opportunityStatusOptions"
-                    placeholder="Select status"
+                    size="sm"
+                    :placeholder="$t('v2.brisage.placeholders.selectStatus')"
                     @update:model-value="updateOpportunityCandidate(candidate)"
                   />
-                </div>
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Manual estimated rune value</label>
-                  <input v-model.number="candidate.expectedRuneValueManual" type="number" step="1000" class="br-field-input" @change="updateOpportunityCandidate(candidate)" />
-                </div>
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Sample size</label>
-                  <input v-model.number="candidate.sampleSize" type="number" min="0" class="br-field-input" @change="updateOpportunityCandidate(candidate)" />
-                </div>
-                <div class="br-form__field">
-                  <label class="br-field-lbl">Unsold rune value</label>
-                  <input v-model.number="candidate.unsoldRuneValue" type="number" min="0" step="1000" class="br-field-input" @change="updateOpportunityCandidate(candidate)" />
-                </div>
-                <button class="br-submit-btn br-submit-btn--secondary" @click="applyStatusSuggestion(candidate)">
-                  Apply history status
-                </button>
-                <div class="br-field-help">Sold confirmed sessions: {{ soldConfirmedSessionCount(candidate) }}</div>
-              </template>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="activeMainTab === 'prices'" class="br-panel br-op-panel">
-        <div class="br-panel-title">Market Prices</div>
-        <div class="br-warning">Manual Kourial price book. Add rune prices morning/evening; every save is kept as a timestamped history point. Fresh under 24h, aging 24h-72h, stale over 72h.</div>
-
-        <div class="br-form br-settings-grid">
-          <div class="br-form__field">
-            <label class="br-field-lbl">Name</label>
-            <input v-model="marketPriceDraft.name" type="text" class="br-field-input" placeholder="Rune or resource name" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Item/resource/rune id</label>
-            <input v-model="marketPriceDraft.itemId" type="text" class="br-field-input" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Kind</label>
-            <V2Select v-model="marketPriceDraft.kind" :options="marketPriceKindOptions" placeholder="Select kind" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Price</label>
-            <input v-model.number="marketPriceDraft.price" type="number" min="0" step="1" class="br-field-input" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Quantity basis</label>
-            <input v-model.number="marketPriceDraft.quantityBasis" type="number" min="1" class="br-field-input" />
-          </div>
-          <div class="br-form__field">
-            <label class="br-field-lbl">Note</label>
-            <input v-model="marketPriceDraft.note" type="text" class="br-field-input" />
-          </div>
-          <button class="br-submit-btn" @click="addMarketPrice">Save price</button>
-        </div>
-
-        <div v-if="!marketPrices.length" class="br-log-empty">No manual market prices yet.</div>
-
-        <div v-if="latestRunePrices.length" class="br-panel-title br-panel-title--sub">Latest rune prices</div>
-        <div v-if="latestRunePrices.length" class="br-resource-list br-resource-list--saved">
-          <div v-for="price in latestRunePrices" :key="`latest-rune-${price.id}`" class="br-resource-row br-resource-row--saved">
-            <div class="br-resource-row__meta">
-              <div class="br-resource-row__name">{{ price.name }}</div>
-              <div class="br-resource-row__sub">
-                {{ freshnessLabel(price.timestamp) }} · unit {{ formatKamas(unitMarketPrice(price) ?? 0) }}
-                <span v-if="priceTrend(price) !== null" :class="priceTrend(price)! >= 0 ? 'br-profit--up' : 'br-profit--down'">
-                  · {{ priceTrend(price)! >= 0 ? '+' : '' }}{{ priceTrend(price) }}% vs previous
-                </span>
+                </UiField>
+                <UiField :label="$t('v2.brisage.fields.manualRuneValue')">
+                  <UiNumberInput
+                    v-model="candidate.expectedRuneValueManual"
+                    size="sm"
+                    @update:model-value="updateOpportunityCandidate(candidate)"
+                  />
+                </UiField>
+                <UiField :label="$t('v2.brisage.fields.sampleSize')">
+                  <UiNumberInput
+                    v-model="candidate.sampleSize"
+                    :min="0"
+                    size="sm"
+                    @update:model-value="updateOpportunityCandidate(candidate)"
+                  />
+                </UiField>
+                <UiField :label="$t('v2.brisage.fields.unsoldRuneValue')">
+                  <UiNumberInput
+                    v-model="candidate.unsoldRuneValue"
+                    :min="0"
+                    size="sm"
+                    @update:model-value="updateOpportunityCandidate(candidate)"
+                  />
+                </UiField>
               </div>
-              <div v-if="price.note" class="br-resource-row__sub">{{ price.note }}</div>
-            </div>
-            <div class="br-resource-row__qty">{{ formatKamas(price.price) }} / x{{ price.quantityBasis }}</div>
-            <div class="br-resource-row__sub">{{ priceHistoryCount(price) }} point{{ priceHistoryCount(price) === 1 ? '' : 's' }}</div>
-          </div>
-        </div>
 
-        <div v-if="latestResourcePrices.length" class="br-panel-title br-panel-title--sub">Latest resource / item prices</div>
-        <div v-if="latestResourcePrices.length" class="br-resource-list br-resource-list--saved">
-          <div v-for="price in latestResourcePrices" :key="`latest-resource-${price.id}`" class="br-resource-row br-resource-row--saved">
-            <div class="br-resource-row__meta">
-              <div class="br-resource-row__name">{{ price.name }}</div>
-              <div class="br-resource-row__sub">
-                {{ priceKindLabel(price.kind) }} · {{ freshnessLabel(price.timestamp) }} · unit {{ formatKamas(unitMarketPrice(price) ?? 0) }}
+              <div class="mt-3 flex flex-wrap items-center gap-3">
+                <UiButton size="sm" @click="applyStatusSuggestion(candidate)">
+                  {{ $t('v2.brisage.actions.applyHistoryStatus') }}
+                </UiButton>
+                <p class="text-xs text-subtle">
+                  {{ $t('v2.brisage.labels.soldConfirmedSessions', { count: soldConfirmedSessionCount(candidate) }) }}
+                </p>
               </div>
-              <div v-if="price.note" class="br-resource-row__sub">{{ price.note }}</div>
-            </div>
-            <div class="br-resource-row__qty">{{ formatKamas(price.price) }} / x{{ price.quantityBasis }}</div>
-          </div>
+            </template>
+          </UiCard>
         </div>
+      </UiPageSection>
+    </template>
 
-        <div v-if="marketPrices.length" class="br-panel-title br-panel-title--sub">Recent price entries</div>
-        <div v-if="marketPrices.length" class="br-resource-list br-resource-list--saved">
-          <div v-for="price in marketPrices.slice(0, 20)" :key="price.id" class="br-resource-row br-resource-row--saved">
-            <div class="br-resource-row__meta">
-              <div class="br-resource-row__name">{{ price.name }}</div>
-              <div class="br-resource-row__sub">
-                {{ priceKindLabel(price.kind) }} · {{ formatDisplayDate(price.timestamp) }} · unit {{ formatKamas(unitMarketPrice(price) ?? 0) }}
+    <!-- ── Market prices ────────────────────────────────────────────────── -->
+    <template v-else>
+      <UiPageSection :title="$t('v2.brisage.tabs.prices')">
+        <p class="mb-4 text-xs text-warning">{{ $t('v2.brisage.warnings.prices') }}</p>
+
+        <UiCard>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <UiField :label="$t('v2.brisage.fields.priceName')">
+              <UiInput v-model="marketPriceDraft.name" :placeholder="$t('v2.brisage.placeholders.priceName')" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.priceItemId')">
+              <UiInput v-model="marketPriceDraft.itemId" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.priceKind')">
+              <UiSelect
+                v-model="marketPriceDraft.kind"
+                :options="marketPriceKindOptions"
+                :placeholder="$t('v2.brisage.placeholders.selectKind')"
+              />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.price')">
+              <UiNumberInput v-model="marketPriceDraft.price" :min="0" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.quantityBasis')">
+              <UiNumberInput v-model="marketPriceDraft.quantityBasis" :min="1" />
+            </UiField>
+            <UiField :label="$t('v2.brisage.fields.priceNote')">
+              <UiInput v-model="marketPriceDraft.note" />
+            </UiField>
+          </div>
+
+          <div class="mt-4 border-t border-line pt-3">
+            <UiButton variant="primary" size="sm" @click="addMarketPrice">
+              {{ $t('v2.brisage.actions.savePrice') }}
+            </UiButton>
+          </div>
+        </UiCard>
+
+        <UiEmptyState v-if="!marketPrices.length" :title="$t('v2.brisage.messages.emptyPrices')" class="mt-3">
+          <template #icon><UiIcon name="prices" /></template>
+        </UiEmptyState>
+
+        <template v-else>
+          <UiCard v-if="latestRunePrices.length" :title="$t('v2.brisage.labels.latestRunePrices')" class="mt-3">
+            <div class="flex flex-col gap-1">
+              <div
+                v-for="price in latestRunePrices"
+                :key="`latest-rune-${price.id}`"
+                class="flex flex-wrap items-center gap-3 border-b border-line px-1 py-2 last:border-0"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm text-ink">{{ price.name }}</div>
+                  <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-subtle">
+                    <span>{{ freshnessLabel(price.timestamp) }}</span>
+                    <span>· {{ $t('v2.brisage.labels.unitPrice') }}</span>
+                    <UiMoney :value="unitMarketPrice(price) ?? 0" short size="sm" />
+                    <span
+                      v-if="priceTrend(price) !== null"
+                      :class="['tabular', priceTrend(price)! >= 0 ? 'text-positive' : 'text-negative']"
+                    >
+                      · {{ priceTrend(price)! >= 0 ? '+' : '' }}{{ priceTrend(price) }}% {{ $t('v2.brisage.labels.vsPrevious') }}
+                    </span>
+                  </div>
+                  <div v-if="price.note" class="truncate text-xs text-subtle">{{ price.note }}</div>
+                </div>
+                <div class="shrink-0 text-right">
+                  <UiMoney :value="price.price" short size="sm" />
+                  <span class="tabular text-xs text-subtle"> {{ $t('v2.brisage.labels.perBasis', { basis: price.quantityBasis }) }}</span>
+                  <div class="text-xs text-subtle">
+                    {{ t('v2.brisage.labels.pricePoints', { count: priceHistoryCount(price) }) }}
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="br-resource-row__qty">{{ formatKamas(price.price) }} / x{{ price.quantityBasis }}</div>
-            <button class="br-entry__del" @click="removeMarketPrice(price.id)">Remove entry</button>
-          </div>
-        </div>
-      </div>
+          </UiCard>
+
+          <UiCard v-if="latestResourcePrices.length" :title="$t('v2.brisage.labels.latestResourcePrices')" class="mt-3">
+            <div class="flex flex-col gap-1">
+              <div
+                v-for="price in latestResourcePrices"
+                :key="`latest-resource-${price.id}`"
+                class="flex flex-wrap items-center gap-3 border-b border-line px-1 py-2 last:border-0"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm text-ink">{{ price.name }}</div>
+                  <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-subtle">
+                    <span>{{ priceKindLabel(price.kind) }} · {{ freshnessLabel(price.timestamp) }} · {{ $t('v2.brisage.labels.unitPrice') }}</span>
+                    <UiMoney :value="unitMarketPrice(price) ?? 0" short size="sm" />
+                  </div>
+                  <div v-if="price.note" class="truncate text-xs text-subtle">{{ price.note }}</div>
+                </div>
+                <div class="shrink-0 text-right">
+                  <UiMoney :value="price.price" short size="sm" />
+                  <span class="tabular text-xs text-subtle"> {{ $t('v2.brisage.labels.perBasis', { basis: price.quantityBasis }) }}</span>
+                </div>
+              </div>
+            </div>
+          </UiCard>
+
+          <UiCard :title="$t('v2.brisage.labels.recentPriceEntries')" class="mt-3">
+            <div class="flex flex-col gap-1">
+              <div
+                v-for="price in marketPrices.slice(0, 20)"
+                :key="price.id"
+                class="flex flex-wrap items-center gap-3 border-b border-line px-1 py-2 last:border-0"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm text-ink">{{ price.name }}</div>
+                  <div class="flex flex-wrap items-center gap-x-1.5 text-xs text-subtle">
+                    <span>{{ priceKindLabel(price.kind) }} · {{ formatDisplayDate(price.timestamp) }} · {{ $t('v2.brisage.labels.unitPrice') }}</span>
+                    <UiMoney :value="unitMarketPrice(price) ?? 0" short size="sm" />
+                  </div>
+                </div>
+                <div class="shrink-0 text-right">
+                  <UiMoney :value="price.price" short size="sm" />
+                  <span class="tabular text-xs text-subtle"> {{ $t('v2.brisage.labels.perBasis', { basis: price.quantityBasis }) }}</span>
+                </div>
+                <UiButton
+                  variant="danger"
+                  size="sm"
+                  icon
+                  :aria-label="$t('v2.brisage.actions.removeEntry')"
+                  @click="removeMarketPrice(price.id)"
+                >
+                  <UiIcon name="trash" />
+                </UiButton>
+              </div>
+            </div>
+          </UiCard>
+        </template>
+      </UiPageSection>
     </template>
   </div>
 </template>
@@ -961,6 +1093,7 @@ import {
   sessionQuantityTotal,
   sessionTotals as accountingSessionTotals,
 } from '@/utils/brisageAccounting'
+import { formatKamasShort } from '~/utils/format'
 
 const { t } = useI18n()
 
@@ -1078,30 +1211,64 @@ const recipeChecklistState = ref({
   error: '',
 })
 
+const mainTabOptions = computed(() => ([
+  { label: `${t('v2.brisage.tabs.history')} (${sessions.value.length})`, value: 'history' },
+  { label: `${t('v2.brisage.tabs.opportunities')} (${brisageOpportunities.value.length})`, value: 'opportunities' },
+  { label: `${t('v2.brisage.tabs.prices')} (${marketPrices.value.length})`, value: 'prices' },
+]))
+
+const modeOptions = computed(() => ([
+  { label: `${t('v2.brisage.sections.sessionHistory')} (${sessions.value.length})`, value: 'history' },
+  {
+    label: draftItems.value.length
+      ? `${t('v2.brisage.sections.sessionBuilder')} (${draftItems.value.length})`
+      : t('v2.brisage.sections.sessionBuilder'),
+    value: 'builder',
+  },
+]))
+
+const resourceViewOptions = computed(() => ([
+  { label: t('v2.brisage.actions.showAllIngredients'), value: 'all' },
+  { label: t('v2.brisage.actions.showIngredientsPerItem'), value: 'perItem' },
+]))
+
+/** Both entry points need a category and a full level range before the batch
+ *  fetch has anything to ask DofusDB for. */
+const canLoadBatch = computed(() =>
+  Boolean(draftSession.value.categoryTypeIds.length && draftSession.value.levelMin && draftSession.value.levelMax),
+)
+
+const candidatesFor = (id: string) => opportunityCandidates.value.filter(candidate => candidate.id === id)
+
 const brisageNextAction = computed(() => {
   if (draftItems.value.length > 0 || brisageMode.value === 'builder') {
     return {
-      title: 'Finish the current brisage log',
-      desc: 'Save the session before checking more opportunities so paper value and realized rune sales stay tied to one experiment.',
-      cta: 'Continue session',
+      title: t('v2.brisage.nextAction.finishTitle'),
+      desc: t('v2.brisage.nextAction.finishDesc'),
+      cta: t('v2.brisage.nextAction.finishCta'),
       target: 'builder' as const,
     }
   }
   if (marketPrices.value.length === 0) {
     return {
-      title: 'Add rune prices before trusting opportunities',
-      desc: 'Brisage estimates are only useful when rune/resource prices are fresh. Start with the prices you actually check in HDV.',
-      cta: 'Open prices',
+      title: t('v2.brisage.nextAction.pricesTitle'),
+      desc: t('v2.brisage.nextAction.pricesDesc'),
+      cta: t('v2.brisage.nextAction.pricesCta'),
       target: 'prices' as const,
     }
   }
   return {
-    title: 'Log a small realized brisage session',
-    desc: 'Use history first. Opportunities are expected value only; profit becomes real when runes are sold or confirmed.',
-    cta: 'Start session',
+    title: t('v2.brisage.nextAction.startTitle'),
+    desc: t('v2.brisage.nextAction.startDesc'),
+    cta: t('v2.brisage.nextAction.startCta'),
     target: 'builder' as const,
   }
 })
+
+const onModeChange = (value: string | number | null) => {
+  if (value === 'builder') startSessionBuilder()
+  else showSessionHistory()
+}
 
 const runBrisageNextAction = () => {
   if (brisageNextAction.value.target === 'prices') {
@@ -1143,7 +1310,7 @@ const marketPriceDraft = ref({
 })
 
 const brisageCategorySelectOptions = computed(() => [
-  { key: 'none', label: 'Select category', value: null },
+  { key: 'none', label: t('v2.brisage.placeholders.selectCategory'), value: null },
   ...BRISAGE_CATEGORY_OPTIONS.map(option => ({
     key: String(option.typeId),
     label: option.label,
@@ -1151,31 +1318,37 @@ const brisageCategorySelectOptions = computed(() => [
   })),
 ])
 
-const opportunityStatusOptions = [
-  { key: 'idea', label: 'Idea', value: 'idea', description: 'Fresh lead, not tested yet.' },
-  { key: 'test-batch', label: 'Test batch', value: 'test-batch', description: 'One profitable sold-confirmed run.' },
-  { key: 'validated', label: 'Validated', value: 'validated', description: 'Two separate profitable sold-confirmed runs.' },
-  { key: 'scaled', label: 'Scaled', value: 'scaled', description: 'Validated and being repeated cautiously.' },
-  { key: 'retired', label: 'Retired', value: 'retired', description: 'No longer worth testing.' },
-]
+const opportunityStatusOptions = computed(() => ([
+  { key: 'idea', label: t('v2.brisage.opportunityStatus.idea'), value: 'idea', description: t('v2.brisage.opportunityStatus.ideaDesc') },
+  { key: 'test-batch', label: t('v2.brisage.opportunityStatus.testBatch'), value: 'test-batch', description: t('v2.brisage.opportunityStatus.testBatchDesc') },
+  { key: 'validated', label: t('v2.brisage.opportunityStatus.validated'), value: 'validated', description: t('v2.brisage.opportunityStatus.validatedDesc') },
+  { key: 'scaled', label: t('v2.brisage.opportunityStatus.scaled'), value: 'scaled', description: t('v2.brisage.opportunityStatus.scaledDesc') },
+  { key: 'retired', label: t('v2.brisage.opportunityStatus.retired'), value: 'retired', description: t('v2.brisage.opportunityStatus.retiredDesc') },
+]))
 
-const marketPriceKindOptions = [
-  { key: 'resource', label: 'Resource', value: 'resource', description: 'Craft ingredient price.' },
-  { key: 'rune', label: 'Rune', value: 'rune', description: 'Rune sell price basis.' },
-  { key: 'finished-item', label: 'Finished item', value: 'finished-item', description: 'Optional crafted item reference.' },
-]
+const opportunityStatusLabel = (status: OpportunityStatus) =>
+  opportunityStatusOptions.value.find(option => option.value === status)?.label ?? status
+
+const marketPriceKindOptions = computed(() => ([
+  { key: 'resource', label: t('v2.brisage.kind.resource'), value: 'resource' },
+  { key: 'rune', label: t('v2.brisage.kind.rune'), value: 'rune' },
+  { key: 'finished-item', label: t('v2.brisage.kind.finishedItem'), value: 'finished-item' },
+]))
 
 const latestPrices = computed(() => latestMarketPrices(marketPrices.value))
 const latestRunePrices = computed(() => latestPrices.value.filter(price => price.kind === 'rune'))
 const latestResourcePrices = computed(() => latestPrices.value.filter(price => price.kind !== 'rune'))
 
 const runePriceOptions = computed(() => [
-  { key: 'manual', label: 'Type rune name manually', value: null },
+  { key: 'manual', label: t('v2.brisage.labels.typeRuneManually'), value: null },
   ...latestRunePrices.value.map(price => ({
     key: price.id,
     label: price.name,
     value: price.name,
-    description: `${formatKamas(unitMarketPrice(price) ?? 0)} each · ${freshnessLabel(price.timestamp)}`,
+    description: t('v2.brisage.labels.eachFreshness', {
+      price: formatKamasShort(unitMarketPrice(price) ?? 0),
+      freshness: freshnessLabel(price.timestamp),
+    }),
   })),
 ])
 
@@ -2080,15 +2253,15 @@ const soldConfirmedSessionCount = (candidate: BrisageOpportunityCandidate) =>
 
 const freshnessLabel = (timestamp: string) => {
   const freshness = priceFreshness(timestamp)
-  if (freshness === 'fresh') return 'Fresh'
-  if (freshness === 'aging') return 'Aging'
-  return 'Stale'
+  if (freshness === 'fresh') return t('v2.brisage.freshness.fresh')
+  if (freshness === 'aging') return t('v2.brisage.freshness.aging')
+  return t('v2.brisage.freshness.stale')
 }
 
 const priceKindLabel = (kind: MarketPriceKind) => {
-  if (kind === 'finished-item') return 'Finished item'
-  if (kind === 'rune') return 'Rune'
-  return 'Resource'
+  if (kind === 'finished-item') return t('v2.brisage.kind.finishedItem')
+  if (kind === 'rune') return t('v2.brisage.kind.rune')
+  return t('v2.brisage.kind.resource')
 }
 
 const priceHistory = (price: MarketPrice) => marketPriceHistoryFor(marketPrices.value, price)
@@ -2108,6 +2281,11 @@ const saveOpportunitySettings = () => {
     maxExposureWarningPercent: Math.max(0, Number(opportunityConfig.value.maxExposureWarningPercent) || 0),
   }
   saveOpportunityConfig()
+}
+
+const setPessimisticMultiplier = (value: string) => {
+  opportunityConfig.value.pessimisticRuneMultiplier = Number(value) || 0
+  saveOpportunitySettings()
 }
 
 const resetDraft = () => {
@@ -2235,11 +2413,11 @@ const deleteSession = (id: string) => {
 
 const describeSessionScope = (session: BrisageSession) => {
   const parts: string[] = []
-  if (session.levelMin && session.levelMax) parts.push(`Lv ${session.levelMin}-${session.levelMax}`)
-  else if (session.levelMin) parts.push(`Lv ${session.levelMin}+`)
-  else if (session.levelMax) parts.push(`Up to Lv ${session.levelMax}`)
+  if (session.levelMin && session.levelMax) parts.push(t('v2.brisage.scope.range', { min: session.levelMin, max: session.levelMax }))
+  else if (session.levelMin) parts.push(t('v2.brisage.scope.minOnly', { min: session.levelMin }))
+  else if (session.levelMax) parts.push(t('v2.brisage.scope.maxOnly', { max: session.levelMax }))
   if (session.categoryLabel) parts.push(session.categoryLabel)
-  return parts.join(' · ') || 'No explicit scope'
+  return parts.join(' · ') || t('v2.brisage.scope.none')
 }
 
 const getItemImg = (item: any) => item?.img ?? ''
@@ -2248,14 +2426,6 @@ const onImgErr = (e: Event) => {
   if (img.dataset.fb) return
   img.dataset.fb = '1'
   img.src = '/item-fallback.svg'
-}
-
-const formatKamas = (n: number) => {
-  if (!n) return '0'
-  const abs = Math.abs(n)
-  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (abs >= 1_000) return `${Math.round(n / 1_000)}K`
-  return Math.round(n).toLocaleString()
 }
 
 function todayISO() {
@@ -2319,1078 +2489,3 @@ watch(draftRecipeSignature, async () => {
   await fetchRecipeChecklist()
 })
 </script>
-
-<style scoped>
-.br-next {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1.125rem;
-  margin-bottom: 1rem;
-  border: 1px solid var(--v2-border-med);
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--v2-hover-subtle), rgba(0,0,0,.14));
-}
-.br-next__eyebrow {
-  color: var(--v2-accent);
-  font-size: .625rem;
-  font-weight: 900;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-.br-next h2 {
-  margin-top: .25rem;
-  color: var(--v2-text);
-  font-size: 1.1rem;
-  font-weight: 850;
-}
-.br-next p {
-  margin-top: .35rem;
-  color: var(--v2-text-secondary);
-  font-size: .875rem;
-  line-height: 1.45;
-  max-width: 72ch;
-}
-.br-next__btn {
-  width: auto;
-  flex-shrink: 0;
-}
-@media (max-width: 640px) {
-  .br-next {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .br-next__btn {
-    width: 100%;
-  }
-}
-
-.br-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: .625rem;
-  margin-bottom: .875rem;
-}
-
-.br-stat {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .875rem 1rem;
-  border-radius: 12px;
-  background: var(--v2-hover);
-  border: 1px solid var(--v2-border-med);
-}
-
-.br-stat--green { border-color: rgba(52,211,153,.2); background: rgba(52,211,153,.05); }
-.br-stat--red { border-color: rgba(248,113,113,.2); background: rgba(248,113,113,.05); }
-
-.br-stat__icon {
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: 9px;
-  background: var(--v2-border-med);
-  color: var(--v2-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.br-stat--green .br-stat__icon { background: rgba(52,211,153,.15); color: #34d399; }
-.br-stat--red .br-stat__icon { background: rgba(248,113,113,.15); color: #f87171; }
-.br-stat__val { font-size: 1.25rem; font-weight: 800; color: var(--v2-text); line-height: 1.2; }
-.br-stat__lbl { font-size: .6875rem; color: var(--v2-text-dim); margin-top: 1px; }
-
-.br-flow {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  margin-bottom: 1rem;
-}
-
-.br-main-tabs {
-  margin-bottom: 1rem;
-}
-
-.br-warning {
-  padding: .75rem .875rem;
-  margin-bottom: .875rem;
-  border: 1px solid rgba(245,158,11,.35);
-  background: rgba(245,158,11,.08);
-  color: #fbbf24;
-  border-radius: 10px;
-  font-size: .8125rem;
-  font-weight: 700;
-}
-
-.br-warning--compact {
-  margin: .5rem 0;
-  padding: .625rem .75rem;
-}
-
-.br-settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: .75rem;
-  margin-bottom: 1rem;
-}
-
-.br-op-panel {
-  margin-top: 1rem;
-}
-
-.br-op-list {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-}
-
-.br-check-row {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  min-height: 34px;
-  color: var(--v2-text-secondary);
-  font-size: .8125rem;
-  font-weight: 700;
-}
-
-.br-rune-output-box {
-  margin: .75rem 0;
-  padding: .75rem;
-  border: 1px solid var(--v2-border-med);
-  border-radius: 10px;
-  background: rgba(0,0,0,.12);
-}
-
-.br-rune-output-box__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: .75rem;
-  margin-bottom: .75rem;
-}
-
-.br-rune-output-box__title {
-  color: var(--v2-text);
-  font-size: .875rem;
-  font-weight: 800;
-}
-
-.br-rune-output-row {
-  display: grid;
-  grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(90px, .75fr)) minmax(105px, .6fr) auto;
-  gap: .5rem;
-  align-items: end;
-  padding: .5rem 0;
-  border-top: 1px solid var(--v2-border-subtle);
-}
-
-.br-rune-output-row__manual {
-  margin-top: .35rem;
-}
-
-.br-rune-output-row__value {
-  display: flex;
-  flex-direction: column;
-  gap: .15rem;
-  color: var(--v2-text-dim);
-  font-size: .6875rem;
-  line-height: 1.2;
-}
-
-.br-rune-output-row__value strong {
-  color: var(--v2-accent);
-  font-size: .875rem;
-}
-
-@media (max-width: 860px) {
-  .br-rune-output-row {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-  }
-
-  .br-rune-output-box__head {
-    flex-direction: column;
-  }
-}
-
-.br-flow__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-}
-
-.br-flow-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  min-height: 38px;
-  padding: .5rem .875rem;
-  border-radius: 10px;
-  border: 1px solid var(--v2-active);
-  background: rgba(0,0,0,.16);
-  color: var(--v2-text-secondary);
-  font-size: .875rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: .16s ease;
-}
-
-.br-flow-tab:hover,
-.br-flow-tab--active {
-  border-color: var(--v2-border-strong);
-  background: var(--v2-hover);
-  color: var(--v2-text);
-}
-
-.br-flow-steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .5rem;
-}
-
-.br-flow-step {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  min-width: 0;
-  padding: .625rem .75rem;
-  border-radius: 10px;
-  border: 1px solid var(--v2-active);
-  background: rgba(0,0,0,.14);
-  color: var(--v2-text-secondary);
-  font-size: .75rem;
-  font-weight: 700;
-}
-
-.br-flow-step span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  border-radius: 999px;
-  background: var(--v2-border-med);
-  color: var(--v2-text);
-  font-size: .75rem;
-}
-
-.br-flow-step--done {
-  border-color: rgba(52,211,153,.22);
-  background: rgba(52,211,153,.06);
-  color: var(--v2-text);
-}
-
-.br-flow-step--done span {
-  background: rgba(52,211,153,.18);
-  color: #86efac;
-}
-
-@media (max-width: 720px) {
-  .br-flow-steps { grid-template-columns: 1fr; }
-  .br-flow-tab { flex: 1; justify-content: center; }
-}
-
-.br-layout {
-  display: grid;
-  grid-template-columns: minmax(340px, 440px) 1fr;
-  gap: 1rem;
-  align-items: start;
-}
-
-.br-layout--builder,
-.br-layout--history {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-@media (max-width: 980px) {
-  .br-layout { grid-template-columns: 1fr; }
-}
-
-.br-panel {
-  background: var(--v2-hover-subtle);
-  border: 1px solid var(--v2-active);
-  border-radius: 14px;
-  padding: 1rem;
-}
-
-.br-panel-title {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: .875rem;
-  font-weight: 700;
-  color: var(--v2-accent);
-  margin-bottom: .875rem;
-}
-
-.br-collapse-toggle {
-  margin-left: auto;
-  border: 1px solid var(--v2-active);
-  background: rgba(0,0,0,.18);
-  color: var(--v2-text-secondary);
-  border-radius: 999px;
-  padding: .25rem .625rem;
-  font-size: .75rem;
-  cursor: pointer;
-}
-
-.br-collapse-toggle--inline {
-  margin-left: 0;
-}
-
-.br-panel-title--sub {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--v2-active);
-}
-
-.br-badge {
-  background: var(--v2-active-strong);
-  color: var(--v2-accent);
-  font-size: .6875rem;
-  font-weight: 600;
-  padding: .125rem .4375rem;
-  border-radius: 999px;
-}
-
-.br-form {
-  background: rgba(0,0,0,.18);
-  border: 1px solid var(--v2-border);
-  border-radius: 12px;
-  padding: .875rem;
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-}
-
-.br-form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .5rem;
-}
-
-.br-form__row--triple {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-@media (max-width: 540px) {
-  .br-form__row,
-  .br-form__row--triple {
-    grid-template-columns: 1fr;
-  }
-}
-
-.br-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.br-field-lbl { font-size: .6875rem; color: var(--v2-text-secondary); font-weight: 500; }
-.br-field-help { font-size: .6875rem; color: var(--v2-text-muted); line-height: 1.35; margin-top: 2px; }
-
-.br-field-input {
-  background: rgba(0,0,0,.3);
-  border: 1px solid var(--v2-active-strong);
-  border-radius: 8px;
-  padding: .4375rem .75rem;
-  color: var(--v2-text);
-  font-size: .875rem;
-  outline: none;
-  transition: border-color .15s;
-  width: 100%;
-}
-
-.br-field-input:focus { border-color: var(--v2-border-focus); }
-.br-field-input::placeholder { color: var(--v2-text-dim); }
-
-.br-multi {
-  position: relative;
-}
-
-.br-multi__trigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  border: 1px solid var(--v2-border-med);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--v2-hover-subtle) 88%, black 12%);
-  color: var(--v2-text);
-  padding: .5rem .75rem;
-  font-size: .875rem;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color .16s ease, background .16s ease;
-}
-
-.br-multi__trigger:hover {
-  border-color: var(--v2-border-focus);
-  background: color-mix(in srgb, var(--v2-hover-subtle) 78%, black 22%);
-}
-
-.br-multi__trigger span {
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.br-multi__trigger--placeholder span {
-  color: var(--v2-text-dim);
-}
-
-.br-multi__chevron--open {
-  transform: rotate(180deg);
-}
-
-.br-multi__menu {
-  position: absolute;
-  top: calc(100% + .4rem);
-  left: 0;
-  right: 0;
-  z-index: 35;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: .45rem;
-  border: 1px solid var(--v2-border-med);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--v2-hover-subtle) 96%, black 4%);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 16px 32px rgba(0,0,0,.42);
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.br-multi__option {
-  display: flex;
-  align-items: center;
-  gap: .625rem;
-  padding: .55rem .65rem;
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--v2-hover) 84%, black 16%);
-  color: var(--v2-text);
-  font-size: .8125rem;
-  cursor: pointer;
-}
-
-.br-multi__option:hover {
-  border-color: var(--v2-border-focus);
-  background: color-mix(in srgb, var(--v2-active-strong) 78%, black 22%);
-}
-
-.br-multi__check {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  accent-color: var(--v2-accent);
-}
-
-.br-session-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .5rem;
-}
-
-.br-session-summary__item {
-  padding: .625rem .75rem;
-  border-radius: 10px;
-  background: rgba(0,0,0,.22);
-  border: 1px solid var(--v2-border-med);
-}
-
-.br-session-summary__item--wide {
-  grid-column: span 2;
-}
-
-.br-session-summary__label {
-  font-size: .6875rem;
-  color: var(--v2-text-muted);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-.br-session-summary__value {
-  margin-top: .25rem;
-  font-size: .95rem;
-  font-weight: 800;
-  color: var(--v2-text);
-}
-
-.br-search { position: relative; display: flex; align-items: center; margin-bottom: .75rem; }
-.br-search__icon { position: absolute; left: .75rem; color: var(--v2-text-muted); pointer-events: none; }
-
-.br-batch-controls {
-  display: flex;
-  flex-direction: column;
-  gap: .375rem;
-  margin-top: .875rem;
-  margin-bottom: .75rem;
-}
-
-.br-search__input {
-  background: rgba(0,0,0,.3);
-  border: 1px solid var(--v2-border);
-  border-radius: 10px;
-  padding: .5rem 2.25rem;
-  color: var(--v2-text);
-  font-size: .875rem;
-  outline: none;
-  width: 100%;
-  transition: border-color .18s;
-}
-
-.br-search__input:focus { border-color: var(--v2-border-focus); }
-.br-search__input::placeholder { color: var(--v2-text-dim); }
-
-.br-search__clear {
-  position: absolute;
-  right: .625rem;
-  background: none;
-  border: none;
-  color: var(--v2-text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.br-search__clear:hover { color: var(--v2-accent); }
-.br-inline-loader { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; color: var(--v2-text-secondary); padding: .375rem 0; }
-
-.br-spin {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  border: 2px solid var(--v2-border-med);
-  border-top-color: var(--v2-accent);
-  border-radius: 50%;
-  animation: brspin .8s linear infinite;
-}
-
-@keyframes brspin { to { transform: rotate(360deg); } }
-
-.br-empty-hint { font-size: .8125rem; color: var(--v2-text-muted); padding: .375rem 0; }
-
-.br-results {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.br-result {
-  display: flex;
-  align-items: center;
-  gap: .625rem;
-  padding: .4375rem .625rem;
-  border-radius: 9px;
-  border: 1px solid transparent;
-  background: rgba(0,0,0,.15);
-  cursor: pointer;
-  transition: all .15s;
-  text-align: left;
-}
-
-.br-result:hover { background: var(--v2-glow); border-color: var(--v2-active-strong); }
-.br-result--disabled { border-color: var(--v2-active); background: rgba(0,0,0,.22); }
-.br-result__img { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
-.br-result__name { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
-.br-result__sub { font-size: .6875rem; color: var(--v2-text-muted); margin-top: 1px; }
-.br-result__info { flex: 1; min-width: 0; }
-.br-result__cta { font-size: .6875rem; font-weight: 700; color: var(--v2-accent); }
-
-.br-draft-list {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  margin-top: .75rem;
-  margin-bottom: .875rem;
-}
-
-.br-draft-card {
-  background: rgba(0,0,0,.18);
-  border: 1px solid var(--v2-active);
-  border-radius: 12px;
-  padding: .875rem;
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-}
-
-.br-draft-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: .75rem;
-}
-
-.br-draft-card__actions {
-  display: flex;
-  align-items: center;
-  gap: .375rem;
-}
-
-.br-draft-card__toggle {
-  border: 1px solid var(--v2-active);
-  background: rgba(0,0,0,.2);
-  color: var(--v2-text-secondary);
-  border-radius: 999px;
-  padding: .3125rem .625rem;
-  font-size: .75rem;
-  cursor: pointer;
-  transition: .15s ease;
-}
-
-.br-draft-card__toggle:hover {
-  color: var(--v2-text);
-  border-color: var(--v2-border-strong);
-}
-
-.br-draft-card__meta {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  min-width: 0;
-}
-
-.br-draft-card__img {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.br-draft-card__name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
-.br-draft-card__sub { font-size: .75rem; color: var(--v2-text-secondary); margin-top: 2px; }
-
-.br-draft-card__summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-  font-size: .75rem;
-  color: var(--v2-text-secondary);
-}
-
-.br-draft-card__summary span {
-  padding: .25rem .5rem;
-  border-radius: 999px;
-  background: rgba(0,0,0,.18);
-  border: 1px solid var(--v2-active);
-}
-
-.br-draft-card__details {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-}
-
-.br-item-runs {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-}
-
-.br-item-run {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  padding: .75rem;
-  border-radius: 10px;
-  background: rgba(0,0,0,.18);
-  border: 1px solid var(--v2-active);
-}
-
-.br-item-run__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-}
-
-.br-item-run__title {
-  font-size: .8125rem;
-  font-weight: 700;
-  color: var(--v2-text);
-}
-
-.br-item-run__del {
-  border: 1px solid rgba(248,113,113,.25);
-  background: rgba(248,113,113,.08);
-  color: #fca5a5;
-  border-radius: 999px;
-  padding: .25rem .625rem;
-  font-size: .75rem;
-  cursor: pointer;
-}
-
-.br-resource-list {
-  display: flex;
-  flex-direction: column;
-  gap: .375rem;
-  margin-top: .75rem;
-  margin-bottom: .875rem;
-}
-
-.br-resource-list--grouped {
-  margin-top: .5rem;
-  margin-bottom: 0;
-}
-
-.br-resource-view-toggle {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--v2-active);
-  border-radius: 10px;
-  background: rgba(0,0,0,.2);
-}
-
-.br-resource-view-toggle__btn {
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--v2-text-secondary);
-  padding: .375rem .625rem;
-  font-size: .75rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: .15s ease;
-}
-
-.br-resource-view-toggle__btn:hover,
-.br-resource-view-toggle__btn--active {
-  background: var(--v2-active-strong);
-  color: var(--v2-text);
-}
-
-.br-resource-groups {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  margin-top: .75rem;
-  margin-bottom: .875rem;
-}
-
-.br-resource-group {
-  padding: .75rem;
-  border: 1px solid var(--v2-active);
-  border-radius: 12px;
-  background: rgba(0,0,0,.16);
-}
-
-.br-resource-group__head {
-  display: flex;
-  align-items: center;
-  gap: .625rem;
-}
-
-.br-resource-group__img {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.br-resource-group__meta {
-  min-width: 0;
-}
-
-.br-resource-group__name {
-  font-size: .875rem;
-  font-weight: 800;
-  color: var(--v2-text);
-}
-
-.br-resource-group__sub {
-  font-size: .6875rem;
-  color: var(--v2-text-secondary);
-  margin-top: 2px;
-}
-
-.br-resource-row {
-  display: grid;
-  grid-template-columns: 20px 28px 1fr auto;
-  align-items: center;
-  gap: .625rem;
-  padding: .5rem .625rem;
-  border-radius: 10px;
-  background: rgba(0,0,0,.18);
-  border: 1px solid var(--v2-active);
-  cursor: pointer;
-}
-
-.br-resource-row--saved { cursor: default; }
-
-.br-resource-row__check {
-  width: 16px;
-  height: 16px;
-  accent-color: #86efac;
-}
-
-.br-resource-row__check--static {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #86efac;
-  font-weight: 700;
-}
-
-.br-resource-row__img {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-
-.br-resource-row__img--fallback {
-  border-radius: 6px;
-  background: rgba(255,255,255,.05);
-}
-
-.br-resource-row__meta {
-  min-width: 0;
-}
-
-.br-resource-row__name {
-  font-size: .8125rem;
-  font-weight: 700;
-  color: var(--v2-text);
-}
-
-.br-resource-row__name--done {
-  text-decoration: line-through;
-  opacity: .65;
-}
-
-.br-resource-row__sub {
-  font-size: .6875rem;
-  color: var(--v2-text-secondary);
-  margin-top: 2px;
-}
-
-.br-resource-row__qty {
-  font-size: .875rem;
-  font-weight: 800;
-  color: var(--v2-text);
-}
-
-.br-profit-preview {
-  background: rgba(0,0,0,.2);
-  border: 1px solid var(--v2-active);
-  border-radius: 8px;
-  padding: .5rem .75rem;
-  display: flex;
-  flex-direction: column;
-  gap: .25rem;
-}
-
-.br-profit-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: .8125rem;
-  color: var(--v2-text-secondary);
-}
-
-.br-submit-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .5rem;
-  padding: .625rem 1rem;
-  border-radius: 10px;
-  background: var(--v2-border-med);
-  border: 1px solid var(--v2-border-strong);
-  color: var(--v2-text);
-  font-size: .875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .18s;
-  width: 100%;
-}
-
-.br-submit-btn:hover:not(:disabled) { background: var(--v2-border-strong); }
-.br-submit-btn:disabled { opacity: .35; cursor: not-allowed; }
-.br-submit-btn--secondary { width: auto; justify-content: flex-start; }
-
-.br-builder-actions {
-  display: grid;
-  grid-template-columns: auto minmax(220px, 1fr);
-  gap: .625rem;
-  align-items: center;
-}
-
-@media (max-width: 640px) {
-  .br-builder-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .br-builder-actions .br-submit-btn--secondary {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-.br-log-empty {
-  padding: 2.5rem 1rem;
-  text-align: center;
-  color: var(--v2-text-muted);
-  font-size: .9375rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .25rem;
-}
-
-.br-log-empty--compact {
-  padding: 1rem;
-  margin-top: .75rem;
-  margin-bottom: .875rem;
-  border: 1px dashed var(--v2-active);
-  border-radius: 12px;
-}
-
-.br-log-scroll {
-  display: flex;
-  flex-direction: column;
-  gap: .625rem;
-  max-height: calc(100vh - 220px);
-  overflow-y: auto;
-}
-
-.br-entry {
-  background: var(--v2-hover-subtle);
-  border: 1px solid var(--v2-active);
-  border-radius: 12px;
-  padding: .875rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: .625rem;
-}
-
-.br-entry:hover { border-color: var(--v2-border-strong); }
-.br-entry__header { display: flex; align-items: flex-start; gap: .75rem; }
-.br-entry__meta { flex: 1; min-width: 0; }
-.br-entry__name { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
-.br-entry__sub { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 1px; }
-.br-entry__date { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 3px; }
-.br-entry__actions { display: flex; align-items: center; gap: .375rem; flex-shrink: 0; }
-.br-entry__action {
-  border: 1px solid var(--v2-border-med);
-  background: var(--v2-bg);
-  color: var(--v2-text-secondary);
-  border-radius: 6px;
-  padding: .25rem .5rem;
-  font-size: .6875rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .15s;
-}
-.br-entry__action:hover {
-  color: var(--v2-text);
-  border-color: var(--v2-border-strong);
-  background: var(--v2-hover);
-}
-
-.br-entry__del {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  color: var(--v2-text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 2px;
-  border-radius: 5px;
-  transition: all .15s;
-}
-
-.br-entry__del:hover { color: #f87171; background: rgba(248,113,113,.1); }
-
-.br-entry__prices {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: .5rem;
-}
-
-@media (max-width: 640px) {
-  .br-entry__prices { grid-template-columns: 1fr; }
-}
-
-.br-price-cell { padding: .5rem .625rem; border-radius: 8px; text-align: center; }
-.br-price-cell--craft { background: var(--v2-hover); border: 1px solid var(--v2-border-med); }
-.br-price-cell--hdv { background: rgba(96,165,250,.06); border: 1px solid rgba(96,165,250,.15); }
-.br-price-cell--rune { background: var(--v2-hover); border: 1px solid var(--v2-border-med); }
-.br-price-cell__lbl { font-size: .625rem; color: var(--v2-text-dim); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
-.br-price-cell__val { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
-
-.br-entry__profits { display: flex; flex-wrap: wrap; gap: .375rem; }
-
-.br-profit-pill {
-  display: flex;
-  align-items: center;
-  gap: .3125rem;
-  padding: .3125rem .625rem;
-  border-radius: 999px;
-  font-size: .75rem;
-  font-weight: 600;
-}
-
-.br-profit-pill--pos { background: rgba(52,211,153,.1); color: #34d399; border: 1px solid rgba(52,211,153,.22); }
-.br-profit-pill--neg { background: rgba(248,113,113,.1); color: #f87171; border: 1px solid rgba(248,113,113,.22); }
-.br-profit--up { color: #86efac; }
-.br-profit--down { color: #fca5a5; }
-
-.br-session-items {
-  display: flex;
-  flex-direction: column;
-  gap: .375rem;
-}
-
-.br-session-item-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  padding: .5rem .625rem;
-  border-radius: 8px;
-  background: rgba(0,0,0,.15);
-  border: 1px solid var(--v2-active);
-}
-
-@media (max-width: 640px) {
-  .br-session-item-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-.br-session-item-row__meta {
-  display: flex;
-  align-items: center;
-  gap: .625rem;
-  min-width: 0;
-}
-
-.br-session-item-row__img {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.br-session-item-row__name { font-size: .8125rem; font-weight: 700; color: var(--v2-text); }
-.br-session-item-row__sub { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 2px; }
-.br-session-item-row__profit { font-size: .8125rem; font-weight: 700; flex-shrink: 0; }
-.br-entry__notes { font-size: .75rem; color: var(--v2-text-secondary); font-style: italic; }
-</style>

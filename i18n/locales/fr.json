@@ -652,13 +652,43 @@
         "kamasAfterBuying": "Kamas après achat",
         "estimatedRuneValue": "Valeur estimée des runes",
         "runNote": "Note du run",
-        "itemNote": "Note sur l'objet"
+        "itemNote": "Note sur l'objet",
+        "levelRange": "Plage de niveau",
+        "theoreticalRuneValue": "Valeur théorique des runes",
+        "actualSoldRuneValue": "Valeur réellement vendue",
+        "unsoldRuneValue": "Valeur des runes invendues",
+        "saleNotes": "Notes de vente",
+        "rune": "Rune",
+        "quantityGot": "Quantité obtenue",
+        "soldQuantity": "Qté vendue",
+        "soldValue": "Valeur vendue",
+        "candidateCategory": "Catégorie candidate",
+        "bankroll": "Bankroll",
+        "safetyMarkup": "Marge de sécurité %",
+        "pessimisticMultiplier": "Multiplicateur pessimiste",
+        "batchBankrollPercent": "% de bankroll par lot",
+        "maxBatchCap": "Plafond de lot",
+        "status": "Statut",
+        "manualRuneValue": "Valeur de runes estimée manuellement",
+        "sampleSize": "Taille d’échantillon",
+        "priceName": "Nom",
+        "priceItemId": "Id objet / ressource / rune",
+        "priceKind": "Type",
+        "price": "Prix",
+        "quantityBasis": "Quantité de référence",
+        "priceNote": "Note"
       },
       "placeholders": {
         "selectCategory": "Sélectionner une catégorie",
         "sessionNotes": "Que cibles-tu dans ce batch ?",
         "runNote": "Coef, pression du marché, décision de retry...",
-        "itemNote": "Conclusion globale pour cet objet"
+        "itemNote": "Conclusion globale pour cet objet",
+        "saleNotes": "Prix de vente, date, notes de sous-cotation...",
+        "typeRuneName": "Ou saisis le nom de la rune",
+        "selectRune": "Choisir une rune",
+        "selectStatus": "Choisir un statut",
+        "selectKind": "Choisir un type",
+        "priceName": "Nom de rune ou de ressource"
       },
       "actions": {
         "loadingBatch": "Chargement du batch...",
@@ -680,7 +710,13 @@
         "fetchRecipesForDraft": "Récupérer les recettes du draft",
         "saveSession": "Enregistrer la session",
         "updateSession": "Mettre à jour la session",
-        "deleteSession": "Supprimer la session"
+        "deleteSession": "Supprimer la session",
+        "addRune": "Ajouter une rune",
+        "removeEntry": "Supprimer l’entrée",
+        "savePrice": "Enregistrer le prix",
+        "loadCandidates": "Charger les objets candidats",
+        "trackEv": "Suivre l’EV",
+        "applyHistoryStatus": "Appliquer le statut de l’historique"
       },
       "messages": {
         "batchHelp": "Utilise la catégorie et la plage de niveaux sélectionnées pour récupérer les objets correspondants depuis DofusDB.",
@@ -688,7 +724,12 @@
         "emptyDraft": "Recherchez un objet, ajoutez-le à la session de draft, puis saisissez la valeur totale des runes obtenues après l'avoir brisé en jeu.",
         "recipeHelp": "Agrège tous les ingrédients de recette des objets du draft selon leur quantité totale craftée.",
         "noSessions": "Aucune session de brisage enregistrée.",
-        "noSessionsHint": "Créez une session de draft à gauche puis enregistrez-la une fois votre batch saisi."
+        "noSessionsHint": "Créez une session de draft à gauche puis enregistrez-la une fois votre batch saisi.",
+        "noRuneOutputs": "Aucune rune enregistrée pour ce run.",
+        "emptyOpportunities": "Ajoute des objets candidats pour calculer le coût de craft, l’EV, le risque et la taille de lot adaptée à ta bankroll.",
+        "emptyPrices": "Aucun prix de marché saisi pour l’instant.",
+        "candidateHelp": "Utilise les mêmes filtres de catégorie et de niveau que le constructeur d’historique, puis ajoute des candidats ci-dessous.",
+        "evNotGuaranteed": "EV, pas un profit garanti"
       },
       "summary": {
         "draftItems": "Objets du draft",
@@ -711,10 +752,86 @@
         "resourceViewMode": "Vue de la checklist des ressources",
         "craftedQuantity": "x{quantity} craftés",
         "generalSession": "Session générale",
-        "runCount": "{count} run | {count} runs"
+        "runCount": "{count} run | {count} runs",
+        "soldConfirmed": "Vente des runes confirmée",
+        "runeOutputs": "Runes obtenues",
+        "runeOutputsHelp": "Indique combien de chaque rune tu as obtenu. La valeur théorique utilise le dernier prix rune des Prix du marché.",
+        "outputPaperValue": "Valeur théorique obtenue",
+        "outputSoldValue": "Valeur vendue obtenue",
+        "paperProfit": "Profit théorique",
+        "realizedProfit": "Profit réalisé",
+        "unitPrice": "Unité",
+        "latestRunePrices": "Derniers prix de runes",
+        "latestResourcePrices": "Derniers prix ressources / objets",
+        "recentPriceEntries": "Entrées de prix récentes",
+        "ev": "EV",
+        "batch": "Lot",
+        "missingPrices": "Prix manquants",
+        "craftCost": "Coût de craft",
+        "conservativeCost": "Coût prudent",
+        "estimatedRunes": "Runes estimées",
+        "pessimisticProfit": "Profit pessimiste",
+        "opportunityScope": "{status} · Risque {risk} · lot de validation x{quantity}",
+        "soldConfirmedSessions": "Sessions à vente confirmée : {count}",
+        "pricePoints": "{count} point | {count} points",
+        "vsPrevious": "vs précédent",
+        "perBasis": "/ x{basis}",
+        "runCountShort": "x{count}",
+        "typeRuneManually": "Saisir le nom de la rune manuellement",
+        "eachFreshness": "{price} pièce · {freshness}"
       },
       "common": {
         "resource": "Ressource"
+      },
+      "tabs": {
+        "history": "Historique réalisé",
+        "opportunities": "Opportunités",
+        "prices": "Prix du marché"
+      },
+      "nextAction": {
+        "finishTitle": "Termine le brisage en cours",
+        "finishDesc": "Enregistre la session avant de regarder d’autres opportunités, pour que la valeur théorique et les ventes de runes restent liées à une seule expérience.",
+        "finishCta": "Continuer la session",
+        "pricesTitle": "Ajoute des prix de runes avant de te fier aux opportunités",
+        "pricesDesc": "Les estimations de brisage ne valent que si les prix runes/ressources sont récents. Commence par les prix que tu relèves vraiment en HDV.",
+        "pricesCta": "Ouvrir les prix",
+        "startTitle": "Enregistre une petite session de brisage réalisée",
+        "startDesc": "Commence par l’historique. Les opportunités ne sont que de l’espérance de gain ; le profit devient réel quand les runes sont vendues ou confirmées.",
+        "startCta": "Démarrer une session"
+      },
+      "warnings": {
+        "historical": "C’est un résultat historique, pas une prédiction. La valeur des runes reste théorique tant qu’elles ne sont pas vendues.",
+        "opportunities": "Les opportunités futures reposent sur des prix saisis manuellement et des hypothèses de risque. Valide d’abord avec de petits lots.",
+        "prices": "Carnet de prix manuel. Ajoute les prix des runes matin et soir ; chaque enregistrement est conservé comme point d’historique horodaté. Frais sous 24h, vieillissant 24-72h, périmé au-delà de 72h.",
+        "runeTheoretical": "La valeur des runes est théorique tant qu’elles ne sont pas vendues."
+      },
+      "freshness": {
+        "fresh": "Frais",
+        "aging": "Vieillissant",
+        "stale": "Périmé"
+      },
+      "kind": {
+        "resource": "Ressource",
+        "rune": "Rune",
+        "finishedItem": "Objet fini"
+      },
+      "opportunityStatus": {
+        "idea": "Idée",
+        "ideaDesc": "Piste fraîche, pas encore testée.",
+        "testBatch": "Lot de test",
+        "testBatchDesc": "Un run rentable avec vente confirmée.",
+        "validated": "Validé",
+        "validatedDesc": "Deux runs rentables distincts avec vente confirmée.",
+        "scaled": "Passé à l’échelle",
+        "scaledDesc": "Validé et répété prudemment.",
+        "retired": "Abandonné",
+        "retiredDesc": "Ne vaut plus la peine d’être testé."
+      },
+      "scope": {
+        "none": "Aucune portée précisée",
+        "range": "Niv. {min}-{max}",
+        "minOnly": "Niv. {min}+",
+        "maxOnly": "Jusqu’au niv. {max}"
       }
     },
     "succes": {
