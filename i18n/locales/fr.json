@@ -1756,6 +1756,36 @@
           "add": "Ajouter une stat",
           "empty": "Aucune ligne de stat sauvegardée pour le moment. Ajoute un screenshot de stats ou saisis-les manuellement."
         }
+      },
+      "flipFlow": {
+        "eyebrow": "Repérage de flips",
+        "title": "Utilise les prix observés pour juger si cet objet est bon marché",
+        "savedCount": "{count} prix enregistré | {count} prix enregistrés",
+        "scanTitle": "1. Scanner les prix HDV",
+        "scanHint": "L’OCR lit les annonces en cours depuis une capture d’écran.",
+        "pasteTitle": "2. Coller une capture",
+        "pasteHint": "Chemin rapide si ta capture du marché est dans le presse-papiers.",
+        "compareTitle": "3. Comparer les meilleurs achats",
+        "compareHint": "Trie les annonces enregistrées par sous-évaluées / meilleur achat.",
+        "manageTitle": "4. Gérer les flips",
+        "manageHint": "Les annonces suivies continuent dans Flip Items.",
+        "rule": "Règle de base : le prix de vente visé doit venir d’annonces observées comparables, pas d’un prix rêvé. Enregistre plusieurs prix, puis ne suis que celle clairement sous-évaluée.",
+        "preparing": "Préparation de la comparaison des prix…",
+        "loadError": "Impossible de charger les données de comparaison. Tu peux toujours enregistrer des prix observés manuellement."
+      },
+      "nextStep": {
+        "eyebrow": "Prochaine étape",
+        "best": "Meilleur candidat : achète autour de {buy}, remets en vente vers {relist}.",
+        "noneYet": "Pas encore d’annonce clairement bon marché. Continue de scanner ou attends un prix plus bas.",
+        "needMore": "Enregistre au moins 2 annonces avec leurs stats avant de te fier à un signal de flip.",
+        "hint": "Trie par Meilleur achat, active Candidats à l’achat uniquement, puis ne suis que les annonces marquées sous-évaluées.",
+        "trackBest": "Suivre le meilleur flip"
+      },
+      "advancedValuation": {
+        "title": "Besoin du tableau de valorisation complet ?",
+        "hint": "La recommandation simple ci-dessus suffit pour la plupart des décisions de flip.",
+        "show": "Afficher le tableau",
+        "hide": "Masquer le tableau"
       }
     },
     "aggregate": {

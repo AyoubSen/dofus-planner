@@ -1756,6 +1756,36 @@
           "add": "Add stat",
           "empty": "No stat lines saved yet. Upload a stats screenshot or add them manually."
         }
+      },
+      "flipFlow": {
+        "eyebrow": "Flip discovery",
+        "title": "Use observed prices to decide if this item is cheap",
+        "savedCount": "{count} saved price | {count} saved prices",
+        "scanTitle": "1. Scan HDV prices",
+        "scanHint": "OCR reads the current listings from a screenshot.",
+        "pasteTitle": "2. Paste screenshot",
+        "pasteHint": "Fast path if your market screenshot is in clipboard.",
+        "compareTitle": "3. Compare best buys",
+        "compareHint": "Sort saved listings by underpriced / best buy.",
+        "manageTitle": "4. Manage flips",
+        "manageHint": "Tracked listings continue in Flip Items.",
+        "rule": "Beginner rule: target sell price should come from comparable observed listings, not a dream price. Save several prices, then track only the clearly underpriced one.",
+        "preparing": "Preparing price comparison…",
+        "loadError": "Could not load item comparison data. You can still save observed prices manually."
+      },
+      "nextStep": {
+        "eyebrow": "Beginner next step",
+        "best": "Best candidate: buy around {buy}, relist near {relist}.",
+        "noneYet": "No clear cheap listing yet. Keep scanning or wait for a lower price.",
+        "needMore": "Save at least 2 listings with stats before trusting a flip signal.",
+        "hint": "Sort by Best buy, enable Buy candidates only, then only track listings marked underpriced.",
+        "trackBest": "Track best flip"
+      },
+      "advancedValuation": {
+        "title": "Want the full valuation table?",
+        "hint": "The simple recommendation above is enough for most flip decisions.",
+        "show": "Show valuation table",
+        "hide": "Hide valuation table"
       }
     },
     "aggregate": {
