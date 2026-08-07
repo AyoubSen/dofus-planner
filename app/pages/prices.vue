@@ -1,339 +1,315 @@
 <template>
-  <div class="mp-page">
-    <div v-if="!hasContext" class="v2-no-context">
-      <div class="v2-no-context__title">Select a character first</div>
-      <div class="v2-no-context__desc">Prices are saved locally per character and server.</div>
+  <div v-if="hasContext" class="flex flex-col gap-5">
+    <!-- ── Header ───────────────────────────────────────────────────────── -->
+    <div class="flex flex-wrap items-center gap-3">
+      <UiSegmented v-model="activeTab" :options="tabOptions" :aria-label="$t('prices.modeLabel')" @update:model-value="onTabChange" />
+
+      <p class="text-sm text-subtle">
+        {{ $t('prices.trackedCount', { count: trackedItems.length }) }}
+        · {{ $t('prices.checkedToday', { count: todayLoggedCount }) }}
+      </p>
+
+      <div class="ml-auto flex items-center gap-2">
+        <UiButton size="sm" :disabled="!trackedItems.length" @click="exportPrices">
+          <template #icon><UiIcon name="download" /></template>
+          {{ $t('prices.export') }}
+        </UiButton>
+        <label class="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-line bg-raised px-2.5 text-xs text-ink transition-colors hover:border-line-strong">
+          <UiIcon name="upload" />
+          {{ $t('prices.import') }}
+          <input type="file" accept=".json,application/json" class="hidden" @change="importPrices">
+        </label>
+      </div>
+      <p v-if="transferMessage" :class="['w-full text-xs', transferError ? 'text-negative' : 'text-positive']">
+        {{ transferMessage }}
+      </p>
     </div>
 
-    <template v-else>
-      <header class="mp-topbar">
-        <div class="mp-title">
-          <h1>Prices</h1>
-          <span>{{ trackedItems.length }} tracked · {{ todayLoggedCount }} checked today</span>
-          <div class="mp-tabs" role="tablist" aria-label="Prices mode">
-            <button class="mp-tab" :class="{ 'mp-tab--active': activeTab === 'tracked' }" type="button" @click="activeTab = 'tracked'">
-              Tracked
-            </button>
-            <button class="mp-tab" :class="{ 'mp-tab--active': activeTab === 'pressure' }" type="button" @click="openPressureTab">
-              Pressure
-            </button>
-          </div>
-        </div>
-
-        <div class="mp-tools">
-          <button class="mp-tool-btn" type="button" :disabled="!trackedItems.length" @click="exportPrices">
-            Export
-          </button>
-          <label class="mp-tool-btn mp-tool-btn--label">
-            Import
-            <input type="file" accept=".json,application/json" @change="importPrices" />
-          </label>
-          <span v-if="transferMessage" class="mp-transfer-msg" :class="{ 'mp-transfer-msg--error': transferError }">
-            {{ transferMessage }}
-          </span>
-        </div>
-
-        <div class="mp-add">
-          <input
+    <!-- ── Tracked ──────────────────────────────────────────────────────── -->
+    <template v-if="activeTab === 'tracked'">
+      <UiToolbar>
+        <template #search>
+          <UiInput
             v-model.trim="draftName"
-            class="mp-input"
-            type="text"
-            placeholder="Add item to track"
+            :placeholder="$t('prices.addPlaceholder')"
             @keyup.enter="addTrackedItem"
-          />
-          <button class="mp-btn" type="button" :disabled="!draftName" @click="addTrackedItem">
-            Track
-          </button>
-        </div>
+          >
+            <template #prefix><UiIcon name="plus" /></template>
+          </UiInput>
+        </template>
+        <template #filters>
+          <UiButton variant="primary" size="sm" :disabled="!draftName" @click="addTrackedItem">
+            {{ $t('prices.track') }}
+          </UiButton>
+          <UiSelect v-model="categoryFilter" :options="categoryFilterOptions" size="sm" class="w-40" :aria-label="$t('prices.category')" />
+          <UiSelect v-model="chartPeriod" :options="chartPeriodOptions" size="sm" class="w-36" :aria-label="$t('prices.chartPeriod')" />
+        </template>
+      </UiToolbar>
 
-        <div v-if="activeTab === 'tracked'" class="mp-filters">
-          <V2Select
-            v-model="categoryFilter"
-            :options="categoryFilterOptions"
-            placeholder="Category"
-            size="compact"
-            aria-label="Category filter"
-          />
-          <V2Select
-            v-model="chartPeriod"
-            :options="chartPeriodOptions"
-            placeholder="Chart"
-            size="compact"
-            aria-label="Chart period"
-          />
-        </div>
-      </header>
+      <UiEmptyState
+        v-if="!trackedItems.length"
+        :title="$t('prices.emptyTitle')"
+        :description="$t('prices.emptyDesc')"
+      >
+        <template #icon><UiIcon name="prices" /></template>
+      </UiEmptyState>
 
-      <section v-if="activeTab === 'pressure'" class="mp-pressure">
-        <div class="mp-pressure-head">
-          <div>
-            <h2>Recipe pressure</h2>
-            <p>Resources used by popular craft targets. Track the ones with pressure before checking HDV prices.</p>
+      <UiEmptyState v-else-if="!sortedItems.length" :title="$t('prices.emptyCategory')" />
+
+      <div v-else class="flex flex-col gap-3">
+        <UiCard
+          v-for="item in sortedItems"
+          :key="item.id"
+          :variant="lastChangedItemId === item.id ? 'raised' : 'flat'"
+        >
+          <!-- Identity -->
+          <div class="flex flex-wrap items-start gap-3">
+            <div class="min-w-0 flex-1">
+              <UiInput
+                v-if="editingItemId === item.id"
+                v-model.trim="editName"
+                size="sm"
+                :placeholder="$t('prices.itemName')"
+                @keyup.enter="saveItemEdit(item.id)"
+              />
+              <template v-else>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 class="truncate text-sm font-semibold text-ink">{{ item.name }}</h2>
+                  <UiButton variant="ghost" size="sm" @click="copyItemName(item)">
+                    {{ copiedItemId === item.id ? $t('v2.kamas.scanner.copied') : $t('prices.copy') }}
+                  </UiButton>
+                  <UiBadge v-if="lastChangedItemId === item.id" tone="accent">{{ $t('prices.lastUpdated') }}</UiBadge>
+                </div>
+                <p class="mt-0.5 text-xs text-subtle">
+                  {{ $t('prices.observationCount', { count: item.observations.length }) }}
+                  · {{ $t('prices.latest') }} <UiMoney :value="getLatestObservation(item)?.price ?? 0" short size="sm" />
+                </p>
+              </template>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+              <UiSelect
+                :model-value="item.category"
+                :options="categoryOptions"
+                size="sm"
+                class="w-32"
+                :aria-label="$t('prices.category')"
+                @update:model-value="setItemCategory(item.id, $event)"
+              />
+              <UiButton v-if="editingItemId !== item.id" variant="ghost" size="sm" @click="startEditingItem(item)">
+                {{ $t('prices.edit') }}
+              </UiButton>
+              <UiButton v-else variant="primary" size="sm" :disabled="!editName" @click="saveItemEdit(item.id)">
+                {{ $t('prices.save') }}
+              </UiButton>
+              <!-- Two-step delete: the first click arms, the second confirms. -->
+              <UiButton variant="danger" size="sm" @click="removeTrackedItem(item.id)">
+                {{ pendingRemoveItemId === item.id ? $t('prices.confirm') : $t('prices.remove') }}
+              </UiButton>
+            </div>
           </div>
-          <div class="mp-pressure-actions">
-            <V2Select
-              v-model="pressureSlot"
-              :options="pressureSlotOptions"
-              placeholder="Slot"
-              size="compact"
-              aria-label="Pressure slot"
-            />
-            <V2Select
-              v-model="pressureLimit"
-              :options="pressureLimitOptions"
-              placeholder="Top items"
-              size="compact"
-              aria-label="Pressure item limit"
-            />
-            <V2Select
-              v-model="pressureSort"
-              :options="pressureSortOptions"
-              placeholder="Sort"
-              size="compact"
-              aria-label="Pressure sort"
-            />
-            <button class="mp-tool-btn" type="button" :disabled="pressureState.isLoading" @click="refreshPressure">
-              {{ pressureState.isLoading ? 'Loading' : 'Refresh' }}
-            </button>
-            <button class="mp-tool-btn" type="button" :disabled="!untrackedPressureResources.length" @click="trackTopPressureResources">
-              Track top
-            </button>
-            <button class="mp-tool-btn" type="button" :disabled="!untrackedSelectedPressureResources.length" @click="trackSelectedPressureResources">
-              Track selected
-            </button>
+
+          <!-- Entry -->
+          <div class="mt-3 flex flex-wrap items-end gap-2">
+            <UiField :label="$t('prices.hdvPrice')" class="w-36">
+              <UiNumberInput
+                v-model="priceDrafts[item.id]"
+                :min="0"
+                size="sm"
+                :placeholder="$t('prices.hdvPrice')"
+                @keyup.enter="addObservation(item.id)"
+              />
+            </UiField>
+            <UiField :label="$t('prices.lot')" class="w-24">
+              <UiSelect
+                :model-value="lotDrafts[item.id] || 100"
+                :options="lotOptions"
+                size="sm"
+                :aria-label="$t('prices.lot')"
+                @update:model-value="setLotDraft(item.id, $event)"
+              />
+            </UiField>
+            <UiField :label="$t('prices.date')" class="w-40">
+              <UiDateInput v-model="dateDrafts[item.id]" size="sm" />
+            </UiField>
+            <UiField :label="$t('prices.time')" class="w-28">
+              <UiSelect
+                :model-value="slotDrafts[item.id] || 'auto'"
+                :options="slotOptions"
+                size="sm"
+                :aria-label="$t('prices.time')"
+                @update:model-value="setSlotDraft(item.id, $event)"
+              />
+            </UiField>
+            <UiButton variant="primary" size="sm" :disabled="!priceDrafts[item.id]" @click="addObservation(item.id)">
+              {{ $t('prices.save') }}
+            </UiButton>
           </div>
+
+          <!-- Metrics + chart -->
+          <div class="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-1.5 self-start">
+              <div v-for="metric in itemMetrics(item)" :key="metric.label" class="flex items-baseline justify-between gap-2">
+                <dt class="text-xs text-subtle">{{ metric.label }}</dt>
+                <dd class="tabular text-sm text-ink">{{ metric.value }}</dd>
+              </div>
+            </dl>
+
+            <div v-if="getChartPoints(item).length >= 2" class="h-20">
+              <UiSparkline :points="getChartPoints(item)" :label="$t('prices.chartLabel', { name: item.name })" />
+            </div>
+          </div>
+
+          <!-- History -->
+          <div v-if="item.observations.length" class="mt-3 border-t border-line pt-2">
+            <div
+              v-for="observation in item.observations.slice(0, 8)"
+              :key="observation.id"
+              class="group flex items-center gap-3 py-1 text-xs"
+            >
+              <span class="min-w-0 flex-1 truncate text-subtle">
+                {{ formatDateTime(observation.createdAt) }} · {{ slotLabel(observation.slot) }} · ×{{ getLotSize(observation) }}
+              </span>
+              <UiMoney :value="observation.price" short size="sm" />
+              <UiButton
+                variant="ghost"
+                size="sm"
+                icon
+                class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                :aria-label="$t('prices.deletePrice')"
+                @click="removeObservation(item.id, observation.id)"
+              >
+                <UiIcon name="close" />
+              </UiButton>
+            </div>
+          </div>
+          <p v-else class="mt-3 text-xs text-subtle">{{ $t('prices.noPrices') }}</p>
+        </UiCard>
+      </div>
+    </template>
+
+    <!-- ── Pressure ─────────────────────────────────────────────────────── -->
+    <template v-else>
+      <UiPageSection :title="$t('prices.pressure.title')" :description="$t('prices.pressure.desc')">
+        <template #actions>
+          <UiButton size="sm" :disabled="pressureState.isLoading" :loading="pressureState.isLoading" @click="refreshPressure">
+            {{ $t('prices.pressure.refresh') }}
+          </UiButton>
+          <UiButton size="sm" :disabled="!untrackedPressureResources.length" @click="trackTopPressureResources">
+            {{ $t('prices.pressure.trackTop') }}
+          </UiButton>
+          <UiButton size="sm" :disabled="!untrackedSelectedPressureResources.length" @click="trackSelectedPressureResources">
+            {{ $t('prices.pressure.trackSelected') }}
+          </UiButton>
+        </template>
+
+        <UiToolbar>
+          <template #filters>
+            <UiSelect v-model="pressureSlot" :options="pressureSlotOptions" size="sm" class="w-36" :aria-label="$t('prices.pressure.slot')" />
+            <UiSelect v-model="pressureLimit" :options="pressureLimitOptions" size="sm" class="w-32" :aria-label="$t('prices.pressure.topItems')" />
+            <UiSelect v-model="pressureSort" :options="pressureSortOptions" size="sm" class="w-36" :aria-label="$t('prices.pressure.sort')" />
+          </template>
+          <template #extra>
+            <UiSelect v-model="pressureFilters.element" :options="pressureElementOptions" size="sm" class="w-32" :aria-label="$t('prices.pressure.element')" />
+            <UiSelect v-model="pressureFilters.mode" :options="pressureModeOptions" size="sm" class="w-32" :aria-label="$t('prices.pressure.mode')" />
+            <UiSelect v-model="pressureFilters.classe" :options="pressureClassOptions" size="sm" class="w-32" :aria-label="$t('prices.pressure.class')" />
+            <UiSelect v-model="pressureFilters.level" :options="pressureLevelOptions" size="sm" class="w-28" :aria-label="$t('prices.pressure.level')" />
+            <UiSelect v-model="pressureFilters.budget" :options="pressureBudgetOptions" size="sm" class="w-32" :aria-label="$t('prices.pressure.budget')" />
+
+            <UiButton
+              v-for="toggle in pressureToggles"
+              :key="toggle.key"
+              :variant="toggle.on ? 'primary' : 'ghost'"
+              size="sm"
+              @click="toggle.action()"
+            >
+              {{ toggle.label }}
+            </UiButton>
+          </template>
+        </UiToolbar>
+
+        <UiEmptyState v-if="pressureState.error" :title="pressureState.error">
+          <template #icon><UiIcon name="alert" /></template>
+        </UiEmptyState>
+
+        <div v-else-if="pressureState.isLoading" class="flex flex-col gap-2">
+          <UiSkeleton v-for="i in 5" :key="i" height="6rem" />
         </div>
 
-        <div class="mp-pressure-filters">
-          <V2Select
-            v-model="pressureFilters.element"
-            :options="pressureElementOptions"
-            placeholder="Element"
-            size="compact"
-            aria-label="Pressure element"
-          />
-          <V2Select
-            v-model="pressureFilters.mode"
-            :options="pressureModeOptions"
-            placeholder="Mode"
-            size="compact"
-            aria-label="Pressure mode"
-          />
-          <V2Select
-            v-model="pressureFilters.classe"
-            :options="pressureClassOptions"
-            placeholder="Class"
-            size="compact"
-            aria-label="Pressure class"
-          />
-          <V2Select
-            v-model="pressureFilters.level"
-            :options="pressureLevelOptions"
-            placeholder="Level"
-            size="compact"
-            aria-label="Pressure level"
-          />
-          <V2Select
-            v-model="pressureFilters.budget"
-            :options="pressureBudgetOptions"
-            placeholder="Budget"
-            size="compact"
-            aria-label="Pressure budget"
-          />
-          <button class="mp-filter-chip" :class="{ 'mp-filter-chip--on': pressureFilters.hideSpecial }" type="button" @click="pressureFilters.hideSpecial = !pressureFilters.hideSpecial">
-            Hide special
-          </button>
-          <button class="mp-filter-chip" :class="{ 'mp-filter-chip--on': pressureFilters.onlyMonsterDrops }" type="button" @click="pressureFilters.onlyMonsterDrops = !pressureFilters.onlyMonsterDrops">
-            Monster drops
-          </button>
-          <button class="mp-filter-chip" :class="{ 'mp-filter-chip--on': pressureFilters.onlyNonCrafted }" type="button" @click="pressureFilters.onlyNonCrafted = !pressureFilters.onlyNonCrafted">
-            Non-crafted
-          </button>
-          <button class="mp-filter-chip" :class="{ 'mp-filter-chip--on': pressureFilters.minItemUsage === 2 }" type="button" @click="pressureFilters.minItemUsage = pressureFilters.minItemUsage === 2 ? 1 : 2">
-            Used by 2+
-          </button>
-        </div>
+        <UiEmptyState
+          v-else-if="!pressureResources.length"
+          :title="$t('prices.pressure.emptyTitle')"
+          :description="$t('prices.pressure.emptyDesc')"
+        >
+          <template #icon><UiIcon name="crafting" /></template>
+        </UiEmptyState>
 
-        <div v-if="pressureState.error" class="mp-empty-page mp-empty-page--error">
-          {{ pressureState.error }}
-        </div>
-        <div v-else-if="pressureState.isLoading" class="mp-empty-page">
-          Loading pressure resources.
-        </div>
-        <div v-else-if="!pressureResources.length" class="mp-empty-page">
-          No pressure data yet. Refresh to scan popular recipes.
-        </div>
         <template v-else>
-          <div class="mp-pressure-summary">
-            <div><span>Craft targets</span><strong>{{ pressureState.selectedItems.length }}</strong></div>
-            <div><span>Resources</span><strong>{{ pressureResources.length }}</strong></div>
-            <div><span>Untracked</span><strong>{{ untrackedPressureResources.length }}</strong></div>
-            <div><span>Selected</span><strong>{{ untrackedSelectedPressureResources.length }}</strong></div>
-          </div>
+          <UiStatRow min="8rem">
+            <UiStat :label="$t('prices.pressure.craftTargets')" :value="pressureState.selectedItems.length" />
+            <UiStat :label="$t('prices.pressure.resources')" :value="pressureResources.length" />
+            <UiStat :label="$t('prices.pressure.untracked')" :value="untrackedPressureResources.length" />
+            <UiStat :label="$t('prices.pressure.selected')" :value="untrackedSelectedPressureResources.length" />
+          </UiStatRow>
 
-          <div v-if="pressureState.selectedItems.length" class="mp-pressure-targets">
-            <span>Based on</span>
-            <button v-for="item in pressureState.selectedItems" :key="item.name" class="mp-pressure-target" type="button">
-              {{ item.name }} · {{ item.count }}
-            </button>
-          </div>
+          <div class="mt-4 flex flex-col gap-2">
+            <article
+              v-for="resource in pressureResources"
+              :key="resource.id"
+              class="flex flex-wrap items-start gap-3 rounded-lg border border-line bg-surface p-3"
+            >
+              <input
+                type="checkbox"
+                class="mt-1 size-4 shrink-0 accent-[var(--c-accent)]"
+                :checked="isPressureResourceSelected(resource.id)"
+                :aria-label="resource.name"
+                @change="togglePressureResourceSelection(resource.id)"
+              >
 
-          <div class="mp-pressure-list">
-            <article v-for="resource in pressureResources" :key="resource.id" class="mp-pressure-card">
-              <label class="mp-pressure-check" :aria-label="`Select ${resource.name}`">
-                <input type="checkbox" :checked="isPressureResourceSelected(resource.id)" @change="togglePressureResourceSelection(resource.id)" />
-              </label>
-              <div class="mp-pressure-card__main">
-                <div class="mp-pressure-card__name-row">
-                  <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="mp-pressure-card__img" />
-                  <div>
-                    <h3>{{ resource.name }}</h3>
-                    <p>{{ resource.typeName || 'Resource' }}<span v-if="resource.level !== null"> · lvl {{ resource.level }}</span></p>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <img v-if="resource.image" :src="resource.image" :alt="''" loading="lazy" class="size-8 shrink-0 rounded-md bg-sunken object-contain">
+                  <div class="min-w-0">
+                    <h3 class="truncate text-sm font-medium text-ink">{{ resource.name }}</h3>
+                    <p class="truncate text-xs text-subtle">
+                      {{ resource.typeName || $t('prices.pressure.resource') }}
+                      <span v-if="resource.level !== null" class="tabular"> · {{ $t('monsters.level', { level: resource.level }) }}</span>
+                    </p>
                   </div>
                 </div>
-                <div class="mp-pressure-reasons">
-                  <span v-for="reason in getPressureReasons(resource)" :key="reason">{{ reason }}</span>
+
+                <div class="mt-1.5 flex flex-wrap gap-1">
+                  <UiBadge v-for="reason in getPressureReasons(resource)" :key="reason">{{ reason }}</UiBadge>
                 </div>
-                <div class="mp-pressure-used">
-                  <span>Used in</span>
-                  <button v-for="item in resource.items.slice(0, 4)" :key="item.name" type="button" class="mp-pressure-target">
-                    {{ item.name }}
-                  </button>
-                </div>
+
+                <p class="mt-1.5 truncate text-xs text-subtle">
+                  {{ $t('prices.pressure.usedIn') }}:
+                  {{ resource.items.slice(0, 4).map((i) => i.name).join(' · ') }}
+                </p>
               </div>
 
-              <div class="mp-pressure-stats">
-                <div><span>Pressure</span><strong>{{ resource.pressureScore }}</strong></div>
-                <div><span>Builds</span><strong>{{ resource.buildUsageCount }}</strong></div>
-                <div><span>Qty</span><strong>{{ resource.totalQuantity }}</strong></div>
-                <div><span>Latest</span><strong>{{ formatKamas(getPressureTrackedItem(resource)?.observations[0]?.price ?? 0) }}</strong></div>
-              </div>
+              <dl class="flex shrink-0 gap-4 text-xs">
+                <div v-for="stat in pressureStats(resource)" :key="stat.label" class="text-right">
+                  <dt class="text-subtle">{{ stat.label }}</dt>
+                  <dd class="tabular text-ink">{{ stat.value }}</dd>
+                </div>
+              </dl>
 
-              <div class="mp-pressure-card__actions">
-                <span class="mp-pressure-signal" :class="`mp-pressure-signal--${getPressureSignal(resource).tone}`">
+              <div class="flex shrink-0 items-center gap-2">
+                <UiBadge :tone="getPressureSignal(resource).tone === 'good' ? 'positive' : getPressureSignal(resource).tone === 'bad' ? 'negative' : 'neutral'">
                   {{ getPressureSignal(resource).label }}
-                </span>
-                <button class="mp-copy-btn" type="button" @click="copyPressureName(resource)">
-                  {{ copiedPressureId === resource.id ? 'Copied' : 'Copy' }}
-                </button>
-                <button class="mp-icon-btn" type="button" @click="trackPressureResource(resource)">
-                  {{ getPressureTrackedItem(resource) ? 'Open tracked' : 'Track' }}
-                </button>
+                </UiBadge>
+                <UiButton variant="ghost" size="sm" @click="copyPressureName(resource)">
+                  {{ copiedPressureId === resource.id ? $t('v2.kamas.scanner.copied') : $t('prices.copy') }}
+                </UiButton>
+                <UiButton size="sm" @click="trackPressureResource(resource)">
+                  {{ getPressureTrackedItem(resource) ? $t('prices.pressure.openTracked') : $t('prices.track') }}
+                </UiButton>
               </div>
             </article>
           </div>
         </template>
-      </section>
-
-      <section v-else-if="trackedItems.length" class="mp-list">
-        <article
-          v-for="item in sortedItems"
-          :key="item.id"
-          class="mp-card"
-          :class="{ 'mp-card--last': lastChangedItemId === item.id }"
-        >
-          <div class="mp-card__top">
-            <div class="mp-card__identity">
-              <template v-if="editingItemId === item.id">
-                <input v-model.trim="editName" class="mp-input" type="text" placeholder="Item name" @keyup.enter="saveItemEdit(item.id)" />
-              </template>
-              <template v-else>
-                <div class="mp-card__name-row">
-                  <h2>{{ item.name }}</h2>
-                  <button class="mp-copy-btn" type="button" :title="`Copy ${item.name}`" @click="copyItemName(item)">
-                    {{ copiedItemId === item.id ? 'Copied' : 'Copy' }}
-                  </button>
-                  <span v-if="lastChangedItemId === item.id" class="mp-last-badge">Last updated</span>
-                </div>
-                <span>{{ item.observations.length }} prices · latest {{ formatKamas(getLatestObservation(item)?.price ?? 0) }}</span>
-              </template>
-            </div>
-
-            <div class="mp-card__actions">
-              <V2Select
-                :model-value="item.category"
-                :options="categoryOptions"
-                placeholder="Category"
-                size="compact"
-                aria-label="Item category"
-                @update:model-value="setItemCategory(item.id, $event)"
-              />
-              <button v-if="editingItemId !== item.id" class="mp-icon-btn" type="button" title="Edit" @click="startEditingItem(item)">
-                Edit
-              </button>
-              <button v-else class="mp-icon-btn" type="button" :disabled="!editName" @click="saveItemEdit(item.id)">
-                Save
-              </button>
-              <button class="mp-icon-btn mp-icon-btn--danger" type="button" :title="pendingRemoveItemId === item.id ? 'Confirm remove' : 'Remove'" @click="removeTrackedItem(item.id)">
-                {{ pendingRemoveItemId === item.id ? 'Confirm' : 'Remove' }}
-              </button>
-            </div>
-          </div>
-
-          <div class="mp-entry">
-            <input
-              v-model.number="priceDrafts[item.id]"
-              class="mp-input"
-              type="number"
-              min="0"
-              placeholder="HDV price"
-              @keyup.enter="addObservation(item.id)"
-            />
-            <V2Select
-              :model-value="lotDrafts[item.id] || 100"
-              :options="lotOptions"
-              placeholder="Lot"
-              size="compact"
-              aria-label="Lot size"
-              @update:model-value="setLotDraft(item.id, $event)"
-            />
-            <V2DateInput v-model="dateDrafts[item.id]" placeholder="Date" />
-            <V2Select
-              :model-value="slotDrafts[item.id] || 'auto'"
-              :options="slotOptions"
-              placeholder="Time"
-              size="compact"
-              aria-label="Price check time"
-              @update:model-value="setSlotDraft(item.id, $event)"
-            />
-            <button class="mp-btn" type="button" :disabled="!priceDrafts[item.id]" @click="addObservation(item.id)">
-              Save
-            </button>
-          </div>
-
-          <div class="mp-metrics">
-            <div><span>Latest</span><strong>{{ formatKamas(getLatestObservation(item)?.price ?? 0) }}</strong></div>
-            <div><span>Today</span><strong>{{ formatRange(getTodayRange(item)) }}</strong></div>
-            <div><span>7 days</span><strong>{{ formatRange(getWeekRange(item)) }}</strong></div>
-            <div><span>All time</span><strong>{{ formatRange(getAllTimeRange(item)) }}</strong></div>
-          </div>
-
-          <div v-if="getChartPoints(item).length >= 2" class="mp-graph">
-            <PriceSparkline :points="getChartPoints(item)" :label="`${item.name} price graph`" />
-          </div>
-
-          <div v-if="item.observations.length" class="mp-history">
-            <div v-for="observation in item.observations.slice(0, 8)" :key="observation.id" class="mp-history__row">
-              <span>{{ formatDateTime(observation.createdAt) }} · {{ slotLabel(observation.slot) }} · x{{ getLotSize(observation) }}</span>
-              <div class="mp-history__value">
-                <strong>{{ formatKamas(observation.price) }}</strong>
-                <button class="mp-text-btn" type="button" title="Delete price" @click="removeObservation(item.id, observation.id)">
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-          <div v-else class="mp-empty">No prices yet.</div>
-        </article>
-
-        <div v-if="sortedItems.length === 0" class="mp-empty-page">
-          No items in this category.
-        </div>
-      </section>
-
-      <section v-else class="mp-empty-page">
-        Add your first item above.
-      </section>
+      </UiPageSection>
     </template>
   </div>
 </template>
@@ -1502,6 +1478,61 @@ const formatKamas = (value: number) => value > 0 ? Math.round(value).toLocaleStr
 const formatRange = (range: { min: number; max: number } | null) => range ? `${formatKamas(range.min)} - ${formatKamas(range.max)}` : '-'
 const formatDateTime = (value: string) => new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
 
+// ── View-model helpers ────────────────────────────────────────────────────
+const { t } = useI18n()
+
+const tabOptions = computed(() => [
+  { label: t('prices.tabs.tracked'), value: 'tracked' },
+  { label: t('prices.tabs.pressure'), value: 'pressure' },
+])
+
+// Switching to Pressure kicks off its first scan; the segmented control
+// can't call openPressureTab directly because it also sets the value.
+const onTabChange = (value: string | number | null) => {
+  if (value === 'pressure') openPressureTab()
+}
+
+const itemMetrics = (item: TrackedMarketItem) => [
+  { label: t('prices.latest'), value: formatKamas(getLatestObservation(item)?.price ?? 0) },
+  { label: t('prices.today'), value: formatRange(getTodayRange(item)) },
+  { label: t('prices.week'), value: formatRange(getWeekRange(item)) },
+  { label: t('prices.allTime'), value: formatRange(getAllTimeRange(item)) },
+]
+
+const pressureStats = (resource: PressureResource) => [
+  { label: t('prices.pressure.score'), value: resource.pressureScore },
+  { label: t('prices.pressure.builds'), value: resource.buildUsageCount },
+  { label: t('prices.pressure.qty'), value: resource.totalQuantity },
+  { label: t('prices.latest'), value: formatKamas(getPressureTrackedItem(resource)?.observations[0]?.price ?? 0) },
+]
+
+const pressureToggles = computed(() => [
+  {
+    key: 'hideSpecial',
+    label: t('prices.pressure.hideSpecial'),
+    on: pressureFilters.hideSpecial,
+    action: () => { pressureFilters.hideSpecial = !pressureFilters.hideSpecial },
+  },
+  {
+    key: 'monsterDrops',
+    label: t('prices.pressure.monsterDrops'),
+    on: pressureFilters.onlyMonsterDrops,
+    action: () => { pressureFilters.onlyMonsterDrops = !pressureFilters.onlyMonsterDrops },
+  },
+  {
+    key: 'nonCrafted',
+    label: t('prices.pressure.nonCrafted'),
+    on: pressureFilters.onlyNonCrafted,
+    action: () => { pressureFilters.onlyNonCrafted = !pressureFilters.onlyNonCrafted },
+  },
+  {
+    key: 'usedBy2',
+    label: t('prices.pressure.usedByTwo'),
+    on: pressureFilters.minItemUsage === 2,
+    action: () => { pressureFilters.minItemUsage = pressureFilters.minItemUsage === 2 ? 1 : 2 },
+  },
+])
+
 watch(storageKey, () => {
   migrateLegacyItems()
   initDrafts()
@@ -1556,121 +1587,3 @@ onUnmounted(() => {
   if (lastChangedTimeout) window.clearTimeout(lastChangedTimeout)
 })
 </script>
-
-<style scoped>
-.mp-page { display: flex; flex-direction: column; gap: .85rem; }
-.mp-topbar, .mp-card, .mp-empty-page { border: 1px solid var(--v2-border-subtle); border-radius: 16px; background: rgba(0,0,0,.16); }
-.mp-topbar { display: grid; grid-template-columns: minmax(160px, .6fr) auto minmax(260px, 1fr); gap: .85rem; align-items: center; padding: .85rem; }
-.mp-title h1 { color: var(--v2-text); font-size: 1.2rem; font-weight: 900; line-height: 1.1; }
-.mp-title span { display: block; margin-top: .25rem; color: var(--v2-text-secondary); font-size: .78rem; }
-.mp-tabs { display: inline-flex; gap: .25rem; margin-top: .6rem; padding: .2rem; border: 1px solid var(--v2-border-subtle); border-radius: 999px; background: rgba(0,0,0,.18); }
-.mp-tab { border: 0; border-radius: 999px; background: transparent; color: var(--v2-text-secondary); padding: .28rem .62rem; font-size: .68rem; font-weight: 900; cursor: pointer; }
-.mp-tab--active { background: rgba(245,158,11,.16); color: var(--v2-text); box-shadow: 0 0 0 1px rgba(245,158,11,.24) inset; }
-.mp-tools { display: flex; align-items: center; gap: .4rem; min-width: 0; }
-.mp-tool-btn { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--v2-border-subtle); border-radius: 10px; background: rgba(255,255,255,.035); color: var(--v2-text-secondary); padding: .42rem .65rem; font-size: .72rem; font-weight: 850; cursor: pointer; }
-.mp-tool-btn:hover { color: var(--v2-text); border-color: rgba(245,158,11,.38); }
-.mp-tool-btn:disabled { opacity: .45; cursor: not-allowed; }
-.mp-tool-btn input { display: none; }
-.mp-transfer-msg { color: #86efac; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mp-transfer-msg--error { color: #fca5a5; }
-.mp-add { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; }
-.mp-filters { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-end; gap: .5rem; }
-.mp-filters :deep(.v2s) { min-width: 150px; }
-.mp-input { width: 100%; border: 1px solid var(--v2-border-med); border-radius: 10px; background: rgba(0,0,0,.18); color: var(--v2-text); padding: .62rem .72rem; }
-.mp-input:focus { outline: none; border-color: rgba(245,158,11,.58); box-shadow: 0 0 0 3px rgba(245,158,11,.1); }
-.mp-btn, .mp-icon-btn { border: 1px solid rgba(245,158,11,.42); border-radius: 10px; background: rgba(245,158,11,.16); color: var(--v2-text); font-weight: 850; cursor: pointer; }
-.mp-btn { min-height: 42px; padding: .62rem .9rem; }
-.mp-btn:disabled, .mp-icon-btn:disabled { opacity: .45; cursor: not-allowed; }
-.mp-list { display: grid; gap: .75rem; }
-.mp-card { padding: .9rem; display: grid; gap: .75rem; }
-.mp-card--last { border-color: rgba(245,158,11,.5); background: linear-gradient(135deg, rgba(245,158,11,.11), rgba(0,0,0,.16) 42%); box-shadow: 0 0 0 1px rgba(245,158,11,.08) inset; }
-.mp-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
-.mp-card__identity { min-width: 0; flex: 1; }
-.mp-card__name-row { display: flex; align-items: center; gap: .5rem; min-width: 0; }
-.mp-card__identity h2 { color: var(--v2-text); font-size: 1rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mp-card__identity span { display: block; margin-top: .2rem; color: var(--v2-text-secondary); font-size: .76rem; }
-.mp-card__identity .mp-last-badge { margin-top: 0; display: inline-flex; flex-shrink: 0; border: 1px solid rgba(245,158,11,.38); border-radius: 999px; background: rgba(245,158,11,.12); color: var(--v2-accent); padding: .16rem .45rem; font-size: .62rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
-.mp-copy-btn { flex-shrink: 0; border: 1px solid var(--v2-border-subtle); border-radius: 999px; background: rgba(255,255,255,.035); color: var(--v2-text-secondary); padding: .16rem .46rem; font-size: .62rem; font-weight: 900; cursor: pointer; }
-.mp-copy-btn:hover { color: var(--v2-text); border-color: rgba(245,158,11,.38); }
-.mp-card__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .35rem; }
-.mp-card__actions :deep(.v2s) { min-width: 120px; }
-.mp-card__actions :deep(.v2s__trigger) { min-height: 32px; padding: .35rem .55rem; border-radius: 10px; background: rgba(0,0,0,.18); }
-.mp-icon-btn { min-height: 32px; padding: .35rem .55rem; font-size: .72rem; }
-.mp-icon-btn--danger { border-color: rgba(248,113,113,.34); background: rgba(248,113,113,.08); color: #fecaca; }
-.mp-entry { display: grid; grid-template-columns: minmax(150px, 1fr) 110px 150px 150px auto; gap: .5rem; align-items: center; }
-.mp-entry :deep(.v2s__trigger),
-.mp-entry :deep(.v2d__trigger) { min-height: 42px; padding: .58rem .7rem; border-radius: 10px; background: rgba(0,0,0,.18); }
-.mp-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .45rem; }
-.mp-metrics div { border: 1px solid var(--v2-border-subtle); border-radius: 10px; padding: .55rem; background: rgba(255,255,255,.025); }
-.mp-metrics span { display: block; color: var(--v2-text-secondary); font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
-.mp-metrics strong { display: block; margin-top: .2rem; color: var(--v2-text); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mp-graph { height: 82px; border: 1px solid var(--v2-border-subtle); border-radius: 12px; padding: .55rem; background: rgba(255,255,255,.018); overflow: hidden; }
-.mp-history { display: grid; gap: .35rem; }
-.mp-history__row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; color: var(--v2-text-secondary); font-size: .78rem; }
-.mp-history__row strong { color: var(--v2-text); }
-.mp-history__value { display: inline-flex; align-items: center; gap: .5rem; white-space: nowrap; }
-.mp-text-btn { border: 0; background: transparent; color: var(--v2-text-dim); cursor: pointer; font-size: .7rem; font-weight: 850; padding: 0; }
-.mp-text-btn:hover { color: var(--v2-danger, #f87171); }
-.mp-empty, .mp-empty-page { color: var(--v2-text-dim); font-size: .82rem; }
-.mp-empty { padding: .7rem; border: 1px dashed var(--v2-border-subtle); border-radius: 12px; }
-.mp-empty-page { padding: 1rem; text-align: center; }
-.mp-empty-page--error { color: #fca5a5; border-color: rgba(248,113,113,.25); }
-.mp-pressure { display: grid; gap: .75rem; }
-.mp-pressure-head, .mp-pressure-card, .mp-pressure-summary, .mp-pressure-targets, .mp-pressure-filters { border: 1px solid var(--v2-border-subtle); border-radius: 16px; background: rgba(0,0,0,.16); }
-.mp-pressure-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; padding: .9rem; }
-.mp-pressure-head h2 { color: var(--v2-text); font-size: 1rem; font-weight: 900; }
-.mp-pressure-head p { margin-top: .2rem; color: var(--v2-text-secondary); font-size: .78rem; }
-.mp-pressure-actions { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; }
-.mp-pressure-actions :deep(.v2s) { min-width: 130px; }
-.mp-pressure-filters { display: flex; gap: .4rem; flex-wrap: wrap; padding: .65rem; }
-.mp-pressure-filters :deep(.v2s) { min-width: 126px; }
-.mp-filter-chip { border: 1px solid var(--v2-border-subtle); border-radius: 999px; background: rgba(255,255,255,.03); color: var(--v2-text-secondary); padding: .32rem .62rem; font-size: .68rem; font-weight: 900; cursor: pointer; }
-.mp-filter-chip--on { border-color: rgba(245,158,11,.4); background: rgba(245,158,11,.12); color: var(--v2-text); }
-.mp-pressure-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .45rem; padding: .65rem; }
-.mp-pressure-summary div { border: 1px solid var(--v2-border-subtle); border-radius: 12px; padding: .58rem; background: rgba(255,255,255,.025); }
-.mp-pressure-summary span { display: block; color: var(--v2-text-secondary); font-size: .66rem; font-weight: 850; text-transform: uppercase; letter-spacing: .06em; }
-.mp-pressure-summary strong { display: block; margin-top: .18rem; color: var(--v2-text); font-size: .95rem; }
-.mp-pressure-targets { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; padding: .65rem; }
-.mp-pressure-targets > span { color: var(--v2-text-secondary); font-size: .7rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
-.mp-pressure-target { border: 1px solid var(--v2-border-subtle); border-radius: 999px; background: rgba(255,255,255,.035); color: var(--v2-text-secondary); padding: .18rem .48rem; font-size: .66rem; font-weight: 850; }
-.mp-pressure-list { display: grid; gap: .65rem; }
-.mp-pressure-card { display: grid; grid-template-columns: auto minmax(220px, 1fr) minmax(280px, .85fr) auto; gap: .75rem; align-items: center; padding: .85rem; }
-.mp-pressure-check { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--v2-border-subtle); border-radius: 10px; background: rgba(255,255,255,.03); cursor: pointer; }
-.mp-pressure-check input { width: 14px; height: 14px; accent-color: rgb(245,158,11); cursor: pointer; }
-.mp-pressure-card__main { min-width: 0; display: grid; gap: .45rem; }
-.mp-pressure-card__name-row { display: flex; align-items: center; gap: .65rem; min-width: 0; }
-.mp-pressure-card__img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1px solid var(--v2-border-subtle); background: rgba(255,255,255,.04); }
-.mp-pressure-card h3 { color: var(--v2-text); font-size: .95rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mp-pressure-card p { color: var(--v2-text-secondary); font-size: .72rem; }
-.mp-pressure-reasons { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
-.mp-pressure-reasons span { border: 1px solid var(--v2-border-subtle); border-radius: 999px; background: rgba(255,255,255,.025); color: var(--v2-text-secondary); padding: .16rem .42rem; font-size: .62rem; font-weight: 850; }
-.mp-pressure-used { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
-.mp-pressure-used > span { color: var(--v2-text-dim); font-size: .66rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
-.mp-pressure-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .35rem; }
-.mp-pressure-stats div { border: 1px solid var(--v2-border-subtle); border-radius: 10px; padding: .48rem; background: rgba(255,255,255,.025); min-width: 0; }
-.mp-pressure-stats span { display: block; color: var(--v2-text-secondary); font-size: .62rem; font-weight: 850; text-transform: uppercase; letter-spacing: .06em; }
-.mp-pressure-stats strong { display: block; margin-top: .15rem; color: var(--v2-text); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mp-pressure-card__actions { display: flex; align-items: center; justify-content: flex-end; gap: .4rem; flex-wrap: wrap; }
-.mp-pressure-signal { border: 1px solid var(--v2-border-subtle); border-radius: 999px; background: rgba(255,255,255,.035); color: var(--v2-text-secondary); padding: .2rem .5rem; font-size: .66rem; font-weight: 900; white-space: nowrap; }
-.mp-pressure-signal--new { border-color: rgba(96,165,250,.35); color: #bfdbfe; background: rgba(96,165,250,.1); }
-.mp-pressure-signal--warn { border-color: rgba(245,158,11,.35); color: #fde68a; background: rgba(245,158,11,.11); }
-.mp-pressure-signal--good { border-color: rgba(34,197,94,.35); color: #bbf7d0; background: rgba(34,197,94,.1); }
-.mp-pressure-signal--hot { border-color: rgba(248,113,113,.35); color: #fecaca; background: rgba(248,113,113,.1); }
-@media (max-width: 900px) {
-  .mp-topbar, .mp-entry, .mp-metrics { grid-template-columns: 1fr; }
-  .mp-tools, .mp-filters { flex-wrap: wrap; justify-content: flex-start; }
-  .mp-pressure-head, .mp-pressure-card { grid-template-columns: 1fr; }
-  .mp-pressure-head { flex-direction: column; }
-  .mp-pressure-actions { justify-content: flex-start; }
-  .mp-pressure-card__actions { justify-content: flex-start; }
-}
-@media (max-width: 560px) {
-  .mp-card__top { flex-direction: column; }
-  .mp-card__actions { justify-content: flex-start; }
-  .mp-add { grid-template-columns: 1fr; }
-  .mp-filters :deep(.v2s), .mp-card__actions :deep(.v2s) { width: 100%; }
-  .mp-history__row { align-items: flex-start; flex-direction: column; gap: .25rem; }
-  .mp-pressure-summary, .mp-pressure-stats { grid-template-columns: 1fr 1fr; }
-  .mp-pressure-actions :deep(.v2s), .mp-pressure-filters :deep(.v2s) { width: 100%; }
-}
-</style>
