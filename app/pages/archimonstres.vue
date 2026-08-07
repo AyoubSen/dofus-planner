@@ -1,681 +1,605 @@
 <template>
-  <div>
-    <div v-if="!hasContext" class="v2-no-context">
-      <div class="v2-no-context__icon">
-        <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-        </svg>
-      </div>
-      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
-      <div class="v2-no-context__desc">{{ $t('v2.archi.noCharacterDesc') }}</div>
-    </div>
+  <div v-if="hasContext" class="flex flex-col gap-5">
+    <UiSegmented v-model="mode" :options="modeOptions" :aria-label="$t('v2.archi.modeLabel')" />
 
-    <template v-else>
-      <!-- Toolbar -->
-      <div class="v2-archi-bar">
-        <!-- Mode toggle -->
-        <div class="v2-toggle">
-          <button class="v2-toggle__btn" :class="{ 'v2-toggle__btn--on': mode === 'dofus-ocre' }" @click="mode = 'dofus-ocre'">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            Dofus Ocre
-          </button>
-          <button class="v2-toggle__btn" :class="{ 'v2-toggle__btn--on': mode === 'sell' }" @click="mode = 'sell'">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Sell Only
-          </button>
-          <button class="v2-toggle__btn" :class="{ 'v2-toggle__btn--on': mode === 'route-planner' }" @click="mode = 'route-planner'">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 01.553-.894L9 2l6 3 5.447-2.724A1 1 0 0121 3.17v13.212a1 1 0 01-.553.894L15 20l-6-3z" />
-            </svg>
-            Route Planner
-          </button>
+    <!-- ══ Dofus Ocre ═════════════════════════════════════════════════════ -->
+    <template v-if="mode === 'dofus-ocre'">
+      <UiCard>
+        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span class="text-xs font-medium tracking-wide text-subtle uppercase">{{ $t('v2.archi.overallProgress') }}</span>
+          <span class="tabular text-lg font-semibold text-ink">{{ completedCount }}</span>
+          <span class="tabular text-sm text-subtle">/ {{ archiMonsters.length }}</span>
+          <span class="tabular ml-auto text-sm text-accent">{{ pct }}%</span>
         </div>
+        <UiProgress :value="pct" class="mt-2" :aria-label="$t('v2.archi.overallProgress')" />
+        <div class="mt-2.5 flex flex-wrap gap-2">
+          <UiBadge tone="negative" dot>{{ $t('v2.archi.missingCount', { count: zeroCount }) }}</UiBadge>
+          <UiBadge tone="warning" dot>{{ $t('v2.archi.onceCount', { count: oneCount }) }}</UiBadge>
+          <UiBadge tone="positive" dot>{{ $t('v2.archi.manyCount', { count: manyCount }) }}</UiBadge>
+        </div>
+      </UiCard>
 
-        <!-- Dofus-Ocre filters -->
-        <template v-if="mode === 'dofus-ocre'">
-          <div class="v2-pills">
-            <button v-for="f in FILTERS" :key="f.v" class="v2-pill" :class="{ 'v2-pill--on': filter === f.v }" @click="filter = f.v">{{ f.l }}</button>
+      <!-- Every filter here is now the same kind of control, rather than
+           pills beside a lone <select>. -->
+      <UiToolbar>
+        <template #search>
+          <UiInput v-model="search" type="search" :placeholder="$t('v2.common.search')">
+            <template #prefix><UiIcon name="search" /></template>
+          </UiInput>
+        </template>
+        <template #filters>
+          <UiSegmented v-model="filter" :options="filterOptions" size="sm" :aria-label="$t('v2.archi.filterLabel')" />
+          <UiSelect v-model="typeFilter" :options="monsterTypeOptions" size="sm" class="w-40" :aria-label="$t('v2.archi.typeFilter')" />
+        </template>
+      </UiToolbar>
+
+      <div v-if="loading" class="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(13rem,1fr))]">
+        <UiSkeleton v-for="i in 12" :key="i" height="4.5rem" />
+      </div>
+
+      <UiEmptyState v-else-if="!visible.length" :title="$t('v2.archi.noMatches')">
+        <template #icon><UiIcon name="search" /></template>
+        <template #action>
+          <UiButton size="sm" @click="search = ''; filter = 'all'; typeFilter = 'all'">
+            {{ $t('v2.archi.clearFilters') }}
+          </UiButton>
+        </template>
+      </UiEmptyState>
+
+      <div v-else class="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(13rem,1fr))]">
+        <div
+          v-for="m in visible"
+          :key="m.id"
+          :class="[
+            'flex items-center gap-2.5 rounded-lg border bg-surface p-2.5 transition-colors',
+            getCount(m) > 0 ? 'border-accent/30' : 'border-line',
+          ]"
+        >
+          <div class="relative shrink-0">
+            <img :src="getMonsterImg(m)" :alt="''" loading="lazy" class="size-10 rounded-md bg-sunken object-contain" @error="onImgErr">
+            <span
+              v-if="m.type === 'archimonstre'"
+              class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-accent text-[0.5rem] font-bold text-accent-ink"
+              :title="$t('v2.archi.isArchimonstre')"
+            >A</span>
           </div>
-          <V2Select v-model="typeFilter" :options="monsterTypeOptions" placeholder="Type" size="compact" aria-label="Monster type filter" />
-          <div class="v2-searchbox" style="margin-left:auto">
-            <svg class="v2-searchbox__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input v-model="search" type="text" :placeholder="$t('v2.common.search')" class="v2-searchbox__input" />
-            <button v-if="search" class="v2-searchbox__clear" @click="search=''">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm text-ink" :title="m.nom">{{ m.nom }}</p>
+            <p class="truncate text-xs text-subtle">{{ m.zone }}</p>
+          </div>
+
+          <div class="flex shrink-0 items-center gap-1">
+            <UiButton variant="ghost" size="sm" icon :disabled="getCount(m) === 0" :aria-label="$t('v2.archi.decrement')" @click="dec(m)">
+              −
+            </UiButton>
+            <span :class="['tabular w-5 text-center text-sm', getCount(m) > 0 ? 'font-semibold text-accent' : 'text-subtle']">
+              {{ getCount(m) }}
+            </span>
+            <UiButton variant="ghost" size="sm" icon :aria-label="$t('v2.archi.increment')" @click="inc(m)">
+              +
+            </UiButton>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ══ Route planner ══════════════════════════════════════════════════ -->
+    <template v-else-if="mode === 'route-planner'">
+      <UiToolbar>
+        <template #search>
+          <div ref="routeAutoEl" class="relative">
+            <UiInput
+              v-model="routeSearch"
+              :placeholder="$t('v2.archi.route.searchPlaceholder')"
+              @update:model-value="showRouteDropdown = true; selectedRouteMonster = null"
+              @focus="showRouteDropdown = true"
+              @keyup.escape="showRouteDropdown = false"
+            >
+              <template #prefix><UiIcon name="search" /></template>
+            </UiInput>
+
+            <div
+              v-if="showRouteDropdown && routeMonsterSuggestions.length"
+              class="absolute top-[calc(100%+0.25rem)] right-0 left-0 max-h-72 overflow-y-auto rounded-md border border-line bg-raised p-1 shadow-md"
+              :style="{ zIndex: 'var(--z-dropdown)' }"
+            >
+              <button
+                v-for="s in routeMonsterSuggestions"
+                :key="s.id"
+                type="button"
+                class="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-sunken"
+                @mousedown.prevent="selectRouteMonster(s)"
+              >
+                <img :src="getMonsterImg(s)" :alt="''" class="size-6 shrink-0 rounded object-contain" @error="onImgErr">
+                <span class="min-w-0 flex-1 truncate text-sm text-ink">{{ s.nom }}</span>
+                <span class="shrink-0 text-xs text-subtle">{{ s.souszone || s.zone }}</span>
+              </button>
+            </div>
           </div>
         </template>
+        <template #filters>
+          <UiButton variant="primary" size="sm" :disabled="!selectedRouteMonster || resolvingRoute" :loading="resolvingRoute" @click="addRouteTarget">
+            {{ $t('v2.archi.route.add') }}
+          </UiButton>
+          <UiButton v-if="routeTargets.length" variant="ghost" size="sm" @click="clearRouteTargets">
+            {{ $t('v2.archi.route.clearAll') }}
+          </UiButton>
+        </template>
+      </UiToolbar>
+
+      <UiEmptyState
+        v-if="!routeTargets.length"
+        :title="$t('v2.archi.route.emptyTitle')"
+        :description="$t('v2.archi.route.emptyDesc')"
+      >
+        <template #icon><UiIcon name="archimonstres" /></template>
+      </UiEmptyState>
+
+      <div v-else class="grid gap-4 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+        <UiCard :padded="false">
+          <template #title>
+            {{ $t('v2.archi.route.tracked') }}
+            <span class="tabular text-subtle">({{ routeTargets.length }})</span>
+          </template>
+
+          <div class="p-2">
+            <UiInput v-model="routeSidebarFilter" size="sm" :placeholder="$t('v2.archi.route.checkPlaceholder')">
+              <template #prefix><UiIcon name="search" /></template>
+            </UiInput>
+
+            <p v-if="routeSidebarFilter && !routeSidebarMatches.length" class="mt-2 px-1 text-xs text-negative">
+              {{ $t('v2.archi.route.notInRoute') }}
+            </p>
+
+            <div class="mt-2 flex max-h-96 flex-col gap-1 overflow-y-auto">
+              <div
+                v-for="target in routeSidebarVisible"
+                :key="target.monsterId"
+                :class="[
+                  'group flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors',
+                  routeSidebarFilter ? 'bg-accent-soft' : 'hover:bg-sunken',
+                ]"
+              >
+                <img :src="getMonsterImg(target)" :alt="''" class="size-6 shrink-0 rounded object-contain" @error="onImgErr">
+                <span class="min-w-0 flex-1 truncate text-sm text-ink">{{ target.monsterName }}</span>
+                <UiButton
+                  variant="ghost"
+                  size="sm"
+                  icon
+                  class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                  :aria-label="$t('v2.archi.route.remove')"
+                  @click="removeRouteTarget(target.monsterId)"
+                >
+                  <UiIcon name="close" />
+                </UiButton>
+              </div>
+            </div>
+          </div>
+        </UiCard>
+
+        <div class="flex min-w-0 flex-col gap-3">
+          <UiCard v-for="group in routeSubareaGroups" :key="group.name">
+            <template #title>{{ group.name }}</template>
+            <template #actions>
+              <span class="tabular text-xs text-subtle">
+                {{ $t('v2.archi.route.targetCount', { count: group.monsters.length }) }}
+              </span>
+            </template>
+            <p class="-mt-2 mb-2 text-xs text-subtle">{{ group.zoneLabel }}</p>
+            <div class="flex flex-wrap gap-2">
+              <div
+                v-for="monster in group.monsters"
+                :key="`${group.name}-${monster.monsterId}`"
+                class="flex items-center gap-1.5 rounded-md border border-line px-2 py-1"
+              >
+                <img :src="getMonsterImg(monster)" :alt="''" class="size-5 shrink-0 rounded object-contain" @error="onImgErr">
+                <span class="text-xs text-ink">{{ monster.monsterName }}</span>
+              </div>
+            </div>
+          </UiCard>
+        </div>
       </div>
+    </template>
 
-      <!-- ── DOFUS OCRE MODE ── -->
-      <template v-if="mode === 'dofus-ocre'">
-        <!-- Progress strip -->
-        <div class="v2-prog-strip">
-          <div class="v2-prog-strip__top">
-            <span class="v2-prog-strip__label">Overall progress</span>
-            <div class="v2-prog-strip__badges">
-              <span class="v2-prog-badge v2-prog-badge--red">{{ zeroCount }} missing</span>
-              <span class="v2-prog-badge v2-prog-badge--yellow">{{ oneCount }} × 1</span>
-              <span class="v2-prog-badge v2-prog-badge--green">{{ manyCount }} × 2+</span>
+    <!-- ══ Sell ═══════════════════════════════════════════════════════════ -->
+    <template v-else>
+      <UiStatRow>
+        <UiStat
+          :label="$t('v2.archi.sell.forSale')"
+          :value="pendingItems.length"
+          :sub="$t('v2.archi.sell.totalValue', { amount: formatKamas(totalPendingValue) })"
+        />
+        <UiStat
+          :label="$t('v2.archi.sell.slowMoving')"
+          :value="slowMovingItems.length"
+          :tone="slowMovingItems.length > 0 ? 'negative' : 'neutral'"
+        >
+          <template #default>
+            <div class="flex items-center gap-2">
+              <span :class="['tabular text-xl font-semibold', slowMovingItems.length > 0 ? 'text-negative' : 'text-ink']">
+                {{ slowMovingItems.length }}
+              </span>
+              <UiSelect
+                v-model="slowMovingDays"
+                :options="slowMovingDayOptions"
+                size="sm"
+                class="w-24"
+                :aria-label="$t('v2.archi.sell.slowThreshold')"
+              />
             </div>
-            <span class="v2-prog-strip__count"><strong>{{ completedCount }}</strong>/{{ archiMonsters.length }} · {{ pct }}%</span>
-          </div>
-          <div class="v2-progress"><div class="v2-progress__fill" :style="{ width: `${pct}%` }" /></div>
-        </div>
+          </template>
+        </UiStat>
+        <UiStat :label="$t('v2.archi.sell.todaySales')" :value="todaySales.length" :sub="formatKamas(todayTotal)" />
+        <UiStat
+          :label="$t('v2.archi.sell.totalEarned')"
+          :sub="$t('v2.archi.sell.salesCount', { count: soldItems.length })"
+        >
+          <UiMoney :value="totalEarned" short size="lg" />
+        </UiStat>
+      </UiStatRow>
 
-        <!-- Loading -->
-        <div v-if="loading" class="v2-center-loader">
-          <div class="v2-spin" />{{ $t('v2.archi.loadingMonsters') }}
-        </div>
+      <!-- Add to queue -->
+      <UiCard :title="$t('v2.archi.sell.addTitle')">
+        <div class="flex flex-wrap items-end gap-2">
+          <UiField :label="$t('v2.archi.sell.monster')" class="min-w-56 flex-1">
+            <div ref="monsterAutoEl" class="relative">
+              <UiInput
+                v-model="searchMonster"
+                :placeholder="$t('v2.archi.searchMonster')"
+                @update:model-value="showDropdown = true; selectedMonster = null"
+                @focus="showDropdown = true"
+                @keyup.escape="showDropdown = false"
+              >
+                <template #prefix><UiIcon name="search" /></template>
+              </UiInput>
 
-        <!-- Grid -->
-        <div v-else class="v2-mgrid">
-          <div
-            v-for="m in visible"
-            :key="m.id"
-            class="v2-mc"
-            :class="{ 'v2-mc--done': getCount(m) > 0, 'v2-mc--archi': m.type === 'archimonstre' }"
+              <div
+                v-if="showDropdown && monsterSuggestions.length"
+                class="absolute top-[calc(100%+0.25rem)] right-0 left-0 max-h-72 overflow-y-auto rounded-md border border-line bg-raised p-1 shadow-md"
+                :style="{ zIndex: 'var(--z-dropdown)' }"
+              >
+                <button
+                  v-for="s in monsterSuggestions"
+                  :key="s.id"
+                  type="button"
+                  class="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-sunken"
+                  @mousedown.prevent="selectMonster(s)"
+                >
+                  <img :src="getMonsterImg(s)" :alt="''" class="size-6 shrink-0 rounded object-contain" @error="onImgErr">
+                  <span class="min-w-0 flex-1 truncate text-sm text-ink">{{ s.nom }}</span>
+                  <span class="shrink-0 text-xs text-subtle">{{ s.zone }}</span>
+                </button>
+              </div>
+            </div>
+          </UiField>
+
+          <UiField :label="$t('v2.archi.sell.qty')" class="w-20">
+            <UiNumberInput v-model="addQuantity" :min="1" />
+          </UiField>
+
+          <UiField :label="$t('v2.archi.sell.pricePerUnit')" class="w-40">
+            <UiNumberInput v-model="addPrice" :min="0" />
+          </UiField>
+
+          <UiButton
+            variant="primary"
+            :disabled="!selectedMonster || addPrice <= 0 || addQuantity < 1"
+            @click="addToQueue"
           >
-            <div class="v2-mc__img">
-              <img :src="getMonsterImg(m)" :alt="m.nom" loading="lazy" @error="onImgErr" />
-              <span v-if="m.type === 'archimonstre'" class="v2-mc__badge">A</span>
-            </div>
-            <div class="v2-mc__info">
-              <div class="v2-mc__name" :title="m.nom">{{ m.nom }}</div>
-              <div class="v2-mc__zone">{{ m.zone }}</div>
-            </div>
-            <div class="v2-mc__ctrl">
-              <button class="v2-cc v2-cc--m" :disabled="getCount(m) === 0" @click="dec(m)">−</button>
-              <span class="v2-cv" :class="getCount(m) > 0 ? 'v2-cv--pos' : 'v2-cv--zero'">{{ getCount(m) }}</span>
-              <button class="v2-cc v2-cc--p" @click="inc(m)">+</button>
-            </div>
-          </div>
+            {{ $t('v2.archi.addToQueue') }}
+          </UiButton>
+        </div>
 
-          <div v-if="visible.length === 0" class="v2-mgrid__empty">
-            No monsters match your filters.
-            <button class="v2-btn-ghost mt-3 px-4 py-2 text-sm" @click="search=''; filter='all'">Clear filters</button>
+        <UiButton v-if="suggestedPrice > 0" variant="ghost" size="sm" class="mt-2" @click="addPrice = suggestedPrice">
+          {{ $t('v2.archi.sell.suggested', { amount: formatKamas(suggestedPrice) }) }}
+        </UiButton>
+      </UiCard>
+
+      <UiSegmented v-model="sellTab" :options="sellTabOptions" :aria-label="$t('v2.archi.sell.tabsLabel')" />
+
+      <!-- ── Queue ────────────────────────────────────────────────────── -->
+      <template v-if="sellTab === 'queue'">
+        <div
+          v-if="slowMovingItems.length"
+          class="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning/10 p-3"
+        >
+          <UiIcon name="alert" class="mt-0.5 shrink-0 text-warning" />
+          <p class="text-sm text-muted">
+            {{ $t('v2.archi.sell.slowWarning', { count: slowMovingItems.length, days: slowMovingDays }) }}
+          </p>
+        </div>
+
+        <UiEmptyState
+          v-if="!pendingItems.length"
+          :title="$t('v2.archi.sell.queueEmpty')"
+          :description="$t('v2.archi.sell.queueEmptyDesc')"
+        >
+          <template #icon><UiIcon name="items" /></template>
+        </UiEmptyState>
+
+        <div v-else class="flex flex-col gap-2">
+          <div
+            v-for="item in pendingItems"
+            :key="item.id"
+            :class="[
+              'group flex flex-wrap items-center gap-3 rounded-lg border bg-surface p-2.5',
+              isSlowMoving(item) ? 'border-warning/40' : 'border-line',
+            ]"
+          >
+            <img :src="getMonsterImg(item)" :alt="''" loading="lazy" class="size-10 shrink-0 rounded-md bg-sunken object-contain" @error="onImgErr">
+
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm text-ink">{{ item.monsterName }}</p>
+              <p class="flex items-center gap-1.5 text-xs text-subtle">
+                {{ $t('v2.archi.sell.listedAgo', { days: daysSince(item.dateAdded) }) }}
+                <UiBadge v-if="isSlowMoving(item)" tone="warning">{{ $t('v2.archi.sell.slow') }}</UiBadge>
+              </p>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-1.5">
+              <template v-if="editingPriceId === item.id">
+                <UiNumberInput
+                  v-model="editingPriceVal"
+                  :min="0"
+                  size="sm"
+                  class="w-32"
+                  @keyup.enter="savePrice(item)"
+                  @keyup.escape="editingPriceId = null"
+                />
+                <UiButton variant="primary" size="sm" @click="savePrice(item)">{{ $t('prices.save') }}</UiButton>
+                <UiButton variant="ghost" size="sm" @click="editingPriceId = null">{{ $t('v2.layout.cancel') }}</UiButton>
+              </template>
+              <template v-else>
+                <button
+                  type="button"
+                  class="tabular cursor-pointer rounded-md px-2 py-1 text-sm text-ink transition-colors hover:bg-sunken"
+                  :title="$t('v2.archi.sell.editPrice')"
+                  @click="startEditPrice(item)"
+                >
+                  {{ formatKamas(item.price) }}
+                </button>
+                <UiButton variant="secondary" size="sm" @click="markSold(item)">
+                  <template #icon><UiIcon name="check" /></template>
+                  {{ $t('v2.archi.sell.sold') }}
+                </UiButton>
+                <UiButton
+                  variant="ghost"
+                  size="sm"
+                  icon
+                  class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                  :aria-label="$t('v2.archi.route.remove')"
+                  @click="removePending(item.id)"
+                >
+                  <UiIcon name="trash" />
+                </UiButton>
+              </template>
+            </div>
           </div>
         </div>
       </template>
 
-      <!-- ── ROUTE PLANNER MODE ── -->
-      <div v-else-if="mode === 'route-planner'" class="v2-route">
-        <!-- Search bar -->
-        <div class="v2-route-bar">
-          <div ref="routeAutoEl" class="v2-autocomplete v2-route-bar__search">
-            <input
-              v-model="routeSearch"
-              type="text"
-              placeholder="Search an archimonstre to add…"
-              class="v2-add-input v2-add-input--wide"
-              @input="showRouteDropdown = true; selectedRouteMonster = null"
-              @focus="showRouteDropdown = true"
-              @keyup.escape="showRouteDropdown = false"
-            />
-            <div v-if="showRouteDropdown && routeMonsterSuggestions.length > 0" class="v2-dropdown">
-              <button
-                v-for="s in routeMonsterSuggestions"
-                :key="s.id"
-                class="v2-dropdown__item"
-                @mousedown.prevent="selectRouteMonster(s)"
-              >
-                <img :src="getMonsterImg(s)" class="v2-dropdown__img" @error="onImgErr" />
-                <span class="v2-dropdown__name">{{ s.nom }}</span>
-                <span class="v2-dropdown__zone">{{ s.souszone || s.zone }}</span>
-              </button>
-            </div>
+      <!-- ── History ──────────────────────────────────────────────────── -->
+      <template v-else-if="sellTab === 'history'">
+        <UiEmptyState v-if="!soldItems.length" :title="$t('v2.archi.sell.historyEmpty')">
+          <template #icon><UiIcon name="kamas" /></template>
+        </UiEmptyState>
+
+        <template v-else>
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-muted">{{ $t('v2.archi.sell.salesCount', { count: soldItems.length }) }}</span>
+            <UiButton variant="danger" size="sm" class="ml-auto" @click="clearHistory">
+              {{ $t('v2.archi.clearHistory') }}
+            </UiButton>
           </div>
-          <button
-            class="v2-add-btn"
-            :disabled="!selectedRouteMonster || resolvingRoute"
-            @click="addRouteTarget"
-          >
-            {{ resolvingRoute ? 'Resolving…' : 'Add' }}
-          </button>
-          <button v-if="routeTargets.length > 0" class="v2-clear-btn" @click="clearRouteTargets">Clear all</button>
-        </div>
 
-        <!-- Empty state -->
-        <div v-if="routeTargets.length === 0" class="v2-empty">
-          <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 01.553-.894L9 2l6 3 5.447-2.724A1 1 0 0121 3.17v13.212a1 1 0 01-.553.894L15 20l-6-3z" />
-          </svg>
-          <div>No route targets yet.</div>
-          <div class="v2-empty__sub">Search an archimonstre above and add it to build your farming loop.</div>
-        </div>
-
-        <!-- Two-column layout -->
-        <div v-else class="v2-route-layout">
-          <!-- Sidebar: compact tracked monsters -->
-          <div class="v2-route-sidebar">
-            <div class="v2-route-sidebar__title">Tracked <span class="v2-route-sidebar__count">{{ routeTargets.length }}</span></div>
-            <div class="v2-route-sidebar__filter">
-              <svg class="v2-route-sidebar__filter-icon w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input v-model="routeSidebarFilter" type="text" placeholder="Check a monster…" class="v2-route-sidebar__filter-input" />
-              <button v-if="routeSidebarFilter" class="v2-route-sidebar__filter-clear" @click="routeSidebarFilter = ''">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+          <div class="flex flex-col gap-2">
             <div
-              v-if="routeSidebarFilter && !routeTargets.some(t => t.monsterName.toLowerCase().includes(routeSidebarFilter.toLowerCase()))"
-              class="v2-route-sidebar__nomatch"
-            >Not in your route</div>
-            <div
-              v-for="target in routeTargets.filter(t => !routeSidebarFilter || t.monsterName.toLowerCase().includes(routeSidebarFilter.toLowerCase()))"
-              :key="target.monsterId"
-              class="v2-route-pill"
-              :class="{ 'v2-route-pill--match': !!routeSidebarFilter }">
-              <img :src="getMonsterImg(target)" class="v2-route-pill__img" @error="onImgErr" />
-              <span class="v2-route-pill__name">{{ target.monsterName }}</span>
-              <button class="v2-route-pill__del" @click="removeRouteTarget(target.monsterId)" title="Remove">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Main: route grouped by subarea -->
-          <div class="v2-route-main">
-            <div v-for="group in routeSubareaGroups" :key="group.name" class="v2-route-group">
-              <div class="v2-route-group__head">
-                <div>
-                  <div class="v2-route-group__name">{{ group.name }}</div>
-                  <div class="v2-route-group__zone">{{ group.zoneLabel }}</div>
-                </div>
-                <div class="v2-route-group__count">{{ group.monsters.length }} target{{ group.monsters.length > 1 ? 's' : '' }}</div>
-              </div>
-              <div class="v2-route-group__list">
-                <div v-for="monster in group.monsters" :key="`${group.name}-${monster.monsterId}`" class="v2-route-group__item">
-                  <img :src="getMonsterImg(monster)" class="v2-route-group__img" @error="onImgErr" />
-                  <div class="v2-route-group__monster">{{ monster.monsterName }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── SELL MODE ── -->
-      <div v-else class="v2-sell">
-
-        <!-- Stats row -->
-        <div class="v2-sell-stats">
-          <!-- Items for sale -->
-          <div class="v2-sstat v2-sstat--amber">
-            <div class="v2-sstat__icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
-            <div class="v2-sstat__body">
-              <div class="v2-sstat__label">Items for sale</div>
-              <div class="v2-sstat__val">{{ pendingItems.length }}</div>
-              <div class="v2-sstat__sub">{{ formatKamas(totalPendingValue) }} total value</div>
-            </div>
-          </div>
-
-          <!-- Slow moving -->
-          <div class="v2-sstat v2-sstat--orange" style="position:relative">
-            <div v-if="slowMovingItems.length > 0" class="v2-sstat__pulse" />
-            <div class="v2-sstat__icon">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="v2-sstat__body">
-              <div class="v2-sstat__label">Slow-moving <span class="v2-sstat__thresh">>{{ slowMovingDays }}d</span></div>
-              <div class="v2-sstat__val" :style="slowMovingItems.length > 0 ? 'color:#fbbf24' : ''">{{ slowMovingItems.length }}</div>
-              <div class="v2-sstat__sub">
-                <V2Select v-model="slowMovingDays" :options="slowMovingDayOptions" placeholder="Days" size="compact" aria-label="Slow moving threshold" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Today's sales -->
-          <div class="v2-sstat v2-sstat--green">
-            <div class="v2-sstat__icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <div class="v2-sstat__body">
-              <div class="v2-sstat__label">Today's sales</div>
-              <div class="v2-sstat__val">{{ todaySales.length }}</div>
-              <div class="v2-sstat__sub">{{ formatKamas(todayTotal) }}</div>
-            </div>
-          </div>
-
-          <!-- Total earned -->
-          <div class="v2-sstat v2-sstat--blue">
-            <div class="v2-sstat__icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div class="v2-sstat__body">
-              <div class="v2-sstat__label">Total earned</div>
-              <div class="v2-sstat__val">{{ formatKamas(totalEarned) }}</div>
-              <div class="v2-sstat__sub">{{ soldItems.length }} sales</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add to queue form -->
-        <div class="v2-add-form">
-          <div class="v2-add-form__title">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Add to selling queue
-          </div>
-          <div class="v2-add-form__row">
-            <!-- Monster search -->
-            <div ref="monsterAutoEl" class="v2-autocomplete">
-              <input
-                v-model="searchMonster"
-                type="text"
-                :placeholder="$t('v2.archi.searchMonster')"
-                class="v2-add-input v2-add-input--wide"
-                @input="showDropdown = true; selectedMonster = null"
-                @focus="showDropdown = true"
-                @keyup.escape="showDropdown = false"
-              />
-              <div v-if="showDropdown && monsterSuggestions.length > 0" class="v2-dropdown">
-                <button
-                  v-for="s in monsterSuggestions"
-                  :key="s.id"
-                  class="v2-dropdown__item"
-                  @mousedown.prevent="selectMonster(s)"
-                >
-                  <img :src="getMonsterImg(s)" class="v2-dropdown__img" @error="onImgErr" />
-                  <span class="v2-dropdown__name">{{ s.nom }}</span>
-                  <span class="v2-dropdown__zone">{{ s.zone }}</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Quantity -->
-            <input
-              v-model.number="addQuantity"
-              type="number"
-              min="1"
-              placeholder="Qty"
-              class="v2-add-input v2-add-input--sm"
-            />
-
-            <!-- Price -->
-            <div class="v2-price-wrap">
-              <input
-                v-model.number="addPrice"
-                type="number"
-                min="0"
-                placeholder="Price / unit"
-                class="v2-add-input v2-add-input--md"
-              />
-              <span v-if="suggestedPrice > 0" class="v2-price-hint" @click="addPrice = suggestedPrice">
-                Suggested: {{ formatKamas(suggestedPrice) }}
-              </span>
-            </div>
-
-            <!-- Add button -->
-            <button
-              class="v2-add-btn"
-              :disabled="!selectedMonster || addPrice <= 0 || addQuantity < 1"
-              @click="addToQueue"
-            >
-              {{ $t('v2.archi.addToQueue') }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Sub-tabs: Queue / History / Analytics -->
-        <div class="v2-sell-tabs">
-          <button class="v2-sell-tab" :class="{ 'v2-sell-tab--on': sellTab === 'queue' }" @click="sellTab = 'queue'">
-            {{ $t('v2.archi.queue') }}
-            <span class="v2-sell-tab__badge" v-if="pendingItems.length > 0">{{ pendingItems.length }}</span>
-          </button>
-          <button class="v2-sell-tab" :class="{ 'v2-sell-tab--on': sellTab === 'history' }" @click="sellTab = 'history'">
-            {{ $t('v2.archi.history') }}
-            <span class="v2-sell-tab__badge v2-sell-tab__badge--green" v-if="soldItems.length > 0">{{ soldItems.length }}</span>
-          </button>
-          <button class="v2-sell-tab" :class="{ 'v2-sell-tab--on': sellTab === 'analytics' }" @click="sellTab = 'analytics'">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            {{ $t('v2.archi.analytics') }}
-            <span v-if="pricingInconsistencies.length > 0" class="v2-sell-tab__badge v2-sell-tab__badge--red">{{ pricingInconsistencies.length }}</span>
-          </button>
-        </div>
-
-        <!-- Queue tab -->
-        <div v-if="sellTab === 'queue'">
-          <!-- Slow-moving warning -->
-          <div v-if="slowMovingItems.length > 0" class="v2-slow-warn">
-            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            <span>{{ slowMovingItems.length }} item{{ slowMovingItems.length > 1 ? 's have' : ' has' }} been listed for more than {{ slowMovingDays }} day{{ slowMovingDays > 1 ? 's' : '' }}. Consider lowering the price.</span>
-          </div>
-
-          <!-- Empty state -->
-          <div v-if="pendingItems.length === 0" class="v2-empty">
-            <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            <div>No items in your selling queue.</div>
-            <div class="v2-empty__sub">Use the form above to add monsters you're selling.</div>
-          </div>
-
-          <!-- Pending list -->
-          <div v-else class="v2-pending-list">
-            <div
-              v-for="item in pendingItems"
+              v-for="item in soldItems"
               :key="item.id"
-              class="v2-pending-item"
-              :class="{ 'v2-pending-item--slow': isSlowMoving(item) }"
+              class="group flex items-center gap-3 rounded-lg border border-line bg-surface p-2.5"
             >
-              <img :src="getMonsterImg(item)" class="v2-pitem__img" @error="onImgErr" />
-              <div class="v2-pitem__info">
-                <div class="v2-pitem__name">{{ item.monsterName }}</div>
-                <div class="v2-pitem__date">Listed {{ daysSince(item.dateAdded) }}d ago</div>
-                <div v-if="isSlowMoving(item)" class="v2-pitem__slow-tag">Slow</div>
+              <img :src="getMonsterImg(item)" :alt="''" loading="lazy" class="size-10 shrink-0 rounded-md bg-sunken object-contain" @error="onImgErr">
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm text-ink">{{ item.monsterName }}</p>
+                <p class="text-xs text-subtle">{{ $t('v2.archi.sell.soldOn', { date: formatDate(item.dateSold) }) }}</p>
               </div>
-              <!-- Price edit -->
-              <div class="v2-pitem__price-wrap">
-                <template v-if="editingPriceId === item.id">
-                  <input
-                    v-model.number="editingPriceVal"
-                    type="number"
-                    class="v2-pitem__price-input"
-                    @keyup.enter="savePrice(item)"
-                    @keyup.escape="editingPriceId = null"
-                    ref="priceEditInput"
-                  />
-                  <button class="v2-pitem__price-ok" @click="savePrice(item)">✓</button>
-                  <button class="v2-pitem__price-cancel" @click="editingPriceId = null">✕</button>
-                </template>
-                <template v-else>
-                  <span class="v2-pitem__price" @click="startEditPrice(item)">{{ formatKamas(item.price) }}</span>
-                  <button class="v2-pitem__edit-btn" @click="startEditPrice(item)" title="Edit price">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                </template>
-              </div>
-              <!-- Actions -->
-              <div class="v2-pitem__actions">
-                <button class="v2-pitem__sold-btn" @click="markSold(item)" title="Mark as sold">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Sold
-                </button>
-                <button class="v2-pitem__del-btn" @click="removePending(item.id)" title="Remove">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
+              <UiMoney :value="item.soldPrice ?? item.price" short />
+              <UiButton
+                variant="ghost"
+                size="sm"
+                class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                @click="undoSale(item)"
+              >
+                {{ $t('v2.archi.sell.undo') }}
+              </UiButton>
             </div>
           </div>
-        </div>
+        </template>
+      </template>
 
-        <!-- History tab -->
-        <div v-if="sellTab === 'history'">
-          <div v-if="soldItems.length === 0" class="v2-empty">
-            <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <div>No sales recorded yet.</div>
-          </div>
+      <!-- ── Analytics ────────────────────────────────────────────────── -->
+      <template v-else>
+        <UiSegmented v-model="analyticsTab" :options="analyticsTabOptions" size="sm" :aria-label="$t('v2.archi.analytics')" />
 
-          <div v-else>
-            <div class="v2-history-header">
-              <span>{{ soldItems.length }} sale{{ soldItems.length !== 1 ? 's' : '' }}</span>
-              <button class="v2-clear-btn" @click="clearHistory">{{ $t('v2.archi.clearHistory') }}</button>
-            </div>
-            <div class="v2-pending-list">
-              <div v-for="item in soldItems" :key="item.id" class="v2-pending-item v2-pending-item--sold">
-                <img :src="getMonsterImg(item)" class="v2-pitem__img" @error="onImgErr" />
-                <div class="v2-pitem__info">
-                  <div class="v2-pitem__name">{{ item.monsterName }}</div>
-                  <div class="v2-pitem__date">Sold {{ formatDate(item.dateSold) }}</div>
-                </div>
-                <div class="v2-pitem__price-wrap">
-                  <span class="v2-pitem__price v2-pitem__price--sold">{{ formatKamas(item.soldPrice ?? item.price) }}</span>
-                </div>
-                <div class="v2-pitem__actions">
-                  <button class="v2-pitem__undo-btn" @click="undoSale(item)" title="Undo sale">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                    </svg>
-                    Undo
-                  </button>
-                </div>
+        <!-- Sales performance -->
+        <template v-if="analyticsTab === 'performance'">
+          <UiStatRow>
+            <UiStat :label="$t('v2.archi.stats.uniqueMonsters')" :value="analyticsData.uniqueMonsters" :sub="$t('v2.archi.stats.typesSold')" />
+            <UiStat
+              :label="$t('v2.archi.stats.bestSeller')"
+              :value="analyticsData.bestSeller?.name || '—'"
+              :sub="$t('v2.archi.sell.soldCount', { count: analyticsData.bestSeller?.quantity ?? 0 })"
+            />
+            <UiStat
+              :label="$t('v2.archi.stats.topRevenue')"
+              :value="analyticsData.highestRevenue?.name || '—'"
+              :sub="formatKamas(analyticsData.highestRevenue?.revenue ?? 0)"
+            />
+            <UiStat :label="$t('v2.archi.stats.avgPrice')" :sub="$t('v2.archi.stats.perUnit')">
+              <UiMoney :value="Math.round(analyticsData.avgSalePrice)" short size="lg" />
+            </UiStat>
+          </UiStatRow>
+
+          <UiToolbar>
+            <template #filters>
+              <UiSelect v-model="analyticsSortBy" :options="analyticsSortOptions" size="sm" class="w-44" :aria-label="$t('v2.archi.stats.sortBy')" />
+              <UiSelect v-model="analyticsTimeframe" :options="timeframeOptions" size="sm" class="w-40" :aria-label="$t('v2.archi.stats.timeframe')" />
+            </template>
+          </UiToolbar>
+
+          <UiEmptyState
+            v-if="!filteredAnalyticsData.length"
+            :title="$t('v2.archi.stats.noData')"
+            :description="$t('v2.archi.stats.noDataDesc')"
+          >
+            <template #icon><UiIcon name="prices" /></template>
+          </UiEmptyState>
+
+          <div v-else class="flex flex-col gap-2">
+            <div
+              v-for="(monster, idx) in filteredAnalyticsData"
+              :key="monster.name"
+              class="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-2.5"
+            >
+              <span class="tabular w-6 shrink-0 text-center text-sm text-subtle">{{ idx + 1 }}</span>
+              <img :src="getMonsterImg(monster)" :alt="''" loading="lazy" class="size-9 shrink-0 rounded-md bg-sunken object-contain" @error="onImgErr">
+
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm text-ink">{{ monster.name }}</p>
+                <UiProgress
+                  :value="monster.quantity"
+                  :max="filteredAnalyticsData[0]?.quantity || 1"
+                  tone="neutral"
+                  class="mt-1"
+                />
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Analytics tab -->
-        <div v-if="sellTab === 'analytics'" class="v2-analytics">
-
-          <!-- Analytics sub-tabs -->
-          <div class="v2-atabs">
-            <button class="v2-atab" :class="{ 'v2-atab--on': analyticsTab === 'performance' }" @click="analyticsTab = 'performance'">Sales</button>
-            <button class="v2-atab" :class="{ 'v2-atab--on': analyticsTab === 'trends' }" @click="analyticsTab = 'trends'">Price trends</button>
-            <button class="v2-atab" :class="{ 'v2-atab--on': analyticsTab === 'inconsistencies' }" @click="analyticsTab = 'inconsistencies'">
-              Inconsistencies
-              <span v-if="pricingInconsistencies.length > 0" class="v2-sell-tab__badge v2-sell-tab__badge--red">{{ pricingInconsistencies.length }}</span>
-            </button>
-          </div>
-
-          <!-- ─ Sales Performance ─ -->
-          <div v-if="analyticsTab === 'performance'">
-            <!-- Quick stats -->
-            <div class="v2-sell-stats" style="margin-bottom:.75rem">
-              <div class="v2-sstat v2-sstat--blue">
-                <div class="v2-sstat__icon">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+              <dl class="flex shrink-0 gap-4 text-xs">
+                <div class="text-right">
+                  <dt class="text-subtle">{{ $t('v2.archi.sell.soldLabel') }}</dt>
+                  <dd class="tabular text-ink">{{ monster.quantity }}</dd>
                 </div>
-                <div class="v2-sstat__body">
-                  <div class="v2-sstat__label">Unique monsters</div>
-                  <div class="v2-sstat__val">{{ analyticsData.uniqueMonsters }}</div>
-                  <div class="v2-sstat__sub">types sold</div>
+                <div class="text-right">
+                  <dt class="text-subtle">{{ $t('v2.archi.stats.revenue') }}</dt>
+                  <dd class="tabular text-ink">{{ formatKamas(monster.revenue) }}</dd>
                 </div>
-              </div>
-              <div class="v2-sstat v2-sstat--green">
-                <div class="v2-sstat__icon">
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                <div class="text-right">
+                  <dt class="text-subtle">{{ $t('v2.archi.stats.avg') }}</dt>
+                  <dd class="tabular text-ink">{{ formatKamas(Math.round(monster.avgPrice)) }}</dd>
                 </div>
-                <div class="v2-sstat__body">
-                  <div class="v2-sstat__label">Best seller</div>
-                  <div class="v2-sstat__val" style="font-size:1rem">{{ analyticsData.bestSeller?.name || 'N/A' }}</div>
-                  <div class="v2-sstat__sub">{{ analyticsData.bestSeller?.quantity ?? 0 }} sold</div>
-                </div>
-              </div>
-              <div class="v2-sstat v2-sstat--amber">
-                <div class="v2-sstat__icon">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <div class="v2-sstat__body">
-                  <div class="v2-sstat__label">Top revenue</div>
-                  <div class="v2-sstat__val" style="font-size:1rem">{{ analyticsData.highestRevenue?.name || 'N/A' }}</div>
-                  <div class="v2-sstat__sub">{{ formatKamas(analyticsData.highestRevenue?.revenue ?? 0) }}</div>
-                </div>
-              </div>
-              <div class="v2-sstat" style="background:var(--v2-hover);border-color:var(--v2-border-med)">
-                <div class="v2-sstat__icon" style="background:var(--v2-active-strong);color:var(--v2-accent)">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
-                </div>
-                <div class="v2-sstat__body">
-                  <div class="v2-sstat__label">Avg price / sale</div>
-                  <div class="v2-sstat__val">{{ formatKamas(Math.round(analyticsData.avgSalePrice)) }}</div>
-                  <div class="v2-sstat__sub">per unit</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sort + filter row -->
-            <div class="v2-analytics-bar">
-              <div class="v2-analytics-bar__label">Sort by</div>
-              <V2Select v-model="analyticsSortBy" :options="analyticsSortOptions" placeholder="Sort" size="compact" aria-label="Analytics sort" />
-              <div class="v2-analytics-bar__label" style="margin-left:.75rem">Timeframe</div>
-              <V2Select v-model="analyticsTimeframe" :options="timeframeOptions" placeholder="Timeframe" size="compact" aria-label="Analytics timeframe" />
-            </div>
-
-            <!-- Empty -->
-            <div v-if="filteredAnalyticsData.length === 0" class="v2-empty">
-              <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-              <div>No sales data yet.</div>
-              <div class="v2-empty__sub">Mark items as sold to see performance analytics.</div>
-            </div>
-
-            <!-- Ranked list -->
-            <div v-else class="v2-ranked-list">
-              <div v-for="(monster, idx) in filteredAnalyticsData" :key="monster.name" class="v2-ranked-item">
-                <div class="v2-rank-badge" :class="idx === 0 ? 'v2-rank-badge--gold' : idx === 1 ? 'v2-rank-badge--silver' : idx === 2 ? 'v2-rank-badge--bronze' : ''">{{ idx + 1 }}</div>
-                <img :src="getMonsterImg(monster)" class="v2-pitem__img" @error="onImgErr" />
-                <div class="v2-ranked-info">
-                  <div class="v2-pitem__name">{{ monster.name }}</div>
-                  <div class="v2-ranked-bar-wrap">
-                    <div class="v2-ranked-bar">
-                      <div class="v2-ranked-bar__fill" :style="{ width: `${Math.round((monster.quantity / (filteredAnalyticsData[0]?.quantity || 1)) * 100)}%` }" />
-                    </div>
-                  </div>
-                </div>
-                <div class="v2-ranked-stats">
-                  <div class="v2-rstat">
-                    <div class="v2-rstat__val">{{ monster.quantity }}</div>
-                    <div class="v2-rstat__lbl">sold</div>
-                  </div>
-                  <div class="v2-rstat">
-                    <div class="v2-rstat__val">{{ formatKamas(monster.revenue) }}</div>
-                    <div class="v2-rstat__lbl">revenue</div>
-                  </div>
-                  <div class="v2-rstat">
-                    <div class="v2-rstat__val">{{ formatKamas(Math.round(monster.avgPrice)) }}</div>
-                    <div class="v2-rstat__lbl">avg</div>
-                  </div>
-                </div>
-              </div>
+              </dl>
             </div>
           </div>
+        </template>
 
-          <!-- ─ Price Trends ─ -->
-          <div v-if="analyticsTab === 'trends'">
-            <div class="v2-analytics-bar">
-              <div class="v2-analytics-bar__label">Timeframe</div>
-              <V2Select v-model="trendTimeframe" :options="timeframeOptions" placeholder="Timeframe" size="compact" aria-label="Trend timeframe" />
-              <div class="v2-analytics-bar__label" style="margin-left:.75rem">Monster</div>
-              <V2Select v-model="selectedTrendMonster" :options="trendMonsterOptions" placeholder="Monster" size="compact" aria-label="Trend monster" />
-            </div>
+        <!-- Price trends -->
+        <template v-else-if="analyticsTab === 'trends'">
+          <UiToolbar>
+            <template #filters>
+              <UiSelect v-model="trendTimeframe" :options="timeframeOptions" size="sm" class="w-40" :aria-label="$t('v2.archi.stats.timeframe')" />
+              <UiSelect v-model="selectedTrendMonster" :options="trendMonsterOptions" size="sm" class="w-48" :aria-label="$t('v2.archi.stats.monster')" />
+            </template>
+          </UiToolbar>
 
-            <div v-if="filteredPriceTrends.length === 0" class="v2-empty">
-              <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-              <div>Not enough data yet.</div>
-              <div class="v2-empty__sub">You need at least 2 sales of the same monster to see price trends.</div>
-            </div>
+          <UiEmptyState
+            v-if="!filteredPriceTrends.length"
+            :title="$t('v2.archi.stats.notEnoughData')"
+            :description="$t('v2.archi.stats.notEnoughDataDesc')"
+          >
+            <template #icon><UiIcon name="prices" /></template>
+          </UiEmptyState>
 
-            <div v-else class="v2-pending-list">
-              <div v-for="trend in filteredPriceTrends" :key="trend.name" class="v2-pending-item">
-                <img :src="getMonsterImg(trend)" class="v2-pitem__img" @error="onImgErr" />
-                <div class="v2-pitem__info">
-                  <div class="v2-pitem__name">{{ trend.name }}</div>
-                  <div class="v2-pitem__date">{{ trend.salesCount }} sales · {{ formatDate(trend.firstDate) }} → {{ formatDate(trend.latestDate) }}</div>
-                </div>
-                <div class="v2-trend-prices">
-                  <div class="v2-trend-prices__row">
-                    <span class="v2-trend-prices__lbl">First</span>
-                    <span class="v2-trend-prices__val">{{ formatKamas(trend.firstPrice) }}</span>
-                  </div>
-                  <div class="v2-trend-prices__row">
-                    <span class="v2-trend-prices__lbl">Latest</span>
-                    <span class="v2-trend-prices__val">{{ formatKamas(trend.latestPrice) }}</span>
-                  </div>
-                </div>
-                <div class="v2-trend-badge" :class="trend.priceChange > 5 ? 'v2-trend-badge--up' : trend.priceChange < -5 ? 'v2-trend-badge--down' : 'v2-trend-badge--stable'">
-                  <svg v-if="trend.priceChange > 5" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                  <svg v-else-if="trend.priceChange < -5" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
-                  <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
-                  {{ trend.priceChange > 5 ? 'Rising' : trend.priceChange < -5 ? 'Falling' : 'Stable' }}
-                  ({{ trend.priceChange > 0 ? '+' : '' }}{{ Math.round(trend.priceChange) }}%)
-                </div>
+          <div v-else class="flex flex-col gap-2">
+            <div
+              v-for="trend in filteredPriceTrends"
+              :key="trend.name"
+              class="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-2.5"
+            >
+              <img :src="getMonsterImg(trend)" :alt="''" loading="lazy" class="size-9 shrink-0 rounded-md bg-sunken object-contain" @error="onImgErr">
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm text-ink">{{ trend.name }}</p>
+                <p class="truncate text-xs text-subtle">
+                  {{ $t('v2.archi.sell.salesCount', { count: trend.salesCount }) }}
+                  · {{ formatDate(trend.firstDate) }} → {{ formatDate(trend.latestDate) }}
+                </p>
               </div>
+              <dl class="flex shrink-0 gap-4 text-xs">
+                <div class="text-right">
+                  <dt class="text-subtle">{{ $t('v2.archi.stats.first') }}</dt>
+                  <dd class="tabular text-ink">{{ formatKamas(trend.firstPrice) }}</dd>
+                </div>
+                <div class="text-right">
+                  <dt class="text-subtle">{{ $t('prices.latest') }}</dt>
+                  <dd class="tabular text-ink">{{ formatKamas(trend.latestPrice) }}</dd>
+                </div>
+              </dl>
+              <UiBadge :tone="trendTone(trend.priceChange)">
+                {{ trendLabel(trend.priceChange) }} ({{ trend.priceChange > 0 ? '+' : '' }}{{ Math.round(trend.priceChange) }}%)
+              </UiBadge>
             </div>
           </div>
+        </template>
 
-          <!-- ─ Pricing Inconsistencies ─ -->
-          <div v-if="analyticsTab === 'inconsistencies'">
-            <div v-if="pricingInconsistencies.length === 0" class="v2-empty">
-              <svg class="w-10 h-10" style="color:#34d399;opacity:.7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <div style="color:#34d399">All prices are consistent!</div>
-              <div class="v2-empty__sub">No items with conflicting prices in your sell queue.</div>
-            </div>
+        <!-- Inconsistencies -->
+        <template v-else>
+          <UiEmptyState
+            v-if="!pricingInconsistencies.length"
+            :title="$t('v2.archi.stats.consistentTitle')"
+            :description="$t('v2.archi.stats.consistentDesc')"
+          >
+            <template #icon><UiIcon name="check" /></template>
+          </UiEmptyState>
 
-            <div v-else class="v2-pending-list">
-              <div v-for="inc in pricingInconsistencies" :key="inc.name" class="v2-incons-item">
-                <div class="v2-incons-item__header">
-                  <img :src="getMonsterImg(inc)" class="v2-pitem__img" @error="onImgErr" />
-                  <div class="v2-pitem__info">
-                    <div class="v2-pitem__name">{{ inc.name }}</div>
-                    <div class="v2-pitem__date">{{ inc.items.length }} listings · {{ inc.priceGroups.length }} different prices · {{ inc.priceVariation }}% variation</div>
-                  </div>
-                  <div class="v2-incons-range">
-                    <div class="v2-rstat">
-                      <div class="v2-rstat__val" style="color:#f87171">{{ formatKamas(inc.minPrice) }}</div>
-                      <div class="v2-rstat__lbl">min</div>
-                    </div>
-                    <div class="v2-rstat">
-                      <div class="v2-rstat__val" style="color:#34d399">{{ formatKamas(inc.maxPrice) }}</div>
-                      <div class="v2-rstat__lbl">max</div>
-                    </div>
-                    <div class="v2-rstat">
-                      <div class="v2-rstat__val" style="color:#60a5fa">{{ formatKamas(inc.avgPrice) }}</div>
-                      <div class="v2-rstat__lbl">avg</div>
-                    </div>
-                  </div>
+          <div v-else class="flex flex-col gap-3">
+            <UiCard v-for="inc in pricingInconsistencies" :key="inc.name">
+              <div class="flex flex-wrap items-center gap-3">
+                <img :src="getMonsterImg(inc)" :alt="''" loading="lazy" class="size-9 shrink-0 rounded-md bg-sunken object-contain" @error="onImgErr">
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium text-ink">{{ inc.name }}</p>
+                  <p class="truncate text-xs text-subtle">
+                    {{ $t('v2.archi.stats.listings', { count: inc.items.length }) }}
+                    · {{ $t('v2.archi.stats.differentPrices', { count: inc.priceGroups.length }) }}
+                    · {{ $t('v2.archi.stats.variation', { pct: inc.priceVariation }) }}
+                  </p>
                 </div>
-                <!-- Price groups -->
-                <div class="v2-price-groups">
-                  <div v-for="g in inc.priceGroups" :key="g.price" class="v2-price-group">
-                    <div class="v2-price-group__price">{{ formatKamas(g.price) }}</div>
-                    <div class="v2-price-group__count">×{{ g.count }}</div>
+                <dl class="flex shrink-0 gap-4 text-xs">
+                  <div class="text-right">
+                    <dt class="text-subtle">{{ $t('v2.archi.stats.min') }}</dt>
+                    <dd class="tabular text-ink">{{ formatKamas(inc.minPrice) }}</dd>
                   </div>
-                </div>
-                <!-- Quick actions -->
-                <div class="v2-incons-actions">
-                  <button class="v2-ia-btn v2-ia-btn--green" @click="standardizePrices(inc.name, inc.minPrice)">
-                    Set all to lowest ({{ formatKamas(inc.minPrice) }})
-                  </button>
-                  <button class="v2-ia-btn v2-ia-btn--blue" @click="standardizePrices(inc.name, inc.avgPrice)">
-                    Set all to avg ({{ formatKamas(inc.avgPrice) }})
-                  </button>
-                  <button class="v2-ia-btn v2-ia-btn--red" @click="standardizePrices(inc.name, inc.maxPrice)">
-                    Set all to highest ({{ formatKamas(inc.maxPrice) }})
-                  </button>
-                </div>
+                  <div class="text-right">
+                    <dt class="text-subtle">{{ $t('v2.archi.stats.avg') }}</dt>
+                    <dd class="tabular text-ink">{{ formatKamas(inc.avgPrice) }}</dd>
+                  </div>
+                  <div class="text-right">
+                    <dt class="text-subtle">{{ $t('v2.archi.stats.max') }}</dt>
+                    <dd class="tabular text-ink">{{ formatKamas(inc.maxPrice) }}</dd>
+                  </div>
+                </dl>
               </div>
-            </div>
+
+              <div class="mt-2.5 flex flex-wrap gap-1.5">
+                <UiBadge v-for="g in inc.priceGroups" :key="g.price">
+                  {{ formatKamas(g.price) }} ×{{ g.count }}
+                </UiBadge>
+              </div>
+
+              <div class="mt-3 flex flex-wrap gap-2">
+                <UiButton size="sm" @click="standardizePrices(inc.name, inc.minPrice)">
+                  {{ $t('v2.archi.stats.setLowest', { amount: formatKamas(inc.minPrice) }) }}
+                </UiButton>
+                <UiButton size="sm" @click="standardizePrices(inc.name, inc.avgPrice)">
+                  {{ $t('v2.archi.stats.setAvg', { amount: formatKamas(inc.avgPrice) }) }}
+                </UiButton>
+                <UiButton size="sm" @click="standardizePrices(inc.name, inc.maxPrice)">
+                  {{ $t('v2.archi.stats.setHighest', { amount: formatKamas(inc.maxPrice) }) }}
+                </UiButton>
+              </div>
+            </UiCard>
           </div>
-
-        </div>
-
-      </div>
+        </template>
+      </template>
     </template>
   </div>
 </template>
@@ -738,11 +662,38 @@ const monsterTypeOptions = [
 ]
 const counts = reactive<Record<string, number>>({})
 
-const FILTERS: Array<{ l: string; v: OcreFilter }> = [
-  { l: 'All', v: 'all' },
-  { l: 'Missing', v: 'missing' },
-  { l: 'Collected', v: 'done' },
-]
+const { t } = useI18n()
+
+// ── Control options ───────────────────────────────────────────────────────
+// Every either/or control on this page now renders as the same component,
+// instead of pills in one place and a <select> in the next.
+const modeOptions = computed(() => [
+  { label: t('v2.archi.modes.ocre'), value: 'dofus-ocre' },
+  { label: t('v2.archi.modes.sell'), value: 'sell' },
+  { label: t('v2.archi.modes.route'), value: 'route-planner' },
+])
+
+const filterOptions = computed(() => [
+  { label: t('v2.archi.filters.all'), value: 'all' },
+  { label: t('v2.archi.filters.missing'), value: 'missing' },
+  { label: t('v2.archi.filters.done'), value: 'done' },
+])
+
+const sellTabOptions = computed(() => [
+  { label: `${t('v2.archi.queue')} (${pendingItems.value.length})`, value: 'queue' },
+  { label: `${t('v2.archi.history')} (${soldItems.value.length})`, value: 'history' },
+  { label: t('v2.archi.analytics'), value: 'analytics' },
+])
+
+const analyticsTabOptions = computed(() => [
+  { label: t('v2.archi.stats.sales'), value: 'performance' },
+  { label: t('v2.archi.stats.trends'), value: 'trends' },
+  { label: `${t('v2.archi.stats.inconsistencies')}${pricingInconsistencies.value.length ? ` (${pricingInconsistencies.value.length})` : ''}`, value: 'inconsistencies' },
+])
+
+const trendTone = (change: number) => (change > 5 ? 'positive' : change < -5 ? 'negative' : 'neutral')
+const trendLabel = (change: number) =>
+  change > 5 ? t('v2.archi.stats.rising') : change < -5 ? t('v2.archi.stats.falling') : t('v2.archi.stats.stable')
 
 const key = (m: any) =>
   `monster_count_${selectedServer.value?.id}_${selectedCharacter.value?.id}_${m.id}`
@@ -938,6 +889,18 @@ const routeSidebarFilter = ref('')
 const selectedRouteMonster = ref<any>(null)
 const showRouteDropdown = ref(false)
 const resolvingRoute = ref(false)
+
+// The sidebar filter highlights rather than hides, so you can confirm a
+// monster is already in the route without losing sight of the rest.
+const routeSidebarMatches = computed(() => {
+  const needle = routeSidebarFilter.value.trim().toLowerCase()
+  if (!needle) return routeTargets.value
+  return routeTargets.value.filter(target => target.monsterName.toLowerCase().includes(needle))
+})
+
+const routeSidebarVisible = computed(() =>
+  routeSidebarFilter.value.trim() ? routeSidebarMatches.value : routeTargets.value,
+)
 
 // Price editing
 const editingPriceId = ref<string | null>(null)
@@ -1462,556 +1425,3 @@ watch([selectedServer, selectedCharacter], () => {
   if (monsters.value.length) { loadCounts(); loadSellData() }
 })
 </script>
-
-<style scoped>
-/* ── Base ────────────────────────────────────────────────────────────────── */
-.v2-archi-bar {
-  display: flex; align-items: center; gap: .625rem; flex-wrap: wrap; margin-bottom: .875rem;
-}
-.v2-toggle {
-  display: flex; background: rgba(0,0,0,.25);
-  border: 1px solid var(--v2-border); border-radius: 10px; padding: 3px; gap: 2px;
-}
-.v2-toggle__btn {
-  display: flex; align-items: center; gap: .375rem;
-  padding: .375rem .75rem; border-radius: 7px; border: none;
-  background: transparent; color: var(--v2-text-secondary); font-size: .8125rem; font-weight: 500; cursor: pointer;
-  transition: all .18s; white-space: nowrap;
-}
-.v2-toggle__btn--on { background: var(--v2-active-strong); color: var(--v2-text); }
-
-.v2-pills { display: flex; gap: 4px; }
-.v2-pill {
-  padding: .375rem .875rem; border-radius: 999px;
-  border: 1px solid var(--v2-border); background: transparent;
-  color: var(--v2-text-secondary); font-size: .8125rem; font-weight: 500; cursor: pointer; transition: all .15s;
-}
-.v2-pill:hover { border-color: var(--v2-border-strong); color: var(--v2-text-hover); }
-.v2-pill--on { background: var(--v2-border-med); border-color: var(--v2-border-strong); color: var(--v2-text); }
-
-.v2-searchbox {
-  position: relative; display: flex; align-items: center; min-width: 180px;
-}
-.v2-searchbox__icon { position: absolute; left: .75rem; color: var(--v2-text-dim); pointer-events: none; }
-.v2-searchbox__input {
-  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border); border-radius: 10px;
-  padding: .5rem 2.25rem 0.5rem 2.25rem; color: var(--v2-text); font-size: .875rem;
-  outline: none; width: 100%; transition: border-color .18s;
-}
-.v2-searchbox__input:focus { border-color: var(--v2-border-focus); }
-.v2-searchbox__input::placeholder { color: var(--v2-text-dimmer); }
-.v2-searchbox__clear {
-  position: absolute; right: .625rem; background: none; border: none;
-  color: var(--v2-text-dim); cursor: pointer; display: flex; align-items: center; transition: color .15s;
-}
-.v2-searchbox__clear:hover { color: var(--v2-accent); }
-
-/* ── Progress strip ──────────────────────────────────────────────────────── */
-.v2-prog-strip {
-  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
-  border-radius: 14px; padding: .875rem 1.125rem; margin-bottom: .875rem;
-}
-.v2-prog-strip__top {
-  display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; flex-wrap: wrap;
-}
-.v2-prog-strip__label { font-size: .8125rem; color: var(--v2-text-secondary); font-weight: 500; }
-.v2-prog-strip__count { font-size: .875rem; color: var(--v2-text); font-weight: 600; margin-left: auto; }
-.v2-prog-strip__badges { display: flex; gap: .375rem; }
-.v2-prog-badge {
-  font-size: .6875rem; font-weight: 600; padding: .125rem .5rem; border-radius: 999px;
-}
-.v2-prog-badge--red { background: rgba(248,113,113,.12); color: #f87171; }
-.v2-prog-badge--yellow { background: rgba(252,211,77,.12); color: #fcd34d; }
-.v2-prog-badge--green { background: rgba(52,211,153,.12); color: #34d399; }
-.v2-progress { height: 6px; background: var(--v2-border-subtle); border-radius: 999px; overflow: hidden; }
-.v2-progress__fill { height: 100%; background: var(--v2-accent); border-radius: 999px; transition: width .4s; }
-
-/* ── Monster grid ────────────────────────────────────────────────────────── */
-.v2-center-loader {
-  display: flex; align-items: center; justify-content: center;
-  gap: .75rem; padding: 4rem; color: var(--v2-text-secondary); font-size: .9375rem;
-}
-.v2-spin {
-  width: 22px; height: 22px;
-  border: 2px solid var(--v2-border-med); border-top-color: var(--v2-accent);
-  border-radius: 50%; animation: vspin .8s linear infinite; flex-shrink: 0;
-}
-@keyframes vspin { to { transform: rotate(360deg); } }
-
-.v2-mgrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: .625rem;
-}
-.v2-mc {
-  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
-  border-radius: 12px; overflow: hidden;
-  display: flex; flex-direction: column; transition: border-color .18s, box-shadow .18s;
-}
-.v2-mc:hover { border-color: var(--v2-border-strong); box-shadow: 0 0 20px var(--v2-hover); }
-.v2-mc--done { border-color: rgba(52,211,153,.22); background: rgba(52,211,153,.03); }
-.v2-mc--archi { border-color: rgba(248,113,113,.18); }
-.v2-mc__img {
-  position: relative; width: 100%; aspect-ratio: 1;
-  background: rgba(0,0,0,.2); overflow: hidden;
-}
-.v2-mc__img img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
-.v2-mc:hover .v2-mc__img img { transform: scale(1.06); }
-.v2-mc__badge {
-  position: absolute; top: 5px; right: 5px;
-  width: 18px; height: 18px; border-radius: 5px;
-  background: #f87171; color: white; font-size: .5625rem; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-}
-.v2-mc__info { padding: .5rem .625rem .375rem; flex: 1; }
-.v2-mc__name {
-  font-size: .8125rem; font-weight: 600; color: var(--v2-text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;
-}
-.v2-mc__zone {
-  font-size: .6875rem; color: var(--v2-text-muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;
-}
-.v2-mc__ctrl {
-  display: flex; align-items: center; justify-content: center; gap: .5rem;
-  padding: .5rem .625rem; border-top: 1px solid var(--v2-border-subtle);
-}
-.v2-cc {
-  width: 26px; height: 26px; border-radius: 7px;
-  border: 1px solid var(--v2-border-med); background: var(--v2-hover);
-  color: var(--v2-text-hover); font-size: 1rem; font-weight: 700; line-height: 1;
-  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s;
-}
-.v2-cc--m:hover:not(:disabled) { background: rgba(248,113,113,.15); border-color: rgba(248,113,113,.3); color: #f87171; }
-.v2-cc--p:hover { background: rgba(52,211,153,.15); border-color: rgba(52,211,153,.3); color: #34d399; }
-.v2-cc:disabled { opacity: .35; cursor: not-allowed; }
-.v2-cv { min-width: 22px; text-align: center; font-size: 1rem; font-weight: 800; }
-.v2-cv--zero { color: #f87171; }
-.v2-cv--pos { color: #34d399; }
-.v2-mgrid__empty {
-  grid-column: 1/-1; padding: 3rem; text-align: center;
-  color: var(--v2-text-dim); font-size: .9375rem;
-  display: flex; flex-direction: column; align-items: center;
-}
-
-/* ── Sell Mode ───────────────────────────────────────────────────────────── */
-.v2-sell { display: flex; flex-direction: column; gap: .75rem; }
-
-/* Stats cards */
-.v2-sell-stats {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .625rem;
-}
-.v2-sstat {
-  display: flex; align-items: flex-start; gap: .75rem;
-  padding: .875rem 1rem; border-radius: 12px; border: 1px solid;
-}
-.v2-sstat--amber { background: var(--v2-hover); border-color: var(--v2-border-med); }
-.v2-sstat--orange { background: rgba(251,146,60,.06); border-color: rgba(251,146,60,.2); }
-.v2-sstat--green { background: rgba(52,211,153,.06); border-color: rgba(52,211,153,.2); }
-.v2-sstat--blue { background: rgba(96,165,250,.06); border-color: rgba(96,165,250,.2); }
-.v2-sstat__icon {
-  width: 36px; height: 36px; flex-shrink: 0; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-}
-.v2-sstat--amber .v2-sstat__icon { background: var(--v2-active-strong); color: var(--v2-accent); }
-.v2-sstat--orange .v2-sstat__icon { background: rgba(251,146,60,.18); color: #fb923c; }
-.v2-sstat--green .v2-sstat__icon { background: rgba(52,211,153,.18); color: #34d399; }
-.v2-sstat--blue .v2-sstat__icon { background: rgba(96,165,250,.18); color: #60a5fa; }
-.v2-sstat__body { flex: 1; min-width: 0; }
-.v2-sstat__label { font-size: .75rem; color: var(--v2-text-secondary); font-weight: 500; margin-bottom: .125rem; }
-.v2-sstat__val { font-size: 1.375rem; font-weight: 800; color: var(--v2-text); line-height: 1.2; }
-.v2-sstat__sub { font-size: .6875rem; color: var(--v2-text-dim); margin-top: .125rem; }
-.v2-sstat__thresh { font-size: .625rem; color: var(--v2-text-dim); margin-left: .25rem; }
-.v2-sstat__pulse {
-  position: absolute; top: .625rem; right: .625rem;
-  width: 8px; height: 8px; background: #f87171; border-radius: 50%; animation: vpulse 1.5s infinite;
-}
-@keyframes vpulse { 0%,100% { opacity: 1 } 50% { opacity: .4 } }
-
-/* Inline select inside stat card */
-.v2-inline-select {
-  background: rgba(0,0,0,.25); border: 1px solid var(--v2-border-med); border-radius: 6px;
-  color: #a07840; font-size: .6875rem; padding: .125rem .375rem; outline: none; cursor: pointer;
-}
-.v2-pills :deep(.v2s),
-.v2-sstat__sub :deep(.v2s),
-.v2-analytics-bar :deep(.v2s) {
-  min-width: 130px;
-}
-.v2-pills :deep(.v2s__trigger),
-.v2-sstat__sub :deep(.v2s__trigger),
-.v2-analytics-bar :deep(.v2s__trigger) {
-  min-height: 30px;
-  padding: .3rem .55rem;
-  border-radius: 8px;
-  font-size: .8125rem;
-}
-
-/* Add form */
-.v2-add-form {
-  background: var(--v2-hover-subtle); border: 1px solid var(--v2-border);
-  border-radius: 14px; padding: .875rem 1rem;
-}
-.v2-add-form__title {
-  display: flex; align-items: center; gap: .5rem;
-  font-size: .8125rem; font-weight: 600; color: var(--v2-text-hover); margin-bottom: .75rem;
-}
-.v2-add-form__row { display: flex; align-items: flex-start; gap: .625rem; flex-wrap: wrap; }
-.v2-autocomplete { position: relative; flex: 1; min-width: 200px; }
-.v2-add-input {
-  background: rgba(0,0,0,.3); border: 1px solid var(--v2-border-med); border-radius: 10px;
-  padding: .5rem .875rem; color: var(--v2-text); font-size: .875rem; outline: none;
-  transition: border-color .18s; width: 100%;
-}
-.v2-add-input:focus { border-color: var(--v2-border-focus); }
-.v2-add-input::placeholder { color: var(--v2-text-dimmer); }
-.v2-add-input--sm { width: 80px; flex-shrink: 0; min-width: 0; }
-.v2-add-input--md { width: 140px; flex-shrink: 0; min-width: 0; }
-.v2-add-input--wide { width: 100%; }
-
-.v2-dropdown {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
-  background: var(--v2-surface-elevated);
-  border: 1px solid var(--v2-border-med);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0,0,0,.4), 0 16px 40px rgba(0,0,0,.65);
-  max-height: 280px; overflow-y: auto;
-}
-.v2-dropdown__item {
-  display: flex; align-items: center; gap: .625rem;
-  padding: .5rem .75rem; cursor: pointer; border: none; background: transparent;
-  width: 100%; text-align: left; transition: background .12s;
-}
-.v2-dropdown__item:hover { background: var(--v2-border-subtle); }
-.v2-dropdown__img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
-.v2-dropdown__name { font-size: .875rem; color: var(--v2-text); font-weight: 500; flex: 1; }
-.v2-dropdown__zone { font-size: .6875rem; color: var(--v2-text-dim); }
-
-.v2-price-wrap { display: flex; flex-direction: column; gap: .25rem; flex-shrink: 0; }
-.v2-price-hint {
-  font-size: .6875rem; color: var(--v2-accent); cursor: pointer; text-decoration: underline; padding-left: .25rem;
-}
-.v2-price-hint:hover { color: #fbbf24; }
-
-.v2-add-btn {
-  padding: .5rem 1.125rem; border-radius: 10px;
-  background: var(--v2-active-strong); border: 1px solid var(--v2-border-strong);
-  color: var(--v2-text); font-size: .875rem; font-weight: 600; cursor: pointer;
-  transition: all .18s; white-space: nowrap; align-self: flex-start;
-}
-.v2-add-btn:hover:not(:disabled) { background: var(--v2-border-strong); }
-.v2-add-btn:disabled { opacity: .35; cursor: not-allowed; }
-
-/* Sub tabs */
-.v2-sell-tabs { display: flex; gap: .375rem; }
-.v2-sell-tab {
-  display: flex; align-items: center; gap: .375rem;
-  padding: .4375rem .875rem; border-radius: 8px; border: 1px solid var(--v2-border);
-  background: transparent; color: var(--v2-text-secondary); font-size: .8125rem; font-weight: 500; cursor: pointer;
-  transition: all .15s;
-}
-.v2-sell-tab:hover { border-color: var(--v2-border-strong); color: var(--v2-text-hover); }
-.v2-sell-tab--on { background: var(--v2-border-med); border-color: var(--v2-border-strong); color: var(--v2-text); }
-.v2-sell-tab__badge {
-  padding: .0625rem .375rem; border-radius: 999px;
-  background: var(--v2-border-med); color: var(--v2-accent); font-size: .625rem; font-weight: 700;
-}
-.v2-sell-tab__badge--blue { background: rgba(96,165,250,.2); color: #60a5fa; }
-.v2-sell-tab__badge--green { background: rgba(52,211,153,.2); color: #34d399; }
-.v2-sell-tab__badge--red { background: rgba(248,113,113,.2); color: #f87171; }
-
-/* Route planner */
-.v2-route { display: grid; gap: .875rem; }
-.v2-route-bar {
-  display: flex; align-items: center; gap: .625rem; flex-wrap: wrap;
-}
-.v2-route-bar__search { min-width: 260px; flex: 1; }
-.v2-route-layout {
-  display: grid; grid-template-columns: 220px 1fr; gap: 1rem; align-items: start;
-}
-/* Sidebar */
-.v2-route-sidebar {
-  position: sticky; top: 1rem;
-  background: rgba(255,255,255,.03); border: 1px solid var(--v2-border);
-  border-radius: 14px; padding: .75rem;
-  display: flex; flex-direction: column; gap: .375rem;
-  max-height: calc(100vh - 6rem); overflow-y: auto;
-}
-.v2-route-sidebar__title {
-  font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
-  color: var(--v2-text-dim); margin-bottom: .25rem;
-  display: flex; align-items: center; gap: .4rem;
-}
-.v2-route-sidebar__count {
-  background: rgba(96,165,250,.15); color: #93c5fd;
-  font-size: .7rem; padding: .1rem .4rem; border-radius: 999px;
-}
-.v2-route-sidebar__filter {
-  display: flex; align-items: center; gap: .375rem;
-  background: rgba(255,255,255,.05); border: 1px solid var(--v2-border-subtle);
-  border-radius: 8px; padding: .3rem .5rem; margin-bottom: .125rem;
-}
-.v2-route-sidebar__filter-icon { color: var(--v2-text-dim); flex-shrink: 0; }
-.v2-route-sidebar__filter-input {
-  flex: 1; background: none; border: none; outline: none;
-  font-size: .75rem; color: var(--v2-text); min-width: 0;
-}
-.v2-route-sidebar__filter-input::placeholder { color: var(--v2-text-dim); }
-.v2-route-sidebar__filter-clear {
-  background: none; border: none; cursor: pointer; padding: .1rem;
-  color: var(--v2-text-dim); display: flex; align-items: center;
-  border-radius: 4px; flex-shrink: 0;
-}
-.v2-route-sidebar__filter-clear:hover { color: var(--v2-text); }
-.v2-route-sidebar__nomatch {
-  font-size: .75rem; color: #f87171; text-align: center;
-  padding: .5rem .25rem; opacity: .85;
-}
-.v2-route-pill--match { border-color: rgba(96,165,250,.35); background: rgba(96,165,250,.08); }
-.v2-route-pill {
-  display: flex; align-items: center; gap: .5rem;
-  padding: .375rem .5rem; border-radius: 10px;
-  background: rgba(255,255,255,.04); border: 1px solid var(--v2-border-subtle);
-  transition: background .15s;
-}
-.v2-route-pill:hover { background: rgba(255,255,255,.07); }
-.v2-route-pill__img {
-  width: 28px; height: 28px; border-radius: 7px; object-fit: cover; flex-shrink: 0;
-  background: rgba(255,255,255,.04);
-}
-.v2-route-pill__name {
-  flex: 1; min-width: 0; font-size: .78rem; font-weight: 600; color: var(--v2-text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.v2-route-pill__del {
-  flex-shrink: 0; color: var(--v2-text-dim); opacity: .5; padding: .1rem;
-  background: none; border: none; cursor: pointer; border-radius: 4px;
-  display: flex; align-items: center; transition: opacity .15s, color .15s;
-}
-.v2-route-pill__del:hover { opacity: 1; color: #f87171; }
-/* Main route groups */
-.v2-route-main { display: grid; gap: .75rem; }
-.v2-route-group {
-  background: rgba(0,0,0,.16); border: 1px solid var(--v2-border);
-  border-radius: 14px; padding: .875rem 1rem;
-}
-.v2-route-group__head {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: .75rem; margin-bottom: .75rem;
-}
-.v2-route-group__name { font-size: .95rem; font-weight: 700; color: var(--v2-text); }
-.v2-route-group__zone { font-size: .75rem; color: var(--v2-text-dim); margin-top: .125rem; }
-.v2-route-group__count {
-  padding: .25rem .55rem; border-radius: 999px; flex-shrink: 0;
-  background: rgba(52,211,153,.1); color: #6ee7b7; font-size: .6875rem; font-weight: 700;
-}
-.v2-route-group__list {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .625rem;
-}
-.v2-route-group__item {
-  display: flex; align-items: center; gap: .625rem;
-  background: rgba(255,255,255,.03); border: 1px solid var(--v2-border-subtle);
-  border-radius: 12px; padding: .625rem .75rem;
-}
-.v2-route-group__img {
-  width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
-}
-.v2-route-group__monster { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
-
-/* Slow warning */
-.v2-slow-warn {
-  display: flex; align-items: flex-start; gap: .625rem;
-  background: rgba(251,146,60,.07); border: 1px solid rgba(251,146,60,.22);
-  border-radius: 10px; padding: .75rem 1rem;
-  color: #fb923c; font-size: .8125rem;
-}
-
-/* Empty state */
-.v2-empty {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: .625rem; padding: 3rem 2rem; text-align: center;
-  color: var(--v2-text-dim); font-size: .9375rem;
-}
-.v2-empty__sub { font-size: .8125rem; color: var(--v2-text-dimmer); }
-
-/* Pending list */
-.v2-pending-list { display: flex; flex-direction: column; gap: .5rem; }
-.v2-pending-item {
-  display: flex; align-items: center; gap: .75rem;
-  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
-  border-radius: 12px; padding: .625rem .875rem; transition: border-color .18s;
-}
-.v2-pending-item:hover { border-color: var(--v2-border-strong); }
-.v2-pending-item--slow { border-color: rgba(251,146,60,.25); background: rgba(251,146,60,.04); }
-.v2-pending-item--sold { border-color: rgba(52,211,153,.15); background: rgba(52,211,153,.03); }
-
-.v2-pitem__img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
-.v2-pitem__info { flex: 1; min-width: 0; }
-.v2-pitem__name { font-size: .875rem; font-weight: 600; color: var(--v2-text); }
-.v2-pitem__date { font-size: .6875rem; color: var(--v2-text-dim); margin-top: 1px; }
-.v2-pitem__slow-tag {
-  display: inline-block; margin-top: 2px;
-  padding: .0625rem .375rem; border-radius: 999px;
-  background: rgba(251,146,60,.2); color: #fb923c; font-size: .625rem; font-weight: 700;
-}
-
-.v2-pitem__price-wrap {
-  display: flex; align-items: center; gap: .375rem; flex-shrink: 0;
-}
-.v2-pitem__price {
-  font-size: 1rem; font-weight: 700; color: var(--v2-accent); cursor: pointer;
-  padding: .25rem .5rem; border-radius: 6px; transition: background .15s;
-}
-.v2-pitem__price:hover { background: var(--v2-active); }
-.v2-pitem__price--sold { color: #34d399; cursor: default; }
-.v2-pitem__price--sold:hover { background: transparent; }
-.v2-pitem__edit-btn {
-  background: none; border: none; color: var(--v2-text-dim); cursor: pointer; padding: .25rem;
-  display: flex; align-items: center; transition: color .15s;
-}
-.v2-pitem__edit-btn:hover { color: var(--v2-accent); }
-.v2-pitem__price-input {
-  width: 100px; background: rgba(0,0,0,.4); border: 1px solid var(--v2-border-strong);
-  border-radius: 7px; padding: .25rem .5rem; color: var(--v2-text); font-size: .875rem; outline: none;
-}
-.v2-pitem__price-ok {
-  background: rgba(52,211,153,.15); border: 1px solid rgba(52,211,153,.3);
-  color: #34d399; border-radius: 6px; padding: .25rem .5rem;
-  cursor: pointer; font-size: .875rem; transition: background .15s;
-}
-.v2-pitem__price-ok:hover { background: rgba(52,211,153,.25); }
-.v2-pitem__price-cancel {
-  background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.2);
-  color: #f87171; border-radius: 6px; padding: .25rem .5rem;
-  cursor: pointer; font-size: .875rem; transition: background .15s;
-}
-.v2-pitem__price-cancel:hover { background: rgba(248,113,113,.2); }
-
-.v2-pitem__actions { display: flex; align-items: center; gap: .375rem; flex-shrink: 0; }
-.v2-pitem__sold-btn {
-  display: flex; align-items: center; gap: .25rem;
-  padding: .375rem .75rem; border-radius: 8px;
-  background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.25);
-  color: #34d399; font-size: .8125rem; font-weight: 600; cursor: pointer; transition: all .15s;
-}
-.v2-pitem__sold-btn:hover { background: rgba(52,211,153,.22); }
-.v2-pitem__del-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 8px;
-  background: transparent; border: 1px solid rgba(248,113,113,.15);
-  color: var(--v2-text-dim); cursor: pointer; transition: all .15s;
-}
-.v2-pitem__del-btn:hover { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.3); color: #f87171; }
-.v2-pitem__undo-btn {
-  display: flex; align-items: center; gap: .25rem;
-  padding: .375rem .75rem; border-radius: 8px;
-  background: var(--v2-active); border: 1px solid var(--v2-border-med);
-  color: var(--v2-text-hover); font-size: .8125rem; font-weight: 500; cursor: pointer; transition: all .15s;
-}
-.v2-pitem__undo-btn:hover { background: var(--v2-active-strong); }
-
-/* Analytics */
-.v2-analytics { display: flex; flex-direction: column; gap: .75rem; }
-.v2-atabs { display: flex; gap: .375rem; flex-wrap: wrap; }
-.v2-atab {
-  display: flex; align-items: center; gap: .375rem;
-  padding: .375rem .875rem; border-radius: 8px; border: 1px solid var(--v2-active);
-  background: transparent; color: var(--v2-text-muted); font-size: .8125rem; cursor: pointer; transition: all .15s;
-}
-.v2-atab:hover { border-color: var(--v2-border-strong); color: var(--v2-text-hover); }
-.v2-atab--on { background: var(--v2-border); border-color: var(--v2-border-strong); color: var(--v2-text); }
-
-.v2-analytics-bar {
-  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
-  margin-bottom: .625rem;
-}
-.v2-analytics-bar__label { font-size: .75rem; color: var(--v2-text-dim); }
-
-/* Ranked list */
-.v2-ranked-list { display: flex; flex-direction: column; gap: .5rem; }
-.v2-ranked-item {
-  display: flex; align-items: center; gap: .75rem;
-  background: var(--v2-hover-subtle); border: 1px solid var(--v2-active);
-  border-radius: 12px; padding: .625rem .875rem; transition: border-color .18s;
-}
-.v2-ranked-item:hover { border-color: var(--v2-border-strong); }
-.v2-rank-badge {
-  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .8125rem; font-weight: 800;
-  background: var(--v2-active); color: var(--v2-text-secondary);
-}
-.v2-rank-badge--gold { background: var(--v2-border-strong); color: var(--v2-accent); }
-.v2-rank-badge--silver { background: rgba(200,200,200,.2); color: #d4d4d4; }
-.v2-rank-badge--bronze { background: rgba(180,100,50,.2); color: #cd7c3a; }
-.v2-ranked-info { flex: 1; min-width: 0; }
-.v2-ranked-bar-wrap { margin-top: .3rem; }
-.v2-ranked-bar { height: 4px; background: var(--v2-border-subtle); border-radius: 999px; overflow: hidden; }
-.v2-ranked-bar__fill { height: 100%; background: var(--v2-accent); border-radius: 999px; transition: width .4s; }
-.v2-ranked-stats { display: flex; gap: 1rem; flex-shrink: 0; }
-.v2-rstat { text-align: center; }
-.v2-rstat__val { font-size: .9375rem; font-weight: 700; color: var(--v2-text); }
-.v2-rstat__lbl { font-size: .625rem; color: var(--v2-text-dim); text-transform: uppercase; letter-spacing: .03em; }
-
-/* Price trend badges */
-.v2-trend-prices { display: flex; flex-direction: column; gap: .25rem; flex-shrink: 0; }
-.v2-trend-prices__row { display: flex; align-items: center; gap: .5rem; }
-.v2-trend-prices__lbl { font-size: .6875rem; color: var(--v2-text-dim); width: 36px; }
-.v2-trend-prices__val { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
-.v2-trend-badge {
-  display: flex; align-items: center; gap: .3rem;
-  padding: .3125rem .625rem; border-radius: 8px; font-size: .75rem; font-weight: 600; flex-shrink: 0;
-}
-.v2-trend-badge--up { background: rgba(52,211,153,.12); color: #34d399; border: 1px solid rgba(52,211,153,.25); }
-.v2-trend-badge--down { background: rgba(248,113,113,.12); color: #f87171; border: 1px solid rgba(248,113,113,.25); }
-.v2-trend-badge--stable { background: var(--v2-border-subtle); color: var(--v2-text-hover); border: 1px solid var(--v2-border-med); }
-
-/* Inconsistencies */
-.v2-incons-item {
-  background: rgba(251,146,60,.04); border: 1px solid rgba(251,146,60,.18);
-  border-radius: 12px; padding: .75rem .875rem; display: flex; flex-direction: column; gap: .625rem;
-}
-.v2-incons-item__header { display: flex; align-items: center; gap: .75rem; }
-.v2-incons-range { display: flex; gap: 1rem; margin-left: auto; flex-shrink: 0; }
-.v2-price-groups { display: flex; flex-wrap: wrap; gap: .375rem; }
-.v2-price-group {
-  display: flex; align-items: center; gap: .375rem;
-  padding: .25rem .625rem; border-radius: 7px;
-  background: rgba(0,0,0,.25); border: 1px solid var(--v2-active);
-}
-.v2-price-group__price { font-size: .8125rem; font-weight: 600; color: var(--v2-text); }
-.v2-price-group__count { font-size: .75rem; color: var(--v2-text-secondary); }
-.v2-incons-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
-.v2-ia-btn {
-  padding: .375rem .75rem; border-radius: 8px; font-size: .75rem; font-weight: 600; cursor: pointer; transition: all .15s; border: 1px solid;
-}
-.v2-ia-btn--green { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.25); color: #34d399; }
-.v2-ia-btn--green:hover { background: rgba(52,211,153,.2); }
-.v2-ia-btn--blue { background: rgba(96,165,250,.1); border-color: rgba(96,165,250,.25); color: #60a5fa; }
-.v2-ia-btn--blue:hover { background: rgba(96,165,250,.2); }
-.v2-ia-btn--red { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.25); color: #f87171; }
-.v2-ia-btn--red:hover { background: rgba(248,113,113,.2); }
-
-/* History header */
-.v2-history-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: .5rem; padding: 0 .25rem;
-  font-size: .8125rem; color: var(--v2-text-secondary);
-}
-.v2-clear-btn {
-  background: transparent; border: 1px solid rgba(248,113,113,.2);
-  color: #f87171; border-radius: 7px; padding: .25rem .625rem;
-  font-size: .75rem; cursor: pointer; transition: all .15s;
-}
-.v2-clear-btn:hover { background: rgba(248,113,113,.1); }
-
-@media (max-width: 720px) {
-  .v2-route-layout { grid-template-columns: 1fr; }
-  .v2-route-sidebar { position: static; }
-  .v2-route-group__head { flex-direction: column; align-items: stretch; }
-}
-</style>
-
-
-
