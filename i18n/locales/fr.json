@@ -91,6 +91,66 @@
         "pickToolDesc": "Suivez l'Ocre, les ventes, la revente, le craft, le brisage, les succès ou les prix familiers.",
         "backup": "Exporter une sauvegarde",
         "backupDesc": "Vos données restent dans ce navigateur, gardez une sauvegarde avant de changer d'appareil."
+      },
+      "startAction": "Commencer par une action",
+      "whatNext": "Que faire ensuite ?",
+      "whatNextDesc": "Suggestions basées sur ce que vous suivez actuellement.",
+      "overview": "Vue d'ensemble",
+      "workflows": "Flux de travail",
+      "soldCount": "{count} vendus",
+      "actions": {
+        "context": {
+          "title": "Créez votre premier personnage",
+          "reason": "Le suivi a besoin d’un serveur et d’un personnage pour que vos prix, flips et sessions ne se mélangent pas.",
+          "cta": "Utilisez le bouton personnage dans la barre latérale"
+        },
+        "prices": {
+          "title": "Commencez par les prix, pas par les suppositions",
+          "reason": "Les décisions de revente, brisage et craft/FM ne valent que si les prix du marché sont récents.",
+          "cta": "Ouvrir Prix"
+        },
+        "activeFlips": {
+          "title": "Vérifiez d’abord les flips actifs",
+          "reason": "Vous avez {count} objets en revente. Réafficher ou annuler les objets bloqués protège votre capital.",
+          "cta": "Ouvrir Revente"
+        },
+        "reviewSold": {
+          "title": "Analysez ce qui s’est réellement vendu",
+          "reason": "Servez-vous des ventes réalisées pour comprendre ce qui marche avant de vous lancer ailleurs.",
+          "cta": "Ouvrir Historique"
+        },
+        "firstFlip": {
+          "title": "Apprenez sur un petit flip",
+          "reason": "Suivez un objet, fixez un prix d’achat sûr, mettez-le en vente et observez le résultat avant de grossir.",
+          "cta": "Ouvrir Revente"
+        },
+        "tryBrisage": {
+          "title": "Essayez le brisage prudemment",
+          "reason": "Le brisage peut sembler rentable sur le papier. Comparez le coût de l’objet aux prix des runes et considérez le profit comme théorique tant que les runes ne sont pas vendues.",
+          "cta": "Ouvrir Brisage"
+        }
+      },
+      "workflowCards": {
+        "flip": {
+          "title": "Revente",
+          "desc": "Surveiller, acheter sous un prix sûr, vendre, puis apprendre.",
+          "status": "Commencez ici"
+        },
+        "break": {
+          "title": "Brisage",
+          "desc": "Suivre le brisage sans se mentir sur la valeur des runes invendues.",
+          "status": "Ensuite"
+        },
+        "craft": {
+          "title": "Craft & FM",
+          "desc": "Coût de recette, budget FM et prix de rentabilité au même endroit.",
+          "status": "Expérimenter"
+        },
+        "archis": {
+          "title": "Archimonstres",
+          "desc": "Captures, annonces, prix périmés et ventes réelles.",
+          "status": "Optionnel"
+        }
       }
     },
     "pageIntros": {

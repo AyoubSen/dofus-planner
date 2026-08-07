@@ -91,6 +91,66 @@
         "pickToolDesc": "Track Ochre progress, sales, resale flips, crafting, brisage, achievements, or pet food prices.",
         "backup": "Export a backup",
         "backupDesc": "Your data lives in this browser, so keep a backup before switching devices."
+      },
+      "startAction": "Start with one action",
+      "whatNext": "What should I do next?",
+      "whatNextDesc": "Suggestions based on what you are currently tracking.",
+      "overview": "Overview",
+      "workflows": "Workflows",
+      "soldCount": "{count} sold",
+      "actions": {
+        "context": {
+          "title": "Create your first character context",
+          "reason": "Most money tracking needs a server and character so your prices, flips and sessions do not mix together.",
+          "cta": "Use the character button in the sidebar"
+        },
+        "prices": {
+          "title": "Start with prices, not guesses",
+          "reason": "Resale, brisage and craft/FM decisions are only useful when market prices are fresh.",
+          "cta": "Open Prices"
+        },
+        "activeFlips": {
+          "title": "Check active flips first",
+          "reason": "You have {count} active resale items. Relisting or cancelling stale ones protects your capital.",
+          "cta": "Open Flip Items"
+        },
+        "reviewSold": {
+          "title": "Review what actually sold",
+          "reason": "Use realized sales to learn what worked before trusting another opportunity.",
+          "cta": "Open History"
+        },
+        "firstFlip": {
+          "title": "Learn one small flip",
+          "reason": "Watch one item, set a safe buy price, list it and track the result before scaling up.",
+          "cta": "Open Flip Items"
+        },
+        "tryBrisage": {
+          "title": "Try brisage carefully",
+          "reason": "Brisage can look profitable on paper. Compare item cost with rune prices and treat profit as paper until the runes sell.",
+          "cta": "Open Break Items"
+        }
+      },
+      "workflowCards": {
+        "flip": {
+          "title": "Flip Items",
+          "desc": "Watch, buy under a safe price, list, sell, then learn.",
+          "status": "Start here"
+        },
+        "break": {
+          "title": "Break Items",
+          "desc": "Track brisage without lying to yourself about unsold rune value.",
+          "status": "Good next"
+        },
+        "craft": {
+          "title": "Craft & FM",
+          "desc": "Recipe cost, FM budget and break-even price in one place.",
+          "status": "Experiment"
+        },
+        "archis": {
+          "title": "Sell Archis",
+          "desc": "Captures, listings, stale prices and real archimonstre sales.",
+          "status": "Optional"
+        }
       }
     },
     "pageIntros": {
