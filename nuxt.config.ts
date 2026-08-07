@@ -1,3 +1,20 @@
+import tailwindcss from "@tailwindcss/vite";
+
+// Runs before first paint so the saved theme and font scale are already on
+// <html>. Without it every load flashes the default dark theme at 100%.
+const themeBootstrap = `
+try {
+  var d = document.documentElement;
+  var t = localStorage.getItem('app-theme') || 'system';
+  var resolved = t === 'system'
+    ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+    : t;
+  d.setAttribute('data-theme', resolved);
+  var s = { sm: '87.5%', md: '100%', lg: '112.5%', xl: '125%' }[localStorage.getItem('font-scale') || 'md'];
+  if (s) d.style.fontSize = s;
+} catch (e) {}
+`;
+
 export default defineNuxtConfig({
   app: {
     head: {
@@ -6,7 +23,23 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: "en" },
 
       link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+
+      script: [{ innerHTML: themeBootstrap, tagPriority: "critical" }],
     },
+  },
+
+  // themes.css is transitional: it keeps the not-yet-converted pages alive
+  // while the overhaul lands. Removed once the last page drops its v2 CSS.
+  css: ["~/assets/css/main.css", "~/assets/css/themes.css"],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
+
+  fonts: {
+    families: [
+      { name: "Inter", provider: "google", weights: [400, 500, 600, 700] },
+    ],
   },
 
   compatibilityDate: "2025-07-15",
@@ -22,7 +55,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@nuxt/fonts", "@nuxtjs/tailwindcss", "@vueuse/nuxt", "@nuxtjs/i18n"],
+  modules: ["@nuxt/fonts", "@vueuse/nuxt", "@nuxtjs/i18n"],
 
   runtimeConfig: {
     equipmentsApiBase: process.env.EQUIPMENTS_API_BASE,
@@ -30,12 +63,13 @@ export default defineNuxtConfig({
   },
 
   i18n: {
-  locales: [
-    { code: 'en', file: 'en.json' },
-    { code: 'fr', file: 'fr.json' }
-  ],
-  defaultLocale: 'en',
-  langDir: 'locales',
-  strategy: 'prefix_except_default'
- }
+    locales: [
+      { code: 'en', file: 'en.json' },
+      { code: 'fr', file: 'fr.json' }
+    ],
+    defaultLocale: 'en',
+    langDir: 'locales',
+    strategy: 'prefix_except_default',
+    vueI18n: './i18n.config.ts'
+  }
 });
