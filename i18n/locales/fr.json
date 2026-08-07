@@ -148,7 +148,8 @@
       "selectOption": "Sélectionner une option",
       "pickDate": "Choisir une date",
       "close": "Fermer",
-      "noResults": "Aucun résultat"
+      "noResults": "Aucun résultat",
+      "advanced": "Avancé"
     },
     "archi": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour commencer le suivi des archimonstres.",
@@ -548,7 +549,8 @@
         "refresh": "Rafraîchir",
         "accept": "Accepter",
         "dismiss": "Ignorer",
-        "emptyInbox": "Aucun prix détecté. Lance le script compagnon et appuie sur Ctrl+Alt+P quand le prix HDV est visible."
+        "emptyInbox": "Aucun prix détecté. Lance le script compagnon et appuie sur Ctrl+Alt+P quand le prix HDV est visible.",
+        "copied": "Copié"
       },
       "table": {
         "action": "Action",

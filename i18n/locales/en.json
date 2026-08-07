@@ -148,7 +148,8 @@
       "selectOption": "Select an option",
       "pickDate": "Pick a date",
       "close": "Close",
-      "noResults": "No results"
+      "noResults": "No results",
+      "advanced": "Advanced"
     },
     "archi": {
       "noCharacterDesc": "Select a character in the sidebar to start tracking your archimonstres.",
@@ -548,7 +549,8 @@
         "refresh": "Refresh",
         "accept": "Accept",
         "dismiss": "Dismiss",
-        "emptyInbox": "No detected prices yet. Run the companion script and press Ctrl+Alt+P when the HDV price is visible."
+        "emptyInbox": "No detected prices yet. Run the companion script and press Ctrl+Alt+P when the HDV price is visible.",
+        "copied": "Copied"
       },
       "table": {
         "action": "Action",

@@ -1,234 +1,206 @@
 <template>
-  <div class="ka-page">
-    <div v-if="!hasContext" class="v2-no-context">
-      <div class="v2-no-context__icon">
-        <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-2.8 0-5 1.3-5 3s2.2 3 5 3 5-1.3 5-3-2.2-3-5-3Zm0 0V4m0 10v6m-4-3h8" />
-        </svg>
+  <div v-if="hasContext" class="flex flex-col gap-6">
+    <UiStatRow>
+      <UiStat :label="$t('v2.kamas.stats.total')" :value="opportunities.length" />
+      <UiStat :label="$t('v2.kamas.stats.expectedProfit')">
+        <UiMoney :value="totalExpectedProfit" signed short size="lg" />
+      </UiStat>
+      <UiStat :label="$t('v2.kamas.stats.missingData')" :value="missingDataItems.length" />
+      <UiStat :label="$t('v2.kamas.stats.stale')" :value="staleItems.length" />
+    </UiStatRow>
+
+    <!-- ── Do today ─────────────────────────────────────────────────────── -->
+    <UiPageSection :title="$t('v2.kamas.sections.doToday')" :description="$t('v2.kamas.sections.doTodayDesc')">
+      <div class="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div class="flex min-w-0 flex-col gap-2">
+          <NuxtLink
+            v-for="opportunity in topActions"
+            :key="opportunity.id"
+            :to="localePath(opportunity.path)"
+            class="flex items-start gap-4 rounded-lg border border-line bg-surface p-3 transition-colors hover:border-line-strong"
+          >
+            <div class="min-w-0 flex-1">
+              <UiBadge>{{ $t('v2.kamas.types.' + opportunity.type) }}</UiBadge>
+              <h3 class="mt-1.5 text-sm font-medium text-ink">{{ opportunity.title }}</h3>
+              <p class="mt-0.5 text-sm text-muted">{{ opportunity.suggestedAction }}</p>
+            </div>
+            <div class="flex shrink-0 flex-col items-end">
+              <UiMoney :value="opportunity.estimatedProfit" signed short />
+              <span class="tabular text-xs text-subtle">
+                {{ opportunity.marginPercent === null ? '—' : opportunity.marginPercent + '%' }}
+              </span>
+            </div>
+          </NuxtLink>
+          <UiEmptyState v-if="!topActions.length" :title="$t('v2.kamas.empty.noActions')" />
+        </div>
+
+        <UiCard :title="$t('v2.kamas.sections.performance')" :subtitle="$t('v2.kamas.sections.performanceDesc')">
+          <div class="flex flex-col gap-2.5">
+            <div v-for="source in sourceSummary" :key="source.type" class="flex items-baseline justify-between gap-3">
+              <span class="min-w-0 truncate text-sm text-muted">
+                {{ $t('v2.kamas.types.' + source.type) }}
+                <span class="tabular text-subtle">· {{ source.count }}</span>
+              </span>
+              <UiMoney :value="source.profit" signed short />
+            </div>
+            <p v-if="!sourceSummary.length" class="text-sm text-subtle">{{ $t('v2.kamas.empty.noActions') }}</p>
+          </div>
+        </UiCard>
       </div>
-      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
-      <div class="v2-no-context__desc">{{ $t('v2.kamas.noCharacterDesc') }}</div>
+    </UiPageSection>
+
+    <!-- ── All opportunities ────────────────────────────────────────────── -->
+    <UiPageSection :title="$t('v2.kamas.sections.best')" :description="$t('v2.kamas.sections.bestDesc')">
+      <UiToolbar>
+        <template #search>
+          <UiInput v-model="search" type="search" :placeholder="$t('v2.kamas.filters.search')">
+            <template #prefix><UiIcon name="search" /></template>
+          </UiInput>
+        </template>
+        <template #filters>
+          <UiSelect v-model="typeFilter" :options="typeFilterOptions" size="sm" class="w-40" :aria-label="$t('v2.kamas.filters.allTypes')" />
+          <UiSelect v-model="confidenceFilter" :options="confidenceFilterOptions" size="sm" class="w-40" :aria-label="$t('v2.kamas.filters.allConfidence')" />
+          <UiSelect v-model="sortBy" :options="sortOptions" size="sm" class="w-40" :aria-label="$t('v2.kamas.sort.score')" />
+        </template>
+      </UiToolbar>
+
+      <UiTable :columns="tableColumns" :empty="!filteredOpportunities.length" :empty-text="$t('v2.kamas.empty.noMatches')">
+        <tr
+          v-for="opportunity in filteredOpportunities"
+          :key="opportunity.id"
+          class="cursor-pointer border-t border-line transition-colors hover:bg-sunken"
+          @click="navigateTo(localePath(opportunity.path))"
+        >
+          <td class="px-3 py-2.5">
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <UiBadge>{{ $t('v2.kamas.types.' + opportunity.type) }}</UiBadge>
+                <span class="min-w-0 truncate text-sm font-medium text-ink">{{ opportunity.title }}</span>
+              </div>
+              <span class="text-xs text-subtle">{{ opportunity.reason }}</span>
+            </div>
+          </td>
+          <td class="px-3 py-2.5 text-right"><UiMoney :value="opportunity.estimatedCost" short /></td>
+          <td class="px-3 py-2.5 text-right"><UiMoney :value="opportunity.estimatedRevenue" short /></td>
+          <td class="px-3 py-2.5 text-right"><UiMoney :value="opportunity.estimatedProfit" signed short /></td>
+          <td class="px-3 py-2.5 text-right text-xs text-muted">
+            {{ $t('v2.kamas.confidence.' + opportunity.confidence) }}
+          </td>
+        </tr>
+      </UiTable>
+    </UiPageSection>
+
+    <!-- ── Follow-ups ───────────────────────────────────────────────────── -->
+    <div class="grid gap-4 md:grid-cols-2">
+      <UiCard :title="$t('v2.kamas.sections.missing')" :subtitle="$t('v2.kamas.sections.missingDesc')">
+        <div class="flex flex-col gap-1.5">
+          <NuxtLink
+            v-for="item in missingDataItems.slice(0, 8)"
+            :key="item.id"
+            :to="localePath(item.path)"
+            class="flex flex-col gap-0.5 rounded-md px-2 py-1.5 transition-colors hover:bg-sunken"
+          >
+            <span class="truncate text-sm text-ink">{{ item.itemName }}</span>
+            <span class="text-xs text-subtle">{{ item.missingData.join(', ') }}</span>
+          </NuxtLink>
+          <p v-if="!missingDataItems.length" class="text-sm text-subtle">{{ $t('v2.kamas.empty.noMissingData') }}</p>
+        </div>
+      </UiCard>
+
+      <UiCard :title="$t('v2.kamas.sections.lessons')" :subtitle="$t('v2.kamas.sections.lessonsDesc')">
+        <div class="flex flex-col gap-1.5">
+          <NuxtLink
+            v-for="item in lessons.slice(0, 8)"
+            :key="item.id"
+            :to="localePath(item.path)"
+            class="flex flex-col gap-0.5 rounded-md px-2 py-1.5 transition-colors hover:bg-sunken"
+          >
+            <span class="truncate text-sm text-ink">{{ item.itemName }}</span>
+            <span class="text-xs text-subtle">{{ item.reason }}</span>
+          </NuxtLink>
+          <p v-if="!lessons.length" class="text-sm text-subtle">{{ $t('v2.kamas.empty.noLessons') }}</p>
+        </div>
+      </UiCard>
     </div>
 
-    <template v-else>
-      <section class="ka-stats">
-        <div class="ka-stat">
-          <div class="ka-stat__label">{{ $t('v2.kamas.stats.total') }}</div>
-          <div class="ka-stat__value">{{ opportunities.length }}</div>
+    <!-- ── Advanced ─────────────────────────────────────────────────────── -->
+    <details class="rounded-lg border border-line bg-surface">
+      <summary class="flex cursor-pointer items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+        <div class="min-w-0 flex-1">
+          <h2 class="text-sm font-semibold text-ink">{{ $t('v2.kamas.scanner.title') }}</h2>
+          <p class="mt-0.5 text-xs text-subtle">{{ $t('v2.kamas.scanner.desc') }}</p>
         </div>
-        <div class="ka-stat">
-          <div class="ka-stat__label">{{ $t('v2.kamas.stats.expectedProfit') }}</div>
-          <div class="ka-stat__value" :class="totalExpectedProfit >= 0 ? 'ka-positive' : 'ka-negative'">
-            {{ totalExpectedProfit >= 0 ? '+' : '' }}{{ formatKamasCompact(totalExpectedProfit) }}
+        <UiBadge>{{ $t('v2.common.advanced') }}</UiBadge>
+      </summary>
+
+      <div class="grid gap-4 border-t border-line p-4 lg:grid-cols-2">
+        <div class="min-w-0">
+          <p class="text-xs font-medium tracking-wide text-subtle uppercase">
+            {{ scanQueue.length ? $t('v2.kamas.scanner.position', { current: scanQueueIndex + 1, total: scanQueue.length }) : $t('v2.kamas.scanner.noQueue') }}
+          </p>
+          <p class="mt-1 text-lg font-semibold break-words text-ink">
+            {{ currentScanItem || $t('v2.kamas.scanner.emptyCurrent') }}
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <UiButton size="sm" @click="buildScanQueue">{{ $t('v2.kamas.scanner.buildQueue') }}</UiButton>
+            <UiButton size="sm" :disabled="!currentScanItem" @click="copyCurrentScanItem">
+              {{ scanCopyStatus || $t('v2.kamas.scanner.copy') }}
+            </UiButton>
+            <UiButton size="sm" :disabled="!currentScanItem" @click="setActiveScanItem">{{ $t('v2.kamas.scanner.arm') }}</UiButton>
+            <UiButton variant="ghost" size="sm" :disabled="!currentScanItem" @click="skipScanItem">{{ $t('v2.kamas.scanner.skip') }}</UiButton>
+            <UiButton variant="ghost" size="sm" :disabled="!scanQueue.length" @click="clearScanQueue">{{ $t('v2.kamas.scanner.clear') }}</UiButton>
           </div>
         </div>
-        <div class="ka-stat">
-          <div class="ka-stat__label">{{ $t('v2.kamas.stats.missingData') }}</div>
-          <div class="ka-stat__value">{{ missingDataItems.length }}</div>
-        </div>
-        <div class="ka-stat">
-          <div class="ka-stat__label">{{ $t('v2.kamas.stats.stale') }}</div>
-          <div class="ka-stat__value">{{ staleItems.length }}</div>
-        </div>
-      </section>
 
-      <section class="ka-toolbar">
-        <div class="ka-search">
-          <svg class="ka-search__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input v-model="search" class="ka-search__input" type="search" :placeholder="$t('v2.kamas.filters.search')" />
-        </div>
-        <V2Select v-model="typeFilter" :options="typeFilterOptions" :placeholder="$t('v2.kamas.filters.allTypes')" size="compact" aria-label="History type filter" />
-        <V2Select v-model="confidenceFilter" :options="confidenceFilterOptions" :placeholder="$t('v2.kamas.filters.allConfidence')" size="compact" aria-label="History confidence filter" />
-        <V2Select v-model="sortBy" :options="sortOptions" placeholder="Sort" size="compact" aria-label="History sort" />
-      </section>
-
-      <details class="ka-panel ka-advanced">
-        <summary class="ka-advanced__summary">
-          <div>
-            <h2>{{ $t('v2.kamas.scanner.title') }}</h2>
-            <p>{{ $t('v2.kamas.scanner.desc') }}</p>
+        <div class="min-w-0">
+          <div class="mb-2 flex items-center justify-between gap-3">
+            <span class="text-xs font-medium tracking-wide text-subtle uppercase">{{ $t('v2.kamas.scanner.inbox') }}</span>
+            <UiButton variant="ghost" size="sm" @click="pollScanResults">{{ $t('v2.kamas.scanner.refresh') }}</UiButton>
           </div>
-          <span>Advanced</span>
-        </summary>
-        <div class="ka-panel__head ka-panel__head--inside">
-          <div />
-          <button class="ka-btn" @click="buildScanQueue">{{ $t('v2.kamas.scanner.buildQueue') }}</button>
-        </div>
-
-        <div class="ka-scanner__grid">
-          <div class="ka-scanner__current">
-            <div class="ka-scanner__eyebrow">
-              {{ scanQueue.length ? $t('v2.kamas.scanner.position', { current: scanQueueIndex + 1, total: scanQueue.length }) : $t('v2.kamas.scanner.noQueue') }}
-            </div>
-            <div class="ka-scanner__name">{{ currentScanItem || $t('v2.kamas.scanner.emptyCurrent') }}</div>
-            <div class="ka-scanner__actions">
-              <button class="ka-btn" :disabled="!currentScanItem" @click="copyCurrentScanItem">{{ scanCopyStatus || $t('v2.kamas.scanner.copy') }}</button>
-              <button class="ka-btn" :disabled="!currentScanItem" @click="setActiveScanItem">{{ $t('v2.kamas.scanner.arm') }}</button>
-              <button class="ka-btn ka-btn--ghost" :disabled="!currentScanItem" @click="skipScanItem">{{ $t('v2.kamas.scanner.skip') }}</button>
-              <button class="ka-btn ka-btn--ghost" :disabled="!scanQueue.length" @click="clearScanQueue">{{ $t('v2.kamas.scanner.clear') }}</button>
-            </div>
-          </div>
-
-          <div class="ka-scanner__inbox">
-            <div class="ka-scanner__inbox-head">
-              <strong>{{ $t('v2.kamas.scanner.inbox') }}</strong>
-              <button class="ka-btn ka-btn--ghost" @click="pollScanResults">{{ $t('v2.kamas.scanner.refresh') }}</button>
-            </div>
-            <div v-if="scanResults.length" class="ka-scanner__results">
-              <div v-for="result in scanResults.slice(0, 5)" :key="result.id" class="ka-scanner-result">
-                <div>
-                  <strong>{{ result.itemName }}</strong>
-                  <span>{{ formatKamasCompact(result.price) }} · {{ result.confidence }}</span>
-                </div>
-                <div class="ka-scanner-result__actions">
-                  <button class="ka-btn" @click="acceptScanResult(result)">{{ $t('v2.kamas.scanner.accept') }}</button>
-                  <button class="ka-btn ka-btn--ghost" @click="dismissScanResult(result.id)">{{ $t('v2.kamas.scanner.dismiss') }}</button>
-                </div>
+          <div v-if="scanResults.length" class="flex flex-col gap-2">
+            <div
+              v-for="result in scanResults.slice(0, 5)"
+              :key="result.id"
+              class="flex items-center gap-3 rounded-md border border-line p-2.5"
+            >
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm text-ink">{{ result.itemName }}</p>
+                <p class="flex items-center gap-1 text-xs text-subtle">
+                  <UiMoney :value="result.price" short size="sm" /> · {{ result.confidence }}
+                </p>
               </div>
-            </div>
-            <div v-else class="ka-empty">{{ $t('v2.kamas.scanner.emptyInbox') }}</div>
-          </div>
-        </div>
-      </details>
-
-      <section class="ka-grid">
-        <div class="ka-panel ka-panel--large">
-          <div class="ka-panel__head">
-            <div>
-              <h2>{{ $t('v2.kamas.sections.doToday') }}</h2>
-              <p>{{ $t('v2.kamas.sections.doTodayDesc') }}</p>
-            </div>
-          </div>
-          <div v-if="topActions.length" class="ka-action-list">
-            <NuxtLink v-for="opportunity in topActions" :key="opportunity.id" :to="localePath(opportunity.path)" class="ka-action">
-              <div class="ka-action__main">
-                <span class="ka-pill" :class="`ka-pill--${opportunity.type}`">{{ $t(`v2.kamas.types.${opportunity.type}`) }}</span>
-                <h3>{{ opportunity.title }}</h3>
-                <p>{{ opportunity.suggestedAction }}</p>
-              </div>
-              <div class="ka-action__side">
-                <strong :class="(opportunity.estimatedProfit ?? 0) >= 0 ? 'ka-positive' : 'ka-negative'">
-                  {{ opportunity.estimatedProfit === null ? '-' : `${opportunity.estimatedProfit >= 0 ? '+' : ''}${formatKamasCompact(opportunity.estimatedProfit)}` }}
-                </strong>
-                <span>{{ opportunity.marginPercent === null ? '-' : `${opportunity.marginPercent}%` }}</span>
-              </div>
-            </NuxtLink>
-          </div>
-          <div v-else class="ka-empty">{{ $t('v2.kamas.empty.noActions') }}</div>
-        </div>
-
-        <div class="ka-panel">
-          <div class="ka-panel__head">
-            <div>
-              <h2>{{ $t('v2.kamas.sections.performance') }}</h2>
-              <p>{{ $t('v2.kamas.sections.performanceDesc') }}</p>
-            </div>
-          </div>
-          <div class="ka-source-list">
-            <div v-for="source in sourceSummary" :key="source.type" class="ka-source">
-              <div>
-                <span>{{ $t(`v2.kamas.types.${source.type}`) }}</span>
-                <strong>{{ source.count }}</strong>
-              </div>
-              <div :class="source.profit >= 0 ? 'ka-positive' : 'ka-negative'">
-                {{ source.profit >= 0 ? '+' : '' }}{{ formatKamasCompact(source.profit) }}
+              <div class="flex shrink-0 gap-1.5">
+                <UiButton size="sm" @click="acceptScanResult(result)">{{ $t('v2.kamas.scanner.accept') }}</UiButton>
+                <UiButton variant="ghost" size="sm" @click="dismissScanResult(result.id)">{{ $t('v2.kamas.scanner.dismiss') }}</UiButton>
               </div>
             </div>
           </div>
+          <p v-else class="text-sm text-subtle">{{ $t('v2.kamas.scanner.emptyInbox') }}</p>
         </div>
-      </section>
+      </div>
+    </details>
 
-      <section class="ka-panel">
-        <div class="ka-panel__head">
-          <div>
-            <h2>{{ $t('v2.kamas.sections.best') }}</h2>
-            <p>{{ $t('v2.kamas.sections.bestDesc') }}</p>
-          </div>
+    <details class="rounded-lg border border-line bg-surface">
+      <summary class="flex cursor-pointer items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+        <div class="min-w-0 flex-1">
+          <h2 class="text-sm font-semibold text-ink">{{ $t('v2.kamas.sections.audit') }}</h2>
+          <p class="mt-0.5 text-xs text-subtle">{{ $t('v2.kamas.sections.auditDesc') }}</p>
         </div>
-        <div class="ka-table">
-          <div class="ka-table__head">
-            <span>{{ $t('v2.kamas.table.action') }}</span>
-            <span>{{ $t('v2.kamas.table.cost') }}</span>
-            <span>{{ $t('v2.kamas.table.revenue') }}</span>
-            <span>{{ $t('v2.kamas.table.profit') }}</span>
-            <span>{{ $t('v2.kamas.table.confidence') }}</span>
-          </div>
-          <NuxtLink v-for="opportunity in filteredOpportunities" :key="opportunity.id" :to="localePath(opportunity.path)" class="ka-row">
-            <div class="ka-row__action">
-              <span class="ka-pill" :class="`ka-pill--${opportunity.type}`">{{ $t(`v2.kamas.types.${opportunity.type}`) }}</span>
-              <strong>{{ opportunity.title }}</strong>
-              <small>{{ opportunity.reason }}</small>
-            </div>
-            <span>{{ formatKamasCompact(opportunity.estimatedCost) }}</span>
-            <span>{{ formatKamasCompact(opportunity.estimatedRevenue) }}</span>
-            <span :class="(opportunity.estimatedProfit ?? 0) >= 0 ? 'ka-positive' : 'ka-negative'">
-              {{ opportunity.estimatedProfit === null ? '-' : `${opportunity.estimatedProfit >= 0 ? '+' : ''}${formatKamasCompact(opportunity.estimatedProfit)}` }}
-            </span>
-            <span>{{ $t(`v2.kamas.confidence.${opportunity.confidence}`) }}</span>
-          </NuxtLink>
-          <div v-if="!filteredOpportunities.length" class="ka-empty">{{ $t('v2.kamas.empty.noMatches') }}</div>
+        <UiBadge>{{ $t('v2.common.advanced') }}</UiBadge>
+      </summary>
+      <div class="grid gap-3 border-t border-line p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div v-for="item in auditItems" :key="item.key" class="rounded-md border border-line p-3">
+          <p class="text-sm font-medium text-ink">{{ item.label }}</p>
+          <p class="mt-1 text-xs break-words text-accent">{{ item.storage }}</p>
+          <p class="mt-1.5 text-xs text-subtle">{{ item.backupNote }}</p>
         </div>
-      </section>
-
-      <section class="ka-grid">
-        <div class="ka-panel">
-          <div class="ka-panel__head">
-            <div>
-              <h2>{{ $t('v2.kamas.sections.missing') }}</h2>
-              <p>{{ $t('v2.kamas.sections.missingDesc') }}</p>
-            </div>
-          </div>
-          <div class="ka-compact-list">
-            <NuxtLink v-for="item in missingDataItems.slice(0, 8)" :key="item.id" :to="localePath(item.path)" class="ka-compact">
-              <strong>{{ item.itemName }}</strong>
-              <span>{{ item.missingData.join(', ') }}</span>
-            </NuxtLink>
-            <div v-if="!missingDataItems.length" class="ka-empty">{{ $t('v2.kamas.empty.noMissingData') }}</div>
-          </div>
-        </div>
-
-        <div class="ka-panel">
-          <div class="ka-panel__head">
-            <div>
-              <h2>{{ $t('v2.kamas.sections.lessons') }}</h2>
-              <p>{{ $t('v2.kamas.sections.lessonsDesc') }}</p>
-            </div>
-          </div>
-          <div class="ka-compact-list">
-            <NuxtLink v-for="item in lessons.slice(0, 8)" :key="item.id" :to="localePath(item.path)" class="ka-compact">
-              <strong>{{ item.itemName }}</strong>
-              <span>{{ item.reason }}</span>
-            </NuxtLink>
-            <div v-if="!lessons.length" class="ka-empty">{{ $t('v2.kamas.empty.noLessons') }}</div>
-          </div>
-        </div>
-      </section>
-
-      <details class="ka-panel ka-advanced">
-        <summary class="ka-advanced__summary">
-          <div>
-            <h2>{{ $t('v2.kamas.sections.audit') }}</h2>
-            <p>{{ $t('v2.kamas.sections.auditDesc') }}</p>
-          </div>
-          <span>Advanced</span>
-        </summary>
-        <div class="ka-audit">
-          <div v-for="item in auditItems" :key="item.key" class="ka-audit__item">
-            <strong>{{ item.label }}</strong>
-            <span>{{ item.storage }}</span>
-            <p>{{ item.backupNote }}</p>
-          </div>
-        </div>
-      </details>
-    </template>
+      </div>
+    </details>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { KamaOpportunity, KamaOpportunityConfidence, KamaOpportunityType } from '~/utils/kamasOpportunities'
-
 
 const localePath = useLocalePath()
 const { t } = useI18n()
@@ -260,7 +232,7 @@ let scanPollTimer: ReturnType<typeof setInterval> | null = null
 const typeOptions: KamaOpportunityType[] = ['resale', 'craft', 'brisage', 'familiar', 'maintenance', 'missing-data']
 const typeFilterOptions = computed(() => [
   { key: 'all', label: t('v2.kamas.filters.allTypes'), value: 'all' },
-  ...typeOptions.map((type) => ({ key: type, label: t(`v2.kamas.types.${type}`), value: type })),
+  ...typeOptions.map(type => ({ key: type, label: t(`v2.kamas.types.${type}`), value: type })),
 ])
 const confidenceFilterOptions = computed(() => [
   { key: 'all', label: t('v2.kamas.filters.allConfidence'), value: 'all' },
@@ -274,6 +246,15 @@ const sortOptions = computed(() => [
   { key: 'margin', label: t('v2.kamas.sort.margin'), value: 'margin' },
   { key: 'updated', label: t('v2.kamas.sort.updated'), value: 'updated' },
 ])
+
+const tableColumns = computed(() => [
+  { key: 'action', label: t('v2.kamas.table.action') },
+  { key: 'cost', label: t('v2.kamas.table.cost'), align: 'right' as const, width: '8rem' },
+  { key: 'revenue', label: t('v2.kamas.table.revenue'), align: 'right' as const, width: '8rem' },
+  { key: 'profit', label: t('v2.kamas.table.profit'), align: 'right' as const, width: '8rem' },
+  { key: 'confidence', label: t('v2.kamas.table.confidence'), align: 'right' as const, width: '7rem' },
+])
+
 const SCAN_QUEUE_KEY = 'kamas_hdv_scan_queue_v1'
 const SCAN_QUEUE_INDEX_KEY = 'kamas_hdv_scan_queue_index_v1'
 const FAMILIAR_PRICES_KEY = 'familiers_manual_prices_v1'
@@ -343,26 +324,24 @@ const filteredOpportunities = computed(() => {
 })
 
 const topActions = computed(() =>
-  opportunities.value
-    .filter((item) => item.type !== 'missing-data')
-    .slice(0, 6),
+  opportunities.value.filter(item => item.type !== 'missing-data').slice(0, 6),
 )
 
 const missingDataItems = computed(() =>
-  opportunities.value.filter((item) => item.type === 'missing-data' || item.missingData.length > 0),
+  opportunities.value.filter(item => item.type === 'missing-data' || item.missingData.length > 0),
 )
 
 const staleItems = computed(() =>
-  opportunities.value.filter((item) => item.type === 'maintenance'),
+  opportunities.value.filter(item => item.type === 'maintenance'),
 )
 
 const lessons = computed(() =>
-  opportunities.value.filter((item) => (item.estimatedProfit ?? 0) < 0 || item.risk === 'high'),
+  opportunities.value.filter(item => (item.estimatedProfit ?? 0) < 0 || item.risk === 'high'),
 )
 
 const totalExpectedProfit = computed(() =>
   opportunities.value
-    .filter((item) => item.type !== 'missing-data')
+    .filter(item => item.type !== 'missing-data')
     .reduce((sum, item) => sum + (item.estimatedProfit ?? 0), 0),
 )
 
@@ -392,8 +371,8 @@ const persistScanQueue = () => {
 
 const buildScanQueue = () => {
   const names = opportunities.value
-    .filter((item) => item.type === 'missing-data' || item.missingData.length || item.type === 'familiar')
-    .map((item) => item.itemName)
+    .filter(item => item.type === 'missing-data' || item.missingData.length || item.type === 'familiar')
+    .map(item => item.itemName)
     .filter(Boolean)
 
   scanQueue.value = Array.from(new Set(names)).slice(0, 30)
@@ -417,20 +396,15 @@ const skipScanItem = () => {
 const copyCurrentScanItem = async () => {
   if (!import.meta.client || !currentScanItem.value || !navigator.clipboard?.writeText) return
   await navigator.clipboard.writeText(currentScanItem.value)
-  scanCopyStatus.value = 'Copied'
-  window.setTimeout(() => {
-    scanCopyStatus.value = ''
-  }, 900)
+  scanCopyStatus.value = t('v2.kamas.scanner.copied')
+  window.setTimeout(() => { scanCopyStatus.value = '' }, 900)
 }
 
 const setActiveScanItem = async () => {
   if (!currentScanItem.value) return
   await $fetch('/api/hdv-scan/active', {
     method: 'POST',
-    body: {
-      itemName: currentScanItem.value,
-      source: 'kamas-page',
-    },
+    body: { itemName: currentScanItem.value, source: 'kamas-page' },
   })
 }
 
@@ -454,8 +428,8 @@ const writePriceMaps = () => {
 
 const acceptScanResult = async (result: typeof scanResults.value[number]) => {
   const normalized = normalizeName(result.itemName)
-  const familiarKey = Object.keys(familiarPrices.value).find((key) => normalizeName(key) === normalized)
-  const resourceKey = Object.keys(resourcePrices.value).find((key) => normalizeName(key) === normalized)
+  const familiarKey = Object.keys(familiarPrices.value).find(key => normalizeName(key) === normalized)
+  const resourceKey = Object.keys(resourcePrices.value).find(key => normalizeName(key) === normalized)
 
   if (familiarKey) {
     familiarPrices.value = { ...familiarPrices.value, [familiarKey]: result.price }
@@ -467,9 +441,7 @@ const acceptScanResult = async (result: typeof scanResults.value[number]) => {
 
   writePriceMaps()
   await dismissScanResult(result.id)
-  if (normalizeName(currentScanItem.value) === normalized) {
-    skipScanItem()
-  }
+  if (normalizeName(currentScanItem.value) === normalized) skipScanItem()
 }
 
 const dismissScanResult = async (id: string) => {
@@ -491,185 +463,3 @@ onBeforeUnmount(() => {
   if (scanPollTimer) window.clearInterval(scanPollTimer)
 })
 </script>
-
-<style scoped>
-.ka-page { display: flex; flex-direction: column; gap: 1rem; }
-.ka-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
-.ka-stat, .ka-panel {
-  background: var(--v2-hover-subtle);
-  border: 1px solid var(--v2-border);
-  border-radius: 14px;
-}
-.ka-stat { padding: 1rem; }
-.ka-stat__label { font-size: .7rem; color: var(--v2-text-dim); text-transform: uppercase; font-weight: 800; letter-spacing: .08em; }
-.ka-stat__value { margin-top: .35rem; font-size: 1.35rem; color: var(--v2-text); font-weight: 850; }
-.ka-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) 180px 180px 180px; gap: .75rem; }
-.ka-search { position: relative; }
-.ka-search__icon { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--v2-text-dim); }
-.ka-search__input {
-  width: 100%;
-  height: 42px;
-  border-radius: 10px;
-  border: 1px solid var(--v2-border);
-  background: rgba(0,0,0,.28);
-  color: var(--v2-text);
-  outline: none;
-}
-.ka-search__input { padding: 0 .85rem 0 2.35rem; }
-.ka-toolbar :deep(.v2s__trigger) { min-height: 42px; }
-.ka-advanced {
-  padding: 0;
-  overflow: hidden;
-}
-.ka-advanced__summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
-  cursor: pointer;
-  list-style: none;
-}
-.ka-advanced__summary::-webkit-details-marker { display: none; }
-.ka-advanced__summary:hover { background: var(--v2-hover); }
-.ka-advanced__summary h2 {
-  font-size: 1rem;
-  font-weight: 850;
-  color: var(--v2-text);
-}
-.ka-advanced__summary p {
-  margin-top: .2rem;
-  color: var(--v2-text-muted);
-  font-size: .85rem;
-}
-.ka-advanced__summary span {
-  border: 1px solid var(--v2-border);
-  border-radius: 999px;
-  padding: .2rem .55rem;
-  color: var(--v2-text-secondary);
-  font-size: .7rem;
-  font-weight: 850;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-.ka-panel__head--inside {
-  padding: 0 1rem .75rem;
-  margin-bottom: 0;
-}
-.ka-advanced .ka-scanner__grid,
-.ka-advanced .ka-audit {
-  margin: 0 1rem 1rem;
-}
-.ka-btn {
-  min-height: 34px;
-  border: 1px solid var(--v2-border-med);
-  border-radius: 9px;
-  padding: .45rem .7rem;
-  background: var(--v2-active);
-  color: var(--v2-text);
-  font-size: .78rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-.ka-btn:hover:not(:disabled) { border-color: var(--v2-border-focus); background: var(--v2-hover); }
-.ka-btn:disabled { opacity: .45; cursor: not-allowed; }
-.ka-btn--ghost { background: transparent; color: var(--v2-text-muted); }
-.ka-scanner__grid { display: grid; grid-template-columns: minmax(260px, .9fr) minmax(0, 1.1fr); gap: 1rem; }
-.ka-scanner__current, .ka-scanner__inbox {
-  border: 1px solid var(--v2-border);
-  border-radius: 12px;
-  background: rgba(0,0,0,.16);
-  padding: .9rem;
-}
-.ka-scanner__eyebrow {
-  color: var(--v2-text-dim);
-  font-size: .68rem;
-  font-weight: 850;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.ka-scanner__name {
-  margin-top: .35rem;
-  font-size: 1.15rem;
-  font-weight: 900;
-  color: var(--v2-text);
-  overflow-wrap: anywhere;
-}
-.ka-scanner__actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .8rem; }
-.ka-scanner__inbox-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .6rem; }
-.ka-scanner__inbox-head strong { color: var(--v2-text); }
-.ka-scanner__results { display: flex; flex-direction: column; gap: .5rem; }
-.ka-scanner-result {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  border: 1px solid var(--v2-border);
-  border-radius: 10px;
-  padding: .65rem;
-}
-.ka-scanner-result strong { display: block; color: var(--v2-text); font-size: .88rem; }
-.ka-scanner-result span { display: block; margin-top: .15rem; color: var(--v2-text-muted); font-size: .78rem; }
-.ka-scanner-result__actions { display: flex; gap: .45rem; flex-wrap: wrap; justify-content: flex-end; }
-.ka-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, .9fr); gap: 1rem; }
-.ka-panel { padding: 1rem; min-width: 0; }
-.ka-panel__head { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
-.ka-panel__head h2 { font-size: 1rem; font-weight: 850; color: var(--v2-text); }
-.ka-panel__head p { margin-top: .2rem; color: var(--v2-text-muted); font-size: .85rem; }
-.ka-action-list, .ka-compact-list, .ka-source-list { display: flex; flex-direction: column; gap: .55rem; }
-.ka-action, .ka-compact, .ka-source {
-  text-decoration: none;
-  color: var(--v2-text);
-  border: 1px solid var(--v2-border);
-  background: rgba(0,0,0,.16);
-  border-radius: 10px;
-}
-.ka-action { display: flex; justify-content: space-between; gap: 1rem; padding: .8rem; }
-.ka-action:hover, .ka-compact:hover { border-color: var(--v2-border-med); background: var(--v2-hover); }
-.ka-action h3 { margin-top: .3rem; font-size: .95rem; font-weight: 800; }
-.ka-action p { margin-top: .2rem; color: var(--v2-text-muted); font-size: .82rem; line-height: 1.35; }
-.ka-action__side { display: flex; min-width: 110px; flex-direction: column; align-items: flex-end; justify-content: center; gap: .2rem; }
-.ka-action__side strong { font-size: .95rem; }
-.ka-action__side span { color: var(--v2-text-dim); font-size: .78rem; }
-.ka-pill { display: inline-flex; align-items: center; width: fit-content; border-radius: 999px; padding: .18rem .45rem; font-size: .68rem; font-weight: 800; text-transform: uppercase; color: var(--v2-text); border: 1px solid var(--v2-border); background: var(--v2-active); }
-.ka-pill--resale { color: #86efac; }
-.ka-pill--craft { color: #67e8f9; }
-.ka-pill--brisage { color: #c4b5fd; }
-.ka-pill--familiar { color: #fdba74; }
-.ka-pill--maintenance { color: #fde68a; }
-.ka-pill--missing-data { color: #fca5a5; }
-.ka-source { display: flex; align-items: center; justify-content: space-between; padding: .75rem; }
-.ka-source span { display: block; color: var(--v2-text-muted); font-size: .78rem; }
-.ka-source strong { display: block; margin-top: .1rem; }
-.ka-table { overflow: hidden; border: 1px solid var(--v2-border); border-radius: 10px; }
-.ka-table__head, .ka-row { display: grid; grid-template-columns: minmax(260px, 1fr) 130px 130px 130px 110px; gap: .75rem; align-items: center; }
-.ka-table__head { padding: .65rem .8rem; color: var(--v2-text-dim); font-size: .7rem; font-weight: 850; text-transform: uppercase; letter-spacing: .06em; background: rgba(0,0,0,.22); }
-.ka-row { padding: .75rem .8rem; color: var(--v2-text); text-decoration: none; border-top: 1px solid var(--v2-border); }
-.ka-row:hover { background: var(--v2-hover); }
-.ka-row__action { min-width: 0; display: flex; flex-direction: column; gap: .25rem; }
-.ka-row__action strong { font-size: .9rem; }
-.ka-row__action small { color: var(--v2-text-muted); line-height: 1.35; }
-.ka-compact { display: flex; flex-direction: column; gap: .2rem; padding: .7rem .75rem; }
-.ka-compact strong { font-size: .88rem; }
-.ka-compact span { color: var(--v2-text-muted); font-size: .78rem; line-height: 1.35; }
-.ka-audit { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
-.ka-audit__item { border: 1px solid var(--v2-border); background: rgba(0,0,0,.14); border-radius: 10px; padding: .75rem; }
-.ka-audit__item strong { display: block; color: var(--v2-text); font-size: .88rem; }
-.ka-audit__item span { display: block; margin-top: .25rem; color: var(--v2-accent); font-size: .74rem; overflow-wrap: anywhere; }
-.ka-audit__item p { margin-top: .45rem; color: var(--v2-text-muted); font-size: .78rem; line-height: 1.35; }
-.ka-empty { padding: 1rem; color: var(--v2-text-muted); text-align: center; border: 1px dashed var(--v2-border); border-radius: 10px; }
-.ka-positive { color: #86efac; }
-.ka-negative { color: #fca5a5; }
-@media (max-width: 1100px) {
-  .ka-stats, .ka-grid, .ka-audit { grid-template-columns: 1fr 1fr; }
-  .ka-toolbar { grid-template-columns: 1fr 1fr; }
-  .ka-table__head { display: none; }
-  .ka-row { grid-template-columns: 1fr; gap: .35rem; }
-}
-@media (max-width: 720px) {
-  .ka-stats, .ka-grid, .ka-audit, .ka-toolbar { grid-template-columns: 1fr; }
-  .ka-scanner__grid { grid-template-columns: 1fr; }
-  .ka-action { flex-direction: column; }
-  .ka-action__side { align-items: flex-start; }
-}
-</style>
