@@ -1791,7 +1791,8 @@
       },
       "errors": {
         "noItems": "No items available for this selection."
-      }
+      },
+      "noData": "No aggregate recipe data found."
     },
     "guide": {
       "entryTitle": "Page guide",

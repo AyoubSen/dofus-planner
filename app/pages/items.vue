@@ -862,185 +862,22 @@
           </div>
         </template>
 
-        <template v-else-if="aggregateRecipeState.isOpen">
-          <div class="v2-recipe-shell">
-            <div class="v2-recipe-top">
-              <button class="v2-recipe-back" @click="resetAggregateRecipeView">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                {{ $t('items.detail.common.back') }}
-              </button>
-              <span class="v2-recipe-kicker">{{ $t('items.aggregate.kicker') }}</span>
-            </div>
-
-            <div class="v2-recipe-item">
-              <div class="min-w-0 flex-1">
-                <div class="v2-recipe-item__name">
-                  {{ $t('items.aggregate.pressureTitle', { slot: $t(`items.slots.${activeSlot}`) }) }}
-                </div>
-                <div class="v2-recipe-item__meta">
-                  {{ $t('items.aggregate.meta', { limit: aggregateRecipeState.limit }) }}
-                </div>
-              </div>
-              <div class="v2-bulk-limit">
-                <button
-                  v-for="limit in aggregateLimits"
-                  :key="limit"
-                  class="v2-bulk-limit__btn"
-                  :class="{ 'v2-bulk-limit__btn--on': aggregateRecipeState.limit === limit }"
-                  @click="openAggregateRecipeView(limit)"
-                >
-                  {{ limit }}
-                </button>
-              </div>
-            </div>
-
-            <div v-if="aggregateRecipeState.isLoading" class="v2-center-loader">
-              <div class="v2-spin" /> {{ $t('items.aggregate.loading') }}
-            </div>
-
-            <div v-else-if="aggregateRecipeState.error" class="v2-recipe-error">
-              {{ aggregateRecipeState.error }}
-            </div>
-
-            <template v-else>
-              <div class="v2-recipe-stats">
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.aggregate.stats.selectedItems') }}</div>
-                  <div class="v2-rstat__val">{{ aggregateRecipeState.selectedItems.length }}</div>
-                </div>
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.aggregate.stats.uniqueResources') }}</div>
-                  <div class="v2-rstat__val">{{ aggregateIngredients.length }}</div>
-                </div>
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.aggregate.stats.metric') }}</div>
-                  <div class="v2-rstat__val">{{ aggregateSortMode === 'items' ? $t('items.aggregate.sort.itemsFirst') : $t('items.aggregate.sort.qtyFirst') }}</div>
-                </div>
-              </div>
-
-              <div class="v2-aggregate-sort">
-                <span class="v2-aggregate-sort__label">{{ $t('items.aggregate.sort.label') }}</span>
-                <div class="v2-bulk-limit">
-                  <button
-                    class="v2-bulk-limit__btn"
-                    :class="{ 'v2-bulk-limit__btn--on': aggregateSortMode === 'items' }"
-                    @click="aggregateSortMode = 'items'"
-                  >
-                    {{ $t('items.aggregate.sort.items') }}
-                  </button>
-                  <button
-                    class="v2-bulk-limit__btn"
-                    :class="{ 'v2-bulk-limit__btn--on': aggregateSortMode === 'quantity' }"
-                    @click="aggregateSortMode = 'quantity'"
-                  >
-                    {{ $t('items.aggregate.sort.qty') }}
-                  </button>
-                </div>
-              </div>
-
-              <div class="v2-aggregate-filters">
-                <span class="v2-aggregate-sort__label">{{ $t('items.aggregate.filters.title') }}</span>
-                <div class="v2-aggregate-filters__row">
-                  <button
-                    class="v2-bulk-limit__btn"
-                    :class="{ 'v2-bulk-limit__btn--on': aggregateResourceFilters.hideSpecial }"
-                    @click="aggregateResourceFilters.hideSpecial = !aggregateResourceFilters.hideSpecial"
-                  >
-                    {{ $t('items.aggregate.filters.hideSpecial') }}
-                  </button>
-                  <button
-                    class="v2-bulk-limit__btn"
-                    :class="{ 'v2-bulk-limit__btn--on': aggregateResourceFilters.onlyMonsterDrops }"
-                    @click="aggregateResourceFilters.onlyMonsterDrops = !aggregateResourceFilters.onlyMonsterDrops"
-                  >
-                    {{ $t('items.aggregate.filters.monsterDrops') }}
-                  </button>
-                  <button
-                    class="v2-bulk-limit__btn"
-                    :class="{ 'v2-bulk-limit__btn--on': aggregateResourceFilters.onlyNonCrafted }"
-                    @click="aggregateResourceFilters.onlyNonCrafted = !aggregateResourceFilters.onlyNonCrafted"
-                  >
-                    {{ $t('items.aggregate.filters.nonCrafted') }}
-                  </button>
-                  <button
-                    class="v2-bulk-limit__btn"
-                    :class="{ 'v2-bulk-limit__btn--on': aggregateResourceFilters.minItemUsage === 2 }"
-                    @click="aggregateResourceFilters.minItemUsage = aggregateResourceFilters.minItemUsage === 2 ? 1 : 2"
-                  >
-                    {{ $t('items.aggregate.filters.itemsMinTwo') }}
-                  </button>
-                </div>
-              </div>
-
-              <div v-if="aggregateRecipeState.selectedItems.length" class="v2-selected-items">
-                <span class="v2-selected-items__label">{{ $t('items.aggregate.selectedItems') }}</span>
-                <div class="v2-selected-items__list">
-                  <button
-                    v-for="item in aggregateRecipeState.selectedItems"
-                    :key="item.name"
-                    class="v2-selected-items__chip v2-selected-items__chip--btn"
-                    @click="openRecipeView(item)"
-                  >
-                    {{ item.name }}
-                  </button>
-                </div>
-              </div>
-
-              <div class="v2-recipe-list">
-                <div class="v2-recipe-list__head">{{ $t('items.aggregate.resourcesTitle') }}</div>
-                <div v-if="aggregateIngredients.length" class="v2-recipe-lines">
-                  <div v-for="ingredient in aggregateIngredients" :key="ingredient.id" class="v2-recipe-line">
-                      <div class="v2-recipe-line__img-wrap">
-                        <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" class="v2-recipe-line__img" @error="noImg" />
-                        <div v-else class="v2-recipe-line__img-ph" />
-                      </div>
-                      <div class="v2-recipe-line__body">
-                        <div class="v2-recipe-line__name">{{ ingredient.name }}</div>
-                        <div class="v2-recipe-line__meta">
-                        <span v-if="ingredient.typeName">{{ ingredient.typeName }}</span>
-                        <span v-if="ingredient.level !== null"> · {{ $t('items.detail.ingredients.level', { level: ingredient.level }) }}</span>
-                      </div>
-                      <div class="v2-resource-badges v2-resource-badges--compact">
-                        <span v-if="ingredient.dropMonsterCount > 0" class="v2-resource-badge v2-resource-badge--drop">
-                          {{ $t('items.detail.ingredients.badges.monsterDrop') }}
-                        </span>
-                        <span v-if="ingredient.hasRecipe" class="v2-resource-badge v2-resource-badge--crafted">
-                          {{ $t('items.detail.ingredients.badges.crafted') }}
-                        </span>
-                        <span v-if="ingredient.isSpecial" class="v2-resource-badge v2-resource-badge--special">
-                          {{ $t('items.detail.ingredients.badges.special') }}
-                        </span>
-                      </div>
-                      <div v-if="ingredient.items.length" class="v2-recipe-line__links">
-                      <span class="v2-recipe-line__links-label">{{ $t('items.aggregate.usedIn') }}</span>
-                      <button
-                        v-for="item in ingredient.items"
-                        :key="item.name"
-                        class="v2-recipe-item-chip"
-                        @click="openRecipeView(item)"
-                      >
-                        {{ item.name }}
-                      </button>
-                    </div>
-                    </div>
-                    <div class="v2-recipe-line__qty">
-                      <span class="v2-recipe-line__qty-label">{{ $t('items.aggregate.itemsLabel') }}</span>
-                      <strong>{{ ingredient.usageCount }}</strong>
-                      <span class="v2-recipe-line__qty-sub">{{ $t('items.aggregate.qty', { count: ingredient.totalQuantity }) }}</span>
-                      <span class="v2-recipe-line__qty-sub">{{ $t('items.aggregate.builds', { count: ingredient.buildUsageCount }) }}</span>
-                      <span class="v2-recipe-line__qty-sub">{{ $t('items.aggregate.pressure', { count: ingredient.pressureScore }) }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div v-else class="v2-empty-full">
-                  No aggregate recipe data found.
-                </div>
-              </div>
-            </template>
-          </div>
-        </template>
+        <ItemsAggregateRecipe
+          v-else-if="aggregateRecipeState.isOpen"
+          v-model:sort-mode="aggregateSortMode"
+          :slot-label="$t(`items.slots.${activeSlot}`)"
+          :limit="aggregateRecipeState.limit"
+          :limits="aggregateLimits"
+          :is-loading="aggregateRecipeState.isLoading"
+          :error="aggregateRecipeState.error"
+          :selected-items="aggregateRecipeState.selectedItems"
+          :ingredients="aggregateIngredients"
+          :filters="aggregateResourceFilters"
+          @back="resetAggregateRecipeView"
+          @update:limit="openAggregateRecipeView"
+          @toggle-filter="toggleAggregateFilter"
+          @open-item="openRecipeView"
+        />
         <ItemsResultsView
           v-else
           v-model:view-mode="viewMode"
@@ -1314,6 +1151,17 @@ const aggregateResourceFilters = reactive({
   onlyNonCrafted: false,
   minItemUsage: 1,
 })
+
+/** All four resource filters are chips; minItemUsage toggles 1 <-> 2 rather
+ *  than false <-> true, which is why they can't be a plain v-model. */
+const toggleAggregateFilter = (key: keyof typeof aggregateResourceFilters) => {
+  if (key === 'minItemUsage') {
+    aggregateResourceFilters.minItemUsage = aggregateResourceFilters.minItemUsage === 2 ? 1 : 2
+    return
+  }
+  aggregateResourceFilters[key] = !aggregateResourceFilters[key]
+}
+
 const aggregateRecipeState = ref<{
   isOpen: boolean
   isLoading: boolean

@@ -1791,7 +1791,8 @@
       },
       "errors": {
         "noItems": "Aucun objet disponible pour cette sélection."
-      }
+      },
+      "noData": "Aucune donnée de recette agrégée trouvée."
     },
     "guide": {
       "entryTitle": "Guide de page",
