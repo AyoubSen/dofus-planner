@@ -1,545 +1,484 @@
 <template>
-  <div>
-    <div v-if="!hasContext" class="v2-no-context">
-      <div class="v2-no-context__icon">
-        <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-      </div>
-      <div class="v2-no-context__title">{{ $t('v2.common.noCharacterTitle') }}</div>
-      <div class="v2-no-context__desc">{{ $t('v2.crafting.noCharacterDesc') }}</div>
-    </div>
+  <div v-if="hasContext" class="flex flex-col gap-5">
+    <!-- ── Totals ───────────────────────────────────────────────────────── -->
+    <UiStatRow min="10rem">
+      <UiStat :label="$t('v2.crafting.stats.sessions')" :value="sessions.length" />
+      <UiStat :label="$t('v2.crafting.stats.itemsLogged')" :value="totalItemsLogged" />
+      <UiStat :label="$t('v2.crafting.stats.invested')">
+        <UiMoney :value="totalInvested" short size="lg" />
+      </UiStat>
+      <UiStat :label="$t('v2.crafting.stats.realized')">
+        <UiMoney :value="totalRealized" short size="lg" />
+      </UiStat>
+      <UiStat :label="$t('v2.crafting.stats.netPL')">
+        <UiMoney :value="totalProfit" signed short size="lg" />
+      </UiStat>
+    </UiStatRow>
 
-    <template v-else>
-      <div class="cf-stats">
-        <div class="cf-stat">
-          <div class="cf-stat__label">{{ $t('v2.crafting.stats.sessions') }}</div>
-          <div class="cf-stat__value">{{ sessions.length }}</div>
-        </div>
-        <div class="cf-stat">
-          <div class="cf-stat__label">{{ $t('v2.crafting.stats.itemsLogged') }}</div>
-          <div class="cf-stat__value">{{ totalItemsLogged }}</div>
-        </div>
-        <div class="cf-stat">
-          <div class="cf-stat__label">{{ $t('v2.crafting.stats.invested') }}</div>
-          <div class="cf-stat__value">{{ formatKamas(totalInvested) }}</div>
-        </div>
-        <div class="cf-stat">
-          <div class="cf-stat__label">{{ $t('v2.crafting.stats.realized') }}</div>
-          <div class="cf-stat__value">{{ formatKamas(totalRealized) }}</div>
-        </div>
-        <div class="cf-stat" :class="totalProfit >= 0 ? 'cf-stat--pos' : 'cf-stat--neg'">
-          <div class="cf-stat__label">{{ $t('v2.crafting.stats.netPL') }}</div>
-          <div class="cf-stat__value">{{ totalProfit >= 0 ? '+' : '' }}{{ formatKamas(totalProfit) }}</div>
-        </div>
-      </div>
-
-      <template v-if="!isEditorOpen">
-        <div class="cf-layout cf-layout--single">
-          <div class="cf-panel">
-            <div class="cf-panel__title">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              {{ $t('v2.crafting.index.createSession') }}
-            </div>
-            <div class="cf-empty-box">
-              {{ $t('v2.crafting.index.createSessionDesc') }}
-            </div>
-            <button class="cf-btn cf-btn--primary cf-btn--wide" @click="startNewSession">
-              {{ $t('v2.crafting.actions.newSession') }}
-            </button>
-          </div>
-
-          <div class="cf-panel">
-            <div class="cf-panel__title">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {{ $t('v2.crafting.index.sessions') }}
-              <span class="cf-badge">{{ sessions.length }}</span>
-            </div>
-
-            <div v-if="sessions.length === 0" class="cf-empty-box">
-              {{ $t('v2.crafting.index.emptySessions') }}
-            </div>
-
-            <div v-else class="cf-history">
-              <div v-for="session in sessions" :key="session.id" class="cf-history-card">
-                <div class="cf-history-card__head">
-                  <div>
-                    <div class="cf-history-card__name">{{ sessionTitle(session) }}</div>
-                    <div class="cf-history-card__sub">{{ formatDisplayDate(session.date) }} · {{ formatWorkflowLabel(session.workflow) }} · {{ t('v2.crafting.index.itemsCount', { count: session.items.length }) }}</div>
-                  </div>
-                  <div class="cf-history-card__actions">
-                    <button class="cf-btn cf-btn--ghost" @click="openSessionEditor(session.id)">
-                      {{ $t('v2.crafting.actions.edit') }}
-                    </button>
-                    <button class="cf-btn cf-btn--ghost" @click="toggleSession(session.id)">
-                      {{ isSessionExpanded(session.id) ? $t('v2.crafting.actions.hideDetails') : $t('v2.crafting.actions.showDetails') }}
-                    </button>
-                    <button class="cf-icon-btn" :title="$t('v2.crafting.actions.deleteSession')" @click="deleteSession(session.id)">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="cf-history-card__stats">
-                  <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.invested') }}</div>
-                    <div class="cf-mini-stat__value">{{ formatKamas(sessionTotals(session).invested) }}</div>
-                  </div>
-                  <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.realized') }}</div>
-                    <div class="cf-mini-stat__value">{{ formatKamas(sessionTotals(session).realized) }}</div>
-                  </div>
-                  <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.expected') }}</div>
-                    <div class="cf-mini-stat__value">{{ formatKamas(sessionTotals(session).expected) }}</div>
-                  </div>
-                  <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.assets') }}</div>
-                    <div class="cf-mini-stat__value">{{ formatKamas(sessionTotals(session).currentAssets) }}</div>
-                  </div>
-                  <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.bankrollDelta') }}</div>
-                    <div class="cf-mini-stat__value" :class="sessionTotals(session).bankrollDelta >= 0 ? 'cf-profit--up' : 'cf-profit--down'">
-                      {{ sessionTotals(session).bankrollDelta >= 0 ? '+' : '' }}{{ formatKamas(sessionTotals(session).bankrollDelta) }}
-                    </div>
-                  </div>
-                </div>
-
-                <div v-if="isSessionExpanded(session.id)" class="cf-session-items">
-                  <div v-for="item in session.items" :key="item.id" class="cf-session-item">
-                    <div class="cf-session-item__head">
-                      <div class="cf-draft-card__meta">
-                        <img :src="getItemImg(item.item)" :alt="item.item?.name?.fr ?? ''" class="cf-draft-card__img" @error="onImgErr" />
-                        <div>
-                          <div class="cf-draft-card__name">{{ item.item?.name?.fr ?? item.itemId }}</div>
-                          <div class="cf-draft-card__sub">{{ formatTargetModeLabel(item.targetMode) }} · {{ formatOutcomeLabel(item.outcome) }}</div>
-                        </div>
-                      </div>
-                      <div class="cf-session-item__profit" :class="itemProfit(item) >= 0 ? 'cf-profit--up' : 'cf-profit--down'">
-                        {{ itemProfit(item) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(item)) }}
-                      </div>
-                    </div>
-
-                    <div class="cf-session-item__summary">
-                      <span>{{ $t('v2.crafting.summary.craft') }} {{ formatKamas(itemCraftCost(item)) }}</span>
-                      <span>{{ $t('v2.crafting.summary.fm') }} {{ formatKamas(itemFmCost(item)) }}</span>
-                      <span v-if="item.listedPrice > 0">{{ $t('v2.crafting.summary.list') }} {{ formatKamas(item.listedPrice) }}</span>
-                      <span>{{ $t('v2.crafting.summary.realized') }} {{ formatKamas(itemRealized(item)) }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- ── Editor ───────────────────────────────────────────────────────── -->
+    <UiPageSection
+      v-if="isEditorOpen"
+      :title="isEditingExisting ? $t('v2.crafting.editor.editSession') : $t('v2.crafting.editor.newSession')"
+    >
+      <template #actions>
+        <UiButton size="sm" @click="closeEditor">
+          {{ $t('v2.crafting.actions.backToSessions') }}
+        </UiButton>
+        <UiButton variant="primary" size="sm" :disabled="draftItems.length === 0" @click="saveSession">
+          {{ isEditingExisting ? $t('v2.crafting.actions.updateSession') : $t('v2.crafting.actions.saveSession') }}
+        </UiButton>
       </template>
 
-      <div v-else class="cf-layout cf-layout--single">
-        <div class="cf-panel">
-          <div class="cf-panel__title">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0l-4-4m4 4l-4 4" />
-            </svg>
-            {{ editingSessionId && editingSessionId !== '__new__' ? $t('v2.crafting.editor.editSession') : $t('v2.crafting.editor.newSession') }}
-          </div>
-
-          <div class="cf-history-card__actions cf-history-card__actions--top">
-            <button class="cf-btn cf-btn--ghost" @click="closeEditor">
-              {{ $t('v2.crafting.actions.backToSessions') }}
-            </button>
-          </div>
-
-          <div class="cf-form-grid">
-            <div class="cf-field">
-                <label class="cf-field__label">{{ $t('v2.crafting.fields.date') }}</label>
-              <V2DateInput v-model="draftSession.date" />
-            </div>
-            <div class="cf-field">
-                <label class="cf-field__label">{{ $t('v2.crafting.fields.workflow') }}</label>
-                <V2Select v-model="draftSession.workflow" :options="workflowOptions" :placeholder="$t('v2.crafting.placeholders.selectWorkflow')" />
-            </div>
-            <div class="cf-field">
-                <label class="cf-field__label">{{ $t('v2.crafting.fields.sessionFocus') }}</label>
-                <V2Select v-model="draftSession.focus" :options="focusOptions" :placeholder="$t('v2.crafting.placeholders.selectFocus')" />
-            </div>
-            <div class="cf-field cf-field--full">
-                <label class="cf-field__label">{{ $t('v2.crafting.fields.notes') }}</label>
-              <input
-                v-model="draftSession.notes"
-                type="text"
-                class="cf-input"
-                  :placeholder="$t('v2.crafting.placeholders.sessionNotes')"
+      <div class="flex flex-col gap-4">
+        <!-- Session identity -->
+        <UiCard>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <UiField :label="$t('v2.crafting.fields.date')">
+              <UiDateInput v-model="draftSession.date" />
+            </UiField>
+            <UiField :label="$t('v2.crafting.fields.workflow')">
+              <UiSelect
+                v-model="draftSession.workflow"
+                :options="workflowOptions"
+                :placeholder="$t('v2.crafting.placeholders.selectWorkflow')"
               />
-            </div>
+            </UiField>
+            <UiField :label="$t('v2.crafting.fields.sessionFocus')">
+              <UiSelect
+                v-model="draftSession.focus"
+                :options="focusOptions"
+                :placeholder="$t('v2.crafting.placeholders.selectFocus')"
+              />
+            </UiField>
+            <UiField :label="$t('v2.crafting.fields.notes')" class="sm:col-span-2 lg:col-span-3">
+              <UiInput v-model="draftSession.notes" :placeholder="$t('v2.crafting.placeholders.sessionNotes')" />
+            </UiField>
           </div>
+        </UiCard>
 
-          <div class="cf-targets">
-            <div class="cf-panel__subtitle">{{ $t('v2.crafting.sections.sessionBankroll') }}</div>
-            <div class="cf-bankroll-group">
-              <div class="cf-bankroll-group__label">{{ $t('v2.crafting.sections.bankrollStart') }}</div>
-              <div class="cf-form-grid">
-                <div class="cf-field">
-                  <label class="cf-field__label">{{ $t('v2.crafting.sections.bankrollKamas') }}</label>
-                  <input v-model.number="draftSession.startingKamas" type="number" min="0" step="1000" class="cf-input" />
-                </div>
-                <div class="cf-field">
-                  <label class="cf-field__label">{{ $t('v2.crafting.sections.bankrollRunes') }}</label>
-                  <input v-model.number="draftSession.startingRuneStockValue" type="number" min="0" step="1000" class="cf-input" />
-                </div>
+        <!-- Bankroll -->
+        <UiCard :title="$t('v2.crafting.sections.sessionBankroll')">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p class="mb-2 text-xs font-medium tracking-wide text-subtle uppercase">
+                {{ $t('v2.crafting.sections.bankrollStart') }}
+              </p>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <UiField :label="$t('v2.crafting.sections.bankrollKamas')">
+                  <UiNumberInput v-model="draftSession.startingKamas" :min="0" />
+                </UiField>
+                <UiField :label="$t('v2.crafting.sections.bankrollRunes')">
+                  <UiNumberInput v-model="draftSession.startingRuneStockValue" :min="0" />
+                </UiField>
               </div>
             </div>
-            <div class="cf-bankroll-group">
-              <div class="cf-bankroll-group__label">{{ $t('v2.crafting.sections.bankrollCurrent') }}</div>
-              <div class="cf-form-grid">
-                <div class="cf-field">
-                  <label class="cf-field__label">{{ $t('v2.crafting.sections.bankrollKamas') }}</label>
-                  <input v-model.number="draftSession.currentKamas" type="number" min="0" step="1000" class="cf-input" />
-                </div>
-                <div class="cf-field">
-                  <label class="cf-field__label">{{ $t('v2.crafting.sections.bankrollRunes') }}</label>
-                  <input v-model.number="draftSession.currentRuneStockValue" type="number" min="0" step="1000" class="cf-input" />
-                </div>
-              </div>
-            </div>
-            <div class="cf-form-grid" style="margin-top:.75rem;">
-              <div class="cf-field cf-field--full">
-                <label class="cf-field__label">{{ $t('v2.crafting.fields.globalExpenses') }}</label>
-                <input v-model.number="draftSession.sessionExpenses" type="number" min="0" step="1000" class="cf-input" :placeholder="$t('v2.crafting.placeholders.globalExpenses')" />
-              </div>
-            </div>
-
-            <div class="cf-profit-preview">
-              <div class="cf-profit-preview__row">
-                  <span>{{ $t('v2.crafting.summary.startingBankroll') }}</span>
-                <span>{{ formatKamas(sessionDraftSummary.startingBankroll) }}</span>
-              </div>
-              <div class="cf-profit-preview__row">
-                  <span>{{ $t('v2.crafting.summary.currentAssets') }}</span>
-                <span>{{ formatKamas(sessionDraftSummary.currentAssets) }}</span>
-              </div>
-              <div class="cf-profit-preview__row">
-                  <span>{{ $t('v2.crafting.summary.itemsBuiltValue') }}</span>
-                <span>{{ formatKamas(sessionDraftSummary.builtItemsValue) }}</span>
-              </div>
-              <div class="cf-profit-preview__row">
-                  <span>{{ $t('v2.crafting.summary.bankrollDelta') }}</span>
-                <span :class="sessionDraftSummary.bankrollDelta >= 0 ? 'cf-profit--up' : 'cf-profit--down'">
-                  {{ sessionDraftSummary.bankrollDelta >= 0 ? '+' : '' }}{{ formatKamas(sessionDraftSummary.bankrollDelta) }}
-                </span>
+            <div>
+              <p class="mb-2 text-xs font-medium tracking-wide text-subtle uppercase">
+                {{ $t('v2.crafting.sections.bankrollCurrent') }}
+              </p>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <UiField :label="$t('v2.crafting.sections.bankrollKamas')">
+                  <UiNumberInput v-model="draftSession.currentKamas" :min="0" />
+                </UiField>
+                <UiField :label="$t('v2.crafting.sections.bankrollRunes')">
+                  <UiNumberInput v-model="draftSession.currentRuneStockValue" :min="0" />
+                </UiField>
               </div>
             </div>
           </div>
 
-          <div ref="searchAreaEl" class="cf-search-area">
-              <div class="cf-panel__subtitle">{{ $t('v2.crafting.sections.addItems') }}</div>
-            <div class="cf-searchbox">
-              <svg class="cf-searchbox__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input v-model="search" type="text" :placeholder="$t('v2.common.searchItems')" class="cf-searchbox__input" @input="onSearchInput" />
-              <button v-if="search" class="cf-searchbox__clear" @click="clearSearch">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+          <UiField :label="$t('v2.crafting.fields.globalExpenses')" class="mt-3 sm:max-w-xs">
+            <UiNumberInput
+              v-model="draftSession.sessionExpenses"
+              :min="0"
+              :placeholder="$t('v2.crafting.placeholders.globalExpenses')"
+            />
+          </UiField>
+
+          <dl class="mt-4 grid gap-x-6 gap-y-1.5 border-t border-line pt-3 sm:grid-cols-2">
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.summary.startingBankroll') }}</dt>
+              <dd><UiMoney :value="sessionDraftSummary.startingBankroll" short size="sm" /></dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.summary.currentAssets') }}</dt>
+              <dd><UiMoney :value="sessionDraftSummary.currentAssets" short size="sm" /></dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.summary.itemsBuiltValue') }}</dt>
+              <dd><UiMoney :value="sessionDraftSummary.builtItemsValue" short size="sm" /></dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.summary.bankrollDelta') }}</dt>
+              <dd><UiMoney :value="sessionDraftSummary.bankrollDelta" signed short size="sm" /></dd>
+            </div>
+          </dl>
+        </UiCard>
+
+        <!-- Item search -->
+        <UiCard :title="$t('v2.crafting.sections.addItems')">
+          <div ref="searchAreaEl">
+            <UiInput v-model="search" :placeholder="$t('v2.common.searchItems')" @update:model-value="onSearchInput">
+              <template #prefix><UiIcon name="search" /></template>
+              <template v-if="search" #suffix>
+                <button
+                  type="button"
+                  class="text-subtle transition-colors hover:text-ink"
+                  :aria-label="$t('v2.common.clearSearch')"
+                  @click="clearSearch"
+                >
+                  <UiIcon name="close" />
+                </button>
+              </template>
+            </UiInput>
+
+            <div v-if="searching" class="mt-3 flex flex-col gap-2">
+              <UiSkeleton v-for="i in 3" :key="i" height="3rem" />
             </div>
 
-            <div v-if="searching" class="cf-inline-loader">
-              <div class="cf-spin" /> {{ $t('v2.common.searching') }}
-            </div>
-
-            <div v-else-if="results.length" class="cf-results">
+            <div v-else-if="results.length" class="mt-3 flex flex-col gap-1">
               <button
                 v-for="item in results"
                 :key="item.id"
-                class="cf-result"
-                :class="{ 'cf-result--disabled': draftItemIdSet.has(String(item.id)) }"
+                type="button"
+                class="flex items-center gap-3 rounded-md border border-line bg-surface p-2 text-left transition-colors hover:border-line-strong disabled:opacity-45"
+                :disabled="draftItemIdSet.has(String(item.id))"
                 @click="addItemToDraft(item)"
               >
-                <img :src="getItemImg(item)" :alt="item.name?.fr ?? ''" class="cf-result__img" @error="onImgErr" />
-                <div class="cf-result__body">
-                  <div class="cf-result__name">{{ item.name?.fr ?? item.id }}</div>
-                  <div class="cf-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
-                </div>
-                <span class="cf-result__cta">{{ draftItemIdSet.has(String(item.id)) ? $t('v2.crafting.actions.added') : $t('v2.crafting.actions.add') }}</span>
-              </button>
-            </div>
-
-            <div v-else-if="search && !searching" class="cf-empty-hint">{{ $t('v2.crafting.messages.noItemsFound', { search }) }}</div>
-          </div>
-
-          <div v-if="draftItems.length" class="cf-draft-list">
-            <div v-for="draftItem in draftItems" :key="draftItem.id" class="cf-draft-card">
-              <div class="cf-draft-card__head">
-                <div class="cf-draft-card__meta">
-                  <img :src="getItemImg(draftItem.item)" :alt="draftItem.item?.name?.fr ?? ''" class="cf-draft-card__img" @error="onImgErr" />
-                  <div>
-                    <div class="cf-draft-card__name">{{ draftItem.item?.name?.fr ?? draftItem.itemId }}</div>
-                    <div class="cf-draft-card__sub">{{ draftItem.item?.type?.name?.fr ?? '' }} · Lv {{ draftItem.item?.level ?? '?' }}</div>
+                <img
+                  :src="getItemImg(item)"
+                  :alt="''"
+                  class="size-9 shrink-0 rounded-md bg-sunken object-contain"
+                  @error="onImgErr"
+                >
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm text-ink">{{ item.name?.fr ?? item.id }}</div>
+                  <div class="truncate text-xs text-subtle">
+                    {{ item.type?.name?.fr ?? '' }}
+                    <span class="tabular">· {{ $t('monsters.level', { level: item.level ?? '?' }) }}</span>
                   </div>
                 </div>
-                <div class="cf-draft-card__actions">
-                  <button class="cf-btn cf-btn--ghost" @click="toggleDraftItem(draftItem.id)">
-                    {{ isDraftItemExpanded(draftItem.id) ? $t('v2.crafting.actions.hideDetails') : $t('v2.crafting.actions.editDetails') }}
-                  </button>
-                  <button class="cf-icon-btn" :title="$t('v2.crafting.actions.removeItem')" @click="removeDraftItem(draftItem.id)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="cf-draft-card__summary">
-                <span>{{ formatOutcomeLabel(draftItem.outcome) }}</span>
-                <span>{{ $t('v2.crafting.summary.invested') }} {{ formatKamas(itemInvested(draftItem)) }}</span>
-                <span>{{ $t('v2.crafting.summary.realized') }} {{ formatKamas(itemRealized(draftItem)) }}</span>
-                <span :class="itemProfit(draftItem) >= 0 ? 'cf-profit--up' : 'cf-profit--down'">
-                  {{ itemProfit(draftItem) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(draftItem)) }}
+                <span class="shrink-0 text-xs text-accent">
+                  {{ draftItemIdSet.has(String(item.id)) ? $t('v2.crafting.actions.added') : $t('v2.crafting.actions.add') }}
                 </span>
-              </div>
-
-              <div v-if="isDraftItemExpanded(draftItem.id)" class="cf-draft-card__details">
-                <div class="cf-form-grid">
-                  <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.acquisition') }}</label>
-                    <V2Select v-model="draftItem.acquisitionMode" :options="acquisitionOptions" :placeholder="$t('v2.crafting.placeholders.selectAcquisition')" />
-                  </div>
-                  <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.targetMode') }}</label>
-                    <V2Select v-model="draftItem.targetMode" :options="targetModeOptions" :placeholder="$t('v2.crafting.placeholders.selectTargetMode')" />
-                  </div>
-                  <div class="cf-field">
-                    <label class="cf-field__label">{{ $t('v2.crafting.fields.outcome') }}</label>
-                    <V2Select v-model="draftItem.outcome" :options="outcomeOptions" :placeholder="$t('v2.crafting.placeholders.selectOutcome')" />
-                  </div>
-                </div>
-
-                <div class="cf-tab-strip">
-                  <button class="cf-tab" :class="{ 'cf-tab--active': getItemTab(draftItem.id) === 'craft' }" @click="setItemTab(draftItem.id, 'craft')">
-                    {{ $t('v2.crafting.sections.craft') }}
-                    <span class="cf-tab__hint">{{ formatKamas(itemCraftCost(draftItem)) }}</span>
-                  </button>
-                  <button class="cf-tab" :class="{ 'cf-tab--active': getItemTab(draftItem.id) === 'fm' }" @click="setItemTab(draftItem.id, 'fm')">
-                    FM
-                    <span class="cf-tab__hint">{{ formatKamas(itemFmCost(draftItem)) }}</span>
-                  </button>
-                  <button class="cf-tab" :class="{ 'cf-tab--active': getItemTab(draftItem.id) === 'sale' }" @click="setItemTab(draftItem.id, 'sale')">
-                    {{ $t('v2.crafting.sections.sale') }}
-                  </button>
-                </div>
-
-                <template v-if="getItemTab(draftItem.id) === 'craft'">
-                  <div class="cf-form-grid">
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.craftKamasBefore') }}</label>
-                      <input v-model.number="draftItem.craftKamasBefore" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.craftKamasAfter') }}</label>
-                      <input v-model.number="draftItem.craftKamasAfter" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.craftCost') }}</label>
-                      <input :value="formatKamas(itemCraftCost(draftItem))" type="text" class="cf-input" readonly />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.extraItemExpenses') }}</label>
-                      <input v-model.number="draftItem.extraExpenses" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="getItemTab(draftItem.id) === 'fm'">
-                  <div class="cf-form-grid">
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.runeValueBeforeFm') }}</label>
-                      <input v-model.number="draftItem.runeValueBeforeFm" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.runePurchases') }}</label>
-                      <input v-model.number="draftItem.runePurchases" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.runeValueAfterFm') }}</label>
-                      <input v-model.number="draftItem.runeValueAfterFm" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.fmCost') }}</label>
-                      <input :value="formatKamas(itemFmCost(draftItem))" type="text" class="cf-input" readonly />
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="getItemTab(draftItem.id) === 'sale'">
-                  <div class="cf-form-grid">
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.expectedSellPrice') }}</label>
-                      <input v-model.number="draftItem.expectedSalePrice" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.listPrice') }}</label>
-                      <input v-model.number="draftItem.listedPrice" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.soldPrice') }}</label>
-                      <input v-model.number="draftItem.realizedSalePrice" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                    <div class="cf-field">
-                      <label class="cf-field__label">{{ $t('v2.crafting.fields.brisageRecovery') }}</label>
-                      <input v-model.number="draftItem.brisageRecovery" type="number" min="0" step="1000" class="cf-input" />
-                    </div>
-                  </div>
-                  <div class="cf-profit-preview">
-                    <div class="cf-profit-preview__row">
-                      <span>{{ $t('v2.crafting.summary.fmCost') }}</span>
-                      <span>{{ formatKamas(itemFmCost(draftItem)) }}</span>
-                    </div>
-                    <div class="cf-profit-preview__row">
-                      <span>{{ $t('v2.crafting.summary.totalInvested') }}</span>
-                      <span>{{ formatKamas(itemInvested(draftItem)) }}</span>
-                    </div>
-                    <div class="cf-profit-preview__row">
-                      <span>{{ $t('v2.crafting.summary.realizedValue') }}</span>
-                      <span>{{ formatKamas(itemRealized(draftItem)) }}</span>
-                    </div>
-                    <div class="cf-profit-preview__row">
-                      <span>{{ $t('v2.crafting.summary.pl') }}</span>
-                      <span :class="itemProfit(draftItem) >= 0 ? 'cf-profit--up' : 'cf-profit--down'">
-                        {{ itemProfit(draftItem) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(draftItem)) }}
-                      </span>
-                    </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </div>
-
-          <div v-else class="cf-empty-box">
-            {{ $t('v2.crafting.editor.emptyDraft') }}
-          </div>
-
-          <div class="cf-targets">
-            <div class="cf-targets__head">
-              <div class="cf-panel__subtitle">{{ $t('v2.crafting.sections.recipeChecklist') }}</div>
-              <button class="cf-btn cf-btn--ghost" :disabled="draftItems.length === 0 || recipeChecklistState.isLoading" @click="fetchRecipeChecklist">
-                {{ recipeChecklistState.isLoading ? $t('v2.common.loading') : $t('v2.crafting.actions.fetchRecipes') }}
               </button>
             </div>
-            <div v-if="recipeChecklistState.error" class="cf-empty-hint">{{ recipeChecklistState.error }}</div>
-            <div v-if="draftResourceChecklist.length" class="cf-resource-list">
-              <label v-for="resource in draftResourceChecklist" :key="resource.id" class="cf-resource-row">
-                <input type="checkbox" :checked="resource.isDone" @change="toggleDraftResourceDone(resource.id)" />
-                <img v-if="resource.image" :src="resource.image" :alt="resource.name" class="cf-resource-row__img" @error="onImgErr" />
-                <div v-else class="cf-resource-row__img cf-resource-row__img--fallback" />
-                <div class="cf-resource-row__meta">
-                  <div class="cf-resource-row__name" :class="{ 'cf-resource-row__name--done': resource.isDone }">{{ resource.name }}</div>
-                  <div class="cf-resource-row__sub">{{ resource.typeName ?? $t('v2.crafting.common.resource') }}</div>
-                </div>
-                <div class="cf-resource-row__qty">{{ resource.totalQuantity }}</div>
-              </label>
+
+            <p v-else-if="search" class="mt-3 text-xs text-subtle">
+              {{ $t('v2.crafting.messages.noItemsFound', { search }) }}
+            </p>
+          </div>
+        </UiCard>
+
+        <!-- Draft items -->
+        <UiEmptyState v-if="!draftItems.length" :title="$t('v2.crafting.editor.emptyDraft')">
+          <template #icon><UiIcon name="crafting" /></template>
+        </UiEmptyState>
+
+        <UiCard v-for="draftItem in draftItems" v-else :key="draftItem.id">
+          <div class="flex flex-wrap items-start gap-3">
+            <img
+              :src="getItemImg(draftItem.item)"
+              :alt="''"
+              class="size-10 shrink-0 rounded-md bg-sunken object-contain"
+              @error="onImgErr"
+            >
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-sm font-semibold text-ink">
+                {{ draftItem.item?.name?.fr ?? draftItem.itemId }}
+              </div>
+              <div class="truncate text-xs text-subtle">
+                {{ draftItem.item?.type?.name?.fr ?? '' }}
+                <span class="tabular">· {{ $t('monsters.level', { level: draftItem.item?.level ?? '?' }) }}</span>
+              </div>
+            </div>
+            <div class="flex shrink-0 items-center gap-2">
+              <UiButton variant="ghost" size="sm" @click="toggleDraftItem(draftItem.id)">
+                {{ isDraftItemExpanded(draftItem.id) ? $t('v2.crafting.actions.hideDetails') : $t('v2.crafting.actions.editDetails') }}
+              </UiButton>
+              <UiButton
+                variant="danger"
+                size="sm"
+                icon
+                :aria-label="$t('v2.crafting.actions.removeItem')"
+                @click="removeDraftItem(draftItem.id)"
+              >
+                <UiIcon name="trash" />
+              </UiButton>
             </div>
           </div>
 
-          <button class="cf-btn cf-btn--primary cf-btn--wide" :disabled="draftItems.length === 0" @click="saveSession">
-            {{ editingSessionId && editingSessionId !== '__new__' ? $t('v2.crafting.actions.updateSession') : $t('v2.crafting.actions.saveSession') }}
-          </button>
-        </div>
-
-        <div class="cf-panel">
-          <div class="cf-panel__title">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {{ $t('v2.crafting.index.sessionHistory') }}
-            <span class="cf-badge">{{ sessions.length }}</span>
+          <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-subtle">
+            <UiBadge>{{ formatOutcomeLabel(draftItem.outcome) }}</UiBadge>
+            <span>{{ $t('v2.crafting.summary.invested') }} <UiMoney :value="itemInvested(draftItem)" short size="sm" /></span>
+            <span>{{ $t('v2.crafting.summary.realized') }} <UiMoney :value="itemRealized(draftItem)" short size="sm" /></span>
+            <UiMoney :value="itemProfit(draftItem)" signed short size="sm" />
           </div>
 
-          <div v-if="sessions.length === 0" class="cf-empty-box">
-            {{ $t('v2.crafting.index.emptySessions') }}
-          </div>
-
-          <div v-else class="cf-history">
-            <div v-for="session in sessions" :key="session.id" class="cf-history-card">
-              <div class="cf-history-card__head">
-                <div>
-                  <div class="cf-history-card__name">{{ sessionTitle(session) }}</div>
-                    <div class="cf-history-card__sub">{{ formatDisplayDate(session.date) }} · {{ formatWorkflowLabel(session.workflow) }} · {{ t('v2.crafting.index.itemsCount', { count: session.items.length }) }}</div>
-                </div>
-                <div class="cf-history-card__actions">
-                  <button class="cf-btn cf-btn--ghost" @click="openSessionEditor(session.id)">
-                    {{ $t('v2.crafting.actions.edit') }}
-                  </button>
-                  <button class="cf-btn cf-btn--ghost" @click="toggleSession(session.id)">
-                    {{ isSessionExpanded(session.id) ? $t('v2.crafting.actions.hideDetails') : $t('v2.crafting.actions.showDetails') }}
-                  </button>
-                  <button class="cf-icon-btn" :title="$t('v2.crafting.actions.deleteSession')" @click="deleteSession(session.id)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="cf-history-card__stats">
-                <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.invested') }}</div>
-                  <div class="cf-mini-stat__value">{{ formatKamas(sessionTotals(session).invested) }}</div>
-                </div>
-                <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.realized') }}</div>
-                  <div class="cf-mini-stat__value">{{ formatKamas(sessionTotals(session).realized) }}</div>
-                </div>
-                <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.expected') }}</div>
-                  <div class="cf-mini-stat__value">{{ formatKamas(sessionTotals(session).expected) }}</div>
-                </div>
-                <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.assets') }}</div>
-                  <div class="cf-mini-stat__value">{{ formatKamas(sessionTotals(session).currentAssets) }}</div>
-                </div>
-                <div class="cf-mini-stat">
-                    <div class="cf-mini-stat__label">{{ $t('v2.crafting.stats.bankrollDelta') }}</div>
-                  <div class="cf-mini-stat__value" :class="sessionTotals(session).bankrollDelta >= 0 ? 'cf-profit--up' : 'cf-profit--down'">
-                    {{ sessionTotals(session).bankrollDelta >= 0 ? '+' : '' }}{{ formatKamas(sessionTotals(session).bankrollDelta) }}
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="isSessionExpanded(session.id)" class="cf-session-items">
-                <div v-for="item in session.items" :key="item.id" class="cf-session-item">
-                  <div class="cf-session-item__head">
-                    <div class="cf-draft-card__meta">
-                      <img :src="getItemImg(item.item)" :alt="item.item?.name?.fr ?? ''" class="cf-draft-card__img" @error="onImgErr" />
-                      <div>
-                        <div class="cf-draft-card__name">{{ item.item?.name?.fr ?? item.itemId }}</div>
-                        <div class="cf-draft-card__sub">{{ formatTargetModeLabel(item.targetMode) }} · {{ formatOutcomeLabel(item.outcome) }}</div>
-                      </div>
-                    </div>
-                    <div class="cf-session-item__profit" :class="itemProfit(item) >= 0 ? 'cf-profit--up' : 'cf-profit--down'">
-                      {{ itemProfit(item) >= 0 ? '+' : '' }}{{ formatKamas(itemProfit(item)) }}
-                    </div>
-                  </div>
-
-                  <div class="cf-session-item__summary">
-                    <span>{{ $t('v2.crafting.summary.craft') }} {{ formatKamas(itemCraftCost(item)) }}</span>
-                    <span>{{ $t('v2.crafting.summary.fm') }} {{ formatKamas(itemFmCost(item)) }}</span>
-                    <span v-if="item.listedPrice > 0">{{ $t('v2.crafting.summary.list') }} {{ formatKamas(item.listedPrice) }}</span>
-                    <span>{{ $t('v2.crafting.summary.realized') }} {{ formatKamas(itemRealized(item)) }}</span>
-                  </div>
-                </div>
-              </div>
+          <div v-if="isDraftItemExpanded(draftItem.id)" class="mt-4 border-t border-line pt-4">
+            <div class="grid gap-3 sm:grid-cols-3">
+              <UiField :label="$t('v2.crafting.fields.acquisition')">
+                <UiSelect
+                  v-model="draftItem.acquisitionMode"
+                  :options="acquisitionOptions"
+                  size="sm"
+                  :placeholder="$t('v2.crafting.placeholders.selectAcquisition')"
+                />
+              </UiField>
+              <UiField :label="$t('v2.crafting.fields.targetMode')">
+                <UiSelect
+                  v-model="draftItem.targetMode"
+                  :options="targetModeOptions"
+                  size="sm"
+                  :placeholder="$t('v2.crafting.placeholders.selectTargetMode')"
+                />
+              </UiField>
+              <UiField :label="$t('v2.crafting.fields.outcome')">
+                <UiSelect
+                  v-model="draftItem.outcome"
+                  :options="outcomeOptions"
+                  size="sm"
+                  :placeholder="$t('v2.crafting.placeholders.selectOutcome')"
+                />
+              </UiField>
             </div>
+
+            <div class="mt-4">
+              <UiSegmented
+                :model-value="getItemTab(draftItem.id)"
+                :options="itemTabOptions"
+                size="sm"
+                :aria-label="$t('v2.crafting.sections.addItems')"
+                @update:model-value="setItemTab(draftItem.id, $event as 'craft' | 'fm' | 'sale')"
+              />
+            </div>
+
+            <div v-if="getItemTab(draftItem.id) === 'craft'" class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <UiField :label="$t('v2.crafting.fields.craftKamasBefore')">
+                <UiNumberInput v-model="draftItem.craftKamasBefore" :min="0" size="sm" />
+              </UiField>
+              <UiField :label="$t('v2.crafting.fields.craftKamasAfter')">
+                <UiNumberInput v-model="draftItem.craftKamasAfter" :min="0" size="sm" />
+              </UiField>
+              <UiField :label="$t('v2.crafting.fields.craftCost')">
+                <div class="flex h-8 items-center rounded-md border border-dashed border-line px-2.5">
+                  <UiMoney :value="itemCraftCost(draftItem)" short size="sm" />
+                </div>
+              </UiField>
+              <UiField :label="$t('v2.crafting.fields.extraItemExpenses')">
+                <UiNumberInput v-model="draftItem.extraExpenses" :min="0" size="sm" />
+              </UiField>
+            </div>
+
+            <div v-else-if="getItemTab(draftItem.id) === 'fm'" class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <UiField :label="$t('v2.crafting.fields.runeValueBeforeFm')">
+                <UiNumberInput v-model="draftItem.runeValueBeforeFm" :min="0" size="sm" />
+              </UiField>
+              <UiField :label="$t('v2.crafting.fields.runePurchases')">
+                <UiNumberInput v-model="draftItem.runePurchases" :min="0" size="sm" />
+              </UiField>
+              <UiField :label="$t('v2.crafting.fields.runeValueAfterFm')">
+                <UiNumberInput v-model="draftItem.runeValueAfterFm" :min="0" size="sm" />
+              </UiField>
+              <UiField :label="$t('v2.crafting.fields.fmCost')">
+                <div class="flex h-8 items-center rounded-md border border-dashed border-line px-2.5">
+                  <UiMoney :value="itemFmCost(draftItem)" short size="sm" />
+                </div>
+              </UiField>
+            </div>
+
+            <template v-else>
+              <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <UiField :label="$t('v2.crafting.fields.expectedSellPrice')">
+                  <UiNumberInput v-model="draftItem.expectedSalePrice" :min="0" size="sm" />
+                </UiField>
+                <UiField :label="$t('v2.crafting.fields.listPrice')">
+                  <UiNumberInput v-model="draftItem.listedPrice" :min="0" size="sm" />
+                </UiField>
+                <UiField :label="$t('v2.crafting.fields.soldPrice')">
+                  <UiNumberInput v-model="draftItem.realizedSalePrice" :min="0" size="sm" />
+                </UiField>
+                <UiField :label="$t('v2.crafting.fields.brisageRecovery')">
+                  <UiNumberInput v-model="draftItem.brisageRecovery" :min="0" size="sm" />
+                </UiField>
+              </div>
+
+              <dl class="mt-3 grid gap-x-6 gap-y-1.5 border-t border-line pt-3 sm:grid-cols-2">
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.crafting.summary.fmCost') }}</dt>
+                  <dd><UiMoney :value="itemFmCost(draftItem)" short size="sm" /></dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.crafting.summary.totalInvested') }}</dt>
+                  <dd><UiMoney :value="itemInvested(draftItem)" short size="sm" /></dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.crafting.summary.realizedValue') }}</dt>
+                  <dd><UiMoney :value="itemRealized(draftItem)" short size="sm" /></dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.crafting.summary.pl') }}</dt>
+                  <dd><UiMoney :value="itemProfit(draftItem)" signed short size="sm" /></dd>
+                </div>
+              </dl>
+            </template>
           </div>
-        </div>
+        </UiCard>
+
+        <!-- Recipe checklist -->
+        <UiCard :title="$t('v2.crafting.sections.recipeChecklist')">
+          <template #actions>
+            <UiButton
+              size="sm"
+              :disabled="draftItems.length === 0"
+              :loading="recipeChecklistState.isLoading"
+              @click="fetchRecipeChecklist"
+            >
+              {{ $t('v2.crafting.actions.fetchRecipes') }}
+            </UiButton>
+          </template>
+
+          <p v-if="recipeChecklistState.error" class="text-xs text-negative">
+            {{ recipeChecklistState.error }}
+          </p>
+
+          <div v-if="draftResourceChecklist.length" class="flex flex-col gap-1">
+            <label
+              v-for="resource in draftResourceChecklist"
+              :key="resource.id"
+              class="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-raised"
+            >
+              <input
+                type="checkbox"
+                class="size-4 shrink-0 accent-[var(--c-accent)]"
+                :checked="resource.isDone"
+                @change="toggleDraftResourceDone(resource.id)"
+              >
+              <img
+                v-if="resource.image"
+                :src="resource.image"
+                :alt="''"
+                class="size-7 shrink-0 rounded-md bg-sunken object-contain"
+                @error="onImgErr"
+              >
+              <div v-else class="size-7 shrink-0 rounded-md bg-sunken" />
+              <div class="min-w-0 flex-1">
+                <div :class="['truncate text-sm', resource.isDone ? 'text-subtle line-through' : 'text-ink']">
+                  {{ resource.name }}
+                </div>
+                <div class="truncate text-xs text-subtle">
+                  {{ resource.typeName ?? $t('v2.crafting.common.resource') }}
+                </div>
+              </div>
+              <span class="tabular shrink-0 text-sm text-muted">{{ resource.totalQuantity }}</span>
+            </label>
+          </div>
+        </UiCard>
       </div>
-    </template>
+    </UiPageSection>
+
+    <!-- ── History ──────────────────────────────────────────────────────── -->
+    <UiPageSection
+      :title="$t('v2.crafting.index.sessionHistory')"
+      :description="isEditorOpen ? undefined : $t('v2.crafting.index.createSessionDesc')"
+    >
+      <template #actions>
+        <UiBadge>{{ sessions.length }}</UiBadge>
+        <UiButton v-if="!isEditorOpen" variant="primary" size="sm" @click="startNewSession">
+          <template #icon><UiIcon name="plus" /></template>
+          {{ $t('v2.crafting.actions.newSession') }}
+        </UiButton>
+      </template>
+
+      <UiEmptyState v-if="sessions.length === 0" :title="$t('v2.crafting.index.emptySessions')">
+        <template #icon><UiIcon name="crafting" /></template>
+      </UiEmptyState>
+
+      <div v-else class="flex flex-col gap-3">
+        <UiCard v-for="session in sessions" :key="session.id">
+          <div class="flex flex-wrap items-start gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-sm font-semibold text-ink">{{ sessionTitle(session) }}</div>
+              <div class="truncate text-xs text-subtle">
+                {{ formatDisplayDate(session.date) }} · {{ formatWorkflowLabel(session.workflow) }}
+                · {{ t('v2.crafting.index.itemsCount', { count: session.items.length }) }}
+              </div>
+            </div>
+            <div class="flex shrink-0 items-center gap-2">
+              <UiButton variant="ghost" size="sm" @click="openSessionEditor(session.id)">
+                {{ $t('v2.crafting.actions.edit') }}
+              </UiButton>
+              <UiButton variant="ghost" size="sm" @click="toggleSession(session.id)">
+                {{ isSessionExpanded(session.id) ? $t('v2.crafting.actions.hideDetails') : $t('v2.crafting.actions.showDetails') }}
+              </UiButton>
+              <UiButton
+                variant="danger"
+                size="sm"
+                icon
+                :aria-label="$t('v2.crafting.actions.deleteSession')"
+                @click="deleteSession(session.id)"
+              >
+                <UiIcon name="trash" />
+              </UiButton>
+            </div>
+          </div>
+
+          <dl class="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
+            <div>
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.stats.invested') }}</dt>
+              <dd class="mt-0.5"><UiMoney :value="sessionTotals(session).invested" short size="sm" /></dd>
+            </div>
+            <div>
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.stats.realized') }}</dt>
+              <dd class="mt-0.5"><UiMoney :value="sessionTotals(session).realized" short size="sm" /></dd>
+            </div>
+            <div>
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.stats.expected') }}</dt>
+              <dd class="mt-0.5"><UiMoney :value="sessionTotals(session).expected" short size="sm" /></dd>
+            </div>
+            <div>
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.stats.assets') }}</dt>
+              <dd class="mt-0.5"><UiMoney :value="sessionTotals(session).currentAssets" short size="sm" /></dd>
+            </div>
+            <div>
+              <dt class="text-xs text-subtle">{{ $t('v2.crafting.stats.bankrollDelta') }}</dt>
+              <dd class="mt-0.5"><UiMoney :value="sessionTotals(session).bankrollDelta" signed short size="sm" /></dd>
+            </div>
+          </dl>
+
+          <div v-if="isSessionExpanded(session.id)" class="mt-3 flex flex-col gap-2 border-t border-line pt-3">
+            <div
+              v-for="item in session.items"
+              :key="item.id"
+              class="rounded-md border border-line bg-sunken p-2.5"
+            >
+              <div class="flex flex-wrap items-center gap-3">
+                <img
+                  :src="getItemImg(item.item)"
+                  :alt="''"
+                  class="size-8 shrink-0 rounded-md bg-surface object-contain"
+                  @error="onImgErr"
+                >
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm text-ink">{{ item.item?.name?.fr ?? item.itemId }}</div>
+                  <div class="truncate text-xs text-subtle">
+                    {{ formatTargetModeLabel(item.targetMode) }} · {{ formatOutcomeLabel(item.outcome) }}
+                  </div>
+                </div>
+                <UiMoney :value="itemProfit(item)" signed short size="sm" />
+              </div>
+
+              <div class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-subtle">
+                <span>{{ $t('v2.crafting.summary.craft') }} <UiMoney :value="itemCraftCost(item)" short size="sm" /></span>
+                <span>{{ $t('v2.crafting.summary.fm') }} <UiMoney :value="itemFmCost(item)" short size="sm" /></span>
+                <span v-if="item.listedPrice > 0">{{ $t('v2.crafting.summary.list') }} <UiMoney :value="item.listedPrice" short size="sm" /></span>
+                <span>{{ $t('v2.crafting.summary.realized') }} <UiMoney :value="itemRealized(item)" short size="sm" /></span>
+              </div>
+            </div>
+          </div>
+        </UiCard>
+      </div>
+    </UiPageSection>
   </div>
 </template>
 
@@ -704,6 +643,13 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const searchAreaEl = ref<HTMLElement | null>(null)
 const isEditorOpen = computed(() => editingSessionId.value === '__new__' || Boolean(editingSessionId.value))
+const isEditingExisting = computed(() => Boolean(editingSessionId.value) && editingSessionId.value !== '__new__')
+
+const itemTabOptions = computed(() => ([
+  { label: t('v2.crafting.sections.craft'), value: 'craft' },
+  { label: 'FM', value: 'fm' },
+  { label: t('v2.crafting.sections.sale'), value: 'sale' },
+]))
 
 const draftItemIdSet = computed(() => new Set(draftItems.value.map((item) => String(item.itemId))))
 
@@ -1415,13 +1361,6 @@ const onImgErr = (e: Event) => {
   img.src = '/item-fallback.svg'
 }
 
-const formatKamas = (n: number) => {
-  if (!n) return '0'
-  const abs = Math.abs(n)
-  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (abs >= 1_000) return `${Math.round(n / 1_000)}K`
-  return Math.round(n).toLocaleString()
-}
 
 const formatDisplayDate = (iso: string) => {
   const date = new Date(iso)
@@ -1490,596 +1429,3 @@ onUnmounted(() => {
   document.removeEventListener('mousedown', onDocMousedown)
 })
 </script>
-
-<style scoped>
-.cf-stats {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: .75rem;
-  margin-bottom: 1rem;
-}
-
-@media (max-width: 960px) {
-  .cf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 520px) {
-  .cf-stats { grid-template-columns: 1fr; }
-}
-
-.cf-stat {
-  background: var(--v2-hover-subtle);
-  border: 1px solid var(--v2-active);
-  border-radius: 14px;
-  padding: .95rem 1rem;
-}
-
-.cf-stat--pos { border-color: rgba(52,211,153,.35); }
-.cf-stat--neg { border-color: rgba(248,113,113,.35); }
-.cf-stat__label {
-  font-size: .6875rem;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--v2-text-dim);
-  font-weight: 700;
-}
-
-.cf-stat__value {
-  margin-top: .3rem;
-  font-size: 1.25rem;
-  color: var(--v2-text);
-  font-weight: 800;
-}
-
-.cf-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.cf-layout--single {
-  grid-template-columns: 1fr;
-}
-
-@media (max-width: 980px) {
-  .cf-layout { grid-template-columns: 1fr; }
-}
-
-.cf-panel {
-  background: var(--v2-hover-subtle);
-  border: 1px solid var(--v2-active);
-  border-radius: 16px;
-  padding: 1rem;
-}
-
-.cf-panel__title {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  color: var(--v2-accent);
-  font-size: .95rem;
-  font-weight: 700;
-  margin-bottom: .9rem;
-}
-
-.cf-panel__subtitle {
-  font-size: .75rem;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--v2-text-dim);
-  font-weight: 700;
-}
-
-.cf-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .75rem;
-}
-
-@media (max-width: 760px) {
-  .cf-form-grid { grid-template-columns: 1fr; }
-}
-
-.cf-field--full { grid-column: 1 / -1; }
-
-.cf-field__label {
-  display: block;
-  font-size: .6875rem;
-  color: var(--v2-text-secondary);
-  font-weight: 600;
-  margin-bottom: .35rem;
-}
-
-.cf-input {
-  width: 100%;
-  background: rgba(0,0,0,.25);
-  border: 1px solid var(--v2-border-med);
-  border-radius: 10px;
-  padding: .5rem .75rem;
-  color: var(--v2-text);
-  font-size: .875rem;
-  outline: none;
-}
-
-.cf-input:focus { border-color: var(--v2-border-focus); }
-.cf-input--small { min-width: 110px; }
-
-.cf-search-area {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--v2-border-subtle);
-}
-
-.cf-searchbox {
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin-top: .55rem;
-}
-
-.cf-searchbox__icon {
-  position: absolute;
-  left: .75rem;
-  color: var(--v2-text-muted);
-  pointer-events: none;
-}
-
-.cf-searchbox__input {
-  width: 100%;
-  padding: .55rem 2.2rem;
-  background: rgba(0,0,0,.25);
-  border: 1px solid var(--v2-border-med);
-  border-radius: 10px;
-  color: var(--v2-text);
-  outline: none;
-}
-
-.cf-searchbox__input:focus { border-color: var(--v2-border-focus); }
-.cf-searchbox__clear {
-  position: absolute;
-  right: .6rem;
-  background: none;
-  border: none;
-  color: var(--v2-text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.cf-inline-loader,
-.cf-empty-hint {
-  font-size: .8125rem;
-  color: var(--v2-text-secondary);
-  margin-top: .6rem;
-}
-
-.cf-inline-loader {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-}
-
-.cf-spin {
-  width: 15px;
-  height: 15px;
-  border: 2px solid var(--v2-border-med);
-  border-top-color: var(--v2-accent);
-  border-radius: 50%;
-  animation: cf-spin .8s linear infinite;
-}
-
-@keyframes cf-spin {
-  to { transform: rotate(360deg); }
-}
-
-.cf-results {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 230px;
-  overflow-y: auto;
-  margin-top: .65rem;
-}
-
-.cf-result {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  background: rgba(0,0,0,.16);
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: .5rem .65rem;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.cf-result:hover { border-color: var(--v2-border-med); }
-.cf-result--disabled { opacity: .7; }
-.cf-result__img {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.cf-result__body { min-width: 0; flex: 1; }
-.cf-result__name {
-  font-size: .8125rem;
-  font-weight: 600;
-  color: var(--v2-text);
-}
-
-.cf-result__sub {
-  font-size: .6875rem;
-  color: var(--v2-text-muted);
-}
-
-.cf-result__cta {
-  font-size: .6875rem;
-  font-weight: 700;
-  color: var(--v2-accent);
-}
-
-.cf-draft-list,
-.cf-history {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  margin-top: 1rem;
-}
-
-.cf-draft-card,
-.cf-history-card,
-.cf-targets,
-.cf-empty-box {
-  background: rgba(0,0,0,.14);
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 14px;
-  padding: .9rem;
-}
-
-.cf-empty-box {
-  color: var(--v2-text-muted);
-  font-size: .875rem;
-}
-
-.cf-draft-card__head,
-.cf-history-card__head,
-.cf-session-item__head,
-.cf-attempt-card__head,
-.cf-targets__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-}
-
-.cf-draft-card__meta {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  min-width: 0;
-}
-
-.cf-draft-card__img,
-.cf-resource-row__img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.cf-resource-row__img--fallback {
-  background: rgba(255,255,255,.05);
-  border-radius: 8px;
-}
-
-.cf-draft-card__name,
-.cf-history-card__name {
-  font-size: .95rem;
-  color: var(--v2-text);
-  font-weight: 700;
-}
-
-.cf-draft-card__sub,
-.cf-history-card__sub,
-.cf-session-item__note,
-.cf-resource-row__sub,
-.cf-attempt-timeline__note {
-  font-size: .75rem;
-  color: var(--v2-text-secondary);
-}
-
-.cf-draft-card__actions,
-.cf-history-card__actions {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-}
-
-.cf-history-card__actions--top {
-  margin-bottom: .9rem;
-}
-
-.cf-btn,
-.cf-icon-btn {
-  border: 1px solid var(--v2-border-med);
-  background: rgba(0,0,0,.18);
-  color: var(--v2-text);
-  cursor: pointer;
-}
-
-.cf-btn {
-  border-radius: 999px;
-  padding: .42rem .72rem;
-  font-size: .75rem;
-  font-weight: 700;
-}
-
-.cf-btn--ghost:hover,
-.cf-icon-btn:hover { border-color: var(--v2-border-focus); }
-
-.cf-btn--primary {
-  background: var(--v2-active-strong);
-  border-color: var(--v2-border-strong);
-}
-
-.cf-btn--wide {
-  width: 100%;
-  justify-content: center;
-  margin-top: 1rem;
-}
-
-.cf-icon-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cf-draft-card__summary,
-.cf-session-item__summary {
-  display: flex;
-  gap: .5rem;
-  flex-wrap: wrap;
-  margin-top: .75rem;
-  font-size: .75rem;
-  color: var(--v2-text-secondary);
-}
-
-.cf-draft-card__summary span,
-.cf-session-item__summary span,
-.cf-attempt-timeline__pill,
-.cf-badge {
-  background: rgba(255,255,255,.05);
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 999px;
-  padding: .22rem .55rem;
-}
-
-.cf-draft-card__details,
-.cf-session-items {
-  margin-top: .9rem;
-  display: flex;
-  flex-direction: column;
-  gap: .9rem;
-}
-
-.cf-targets { margin-top: .9rem; }
-
-.cf-targets__list,
-.cf-attempts,
-.cf-resource-list,
-.cf-attempt-timeline {
-  display: flex;
-  flex-direction: column;
-  gap: .6rem;
-  margin-top: .75rem;
-}
-
-.cf-target-row,
-.cf-resource-row,
-.cf-attempt-card,
-.cf-session-item,
-.cf-attempt-timeline__row {
-  background: rgba(0,0,0,.12);
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 12px;
-  padding: .75rem;
-}
-
-.cf-target-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px 130px;
-  gap: .65rem;
-  align-items: center;
-}
-
-@media (max-width: 760px) {
-  .cf-target-row { grid-template-columns: 1fr; }
-}
-
-.cf-target-row__name {
-  font-size: .8125rem;
-  font-weight: 600;
-  color: var(--v2-text);
-}
-
-.cf-target-row__sub {
-  font-size: .6875rem;
-  color: var(--v2-text-muted);
-}
-
-.cf-attempt-card__title,
-.cf-resource-row__name {
-  font-size: .8125rem;
-  font-weight: 700;
-  color: var(--v2-text);
-}
-
-.cf-resource-row {
-  display: grid;
-  grid-template-columns: 18px 40px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: .65rem;
-}
-
-.cf-resource-row__name--done {
-  text-decoration: line-through;
-  color: var(--v2-text-muted);
-}
-
-.cf-resource-row__qty {
-  font-size: .8125rem;
-  font-weight: 700;
-  color: var(--v2-accent);
-}
-
-.cf-profit-preview {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .55rem;
-  margin-top: .75rem;
-}
-
-@media (max-width: 760px) {
-  .cf-profit-preview { grid-template-columns: 1fr; }
-}
-
-.cf-profit-preview__row,
-.cf-mini-stat {
-  background: rgba(255,255,255,.04);
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 12px;
-  padding: .7rem .8rem;
-}
-
-.cf-profit-preview__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .6rem;
-  font-size: .8rem;
-  color: var(--v2-text-secondary);
-}
-
-.cf-history-card__stats {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: .6rem;
-  margin-top: .8rem;
-}
-
-@media (max-width: 760px) {
-  .cf-history-card__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-.cf-mini-stat__label {
-  font-size: .6875rem;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--v2-text-dim);
-  font-weight: 700;
-}
-
-.cf-mini-stat__value {
-  margin-top: .22rem;
-  font-size: .9rem;
-  color: var(--v2-text);
-  font-weight: 700;
-}
-
-.cf-session-item__profit {
-  font-size: .875rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.cf-attempt-timeline__row {
-  display: flex;
-  align-items: flex-start;
-  gap: .7rem;
-}
-
-.cf-attempt-timeline__body {
-  min-width: 0;
-  flex: 1;
-}
-
-.cf-attempt-timeline__top {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .45rem;
-  font-size: .75rem;
-  color: var(--v2-text-secondary);
-  margin-bottom: .25rem;
-}
-
-.cf-profit--up { color: #34d399; }
-.cf-profit--down { color: #f87171; }
-
-/* Bankroll groups */
-.cf-bankroll-group {
-  margin-top: .75rem;
-}
-
-.cf-bankroll-group__label {
-  font-size: .6875rem;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--v2-text-dim);
-  font-weight: 700;
-  margin-bottom: .45rem;
-}
-
-/* Item section tabs */
-.cf-tab-strip {
-  display: flex;
-  gap: .4rem;
-  margin-top: .85rem;
-  margin-bottom: .75rem;
-  border-bottom: 1px solid var(--v2-border-subtle);
-  padding-bottom: .65rem;
-}
-
-.cf-tab {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: .35rem .7rem;
-  font-size: .75rem;
-  font-weight: 700;
-  color: var(--v2-text-secondary);
-  cursor: pointer;
-  transition: color .15s, border-color .15s, background .15s;
-}
-
-.cf-tab:hover {
-  color: var(--v2-text);
-  border-color: var(--v2-border-subtle);
-}
-
-.cf-tab--active {
-  color: var(--v2-accent);
-  background: rgba(var(--v2-accent-rgb, 99,179,237), .1);
-  border-color: var(--v2-border-med);
-}
-
-.cf-tab__hint {
-  font-weight: 500;
-  color: var(--v2-text-muted);
-  font-size: .6875rem;
-}
-
-.cf-tab--active .cf-tab__hint {
-  color: var(--v2-text-secondary);
-}
-
-</style>

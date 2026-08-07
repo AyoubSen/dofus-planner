@@ -212,7 +212,8 @@
       "advanced": "Advanced",
       "pagination": "Pagination",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "clearSearch": "Clear search"
     },
     "archi": {
       "noCharacterDesc": "Select a character in the sidebar to start tracking your archimonstres.",

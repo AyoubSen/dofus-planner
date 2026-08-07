@@ -212,7 +212,8 @@
       "advanced": "Avancé",
       "pagination": "Pagination",
       "previous": "Précédent",
-      "next": "Suivant"
+      "next": "Suivant",
+      "clearSearch": "Effacer la recherche"
     },
     "archi": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour commencer le suivi des archimonstres.",
