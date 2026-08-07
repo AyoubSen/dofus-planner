@@ -1,415 +1,106 @@
 <template>
-  <div>
-    <!-- Filters bar -->
-    <div class="v2-items-filters">
-      <div class="v2-items-filters__topbar">
-        <div>
-          <div class="v2-items-filters__title">{{ $t('items.guide.entryTitle') }}</div>
-          <div class="v2-items-filters__subtitle">{{ $t('items.guide.entrySubtitle') }}</div>
-        </div>
-        <div class="v2-items-filters__actions">
-          <button
-            class="v2-filters-toggle"
-            type="button"
-            :title="filtersCollapsed ? $t('items.filters.showFilters') : $t('items.filters.hideFilters')"
-            @click="toggleFilters"
-          >
-            <svg class="w-3.5 h-3.5" :style="filtersCollapsed ? 'transform:rotate(180deg)' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-            {{ filtersCollapsed ? $t('items.filters.showFilters') : $t('items.filters.hideFilters') }}
-          </button>
-          <button class="v2-guide-btn" type="button" :aria-label="$t('items.guide.openAria')" @click="openGuide('main')">?</button>
-        </div>
-      </div>
+  <div class="flex flex-col gap-5">
+    <ItemsFilterBar
+      v-model:collapsed="filtersCollapsed"
+      :filters="filters"
+      @set="setFilter"
+      @open-guide="openGuide('main')"
+    />
 
-      <div v-show="!filtersCollapsed" class="v2-filter-rows">
-        <!-- Element -->
-        <div class="v2-filter-group">
-          <span class="v2-filter-label">{{ $t('items.filters.elements.title') }}</span>
-          <div class="v2-filter-chips">
-            <button
-              class="v2-fchip"
-              :class="{ 'v2-fchip--on': !filters.element }"
-              @click="setFilter('element', '')"
-            >{{ $t('items.filters.elements.all') }}</button>
-            <button
-              v-for="el in ELEMENTS"
-              :key="el.name"
-              class="v2-fchip v2-fchip--icon"
-              :class="{ 'v2-fchip--on': filters.element === el.name }"
-              :title="$t('items.filters.elements.' + el.name)"
-              @click="setFilter('element', el.name)"
-            >
-              <img v-if="!elementIconErrors.has(el.name)" :src="el.icon" :alt="el.name" class="w-4 h-4 object-contain" @error="() => elementIconErrors.add(el.name)" />
-              <span v-else class="v2-fchip-text">{{ el.short }}</span>
-            </button>
+    <!-- ── How this page is meant to be used ────────────────────────────── -->
+    <UiCard :title="$t('items.pricesWorkflow.title')" :subtitle="$t('items.pricesWorkflow.eyebrow')">
+      <p class="text-sm text-muted">{{ $t('items.pricesWorkflow.intro') }}</p>
+      <ol class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <li
+          v-for="(step, index) in workflowSteps"
+          :key="step"
+          class="rounded-md border border-line bg-sunken p-2.5"
+        >
+          <div class="flex items-baseline gap-2">
+            <span class="tabular text-xs text-subtle">{{ index + 1 }}</span>
+            <span class="text-sm font-medium text-ink">{{ $t(`items.pricesWorkflow.steps.${step}`) }}</span>
           </div>
-        </div>
+          <p class="mt-0.5 text-xs text-subtle">{{ $t(`items.pricesWorkflow.steps.${step}Hint`) }}</p>
+        </li>
+      </ol>
+    </UiCard>
 
-        <!-- Mode -->
-        <div class="v2-filter-group">
-          <span class="v2-filter-label">{{ $t('items.filters.mode.title') }}</span>
-          <div class="v2-filter-chips">
-            <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.mode }" @click="setFilter('mode', '')">{{ $t('items.filters.mode.all') }}</button>
-            <button
-              v-for="m in MODES"
-              :key="m"
-              class="v2-fchip"
-              :class="{ 'v2-fchip--on': filters.mode === m }"
-              @click="setFilter('mode', m)"
-            >{{ $t('items.filters.mode.' + m) }}</button>
-          </div>
-        </div>
+    <p class="text-xs text-subtle">{{ $t('items.usageHint') }}</p>
 
-        <!-- Level -->
-        <div class="v2-filter-group">
-          <span class="v2-filter-label">{{ $t('items.filters.level.title') }}</span>
-          <div class="v2-filter-chips">
-            <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.level }" @click="setFilter('level', '')">{{ $t('items.filters.level.all') }}</button>
-            <button
-              v-for="lv in LEVELS"
-              :key="lv"
-              class="v2-fchip"
-              :class="{ 'v2-fchip--on': filters.level === lv }"
-              @click="setFilter('level', lv)"
-            >{{ lv }}</button>
-          </div>
-        </div>
+    <ItemsGuideModal :open="guideOpen" :mode="guideMode" @close="guideOpen = false" />
 
-        <!-- Price range -->
-        <div class="v2-filter-group">
-          <span class="v2-filter-label">{{ $t('items.filters.budget.title') }}</span>
-          <div class="v2-filter-chips">
-            <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.budget }" @click="setFilter('budget', '')">{{ $t('items.filters.budget.all') }}</button>
-            <button
-              v-for="b in BUDGETS"
-              :key="b"
-              class="v2-fchip"
-              :class="{ 'v2-fchip--on': filters.budget === b }"
-              @click="setFilter('budget', b)"
-            >{{ $t('items.filters.budget.' + b) }}</button>
-          </div>
-        </div>
+    <ItemsCraftingPicker
+      :open="craftingPickerState.isOpen"
+      :item="craftingPickerState.item"
+      :saving="craftingPickerState.isSaving"
+      :error="craftingPickerState.error"
+      :has-context="canUseCraftingSessions"
+      :sessions="craftingSessionsPreview"
+      :session-title="getCraftingSessionTitle"
+      :session-meta="getCraftingSessionMeta"
+      @close="closeCraftingPicker"
+      @create="createCraftingSessionFromPicker"
+      @add="addItemToExistingCraftingSession"
+    />
 
-        <!-- Class -->
-        <div class="v2-filter-group">
-          <span class="v2-filter-label">{{ $t('items.filters.classes.title') }}</span>
-          <div class="v2-filter-chips">
-            <button class="v2-fchip" :class="{ 'v2-fchip--on': !filters.classe }" @click="setFilter('classe', '')">{{ $t('items.filters.classes.all') }}</button>
-            <button
-              v-for="cl in CLASSES"
-              :key="cl.name"
-              class="v2-fchip v2-fchip--icon"
-              :class="{ 'v2-fchip--on': filters.classe === cl.name }"
-              :title="cl.name.charAt(0).toUpperCase() + cl.name.slice(1)"
-              @click="setFilter('classe', cl.name)"
-            >
-              <img v-if="!classIconErrors.has(cl.name)" :src="cl.icon" :alt="cl.name" class="w-5 h-5 object-cover object-top rounded" @error="() => classIconErrors.add(cl.name)" />
-              <span v-else class="v2-fchip-text">{{ cl.short }}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <section class="v2-prices-guide v2-card">
-      <div class="v2-prices-guide__main">
-        <div class="v2-prices-guide__eyebrow">Prices workflow</div>
-        <h2>Find cheap listings before sending them to Flip Items</h2>
-        <p>
-          Use this page like your HDV notebook: search an item, open it, save observed listing prices, then let the app compare them and mark best buys.
-        </p>
-      </div>
-      <div class="v2-prices-guide__steps">
-        <div class="v2-prices-guide-step">
-          <span>1</span>
-          <strong>Search item</strong>
-          <small>Open the item detail instead of browsing forever.</small>
-        </div>
-        <div class="v2-prices-guide-step">
-          <span>2</span>
-          <strong>Save prices</strong>
-          <small>Use OCR or manual observed listings.</small>
-        </div>
-        <div class="v2-prices-guide-step">
-          <span>3</span>
-          <strong>Compare</strong>
-          <small>Sort by Best buy / Delta and check freshness.</small>
-        </div>
-        <div class="v2-prices-guide-step">
-          <span>4</span>
-          <strong>Track flip</strong>
-          <small>Send the best candidate to Flip Items.</small>
-        </div>
-      </div>
-    </section>
-
-    <div class="v2-items-hint">{{ $t('items.usageHint') }}</div>
-
-    <Transition name="v2-guide-modal">
-      <div v-if="guideOpen" class="v2-guide-modal" role="dialog" aria-modal="true" :aria-label="$t('items.guide.dialogAria')" @click.self="guideOpen = false">
-        <div class="v2-guide">
-          <div class="v2-guide__topbar">
-            <div>
-              <div class="v2-guide__eyebrow">{{ $t('items.guide.eyebrow') }}</div>
-              <div class="v2-guide__title">
-                {{ guideMode === 'main'
-                  ? $t('items.guide.main.title')
-                  : $t('items.guide.recipe.title') }}
-              </div>
-            </div>
-            <button class="v2-guide__close" type="button" :aria-label="$t('items.guide.closeAria')" @click="guideOpen = false">×</button>
-          </div>
-
-          <template v-if="guideMode === 'main'">
-            <div class="v2-guide__intro">
-              {{ $t('items.guide.main.intro') }}
-            </div>
-
-            <div class="v2-guide__steps">
-              <div class="v2-guide-step">
-                <div class="v2-guide-step__num">1</div>
-                <div>
-                  <div class="v2-guide-step__title">{{ $t('items.guide.main.steps.filter.title') }}</div>
-                  <div class="v2-guide-step__text">{{ $t('items.guide.main.steps.filter.text') }}</div>
-                </div>
-              </div>
-              <div class="v2-guide-step">
-                <div class="v2-guide-step__num">2</div>
-                <div>
-                  <div class="v2-guide-step__title">{{ $t('items.guide.main.steps.slot.title') }}</div>
-                  <div class="v2-guide-step__text">{{ $t('items.guide.main.steps.slot.text') }}</div>
-                </div>
-              </div>
-              <div class="v2-guide-step">
-                <div class="v2-guide-step__num">3</div>
-                <div>
-                  <div class="v2-guide-step__title">{{ $t('items.guide.main.steps.detail.title') }}</div>
-                  <div class="v2-guide-step__text">{{ $t('items.guide.main.steps.detail.text') }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="v2-guide__grid">
-              <section class="v2-guide-card">
-                <div class="v2-guide-card__title">{{ $t('items.guide.main.cards.overview.title') }}</div>
-                <div class="v2-guide-card__text">{{ $t('items.guide.main.cards.overview.text') }}</div>
-              </section>
-              <section class="v2-guide-card">
-                <div class="v2-guide-card__title">{{ $t('items.guide.main.cards.next.title') }}</div>
-                <div class="v2-guide-card__text">{{ $t('items.guide.main.cards.next.text') }}</div>
-              </section>
-            </div>
-          </template>
-
-          <template v-else>
-            <div class="v2-guide__intro">
-              {{ $t('items.guide.recipe.intro') }}
-            </div>
-
-            <div class="v2-guide__steps">
-              <div class="v2-guide-step">
-                <div class="v2-guide-step__num">1</div>
-                <div>
-                  <div class="v2-guide-step__title">{{ $t('items.guide.recipe.steps.crop.title') }}</div>
-                  <div class="v2-guide-step__text">{{ $t('items.guide.recipe.steps.crop.text') }}</div>
-                </div>
-              </div>
-              <div class="v2-guide-step">
-                <div class="v2-guide-step__num">2</div>
-                <div>
-                  <div class="v2-guide-step__title">{{ $t('items.guide.recipe.steps.framing.title') }}</div>
-                  <div class="v2-guide-step__text">{{ $t('items.guide.recipe.steps.framing.text') }}</div>
-                </div>
-              </div>
-              <div class="v2-guide-step">
-                <div class="v2-guide-step__num">3</div>
-                <div>
-                  <div class="v2-guide-step__title">{{ $t('items.guide.recipe.steps.quality.title') }}</div>
-                  <div class="v2-guide-step__text">{{ $t('items.guide.recipe.steps.quality.text') }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="v2-guide__grid">
-            <section class="v2-guide-card">
-              <div class="v2-guide-card__title">{{ $t('items.guide.recipe.cards.market.title') }}</div>
-              <div class="v2-guide-card__text">{{ $t('items.guide.recipe.cards.market.text') }}</div>
-              <div class="v2-guide-shot">
-                <img
-                  v-if="marketGuideImageVisible"
-                  :src="'/guide/items-market-example.png'"
-                  alt="Example market screenshot for OCR"
-                  class="v2-guide-shot__img"
-                  @error="marketGuideImageVisible = false"
-                />
-                <div v-else class="v2-guide-shot__placeholder">
-                  <strong>{{ $t('items.guide.recipe.placeholderTitle') }}</strong>
-                  <span>`/public/guide/items-market-example.png`</span>
-                </div>
-              </div>
-            </section>
-
-            <section class="v2-guide-card">
-              <div class="v2-guide-card__title">{{ $t('items.guide.recipe.cards.stats.title') }}</div>
-              <div class="v2-guide-card__text">{{ $t('items.guide.recipe.cards.stats.text') }}</div>
-              <div class="v2-guide-shot">
-                <img
-                  v-if="statsGuideImageVisible"
-                  :src="'/guide/items-stats-example.png'"
-                  alt="Example stats screenshot for OCR"
-                  class="v2-guide-shot__img"
-                  @error="statsGuideImageVisible = false"
-                />
-                <div v-else class="v2-guide-shot__placeholder">
-                  <strong>{{ $t('items.guide.recipe.placeholderTitle') }}</strong>
-                  <span>`/public/guide/items-stats-example.png`</span>
-                </div>
-              </div>
-            </section>
-            </div>
-          </template>
-        </div>
-      </div>
-    </Transition>
-
-    <Transition name="v2-guide-modal">
+    <Transition name="fade">
       <div
-        v-if="craftingPickerState.isOpen"
-        class="v2-guide-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Add item to crafting session"
-        @click.self="closeCraftingPicker"
+        v-if="craftingToast.message"
+        class="fixed right-4 bottom-4 z-50 rounded-md border px-3 py-2 text-sm shadow-md"
+        :class="craftingToast.tone === 'error'
+          ? 'border-negative/40 bg-negative/10 text-negative'
+          : 'border-positive/40 bg-positive/10 text-positive'"
+        role="status"
       >
-        <div class="v2-guide v2-crafting-picker">
-          <div class="v2-guide__topbar">
-            <div>
-              <div class="v2-guide__eyebrow">Crafting / FM</div>
-              <div class="v2-guide__title">Add to session</div>
-            </div>
-            <button class="v2-guide__close" type="button" aria-label="Close add to session dialog" @click="closeCraftingPicker">×</button>
-          </div>
-
-          <div v-if="craftingPickerState.item" class="v2-crafting-picker__intro">
-            <div class="v2-crafting-picker__item">
-              <div class="v2-crafting-picker__thumb">
-                <img
-                  v-if="craftingPickerState.item.image_url"
-                  :src="craftingPickerState.item.image_url"
-                  :alt="craftingPickerState.item.name"
-                  class="v2-crafting-picker__thumb-img"
-                  @error="noImg"
-                />
-                <div v-else class="v2-crafting-picker__thumb-ph" />
-              </div>
-              <div>
-                <div class="v2-crafting-picker__name">{{ craftingPickerState.item.name }}</div>
-                <div class="v2-crafting-picker__meta">{{ craftingPickerState.item.count }} uses in current results</div>
-              </div>
-            </div>
-
-            <button
-              class="v2-crafting-picker__new"
-              type="button"
-              :disabled="craftingPickerState.isSaving || !selectedServer || !selectedCharacter"
-              @click="createCraftingSessionFromPicker"
-            >
-              {{ craftingPickerState.isSaving ? 'Saving…' : 'Create new session' }}
-            </button>
-          </div>
-
-          <div v-if="!selectedServer || !selectedCharacter" class="v2-crafting-picker__empty">
-            Select a server and character first. Sessions are saved per character.
-          </div>
-
-          <div v-else-if="craftingSessionsPreview.length" class="v2-crafting-picker__list">
-            <button
-              v-for="session in craftingSessionsPreview"
-              :key="session.id"
-              class="v2-crafting-picker__session"
-              type="button"
-              :disabled="craftingPickerState.isSaving"
-              @click="addItemToExistingCraftingSession(session.id)"
-            >
-              <div class="v2-crafting-picker__session-main">
-                <div class="v2-crafting-picker__session-title">{{ getCraftingSessionTitle(session) }}</div>
-                <div class="v2-crafting-picker__session-meta">
-                  {{ session.date || todayISO() }} · {{ formatWorkflowShortLabel(session.workflow) }} · {{ session.items?.length || 0 }} items
-                </div>
-              </div>
-              <div class="v2-crafting-picker__session-cta">Add</div>
-            </button>
-          </div>
-
-          <div v-else-if="selectedServer && selectedCharacter" class="v2-crafting-picker__empty">
-            No crafting sessions yet. Create one with default settings and the selected item will be added immediately.
-          </div>
-
-          <div v-if="craftingPickerState.error" class="v2-crafting-picker__error">
-            {{ craftingPickerState.error }}
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <Transition name="v2-session-toast">
-      <div v-if="craftingToast.message" class="v2-session-toast" :class="`v2-session-toast--${craftingToast.tone}`">
         {{ craftingToast.message }}
       </div>
     </Transition>
 
-    <!-- Stats strip -->
-    <div class="v2-items-stats" v-if="stats">
-      <div class="v2-stat-card">
-        <div class="v2-stat-card__val">{{ stats.totalEquipments }}</div>
-        <div class="v2-stat-card__label">{{ $t('items.stats.totalEquipment') }}</div>
-      </div>
-      <div class="v2-stat-card">
-        <div class="v2-stat-card__val">{{ stats.uniqueItems }}</div>
-        <div class="v2-stat-card__label">{{ $t('items.stats.uniqueItems') }}</div>
-      </div>
-      <div class="v2-stat-card">
-        <div class="v2-stat-card__val">{{ stats.mostPopularSlot?.slot ?? '—' }}</div>
-        <div class="v2-stat-card__label">{{ $t('items.stats.mostVariedSlot') }}</div>
-      </div>
-      <div class="v2-stat-card">
-        <div class="v2-stat-card__val">{{ stats.avgItemsPerSet.toFixed(1) }}</div>
-        <div class="v2-stat-card__label">{{ $t('items.stats.avgItemsPerSet') }}</div>
-      </div>
-    </div>
-    <div v-if="stats" class="v2-context-strip">
-      <div class="v2-context-strip__title">{{ $t('items.contextTitle') }}</div>
-      <div class="v2-context-strip__subtitle">{{ itemsDataContextSubtitle }}</div>
-    </div>
+    <!-- ── Data slice ───────────────────────────────────────────────────── -->
+    <template v-if="stats">
+      <UiStatRow min="10rem">
+        <UiStat :label="$t('items.stats.totalEquipment')" :value="stats.totalEquipments" />
+        <UiStat :label="$t('items.stats.uniqueItems')" :value="stats.uniqueItems" />
+        <UiStat :label="$t('items.stats.mostVariedSlot')" :value="stats.mostPopularSlot?.slot ?? '—'" />
+        <UiStat :label="$t('items.stats.avgItemsPerSet')" :value="stats.avgItemsPerSet.toFixed(1)" />
+      </UiStatRow>
 
-    <!-- Loading -->
-    <div v-if="loading" class="v2-center-loader">
-      <div class="v2-spin" /> {{ $t('items.loading') }}
+      <div>
+        <p class="text-xs font-medium tracking-wide text-subtle uppercase">{{ $t('items.contextTitle') }}</p>
+        <p class="mt-0.5 text-sm text-muted">{{ itemsDataContextSubtitle }}</p>
+      </div>
+    </template>
+
+    <div v-if="loading" class="flex flex-col gap-2">
+      <UiSkeleton v-for="i in 6" :key="i" height="4rem" />
     </div>
 
     <template v-else-if="stats">
       <!-- Slot tabs -->
-      <div class="v2-slot-tabs">
+      <div class="flex flex-wrap gap-1.5">
         <button
           v-for="slot in SLOT_GROUPS"
           :key="slot.key"
-          class="v2-slot-tab"
-          :class="{ 'v2-slot-tab--on': activeSlot === slot.key }"
+          type="button"
+          :class="[
+            'inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-xs transition-colors',
+            activeSlot === slot.key
+              ? 'border-accent bg-accent-soft text-accent'
+              : 'border-line bg-raised text-muted hover:border-line-strong hover:text-ink',
+          ]"
           @click="activeSlot = slot.key"
         >
-          <span class="v2-slot-tab__icon">{{ slot.icon }}</span>
-          <span class="v2-slot-tab__label">{{ $t(`items.slots.${slot.key}`) }}</span>
-          <span class="v2-slot-tab__count">{{ getSlotStats(slot.key)?.totalItems ?? 0 }}</span>
+          <span aria-hidden="true">{{ slot.icon }}</span>
+          <span>{{ $t(`items.slots.${slot.key}`) }}</span>
+          <span class="tabular text-subtle">{{ getSlotStats(slot.key)?.totalItems ?? 0 }}</span>
         </button>
       </div>
 
       <!-- Slot content -->
-      <div v-if="currentSlotStats" class="v2-slot-content">
-        <div v-if="!selectedRecipeItem && !aggregateRecipeState.isOpen" class="v2-slot-context">
-          <div class="v2-slot-context__title">{{ $t(`items.slots.${activeSlot}`) }}</div>
-          <div class="v2-slot-context__subtitle">{{ activeSlotContextSubtitle }}</div>
+      <div v-if="currentSlotStats">
+        <div v-if="!selectedRecipeItem && !aggregateRecipeState.isOpen" class="mb-3">
+          <h2 class="text-sm font-semibold text-ink">{{ $t(`items.slots.${activeSlot}`) }}</h2>
+          <p class="mt-0.5 text-xs text-subtle">{{ activeSlotContextSubtitle }}</p>
         </div>
         <template v-if="selectedRecipeItem">
           <div class="v2-recipe-shell">
@@ -1350,155 +1041,28 @@
             </template>
           </div>
         </template>
-
-        <template v-else>
-          <!-- Header row -->
-          <div class="v2-slot-head">
-            <span class="v2-slot-head__title">
-              {{ $t('items.mostUsed', { slot: $t(`items.slots.${activeSlot}`) }) }}
-            </span>
-            <div class="v2-slot-head__actions">
-              <button class="v2-bulk-open" @click="openAggregateRecipeView(aggregateRecipeState.limit)">
-                Recipe pressure
-              </button>
-              <div class="v2-view-toggle">
-              <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'grid' }" @click="viewMode = 'grid'" :title="$t('items.viewModes.grid')">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </button>
-              <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'list' }" @click="viewMode = 'list'" :title="$t('items.viewModes.list')">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-              </button>
-              <button class="v2-view-btn" :class="{ 'v2-view-btn--on': viewMode === 'table' }" @click="viewMode = 'table'" :title="$t('items.viewModes.table')">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </button>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="viewMode === 'grid'" class="v2-items-grid">
-            <div
-              v-for="(item, i) in currentSlotStats.topItems.slice(0, 20)"
-              :key="item.name"
-              class="v2-item-card"
-              @click="openRecipeView(item)"
-            >
-              <div class="v2-item-card__rank">#{{ Number(i) + 1 }}</div>
-              <div class="v2-item-card__img-wrap">
-                <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-item-card__img" @error="noImg" />
-                <div v-else class="v2-item-card__img-ph">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01" /></svg>
-                </div>
-              </div>
-              <div class="v2-item-card__name" :title="item.name">{{ item.name }}</div>
-              <div class="v2-item-card__usage">{{ item.count }} · {{ pct(item.count) }}%</div>
-              <div class="v2-item-bar"><div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" /></div>
-              <button
-                class="v2-item-card__action"
-                type="button"
-                :disabled="!selectedServer || !selectedCharacter"
-                @click.stop="openCraftingPicker(item)"
-              >
-                Add to session
-              </button>
-            </div>
-          </div>
-
-          <div v-else-if="viewMode === 'list'" class="v2-items-list">
-            <div
-              v-for="(item, i) in currentSlotStats.topItems.slice(0, 15)"
-              :key="item.name"
-              class="v2-item-row"
-              @click="openRecipeView(item)"
-            >
-              <span class="v2-item-row__rank">#{{ Number(i) + 1 }}</span>
-              <div class="v2-item-row__img-wrap">
-                <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-item-row__img" @error="noImg" />
-                <div v-else class="v2-item-row__img-ph" />
-              </div>
-              <span class="v2-item-row__name">{{ item.name }}</span>
-              <div class="v2-item-row__bar-wrap">
-                <div class="v2-item-bar v2-item-bar--sm">
-                  <div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" />
-                </div>
-              </div>
-              <button
-                class="v2-item-row__action"
-                type="button"
-                :disabled="!selectedServer || !selectedCharacter"
-                @click.stop="openCraftingPicker(item)"
-              >
-                Add
-              </button>
-              <span class="v2-item-row__count">{{ item.count }}</span>
-              <span class="v2-item-row__pct">{{ pct(item.count) }}%</span>
-            </div>
-          </div>
-
-          <div v-else-if="viewMode === 'table'" class="v2-items-table-wrap">
-            <table class="v2-items-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th></th>
-                  <th>{{ $t('items.table.name') }}</th>
-                  <th class="text-right">{{ $t('items.table.count') }}</th>
-                  <th class="text-right">%</th>
-                  <th>{{ $t('items.table.distribution') }}</th>
-                  <th class="text-right">Craft/FM</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, i) in currentSlotStats.topItems.slice(0, 20)" :key="item.name" @click="openRecipeView(item)">
-                  <td class="v2-table-rank">{{ Number(i) + 1 }}</td>
-                  <td>
-                    <div class="v2-table-img-wrap">
-                      <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="v2-table-img" @error="noImg" />
-                      <div v-else class="v2-table-img-ph" />
-                    </div>
-                  </td>
-                  <td class="v2-table-name">{{ item.name }}</td>
-                  <td class="v2-table-num text-right">{{ item.count }}</td>
-                  <td class="v2-table-pct text-right">{{ pct(item.count) }}%</td>
-                  <td>
-                    <div class="v2-item-bar v2-item-bar--sm">
-                      <div class="v2-item-bar__fill" :style="{ width: barW(item.count) }" />
-                    </div>
-                  </td>
-                  <td class="v2-table-action-cell text-right">
-                    <button
-                      class="v2-table-action-btn"
-                      type="button"
-                      :disabled="!selectedServer || !selectedCharacter"
-                      @click.stop="openCraftingPicker(item)"
-                    >
-                      Add
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div v-if="currentSlotStats.topItems.length === 0" class="v2-empty-full">
-            {{ $t('items.noData') }}
-          </div>
-        </template>
+        <ItemsResultsView
+          v-else
+          v-model:view-mode="viewMode"
+          :items="currentSlotStats.topItems"
+          :slot-label="$t(`items.slots.${activeSlot}`)"
+          :can-add-to-session="canUseCraftingSessions"
+          :pct="pct"
+          :bar-width="barW"
+          @open="openRecipeView"
+          @add-to-session="openCraftingPicker"
+          @open-pressure="openAggregateRecipeView(aggregateRecipeState.limit)"
+        />
       </div>
 
-      <div v-else class="v2-empty-full" style="padding:3rem">
-        No data for this slot yet.
-      </div>
+      <UiEmptyState v-else :title="$t('items.noSlotData')">
+        <template #icon><UiIcon name="items" /></template>
+      </UiEmptyState>
     </template>
 
-    <div v-else-if="!loading" class="v2-empty-full" style="padding:4rem">
-      No equipment data found. Try removing some filters.
-    </div>
+    <UiEmptyState v-else-if="!loading" :title="$t('items.noEquipmentData')">
+      <template #icon><UiIcon name="items" /></template>
+    </UiEmptyState>
   </div>
 </template>
 
@@ -1511,45 +1075,6 @@ const { selectedServer, selectedCharacter } = useV2Context()
 const { entries: resaleTrackerEntries, createEntry: createResaleTrackerEntry } = useResaleTracker()
 const route = useRoute()
 const router = useRouter()
-
-const ELEMENTS = [
-  { name: 'eau', icon: '/eau.png', short: 'Eau' },
-  { name: 'feu', icon: '/feu.png', short: 'Feu' },
-  { name: 'terre', icon: '/terre.png', short: 'Ter' },
-  { name: 'air', icon: '/air.png', short: 'Air' },
-  { name: 'multi', icon: '/multi.png', short: 'Mul' },
-  { name: 'tank', icon: '/tank.png', short: 'Tnk' },
-  { name: 'doPou', icon: '/doPou.png', short: 'DP' },
-  { name: 'pp', icon: '/pp.png', short: 'PP' },
-]
-
-const MODES = ['pvm', 'pvp']
-
-const LEVELS = ['20', '40', '60', '80', '110', '130', '160', '180', '199', '200']
-
-const BUDGETS = ['low', 'mid', 'high']
-
-const CLASSES = [
-  { name: 'iop', icon: '/Iop.png', short: 'Iop' },
-  { name: 'cra', icon: '/Cra.png', short: 'Cra' },
-  { name: 'sacrieur', icon: '/Sacrieur.png', short: 'Sac' },
-  { name: 'eniripsa', icon: '/Eniripsa.png', short: 'Eni' },
-  { name: 'sram', icon: '/Sram.png', short: 'Sra' },
-  { name: 'ouginak', icon: '/Ouginak.png', short: 'Oug' },
-  { name: 'forgelance', icon: '/Forgelance.png', short: 'For' },
-  { name: 'osamodas', icon: '/Osamodas.png', short: 'Osa' },
-  { name: 'enutrof', icon: '/Enutrof.png', short: 'Enu' },
-  { name: 'ecaflip', icon: '/Ecaflip.png', short: 'Eca' },
-  { name: 'steamer', icon: '/Steamer.png', short: 'Ste' },
-  { name: 'feca', icon: '/Feca.png', short: 'Fec' },
-  { name: 'huppermage', icon: '/Huppermage.png', short: 'Hup' },
-  { name: 'zobal', icon: '/Zobal.png', short: 'Zob' },
-  { name: 'pandawa', icon: '/Pandawa.png', short: 'Pan' },
-  { name: 'eliotrope', icon: '/Eliotrope.png', short: 'Eli' },
-  { name: 'sadida', icon: '/Sadida.png', short: 'Sad' },
-  { name: 'roublard', icon: '/Roublard.png', short: 'Rou' },
-  { name: 'xelor', icon: '/Xelor.png', short: 'Xel' },
-]
 
 const SLOT_GROUPS = [
   { key: 'ar', icon: '⚔️' },
@@ -1585,16 +1110,12 @@ const SLOT_KEY_TO_GROUP = Object.fromEntries(
 
 const filters = reactive({ element: '', mode: '', classe: '', level: '', budget: '' })
 const filtersCollapsed = ref(false)
-const elementIconErrors = reactive(new Set<string>())
-const classIconErrors = reactive(new Set<string>())
-const toggleFilters = () => {
-  filtersCollapsed.value = !filtersCollapsed.value
-  localStorage.setItem('items-filters-collapsed', String(filtersCollapsed.value))
-}
+// ItemsFilterBar owns the toggle; persistence stays here so the preference
+// survives a reload the same way it did before the split.
+watch(filtersCollapsed, value => localStorage.setItem('items-filters-collapsed', String(value)))
+
 const guideOpen = ref(false)
 const guideMode = ref<'main' | 'recipe'>('main')
-const marketGuideImageVisible = ref(true)
-const statsGuideImageVisible = ref(true)
 const loading = ref(false)
 const activeSlot = ref('ar')
 const viewMode = ref<'grid' | 'list' | 'table'>('grid')
@@ -2234,10 +1755,23 @@ const showCraftingToast = (message: string, tone: 'success' | 'error' = 'success
 
 const getCraftingSessionTitle = (session: CraftFmSession) => {
   const first = session.items?.[0]
-  if (!first) return 'Empty session'
-  if ((session.items?.length || 0) === 1) return first.item?.name?.fr ?? first.item?.name?.en ?? String(first.itemId)
-  return `${first.item?.name?.fr ?? first.item?.name?.en ?? first.itemId} + ${(session.items?.length || 0) - 1} more`
+  if (!first) return t('items.craftingPicker.emptySession')
+  const name = first.item?.name?.fr ?? first.item?.name?.en ?? String(first.itemId)
+  const count = session.items?.length || 0
+  if (count === 1) return name
+  return t('items.craftingPicker.plusMore', { name, count: count - 1 })
 }
+
+/** Sessions are saved per character, so both picker actions need a context. */
+const canUseCraftingSessions = computed(() => Boolean(selectedServer.value && selectedCharacter.value))
+
+const getCraftingSessionMeta = (session: CraftFmSession) => [
+  session.date || todayISO(),
+  formatWorkflowShortLabel(session.workflow),
+  t('v2.crafting.index.itemsCount', { count: session.items?.length || 0 }),
+].join(' · ')
+
+const workflowSteps = ['search', 'save', 'compare', 'track'] as const
 
 const formatWorkflowShortLabel = (value: WorkflowMode | string | undefined) =>
   value === 'craft'
@@ -6597,6 +6131,3 @@ watch(
   font-size: .6875rem; color: var(--v2-text-secondary); font-weight: 600;
 }
 </style>
-
-
-

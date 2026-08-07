@@ -1858,6 +1858,36 @@
         },
         "placeholderTitle": "Image d'exemple à ajouter"
       }
+    },
+    "craftFm": "Craft / FM",
+    "addToSession": "Ajouter à la session",
+    "recipePressure": "Pression des recettes",
+    "noSlotData": "Aucune donnée pour cet emplacement.",
+    "noEquipmentData": "Aucun équipement trouvé. Essaie de retirer des filtres.",
+    "craftingPicker": {
+      "eyebrow": "Craft / FM",
+      "title": "Ajouter à une session",
+      "usesInResults": "{count} utilisations dans les résultats actuels",
+      "createSession": "Créer une nouvelle session",
+      "noContext": "Choisis d’abord un serveur et un personnage. Les sessions sont enregistrées par personnage.",
+      "noSessions": "Aucune session de craft pour l’instant. Crées-en une avec les réglages par défaut et l’objet sélectionné y sera ajouté immédiatement.",
+      "emptySession": "Session vide",
+      "plusMore": "{name} + {count} autres"
+    },
+    "pricesWorkflow": {
+      "eyebrow": "Flux des prix",
+      "title": "Repère les annonces bon marché avant de les envoyer vers Flip Items",
+      "intro": "Utilise cette page comme ton carnet HDV : cherche un objet, ouvre-le, enregistre les prix observés, puis laisse l’app les comparer et marquer les bonnes affaires.",
+      "steps": {
+        "search": "Chercher un objet",
+        "searchHint": "Ouvre la fiche de l’objet plutôt que de parcourir sans fin.",
+        "save": "Enregistrer les prix",
+        "saveHint": "Via OCR ou saisie manuelle des annonces observées.",
+        "compare": "Comparer",
+        "compareHint": "Trie par Meilleur achat / Écart et vérifie la fraîcheur.",
+        "track": "Suivre le flip",
+        "trackHint": "Envoie le meilleur candidat vers Flip Items."
+      }
     }
   },
   "familiers": {

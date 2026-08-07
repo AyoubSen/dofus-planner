@@ -1858,6 +1858,36 @@
         },
         "placeholderTitle": "Placeholder image"
       }
+    },
+    "craftFm": "Craft / FM",
+    "addToSession": "Add to session",
+    "recipePressure": "Recipe pressure",
+    "noSlotData": "No data for this slot yet.",
+    "noEquipmentData": "No equipment data found. Try removing some filters.",
+    "craftingPicker": {
+      "eyebrow": "Craft / FM",
+      "title": "Add to session",
+      "usesInResults": "{count} uses in current results",
+      "createSession": "Create new session",
+      "noContext": "Select a server and character first. Sessions are saved per character.",
+      "noSessions": "No crafting sessions yet. Create one with default settings and the selected item will be added immediately.",
+      "emptySession": "Empty session",
+      "plusMore": "{name} + {count} more"
+    },
+    "pricesWorkflow": {
+      "eyebrow": "Prices workflow",
+      "title": "Find cheap listings before sending them to Flip Items",
+      "intro": "Use this page like your HDV notebook: search an item, open it, save observed listing prices, then let the app compare them and mark best buys.",
+      "steps": {
+        "search": "Search item",
+        "searchHint": "Open the item detail instead of browsing forever.",
+        "save": "Save prices",
+        "saveHint": "Use OCR or manual observed listings.",
+        "compare": "Compare",
+        "compareHint": "Sort by Best buy / Delta and check freshness.",
+        "track": "Track flip",
+        "trackHint": "Send the best candidate to Flip Items."
+      }
     }
   },
   "familiers": {
