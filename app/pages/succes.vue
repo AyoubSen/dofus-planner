@@ -180,7 +180,6 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'v2' })
 
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 const { fetchAchievementsPage, fetchAchievementCategories } = useAchievementsApi()

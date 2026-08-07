@@ -113,6 +113,38 @@
       </div>
     </div>
 
+    <section class="v2-prices-guide v2-card">
+      <div class="v2-prices-guide__main">
+        <div class="v2-prices-guide__eyebrow">Prices workflow</div>
+        <h2>Find cheap listings before sending them to Flip Items</h2>
+        <p>
+          Use this page like your HDV notebook: search an item, open it, save observed listing prices, then let the app compare them and mark best buys.
+        </p>
+      </div>
+      <div class="v2-prices-guide__steps">
+        <div class="v2-prices-guide-step">
+          <span>1</span>
+          <strong>Search item</strong>
+          <small>Open the item detail instead of browsing forever.</small>
+        </div>
+        <div class="v2-prices-guide-step">
+          <span>2</span>
+          <strong>Save prices</strong>
+          <small>Use OCR or manual observed listings.</small>
+        </div>
+        <div class="v2-prices-guide-step">
+          <span>3</span>
+          <strong>Compare</strong>
+          <small>Sort by Best buy / Delta and check freshness.</small>
+        </div>
+        <div class="v2-prices-guide-step">
+          <span>4</span>
+          <strong>Track flip</strong>
+          <small>Send the best candidate to Flip Items.</small>
+        </div>
+      </div>
+    </section>
+
     <div class="v2-items-hint">{{ $t('items.usageHint') }}</div>
 
     <Transition name="v2-guide-modal">
@@ -491,118 +523,46 @@
               </div>
             </div>
 
+            <section class="v2-price-flow-panel">
+              <div class="v2-price-flow-panel__head">
+                <div>
+                  <div class="v2-price-flow-panel__eyebrow">Flip discovery</div>
+                  <h3>Use observed prices to decide if this item is cheap</h3>
+                </div>
+                <span>{{ selectedItemObservations.length }} saved price{{ selectedItemObservations.length === 1 ? '' : 's' }}</span>
+              </div>
+              <div class="v2-price-flow-panel__steps">
+                <button type="button" class="v2-price-flow-step" @click="openOcrPicker">
+                  <strong>1. Scan HDV prices</strong>
+                  <small>OCR reads the current listings from a screenshot.</small>
+                </button>
+                <button type="button" class="v2-price-flow-step" @click="pasteMarketScreenshot">
+                  <strong>2. Paste screenshot</strong>
+                  <small>Fast path if your market screenshot is in clipboard.</small>
+                </button>
+                <button type="button" class="v2-price-flow-step" @click="focusObservedBestBuys">
+                  <strong>3. Compare best buys</strong>
+                  <small>Sort saved listings by underpriced / best buy.</small>
+                </button>
+                <NuxtLink to="/resale" class="v2-price-flow-step">
+                  <strong>4. Manage flips</strong>
+                  <small>Tracked listings continue in Flip Items.</small>
+                </NuxtLink>
+              </div>
+              <p class="v2-price-flow-panel__hint">
+                Beginner rule: target sell price should come from comparable observed listings, not a dream price. Save several prices, then track only the clearly underpriced one.
+              </p>
+            </section>
+
             <div v-if="recipeLookupState.isLoading" class="v2-center-loader">
-              <div class="v2-spin" /> {{ $t('items.detail.recipe.loading') }}
+              <div class="v2-spin" /> Preparing price comparison...
             </div>
 
             <div v-else-if="recipeLookupState.error" class="v2-recipe-error">
-              {{ recipeLookupState.error }}
+              Could not load item comparison data. You can still save observed prices manually.
             </div>
 
-            <template v-else-if="recipeLookupState.data">
-              <div class="v2-section-head">{{ $t('items.detail.recipe.sectionTitle') }}</div>
-              <div class="v2-recipe-stats">
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.recipe.profession') }}</div>
-                  <div class="v2-rstat__val">{{ recipeLookupState.data.job?.name?.fr || recipeLookupState.data.job?.name?.en || $t('items.detail.common.unknown') }}</div>
-                </div>
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.recipe.ingredients') }}</div>
-                  <div class="v2-rstat__val">{{ recipeIngredients.length }}</div>
-                </div>
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.recipe.id') }}</div>
-                  <div class="v2-rstat__val">{{ recipeLookupState.data.id }}</div>
-                </div>
-              </div>
-
-              <div class="v2-section-head">{{ $t('items.detail.cost.sectionTitle') }}</div>
-              <div class="v2-recipe-cost">
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.cost.total') }}</div>
-                  <div class="v2-rstat__val">{{ formatKamasFull(recipeCostSummary.totalCost) }}</div>
-                </div>
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.cost.pricedIngredients') }}</div>
-                  <div class="v2-rstat__val">{{ recipeCostSummary.pricedCount }} / {{ recipeCostSummary.totalIngredients }}</div>
-                </div>
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.cost.missingPrices') }}</div>
-                  <div class="v2-rstat__val">{{ recipeCostSummary.missingCount }}</div>
-                </div>
-              </div>
-
-              <div class="v2-section-head">{{ $t('items.detail.pricing.sectionTitle') }}</div>
-              <div class="v2-recipe-sell">
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.pricing.sellPrice') }}</div>
-                  <input
-                    v-model.number="selectedRecipeSellPrice"
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="0"
-                    class="v2-recipe-price-entry__input v2-recipe-price-entry__input--wide"
-                  />
-                </div>
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.pricing.margin') }}</div>
-                  <div
-                    class="v2-rstat__val"
-                    :class="{
-                      'v2-profit--up': recipeProfitSummary.margin > 0,
-                      'v2-profit--down': recipeProfitSummary.margin < 0,
-                    }"
-                  >
-                    {{ recipeProfitSummary.margin >= 0 ? '+' : '' }}{{ formatKamasFull(recipeProfitSummary.margin) }}
-                  </div>
-                </div>
-                <div class="v2-rstat">
-                  <div class="v2-rstat__label">{{ $t('items.detail.pricing.marginRate') }}</div>
-                  <div
-                    class="v2-rstat__val"
-                    :class="{
-                      'v2-profit--up': recipeProfitSummary.marginRate > 0,
-                      'v2-profit--down': recipeProfitSummary.marginRate < 0,
-                    }"
-                  >
-                    {{ recipeProfitSummary.marginRate >= 0 ? '+' : '' }}{{ recipeProfitSummary.marginRate.toFixed(1) }}%
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="currentItemPriorityOptions.length" class="v2-priority-panel">
-                <div class="v2-price-manager__head v2-collapsible-head" @click="showValuationFocus = !showValuationFocus">
-                  <span class="v2-rstat__label">{{ $t('items.detail.valuation.focusTitle') }}</span>
-                  <div class="v2-collapsible-right">
-                    <span class="v2-recipe-cache-hint">{{ $t('items.detail.valuation.focusHint') }}</span>
-                    <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showValuationFocus }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-                <div v-show="showValuationFocus" class="v2-priority-list">
-                  <div
-                    v-for="option in currentItemPriorityOptions"
-                    :key="`priority-${option.key}`"
-                    class="v2-priority-row"
-                  >
-                    <div class="v2-priority-row__label">
-                      {{ option.label }}
-                      <span v-if="option.rangeText" class="v2-priority-row__range">{{ option.rangeText }}</span>
-                    </div>
-                    <div class="v2-priority-row__controls">
-                      <button
-                        v-for="preset in statPriorityPresets"
-                        :key="`${option.key}-${preset.key}`"
-                        class="v2-fchip"
-                        :class="{ 'v2-fchip--on': getItemStatMultiplier(option.key) === preset.multiplier }"
-                        @click="setItemStatMultiplier(option.key, preset.multiplier)"
-                      >
-                        {{ preset.label }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <template v-else>
 
               <div v-if="selectedObservationDetail" class="v2-observation-detail">
                 <div class="v2-recipe-top">
@@ -994,6 +954,32 @@
                     </button>
                   </div>
                 </div>
+                <div class="v2-observed-next-step">
+                  <div>
+                    <div class="v2-observed-next-step__eyebrow">Beginner next step</div>
+                    <strong v-if="bestBuyObservation">
+                      Best candidate: buy around {{ formatKamasFull(bestBuyObservation.price) }}, relist near {{ formatKamasFull(bestBuyObservation.fairRelist) }}.
+                    </strong>
+                    <strong v-else-if="allObservedValuations.length >= 2">
+                      No clear cheap listing yet. Keep scanning or wait for a lower price.
+                    </strong>
+                    <strong v-else>
+                      Save at least 2 listings with stats before trusting a flip signal.
+                    </strong>
+                    <span>
+                      Sort by <b>Best buy</b>, enable <b>Buy candidates only</b>, then only track listings marked underpriced.
+                    </span>
+                  </div>
+                  <button
+                    v-if="bestBuyObservation"
+                    class="v2-observed-next-step__cta"
+                    type="button"
+                    :disabled="resaleTrackedObservationIds.has(bestBuyObservation.id) || !selectedServer || !selectedCharacter"
+                    @click="sendObservationToResaleTracker(bestBuyObservation)"
+                  >
+                    {{ resaleTrackedObservationIds.has(bestBuyObservation.id) ? $t('items.detail.observed.actions.tracked') : 'Track best flip' }}
+                  </button>
+                </div>
                 <div v-show="showObservedPrices" class="v2-observed-prices__list">
                   <div
                     v-for="observation in selectedItemObservations"
@@ -1059,7 +1045,7 @@
                         {{ observation.statsScreenshotDataUrl ? $t('items.detail.observed.actions.replaceStatsScreenshot') : $t('items.detail.observed.actions.addStatsScreenshot') }}
                       </button>
                       <button
-                        class="v2-recipe-refresh"
+                        class="v2-recipe-refresh v2-track-flip-btn"
                         :disabled="resaleTrackedObservationIds.has(observation.id) || !selectedServer || !selectedCharacter"
                         @click="sendObservationToResaleTracker(observation)"
                       >
@@ -1084,7 +1070,16 @@
                   class="hidden"
                   @change="handleStatsScreenshotChange"
                 />
-                <div v-if="allObservedValuations.length >= 2 && showObservedPrices" class="v2-valuation-panel">
+                <div v-if="allObservedValuations.length >= 2 && showObservedPrices" class="v2-advanced-valuation-toggle">
+                  <div>
+                    <strong>Want the full valuation table?</strong>
+                    <span>The simple recommendation above is enough for most flip decisions.</span>
+                  </div>
+                  <button class="v2-recipe-refresh" type="button" @click="showAdvancedValuationTable = !showAdvancedValuationTable">
+                    {{ showAdvancedValuationTable ? 'Hide valuation table' : 'Show valuation table' }}
+                  </button>
+                </div>
+                <div v-if="allObservedValuations.length >= 2 && showObservedPrices && showAdvancedValuationTable" class="v2-valuation-panel">
                   <div class="v2-price-manager__head">
                     <span class="v2-rstat__label">{{ $t('items.detail.valuation.listingTitle') }}</span>
                     <div class="v2-observation-summary-actions">
@@ -1172,97 +1167,6 @@
                 </div>
               </div>
 
-              <div class="v2-recipe-toolbar">
-                <button class="v2-recipe-refresh" @click="showPriceManager = !showPriceManager">
-                  {{ showPriceManager ? $t('items.detail.priceManager.hide') : $t('items.detail.priceManager.show') }}
-                </button>
-                <span class="v2-recipe-cache-hint">
-                  {{ $t('items.detail.priceManager.missingFirst') }}
-                </span>
-              </div>
-
-              <div v-if="showPriceManager" class="v2-price-manager">
-                <div class="v2-price-manager__head">
-                  <span class="v2-rstat__label">{{ $t('items.detail.priceManager.title') }}</span>
-                </div>
-                <div class="v2-price-manager__list">
-                  <div v-for="ingredient in recipeIngredients" :key="`manager-${ingredient.id}`" class="v2-price-manager__row">
-                    <span class="v2-price-manager__name">{{ ingredient.name }}</span>
-                    <input
-                      :value="ingredient.unitPrice || ''"
-                      type="number"
-                      min="0"
-                      step="1"
-                      placeholder="0"
-                      class="v2-recipe-price-entry__input"
-                      @input="upsertResourcePrice(ingredient, ($event.target as HTMLInputElement).value)"
-                    />
-                    <span class="v2-price-manager__freshness">
-                      {{ ingredient.priceUpdatedLabel || $t('items.detail.priceManager.noSavedPrice') }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="v2-recipe-list">
-                <div class="v2-recipe-list__head v2-collapsible-head" @click="showIngredients = !showIngredients">
-                  {{ $t('items.detail.ingredients.title') }}
-                  <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showIngredients }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                </div>
-                <div v-show="showIngredients">
-                <div v-if="recipeIngredients.length" class="v2-recipe-lines">
-                  <div v-for="ingredient in recipeIngredients" :key="ingredient.id" class="v2-recipe-line">
-                    <div class="v2-recipe-line__img-wrap">
-                      <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" class="v2-recipe-line__img" @error="noImg" />
-                      <div v-else class="v2-recipe-line__img-ph" />
-                    </div>
-                    <div class="v2-recipe-line__body">
-                      <div class="v2-recipe-line__name">{{ ingredient.name }}</div>
-                      <div class="v2-recipe-line__meta">
-                        <span v-if="ingredient.typeName">{{ ingredient.typeName }}</span>
-                        <span v-if="ingredient.level !== null"> · {{ $t('items.detail.ingredients.level', { level: ingredient.level }) }}</span>
-                      </div>
-                      <div class="v2-resource-badges v2-resource-badges--compact">
-                        <span v-if="ingredient.dropMonsterCount > 0" class="v2-resource-badge v2-resource-badge--drop">
-                          {{ $t('items.detail.ingredients.badges.monsterDrop') }}
-                        </span>
-                        <span v-if="ingredient.hasRecipe" class="v2-resource-badge v2-resource-badge--crafted">
-                          {{ $t('items.detail.ingredients.badges.crafted') }}
-                        </span>
-                        <span v-if="ingredient.isSpecial" class="v2-resource-badge v2-resource-badge--special">
-                          {{ $t('items.detail.ingredients.badges.special') }}
-                        </span>
-                      </div>
-                      <div class="v2-recipe-price-entry">
-                        <label class="v2-recipe-price-entry__label">{{ $t('items.detail.ingredients.unitPrice') }}</label>
-                        <input
-                          :value="ingredient.unitPrice || ''"
-                          type="number"
-                          min="0"
-                          step="1"
-                          placeholder="0"
-                          class="v2-recipe-price-entry__input"
-                          @input="upsertResourcePrice(ingredient, ($event.target as HTMLInputElement).value)"
-                        />
-                        <span class="v2-recipe-price-entry__total">
-                          {{ $t('items.detail.ingredients.total') }} {{ formatKamasFull(ingredient.unitPrice * ingredient.quantity) }}
-                        </span>
-                        <span class="v2-recipe-price-entry__freshness">
-                          {{ ingredient.priceUpdatedLabel || $t('items.detail.priceManager.noSavedPrice') }}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="v2-recipe-line__qty">
-                      <span class="v2-recipe-line__qty-label">{{ $t('items.detail.ingredients.qty') }}</span>
-                      <strong>{{ ingredient.quantity }}</strong>
-                    </div>
-                  </div>
-                </div>
-                <div v-else class="v2-empty-full">
-                  {{ $t('items.detail.ingredients.empty') }}
-                </div>
-                </div>
-              </div>
             </template>
           </div>
         </template>
@@ -1599,8 +1503,7 @@
 </template>
 
 <script setup lang="ts">
-import { useResaleTracker } from '../../composables/useResaleTracker'
-definePageMeta({ layout: 'v2' })
+import { useResaleTracker } from '~/composables/useResaleTracker'
 
 const { t } = useI18n()
 const { appendActivity } = useAppDataStore()
@@ -1855,9 +1758,11 @@ const resourcePrices = ref<Record<string, StoredResourcePriceEntry>>({})
 const observedPrices = ref<Record<string, StoredObservedPriceEntry[]>>({})
 const selectedObservationId = ref('')
 const showPriceManager = ref(false)
-const showValuationFocus = ref(true)
+const showAdvancedCraftDetails = ref(false)
+const showAdvancedValuationTable = ref(false)
+const showValuationFocus = ref(false)
 const showObservedPrices = ref(true)
-const showIngredients = ref(true)
+const showIngredients = ref(false)
 const ocrState = ref<{
   isLoading: boolean
   error: string
@@ -3082,6 +2987,14 @@ const bestBuyObservationId = computed(() => {
   const undervalued = allObservedValuations.value.filter((row) => row.delta < 0)
   if (!undervalued.length) return ''
   return undervalued.slice().sort((a, b) => a.delta - b.delta)[0]?.id || ''
+})
+
+const bestBuyObservation = computed(() => {
+  const id = bestBuyObservationId.value
+  if (!id) return null
+  const valuation = allObservedValuationMap.value[id]
+  const observation = baseSelectedItemObservations.value.find((entry) => entry.id === id)
+  return valuation && observation ? { ...observation, ...valuation } : null
 })
 
 const selectedItemObservations = computed(() => {
@@ -4415,6 +4328,12 @@ const saveOcrSnapshotPrices = async () => {
   await scrollSectionIntoView(observedPricesSectionRef)
 }
 
+const focusObservedBestBuys = async () => {
+  observedSortMode.value = 'best_buy'
+  showObservedPrices.value = true
+  await scrollSectionIntoView(observedPricesSectionRef)
+}
+
 const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) => {
   if (!selectedServer.value?.id || !selectedCharacter.value?.id) {
     resaleTrackerFeedback.value = {
@@ -4435,6 +4354,8 @@ const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) =
   const valuation = allObservedValuationMap.value[observation.id]
   const item = selectedRecipeItem.value
   const itemKey = selectedObservationKey.value || observation.itemKey
+  const targetRelistPrice = valuation?.fairRelist ?? valuation?.quickRelist ?? observation.price
+  const estimatedProfit = Math.max(0, targetRelistPrice - observation.price)
 
   createResaleTrackerEntry({
     itemKey,
@@ -4450,19 +4371,21 @@ const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) =
     soldAt: null,
     cancelledAt: null,
     buyPrice: observation.price,
-    listPrice: valuation?.fairRelist ?? valuation?.quickRelist ?? observation.price,
-    targetPrice: valuation?.fairRelist ?? valuation?.fairValue ?? observation.price,
+    listPrice: targetRelistPrice,
+    targetPrice: valuation?.fairValue ?? targetRelistPrice,
     soldPrice: 0,
     estimatedFairValue: valuation?.fairValue ?? observation.price,
     estimatedQuickRelist: valuation?.quickRelist ?? observation.price,
     estimatedGreedyRelist: valuation?.greedyRelist ?? observation.price,
     estimatedScore: valuation?.score ?? computeObservationScore(observation),
-    estimatedDelta: valuation?.delta ?? 0,
+    estimatedDelta: estimatedProfit,
     observedListingId: observation.id,
     marketScreenshotDataUrl: observation.marketScreenshotDataUrl || '',
     statsScreenshotDataUrl: observation.statsScreenshotDataUrl || '',
     statsEntries: observation.statsEntries.map((entry) => ({ ...entry })),
-    notes: '',
+    notes: valuation
+      ? `Tracked from Prices. Observed at ${formatKamasFull(observation.price)}. Suggested relist ${formatKamasFull(targetRelistPrice)}. Estimated gross profit ${formatKamasFull(estimatedProfit)}.`
+      : '',
   })
 
   resaleTrackerFeedback.value = {
@@ -5548,6 +5471,63 @@ watch(
   padding-top: .375rem;
   border-top: 1px solid var(--v2-border-subtle);
 }
+.v2-observed-next-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .875rem 1rem;
+  margin: .75rem 0;
+  border: 1px solid rgba(245, 158, 11, .32);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, .13), rgba(0, 0, 0, .16));
+}
+.v2-observed-next-step > div {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  min-width: 0;
+}
+.v2-observed-next-step__eyebrow {
+  color: var(--v2-accent);
+  font-size: .625rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.v2-observed-next-step strong {
+  color: var(--v2-text);
+  font-size: .9rem;
+  font-weight: 850;
+}
+.v2-observed-next-step span {
+  color: var(--v2-text-secondary);
+  font-size: .78rem;
+  line-height: 1.4;
+}
+.v2-observed-next-step__cta,
+.v2-track-flip-btn {
+  border-color: rgba(245, 158, 11, .42) !important;
+  background: rgba(245, 158, 11, .16) !important;
+  color: var(--v2-text) !important;
+  font-weight: 850 !important;
+}
+.v2-observed-next-step__cta {
+  flex-shrink: 0;
+  border: 1px solid rgba(245, 158, 11, .42);
+  border-radius: 10px;
+  padding: .55rem .8rem;
+  cursor: pointer;
+}
+.v2-observed-next-step__cta:hover,
+.v2-track-flip-btn:hover {
+  border-color: rgba(245, 158, 11, .68) !important;
+  background: rgba(245, 158, 11, .24) !important;
+}
+.v2-observed-next-step__cta:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 .v2-valuation-panel {
   display: flex;
   flex-direction: column;
@@ -5800,6 +5780,13 @@ watch(
   color: var(--v2-text);
 }
 @media (max-width: 800px) {
+  .v2-observed-next-step {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .v2-observed-next-step__cta {
+    width: 100%;
+  }
   .v2-observed-prices__row {
     gap: .375rem;
   }
@@ -5881,6 +5868,212 @@ watch(
   border-radius: 8px; padding: .45rem .7rem; font-size: .75rem; font-weight: 700; cursor: pointer;
 }
 .v2-bulk-open:hover { border-color: var(--v2-border-strong); background: var(--v2-hover-subtle); }
+
+.v2-prices-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
+  gap: 1rem;
+  padding: 1.125rem;
+  margin-bottom: 1rem;
+  border-color: var(--v2-border-med);
+  background: linear-gradient(135deg, var(--v2-hover-subtle), rgba(0,0,0,.14));
+}
+.v2-prices-guide__eyebrow {
+  font-size: .625rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--v2-accent);
+}
+.v2-prices-guide__main h2 {
+  margin-top: .25rem;
+  color: var(--v2-text);
+  font-size: 1.2rem;
+  font-weight: 850;
+  letter-spacing: -.02em;
+}
+.v2-prices-guide__main p {
+  margin-top: .45rem;
+  color: var(--v2-text-secondary);
+  font-size: .875rem;
+  line-height: 1.55;
+}
+.v2-prices-guide__steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .5rem;
+}
+.v2-prices-guide-step {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: .625rem;
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 11px;
+  background: rgba(0,0,0,.12);
+}
+.v2-prices-guide-step span {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: var(--v2-accent);
+  color: var(--v2-bg);
+  font-size: .75rem;
+  font-weight: 900;
+}
+.v2-prices-guide-step strong {
+  color: var(--v2-text);
+  font-size: .8125rem;
+  font-weight: 850;
+}
+.v2-prices-guide-step small {
+  color: var(--v2-text-secondary);
+  font-size: .7rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 1040px) {
+  .v2-prices-guide { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .v2-prices-guide__steps { grid-template-columns: 1fr; }
+}
+
+.v2-price-flow-panel {
+  border: 1px solid var(--v2-border-med);
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--v2-hover-subtle), rgba(0,0,0,.14));
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .875rem;
+}
+.v2-price-flow-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.v2-price-flow-panel__eyebrow {
+  font-size: .625rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--v2-accent);
+}
+.v2-price-flow-panel__head h3 {
+  margin-top: .2rem;
+  color: var(--v2-text);
+  font-size: 1rem;
+  font-weight: 850;
+}
+.v2-price-flow-panel__head span {
+  flex-shrink: 0;
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 999px;
+  padding: .25rem .55rem;
+  color: var(--v2-text-secondary);
+  background: var(--v2-hover-subtle);
+  font-size: .72rem;
+  font-weight: 800;
+}
+.v2-price-flow-panel__steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .625rem;
+}
+.v2-price-flow-step {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  min-height: 84px;
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 11px;
+  background: rgba(0,0,0,.12);
+  padding: .75rem;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color .18s, background .18s, transform .18s;
+}
+.v2-price-flow-step:hover {
+  border-color: var(--v2-border-focus);
+  background: var(--v2-hover);
+  transform: translateY(-1px);
+}
+.v2-price-flow-step strong {
+  color: var(--v2-text);
+  font-size: .82rem;
+  font-weight: 850;
+}
+.v2-price-flow-step small {
+  color: var(--v2-text-secondary);
+  font-size: .72rem;
+  line-height: 1.35;
+}
+.v2-price-flow-panel__hint {
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  line-height: 1.45;
+}
+.v2-simple-detail-toggle,
+.v2-advanced-valuation-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .875rem;
+  padding: .8rem .95rem;
+  border: 1px solid var(--v2-border-subtle);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, .12);
+}
+.v2-simple-detail-toggle > div,
+.v2-advanced-valuation-toggle > div {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  min-width: 0;
+}
+.v2-simple-detail-toggle strong,
+.v2-advanced-valuation-toggle strong {
+  color: var(--v2-text);
+  font-size: .84rem;
+  font-weight: 850;
+}
+.v2-simple-detail-toggle span,
+.v2-advanced-valuation-toggle span {
+  color: var(--v2-text-secondary);
+  font-size: .76rem;
+  line-height: 1.4;
+}
+.v2-advanced-detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: .875rem;
+  padding: .875rem;
+  border: 1px dashed var(--v2-border-subtle);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .015);
+}
+
+@media (max-width: 900px) {
+  .v2-price-flow-panel__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .v2-price-flow-panel__steps { grid-template-columns: 1fr; }
+  .v2-price-flow-panel__head { flex-direction: column; }
+  .v2-simple-detail-toggle,
+  .v2-advanced-valuation-toggle {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
 
 .v2-view-toggle { display: flex; gap: 2px; background: rgba(0,0,0,.2); border-radius: 8px; padding: 2px; }
 .v2-view-btn {

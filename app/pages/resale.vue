@@ -12,6 +12,95 @@
     </div>
 
     <template v-else>
+      <section class="rt-guide v2-card">
+        <div class="rt-guide__main">
+          <div class="rt-guide__eyebrow">Beginner flipping flow</div>
+          <h2 class="rt-guide__title">{{ resaleNextAction.title }}</h2>
+          <p class="rt-guide__desc">{{ resaleNextAction.desc }}</p>
+          <div class="rt-guide__actions">
+            <button
+              v-if="resaleNextAction.filter"
+              type="button"
+              class="rt-guide__btn"
+              @click="statusFilter = resaleNextAction.filter"
+            >
+              {{ resaleNextAction.cta }}
+            </button>
+            <NuxtLink v-else :to="localePath(resaleNextAction.path)" class="rt-guide__btn">
+              {{ resaleNextAction.cta }}
+            </NuxtLink>
+            <span class="rt-guide__hint">{{ resaleNextAction.hint }}</span>
+          </div>
+        </div>
+        <div class="rt-guide__steps" aria-label="Resale workflow">
+          <div
+            v-for="step in beginnerSteps"
+            :key="step.key"
+            class="rt-guide-step"
+            :class="{ 'rt-guide-step--active': step.active }"
+          >
+            <span>{{ step.number }}</span>
+            <div>
+              <strong>{{ step.title }}</strong>
+              <small>{{ step.desc }}</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="rt-create v2-card">
+        <button type="button" class="rt-create__head" @click="showCreateForm = !showCreateForm">
+          <div>
+            <div class="rt-create__eyebrow">Add a beginner flip</div>
+            <h2>Watch one item before buying</h2>
+          </div>
+          <svg class="v2-collapse-chevron" :class="{ 'v2-collapse-chevron--open': showCreateForm }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+        </button>
+
+        <div v-show="showCreateForm" class="rt-create__body">
+          <div class="rt-create__intro">
+            <strong>Beginner rule:</strong>
+            start with one watched item. Enter the price you think it can sell for and the minimum profit you want. The app calculates the maximum buy price.
+          </div>
+
+          <div class="rt-create__grid">
+            <label class="rt-field">
+              <span class="rt-field__lbl">Item name</span>
+              <input v-model="newFlip.itemName" class="v2-input rt-field__input" type="text" placeholder="Gelano, rune, resource...">
+            </label>
+            <label class="rt-field">
+              <span class="rt-field__lbl">Observed / target sell price</span>
+              <input v-model="newFlip.targetSellPrice" class="v2-input rt-field__input" type="number" min="0" step="1" placeholder="100000">
+            </label>
+            <label class="rt-field">
+              <span class="rt-field__lbl">Minimum profit wanted</span>
+              <input v-model="newFlip.minProfit" class="v2-input rt-field__input" type="number" min="0" step="1" placeholder="20000">
+            </label>
+            <label class="rt-field">
+              <span class="rt-field__lbl">Optional note</span>
+              <input v-model="newFlip.note" class="v2-input rt-field__input" type="text" placeholder="Why this item looked interesting...">
+            </label>
+          </div>
+
+          <div class="rt-create-result">
+            <div>
+              <span>Safe buy price</span>
+              <strong>{{ createSafeBuyPriceLabel }}</strong>
+            </div>
+            <p>{{ createSafeBuyHint }}</p>
+          </div>
+
+          <div class="rt-create__actions">
+            <button type="button" class="rt-guide__btn" :disabled="!canCreateWatchedFlip" @click="createWatchedFlip">
+              Create watched flip
+            </button>
+            <button type="button" class="v2-btn-ghost rt-create__reset" @click="resetCreateForm">
+              Reset
+            </button>
+          </div>
+        </div>
+      </section>
+
       <!-- Stats strip -->
       <div class="rt-stats">
         <div class="rt-stat">
@@ -95,23 +184,25 @@
           <div class="rt-transfer-row">
             <div class="rt-transfer-col">
               <label class="rt-transfer-label">{{ $t('v2.resale.transfer.from') }}</label>
-              <select v-model="transferFromKey" class="rt-transfer-select">
-                <option value="">{{ $t('v2.resale.transfer.selectCharacter') }}</option>
-                <option v-for="opt in allCharacterOptions" :key="opt.key" :value="opt.key">{{ opt.label }}</option>
-              </select>
+              <V2Select
+                v-model="transferFromKey"
+                :options="allCharacterOptions"
+                :placeholder="$t('v2.resale.transfer.selectCharacter')"
+                size="compact"
+                aria-label="Transfer from character"
+              />
               <span v-if="transferFromKey" class="rt-transfer-count">{{ $t('v2.resale.transfer.entriesCount', { count: transferFromCount }) }}</span>
             </div>
             <div class="rt-transfer-arrow">→</div>
             <div class="rt-transfer-col">
               <label class="rt-transfer-label">{{ $t('v2.resale.transfer.to') }}</label>
-              <select v-model="transferToKey" class="rt-transfer-select">
-                <option value="">{{ $t('v2.resale.transfer.selectCharacter') }}</option>
-                <option
-                  v-for="opt in allCharacterOptions.filter(o => o.key !== transferFromKey)"
-                  :key="opt.key"
-                  :value="opt.key"
-                >{{ opt.label }}</option>
-              </select>
+              <V2Select
+                v-model="transferToKey"
+                :options="transferToOptions"
+                :placeholder="$t('v2.resale.transfer.selectCharacter')"
+                size="compact"
+                aria-label="Transfer to character"
+              />
             </div>
           </div>
           <button
@@ -236,6 +327,14 @@
                 {{ formatKamasOptional(getEstimate(entry, 'estimatedDelta')) }}
               </strong>
             </div>
+          </div>
+
+          <div class="rt-entry-guide">
+            <div class="rt-entry-guide__head">
+              <span>{{ entryGuidance(entry).label }}</span>
+              <strong :class="entryGuidance(entry).tone">{{ entryGuidance(entry).value }}</strong>
+            </div>
+            <p>{{ entryGuidance(entry).desc }}</p>
           </div>
 
           <!-- Status actions -->
@@ -400,30 +499,39 @@
 
 <script setup lang="ts">
 import type { ResaleTrackerEntry, ResaleTrackerStatus } from '../composables/useAppDataStore'
-import { useResaleTracker } from '../../composables/useResaleTracker'
-
-definePageMeta({
-  layout: 'v2',
-})
+import { useResaleTracker } from '~/composables/useResaleTracker'
 
 const { hasContext, selectedServer, selectedCharacter, servers } = useV2Context()
-const { entries, upsertEntry, updateStatus, addPriceAdjustment, removeEntry, transferEntries } = useResaleTracker()
+const { entries, createEntry, upsertEntry, updateStatus, addPriceAdjustment, removeEntry, transferEntries } = useResaleTracker()
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 
 const showTransferPanel = ref(false)
+const showCreateForm = ref(true)
 const transferFromKey = ref('')
 const transferToKey = ref('')
 const statusMessages = ref<Record<string, string>>({})
+
+const newFlip = reactive({
+  itemName: '',
+  targetSellPrice: '',
+  minProfit: '',
+  note: '',
+})
 
 const allCharacterOptions = computed(() =>
   servers.value.flatMap(server =>
     server.characters.map(char => ({
       key: `${server.id}:${char.id}`,
+      value: `${server.id}:${char.id}`,
       label: `${server.name} · ${char.name}`,
       serverId: server.id,
       characterId: char.id,
     }))
   )
+)
+const transferToOptions = computed(() =>
+  allCharacterOptions.value.filter(option => option.key !== transferFromKey.value)
 )
 
 const transferFromCount = computed(() => {
@@ -474,8 +582,24 @@ const activeEntries = computed(() =>
   ),
 )
 
+const watchedEntries = computed(() =>
+  filteredEntries.value.filter((entry) => entry.status === 'watched'),
+)
+
+const boughtEntries = computed(() =>
+  filteredEntries.value.filter((entry) => entry.status === 'bought'),
+)
+
+const listedEntries = computed(() =>
+  filteredEntries.value.filter((entry) => entry.status === 'listed'),
+)
+
 const soldEntries = computed(() =>
   filteredEntries.value.filter((entry) => entry.status === 'sold'),
+)
+
+const staleListedEntries = computed(() =>
+  listedEntries.value.filter((entry) => daysSince(entry.listedAt ?? entry.updatedAt) >= 3),
 )
 
 const realizedProfit = computed(() =>
@@ -510,6 +634,134 @@ const averageRepricesBeforeSale = computed(() => {
 
   return Number((total / soldEntries.value.length).toFixed(1))
 })
+
+const createTargetSellPrice = computed(() => parsePositiveNumber(newFlip.targetSellPrice))
+const createMinProfit = computed(() => parsePositiveNumber(newFlip.minProfit) ?? 0)
+const createSafeBuyPrice = computed(() => {
+  if (createTargetSellPrice.value == null) return null
+  return Math.max(0, createTargetSellPrice.value - createMinProfit.value)
+})
+const createSafeBuyPriceLabel = computed(() =>
+  createSafeBuyPrice.value == null ? 'Enter a target price' : `${formatKamasFull(createSafeBuyPrice.value)} kamas or less`,
+)
+const createSafeBuyHint = computed(() => {
+  if (!newFlip.itemName.trim()) return 'Start by naming the item you want to watch.'
+  if (createTargetSellPrice.value == null) return 'Enter the price you realistically expect to sell it for.'
+  if (createMinProfit.value <= 0) return 'Add a minimum profit so you do not buy with a tiny unsafe margin.'
+  return `If you want at least ${formatKamasFull(createMinProfit.value)} kamas profit, do not buy above ${formatKamasFull(createSafeBuyPrice.value ?? 0)} kamas.`
+})
+const canCreateWatchedFlip = computed(() =>
+  Boolean(newFlip.itemName.trim())
+  && createTargetSellPrice.value != null
+  && createTargetSellPrice.value > 0
+  && createSafeBuyPrice.value != null
+  && selectedServer.value
+  && selectedCharacter.value,
+)
+
+const resaleNextAction = computed<{
+  title: string
+  desc: string
+  cta: string
+  hint: string
+  path: string
+  filter: 'all' | ResaleTrackerStatus | null
+}>(() => {
+  if (!filteredEntries.value.length) {
+    return {
+      title: 'Start with one item, not a portfolio.',
+      desc: 'Pick a familiar item from Prices, record the observed market price, then only buy if the margin is obvious. The first goal is learning, not scaling.',
+      cta: 'Open Prices to find an item',
+      hint: 'Beginner rule: one tracked flip is enough until it sells or fails.',
+      path: '/prices',
+      filter: null,
+    }
+  }
+
+  if (staleListedEntries.value.length) {
+    return {
+      title: 'Relist or cancel stale listings first.',
+      desc: `${staleListedEntries.value.length} listed flip${staleListedEntries.value.length === 1 ? ' has' : 's have'} been sitting for 3+ days. Locked capital is the hidden cost of flipping.`,
+      cta: 'Show listed flips',
+      hint: 'If it does not sell, lower price, relist, or cancel and record the lesson.',
+      path: '/resale',
+      filter: 'listed',
+    }
+  }
+
+  if (boughtEntries.value.length) {
+    return {
+      title: 'List bought items before hunting more deals.',
+      desc: `You have ${boughtEntries.value.length} bought item${boughtEntries.value.length === 1 ? '' : 's'} that still need a listing price. Profit starts as a plan, but it only becomes real after sale.`,
+      cta: 'Show bought flips',
+      hint: 'Set list price, then mark as listed so hold time starts making sense.',
+      path: '/resale',
+      filter: 'bought',
+    }
+  }
+
+  if (watchedEntries.value.length) {
+    return {
+      title: 'Decide: buy, ignore, or keep watching.',
+      desc: `You have ${watchedEntries.value.length} watched item${watchedEntries.value.length === 1 ? '' : 's'}. Do not buy unless the expected margin comfortably beats your risk.`,
+      cta: 'Show watched flips',
+      hint: 'If the spread is small or price data is old, skip it.',
+      path: '/resale',
+      filter: 'watched',
+    }
+  }
+
+  if (soldEntries.value.length) {
+    return {
+      title: 'Review what sold before repeating it.',
+      desc: `You have ${soldEntries.value.length} completed flip${soldEntries.value.length === 1 ? '' : 's'} with ${formatKamasFull(realizedProfit.value)} realized P/L. Repeat winners, avoid slow losers.`,
+      cta: 'Show sold flips',
+      hint: 'Realized profit teaches more than estimated profit.',
+      path: '/resale',
+      filter: 'sold',
+    }
+  }
+
+  return {
+    title: 'Keep the loop small and measurable.',
+    desc: 'Watch one item, buy only with a safe margin, list it, then mark sold or cancelled with notes.',
+    cta: 'Show all flips',
+    hint: 'The app should teach from your actual outcomes.',
+    path: '/resale',
+    filter: 'all',
+  }
+})
+
+const beginnerSteps = computed(() => [
+  {
+    key: 'watch',
+    number: 1,
+    title: 'Watch',
+    desc: 'Save an observed item and target price.',
+    active: watchedEntries.value.length > 0 || !filteredEntries.value.length,
+  },
+  {
+    key: 'buy',
+    number: 2,
+    title: 'Buy safely',
+    desc: 'Only buy below your safe price.',
+    active: boughtEntries.value.length > 0,
+  },
+  {
+    key: 'list',
+    number: 3,
+    title: 'List/reprice',
+    desc: 'Track list price and stale listings.',
+    active: listedEntries.value.length > 0,
+  },
+  {
+    key: 'learn',
+    number: 4,
+    title: 'Learn',
+    desc: 'Mark sold/cancelled and keep the lesson.',
+    active: soldEntries.value.length > 0,
+  },
+])
 
 const statusFilters = computed(() => [
   { id: 'all' as const, label: statusLabel('all'), count: filteredEntries.value.length },
@@ -572,6 +824,59 @@ function updateTextField(
   value: string,
 ) {
   patchEntry(entry, { [field]: value } as Partial<ResaleTrackerEntry>)
+}
+
+function resetCreateForm() {
+  newFlip.itemName = ''
+  newFlip.targetSellPrice = ''
+  newFlip.minProfit = ''
+  newFlip.note = ''
+}
+
+function createWatchedFlip() {
+  if (!canCreateWatchedFlip.value || !selectedServer.value || !selectedCharacter.value) return
+
+  const itemName = newFlip.itemName.trim()
+  const targetPrice = createTargetSellPrice.value ?? 0
+  const safeBuyPrice = createSafeBuyPrice.value ?? 0
+  const minProfit = createMinProfit.value
+  const itemKey = itemName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || `manual-${Date.now()}`
+  const notes = [
+    newFlip.note.trim(),
+    `Beginner plan: sell around ${formatKamasFull(targetPrice)}, buy at or below ${formatKamasFull(safeBuyPrice)}, minimum desired profit ${formatKamasFull(minProfit)}.`,
+  ].filter(Boolean).join('\n')
+
+  createEntry({
+    itemKey,
+    itemId: null,
+    itemName,
+    itemImageUrl: '',
+    status: 'watched',
+    source: 'manual',
+    serverId: selectedServer.value.id,
+    characterId: selectedCharacter.value.id,
+    boughtAt: null,
+    listedAt: null,
+    soldAt: null,
+    cancelledAt: null,
+    buyPrice: safeBuyPrice,
+    listPrice: targetPrice,
+    targetPrice,
+    soldPrice: 0,
+    estimatedFairValue: targetPrice,
+    estimatedQuickRelist: targetPrice,
+    estimatedGreedyRelist: Math.round(targetPrice * 1.08),
+    estimatedScore: minProfit > 0 && targetPrice > 0 ? Math.round((minProfit / targetPrice) * 100) : 0,
+    estimatedDelta: minProfit,
+    observedListingId: '',
+    marketScreenshotDataUrl: '',
+    statsScreenshotDataUrl: '',
+    statsEntries: [],
+    notes,
+  })
+
+  statusFilter.value = 'watched'
+  resetCreateForm()
 }
 
 function setStatus(entry: ResaleTrackerEntry, status: ResaleTrackerStatus) {
@@ -698,7 +1003,8 @@ function getAdjustmentReason(adjustment: any) {
 }
 
 function latestTrackedListPrice(entry: ResaleTrackerEntry) {
-  const latestAdjustment = entry.priceAdjustments?.[entry.priceAdjustments.length - 1]
+  const latestAdjustment = [...(entry.priceAdjustments ?? [])]
+    .sort((a, b) => getAdjustmentCreatedAtMs(b) - getAdjustmentCreatedAtMs(a))[0]
   if (latestAdjustment) {
     return getAdjustmentToPrice(latestAdjustment)
   }
@@ -752,6 +1058,82 @@ function getEstimate(entry: ResaleTrackerEntry, ...keys: string[]) {
   }
 
   return null
+}
+
+function parsePositiveNumber(value: string) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function daysSince(value: string | null | undefined) {
+  if (!value) return 0
+  const time = new Date(value).getTime()
+  if (Number.isNaN(time)) return 0
+  return Math.floor((Date.now() - time) / 86_400_000)
+}
+
+function marginPercent(entry: ResaleTrackerEntry) {
+  const buyPrice = entry.buyPrice ?? 0
+  const targetPrice = entry.soldPrice || entry.listPrice || latestTrackedListPrice(entry)
+  if (!buyPrice || !targetPrice) return null
+  return ((targetPrice - buyPrice) / buyPrice) * 100
+}
+
+function entryGuidance(entry: ResaleTrackerEntry) {
+  if (entry.status === 'watched') {
+    const delta = getEstimate(entry, 'estimatedDelta')
+    const target = getEstimate(entry, 'estimatedQuickRelistPrice', 'estimatedQuickRelist', 'estimatedFairRelistPrice', 'estimatedFairValue')
+    return {
+      label: 'Beginner decision',
+      value: delta != null && delta > 0 ? `Potential +${formatKamasFull(delta)}` : 'Only buy with margin',
+      tone: delta != null && delta > 0 ? 'rt-pos' : '',
+      desc: target
+        ? `If you buy, aim to list around ${formatKamasFull(target)}. Skip it if the safe profit feels too small or price data is old.`
+        : 'This is still a watchlist item. Add a realistic buy/list price before spending kamas.',
+    }
+  }
+
+  if (entry.status === 'bought') {
+    const target = entry.listPrice || getEstimate(entry, 'estimatedQuickRelistPrice', 'estimatedQuickRelist')
+    return {
+      label: 'Next step',
+      value: target ? `List near ${formatKamasFull(target)}` : 'Set list price',
+      tone: '',
+      desc: 'You already spent capital. List it before looking for more flips so money is not stuck idle.',
+    }
+  }
+
+  if (entry.status === 'listed') {
+    const days = daysSince(entry.listedAt ?? entry.updatedAt)
+    return {
+      label: days >= 3 ? 'Stale listing' : 'Waiting for sale',
+      value: days >= 3 ? `${days}d listed` : `${days}d listed`,
+      tone: days >= 3 ? 'rt-neg' : '',
+      desc: days >= 3
+        ? 'Consider relisting lower or cancelling. Slow flips can be worse than small losses because they lock capital.'
+        : 'Let it sit for now. If it does not sell after a few days, log a reprice instead of guessing later.',
+    }
+  }
+
+  if (entry.status === 'sold') {
+    const profit = realizedEntryProfit(entry)
+    const margin = marginPercent(entry)
+    return {
+      label: 'Realized result',
+      value: `${profit >= 0 ? '+' : ''}${formatKamasFull(profit)}`,
+      tone: profit >= 0 ? 'rt-pos' : 'rt-neg',
+      desc: margin == null
+        ? 'This is real profit/loss because the item sold. Add notes so you remember why it worked or failed.'
+        : `Real margin was ${margin.toFixed(1)}%. Repeat only if the hold time and effort were worth it.`,
+    }
+  }
+
+  return {
+    label: 'Lesson',
+    value: 'Cancelled',
+    tone: 'rt-neg',
+    desc: 'Cancelled flips are useful data. Note why you bailed so you avoid the same trap next time.',
+  }
 }
 
 function sourceLabel(source: string) {
@@ -820,6 +1202,210 @@ function formatRelativeDate(value: string | null | undefined) {
 </script>
 
 <style scoped>
+/* ── Beginner guide ───────────────────────────────────────── */
+.rt-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border-color: var(--v2-border-med);
+  background: linear-gradient(135deg, var(--v2-hover-subtle), rgba(0,0,0,.12));
+}
+.rt-guide__main { min-width: 0; }
+.rt-guide__eyebrow {
+  font-size: .625rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--v2-accent);
+}
+.rt-guide__title {
+  margin-top: .25rem;
+  color: var(--v2-text);
+  font-size: 1.25rem;
+  font-weight: 850;
+  letter-spacing: -.02em;
+}
+.rt-guide__desc {
+  margin-top: .5rem;
+  color: var(--v2-text-secondary);
+  font-size: .9rem;
+  line-height: 1.55;
+  max-width: 68ch;
+}
+.rt-guide__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-top: .875rem;
+}
+.rt-guide__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .55rem .875rem;
+  border-radius: 9px;
+  border: 1px solid var(--v2-border-focus);
+  background: var(--v2-active-strong);
+  color: var(--v2-text);
+  font-size: .8125rem;
+  font-weight: 850;
+  text-decoration: none;
+  cursor: pointer;
+}
+.rt-guide__btn:hover { border-color: var(--v2-accent); color: var(--v2-accent); }
+.rt-guide__hint {
+  color: var(--v2-text-dim);
+  font-size: .75rem;
+  line-height: 1.4;
+}
+.rt-guide__steps {
+  display: grid;
+  gap: .5rem;
+}
+.rt-guide-step {
+  display: flex;
+  gap: .625rem;
+  padding: .625rem;
+  border-radius: 11px;
+  border: 1px solid var(--v2-border-subtle);
+  background: rgba(0,0,0,.12);
+}
+.rt-guide-step--active {
+  border-color: var(--v2-border-focus);
+  background: var(--v2-active);
+}
+.rt-guide-step > span {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--v2-hover);
+  color: var(--v2-text-secondary);
+  font-size: .75rem;
+  font-weight: 900;
+}
+.rt-guide-step--active > span {
+  background: var(--v2-accent);
+  color: var(--v2-bg);
+}
+.rt-guide-step strong {
+  display: block;
+  color: var(--v2-text);
+  font-size: .8125rem;
+  font-weight: 850;
+}
+.rt-guide-step small {
+  display: block;
+  margin-top: .125rem;
+  color: var(--v2-text-secondary);
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+/* ── Create watched flip ──────────────────────────────────── */
+.rt-create {
+  margin-bottom: 1rem;
+  padding: 0;
+  overflow: hidden;
+}
+.rt-create__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.125rem;
+  border: 0;
+  background: var(--v2-hover-subtle);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.rt-create__head:hover { background: var(--v2-hover); }
+.rt-create__eyebrow {
+  font-size: .625rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--v2-accent);
+}
+.rt-create__head h2 {
+  margin-top: .2rem;
+  color: var(--v2-text);
+  font-size: 1rem;
+  font-weight: 850;
+}
+.rt-create__body {
+  padding: 1rem 1.125rem 1.125rem;
+  border-top: 1px solid var(--v2-border-subtle);
+}
+.rt-create__intro {
+  padding: .75rem .875rem;
+  border-radius: 10px;
+  border: 1px solid var(--v2-border-subtle);
+  background: rgba(0,0,0,.12);
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  line-height: 1.45;
+  margin-bottom: .875rem;
+}
+.rt-create__intro strong { color: var(--v2-text); }
+.rt-create__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .625rem;
+}
+.rt-create-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: .875rem;
+  padding: .875rem;
+  border-radius: 12px;
+  border: 1px solid var(--v2-border-focus);
+  background: var(--v2-active);
+}
+.rt-create-result span {
+  display: block;
+  color: var(--v2-text-secondary);
+  font-size: .72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.rt-create-result strong {
+  display: block;
+  margin-top: .2rem;
+  color: var(--v2-accent);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+.rt-create-result p {
+  max-width: 52ch;
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  line-height: 1.45;
+  text-align: right;
+}
+.rt-create__actions {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  margin-top: .875rem;
+}
+.rt-create__actions .rt-guide__btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.rt-create__reset { padding: .5rem .875rem; font-size: .8125rem; }
+
 /* ── Stats strip ─────────────────────────────────────────── */
 .rt-stats {
   display: grid;
@@ -982,6 +1568,38 @@ function formatRelativeDate(value: string | null | undefined) {
 .rt-model__row span { color: var(--v2-text-secondary); }
 .rt-model__row strong { color: var(--v2-text); font-size: .875rem; }
 
+.rt-entry-guide {
+  padding: .75rem .875rem;
+  border-radius: 10px;
+  border: 1px solid var(--v2-border-subtle);
+  background: rgba(0,0,0,.12);
+}
+.rt-entry-guide__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.rt-entry-guide__head span {
+  color: var(--v2-text-secondary);
+  font-size: .75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.rt-entry-guide__head strong {
+  color: var(--v2-text);
+  font-size: .875rem;
+  font-weight: 850;
+  text-align: right;
+}
+.rt-entry-guide p {
+  margin-top: .35rem;
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  line-height: 1.45;
+}
+
 /* Status action buttons */
 .rt-actions {
   display: flex;
@@ -1076,9 +1694,25 @@ function formatRelativeDate(value: string | null | undefined) {
 .rt-neg { color: #f87171; }
 
 @media (max-width: 520px) {
+  .rt-guide { grid-template-columns: 1fr; }
+  .rt-create__actions,
+  .rt-create-result {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .rt-create-result p { text-align: left; }
   .rt-stats { grid-template-columns: repeat(2, 1fr); }
   .rt-actions { flex-direction: column; }
   .rt-adj__head { flex-direction: column; }
+}
+
+@media (max-width: 900px) {
+  .rt-guide { grid-template-columns: 1fr; }
+  .rt-create__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .rt-create__grid { grid-template-columns: 1fr; }
 }
 
 /* ── Transfer panel ───────────────────────────────────────── */

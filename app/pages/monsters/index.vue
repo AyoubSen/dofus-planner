@@ -114,7 +114,6 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'v2' })
 
 type MonsterListItem = {
   id: number

@@ -546,7 +546,6 @@
 <script setup lang="ts">
 import type { SoldItem } from '~/types/game'
 
-definePageMeta({ layout: 'v2' })
 const { t } = useI18n()
 
 type WorkflowMode = 'craft' | 'fm' | 'craft_fm'

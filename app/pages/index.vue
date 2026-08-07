@@ -23,7 +23,67 @@
           </p>
         </div>
       </div>
+      <NuxtLink :to="localePath('/kamas')" class="v2-dash-hero__action">
+        Start with one action
+      </NuxtLink>
     </div>
+
+    <section class="guided-home">
+      <div class="guided-home__main v2-card">
+        <div class="guided-section-head">
+          <div>
+            <div class="guided-eyebrow">Beginner mode</div>
+            <h2 class="guided-title">What should I do next?</h2>
+          </div>
+          <span class="guided-pill">Local only</span>
+        </div>
+
+        <div class="next-action-list">
+          <NuxtLink
+            v-for="action in nextActions"
+            :key="action.title"
+            :to="localePath(action.path)"
+            class="next-action-card"
+            :style="{ '--action-color': action.color }"
+          >
+            <div class="next-action-card__icon">
+              <component :is="action.icon" class="w-5 h-5" />
+            </div>
+            <div class="next-action-card__body">
+              <div class="next-action-card__title">{{ action.title }}</div>
+              <p>{{ action.reason }}</p>
+              <span>{{ action.cta }}</span>
+            </div>
+          </NuxtLink>
+        </div>
+      </div>
+
+      <div class="guided-home__side v2-card">
+        <div class="guided-eyebrow">Rule of thumb</div>
+        <h2 class="guided-title">Do not trust paper profit blindly.</h2>
+        <p class="guided-copy">
+          The app is moving toward realized profit first: sold flips, sold runes, and completed sessions matter more than theoretical value.
+        </p>
+      </div>
+    </section>
+
+    <section class="workflow-grid">
+      <NuxtLink
+        v-for="workflow in beginnerWorkflows"
+        :key="workflow.title"
+        :to="localePath(workflow.path)"
+        class="workflow-card"
+      >
+        <div class="workflow-card__top">
+          <div class="workflow-card__icon" :style="{ color: workflow.color, background: `${workflow.color}18` }">
+            <component :is="workflow.icon" class="w-5 h-5" />
+          </div>
+          <span>{{ workflow.status }}</span>
+        </div>
+        <h3>{{ workflow.title }}</h3>
+        <p>{{ workflow.desc }}</p>
+      </NuxtLink>
+    </section>
 
     <div v-if="!hasContext" class="v2-onboarding">
       <div class="v2-onboarding__head">
@@ -137,8 +197,9 @@
           <p>{{ t('v2.dashboard.activityEmpty') }}</p>
           <p class="v2-dash-empty__hint">{{ t('v2.dashboard.startTrackingHint') }}</p>
           <div class="v2-dash-empty-links">
+            <NuxtLink :to="localePath('/kamas')" class="v2-dash-empty-link">{{ $t('nav.kamas') }}</NuxtLink>
             <NuxtLink :to="localePath('/archimonstres')" class="v2-dash-empty-link">{{ $t('nav.archimonstres') }}</NuxtLink>
-            <NuxtLink :to="localePath('/items')" class="v2-dash-empty-link">{{ $t('nav.items') }}</NuxtLink>
+            <NuxtLink :to="localePath('/prices')" class="v2-dash-empty-link">{{ $t('nav.prices') }}</NuxtLink>
             <NuxtLink :to="localePath('/crafting')" class="v2-dash-empty-link">{{ $t('nav.crafting') }}</NuxtLink>
             <NuxtLink :to="localePath('/brisage')" class="v2-dash-empty-link">{{ $t('nav.brisage') }}</NuxtLink>
           </div>
@@ -199,7 +260,6 @@
 <script setup lang="ts">
 import monstersJson from '@/data/monsters.json'
 
-definePageMeta({ layout: 'v2' })
 
 const localePath = useLocalePath()
 const { $i18n } = useNuxtApp()
@@ -312,6 +372,104 @@ const resaleHoldLabel = computed(() =>
     : `Avg hold: ${formatDuration(averageResaleHoldDurationMs.value)}`
 )
 
+const nextActions = computed(() => {
+  if (!hasContext.value) {
+    return [
+      {
+        title: 'Create your first character context',
+        reason: 'Most money tracking needs a server and character so your prices, flips, and sessions do not mix together.',
+        cta: 'Use the character button in the sidebar',
+        path: '/',
+        color: '#f5a523',
+        icon: resolveComponent('IconsIconDashboard'),
+      },
+      {
+        title: 'Start with prices, not guesses',
+        reason: 'Resale, brisage, and craft/FM decisions are only useful when market prices are fresh.',
+        cta: 'Open Prices',
+        path: '/prices',
+        color: '#60a5fa',
+        icon: resolveComponent('IconsIconItems'),
+      },
+    ]
+  }
+
+  if (resaleActiveCount.value > 0) {
+    return [
+      {
+        title: 'Check active flips first',
+        reason: `You have ${resaleActiveCount.value} active resale item${resaleActiveCount.value === 1 ? '' : 's'}. Relisting or cancelling stale items protects your capital.`,
+        cta: 'Open Flip Items',
+        path: '/resale',
+        color: '#22c55e',
+        icon: resolveComponent('IconsIconResale'),
+      },
+      {
+        title: 'Review what actually sold',
+        reason: 'Use realized sales to learn what worked before trusting another opportunity.',
+        cta: 'Open History',
+        path: '/kamas',
+        color: '#eab308',
+        icon: resolveComponent('IconsIconItems'),
+      },
+    ]
+  }
+
+  return [
+    {
+      title: 'Learn one small flip',
+      reason: 'Watch one item, set a safe buy price, list it, and track the result before scaling up.',
+      cta: 'Open Flip Items',
+      path: '/resale',
+      color: '#22c55e',
+      icon: resolveComponent('IconsIconResale'),
+    },
+    {
+      title: 'Try brisage carefully',
+      reason: 'Brisage can look profitable on paper. Start by comparing item cost with rune prices and mark profit as paper until runes sell.',
+      cta: 'Open Break Items',
+      path: '/brisage',
+      color: '#a78bfa',
+      icon: resolveComponent('IconsIconBrisage'),
+    },
+  ]
+})
+
+const beginnerWorkflows = [
+  {
+    title: 'Flip Items',
+    desc: 'Beginner resale flow: watch, buy under a safe price, list, sell, then learn.',
+    status: 'Start here',
+    path: '/resale',
+    color: '#22c55e',
+    icon: resolveComponent('IconsIconResale'),
+  },
+  {
+    title: 'Break Items',
+    desc: 'Track brisage without lying to yourself about unsold rune value.',
+    status: 'Good next',
+    path: '/brisage',
+    color: '#a78bfa',
+    icon: resolveComponent('IconsIconBrisage'),
+  },
+  {
+    title: 'Craft/FM',
+    desc: 'Run craft experiments with recipe cost, FM budget, and break-even price.',
+    status: 'Experiment',
+    path: '/crafting',
+    color: '#34d399',
+    icon: resolveComponent('IconsIconCrafting'),
+  },
+  {
+    title: 'Sell Archis',
+    desc: 'Track captures, listings, stale prices, and real archimonstre sales.',
+    status: 'Optional loop',
+    path: '/archimonstres',
+    color: '#f87171',
+    icon: resolveComponent('IconsIconArchimonstres'),
+  },
+]
+
 const activityFeed = computed(() =>
   scopedActivityEntries.value
     .map((entry) => ({
@@ -380,14 +538,12 @@ const formatDuration = (value: number | null) => {
   return `${(totalDays / 30).toFixed(1)}mo`
 }
 const quickItems = [
-  { path: '/archimonstres', label: 'nav.archimonstres', icon: resolveComponent('IconsIconArchimonstres'), color: '#f87171' },
-  { path: '/monsters', label: 'nav.monsters', icon: resolveComponent('IconsIconMonsters'), color: '#f59e0b' },
-  { path: '/items', label: 'nav.items', icon: resolveComponent('IconsIconItems'), color: '#60a5fa' },
-  { path: '/resale', label: 'nav.resale', icon: resolveComponent('IconsIconResale'), color: '#22c55e' },
-  { path: '/crafting', label: 'nav.crafting', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },
-  { path: '/brisage', label: 'nav.brisage', icon: resolveComponent('IconsIconBrisage'), color: '#a78bfa' },
-  { path: '/succes', label: 'nav.succes', icon: resolveComponent('IconsIconSucces'), color: '#fcd34d' },
-  { path: '/familiers', label: 'nav.familiers', icon: resolveComponent('IconsIconFamiliers'), color: '#fb923c' },
+  { path: '/resale', label: 'nav.flipItems', icon: resolveComponent('IconsIconResale'), color: '#22c55e' },
+  { path: '/brisage', label: 'nav.breakItems', icon: resolveComponent('IconsIconBrisage'), color: '#a78bfa' },
+  { path: '/crafting', label: 'nav.craftFm', icon: resolveComponent('IconsIconCrafting'), color: '#34d399' },
+  { path: '/archimonstres', label: 'nav.sellArchis', icon: resolveComponent('IconsIconArchimonstres'), color: '#f87171' },
+  { path: '/prices', label: 'nav.prices', icon: resolveComponent('IconsIconItems'), color: '#60a5fa' },
+  { path: '/kamas', label: 'nav.history', icon: resolveComponent('IconsIconItems'), color: '#eab308' },
 ]
 
 onMounted(() => { initContext() })
@@ -416,6 +572,186 @@ onMounted(() => { initContext() })
 }
 .v2-dash-hero__title { font-size: 1.375rem; font-weight: 800; color: var(--v2-text); letter-spacing: -.02em; }
 .v2-dash-hero__sub { font-size: .875rem; color: var(--v2-text-secondary); margin-top: .125rem; }
+.v2-dash-hero__action {
+  flex-shrink: 0;
+  padding: .625rem .875rem;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--v2-accent), var(--v2-accent-dark));
+  color: var(--v2-bg);
+  font-size: .8125rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.v2-dash-hero__action:hover { box-shadow: 0 0 16px var(--v2-glow-strong); }
+@media (max-width: 640px) {
+  .v2-dash-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .v2-dash-hero__action {
+    text-align: center;
+  }
+}
+
+.guided-home {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.guided-home__main,
+.guided-home__side {
+  padding: 1.25rem;
+}
+.guided-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.guided-eyebrow {
+  font-size: .625rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--v2-accent);
+}
+.guided-title {
+  margin-top: .25rem;
+  font-size: 1.125rem;
+  font-weight: 850;
+  color: var(--v2-text);
+  letter-spacing: -.02em;
+}
+.guided-pill {
+  padding: .25rem .5rem;
+  border-radius: 999px;
+  border: 1px solid var(--v2-border-med);
+  color: var(--v2-text-secondary);
+  background: var(--v2-hover-subtle);
+  font-size: .6875rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.guided-copy {
+  margin-top: .625rem;
+  color: var(--v2-text-secondary);
+  font-size: .875rem;
+  line-height: 1.6;
+}
+.next-action-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+.next-action-card {
+  display: flex;
+  gap: .875rem;
+  padding: .875rem;
+  border-radius: 13px;
+  border: 1px solid var(--v2-border-subtle);
+  background: var(--v2-hover-subtle);
+  text-decoration: none;
+  transition: border-color .18s, background .18s, transform .18s;
+}
+.next-action-card:hover {
+  border-color: var(--action-color, var(--v2-accent));
+  background: var(--v2-hover);
+  transform: translateY(-1px);
+}
+.next-action-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--action-color, var(--v2-accent));
+  background: color-mix(in srgb, var(--action-color, #f5a523) 14%, transparent);
+}
+.next-action-card__body { min-width: 0; }
+.next-action-card__title {
+  color: var(--v2-text);
+  font-size: .9375rem;
+  font-weight: 850;
+}
+.next-action-card__body p {
+  margin-top: .25rem;
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  line-height: 1.45;
+}
+.next-action-card__body span {
+  display: inline-block;
+  margin-top: .625rem;
+  color: var(--action-color, var(--v2-accent));
+  font-size: .75rem;
+  font-weight: 850;
+}
+.workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.workflow-card {
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--v2-border-subtle);
+  background: var(--v2-hover-subtle);
+  text-decoration: none;
+  transition: border-color .18s, background .18s;
+}
+.workflow-card:hover {
+  border-color: var(--v2-border-strong);
+  background: var(--v2-hover);
+}
+.workflow-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .875rem;
+}
+.workflow-card__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.workflow-card__top span {
+  color: var(--v2-text-dim);
+  font-size: .6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.workflow-card h3 {
+  color: var(--v2-text);
+  font-size: .9375rem;
+  font-weight: 850;
+}
+.workflow-card p {
+  margin-top: .375rem;
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  line-height: 1.45;
+}
+@media (max-width: 1020px) {
+  .guided-home { grid-template-columns: 1fr; }
+  .workflow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .next-action-list,
+  .workflow-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 .v2-onboarding {
   padding: 1.125rem;
@@ -594,5 +930,3 @@ onMounted(() => { initContext() })
 .v2-dash-quicklink__arrow { color: var(--v2-text-dim); flex-shrink: 0; }
 .v2-dash-quicklink:hover .v2-dash-quicklink__arrow { color: var(--v2-accent); }
 </style>
-
-

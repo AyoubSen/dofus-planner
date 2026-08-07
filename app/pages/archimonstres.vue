@@ -40,12 +40,7 @@
           <div class="v2-pills">
             <button v-for="f in FILTERS" :key="f.v" class="v2-pill" :class="{ 'v2-pill--on': filter === f.v }" @click="filter = f.v">{{ f.l }}</button>
           </div>
-          <select v-model="typeFilter" class="v2-inline-select" style="font-size:.8125rem;padding:.3rem .6rem">
-            <option value="archimonstre">Archimonstres</option>
-            <option value="monstre">Monstres</option>
-            <option value="boss">Boss</option>
-            <option value="all">All types</option>
-          </select>
+          <V2Select v-model="typeFilter" :options="monsterTypeOptions" placeholder="Type" size="compact" aria-label="Monster type filter" />
           <div class="v2-searchbox" style="margin-left:auto">
             <svg class="v2-searchbox__icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -244,16 +239,7 @@
               <div class="v2-sstat__label">Slow-moving <span class="v2-sstat__thresh">>{{ slowMovingDays }}d</span></div>
               <div class="v2-sstat__val" :style="slowMovingItems.length > 0 ? 'color:#fbbf24' : ''">{{ slowMovingItems.length }}</div>
               <div class="v2-sstat__sub">
-                <select v-model="slowMovingDays" class="v2-inline-select">
-                  <option :value="1">1 day</option>
-                  <option :value="3">3 days</option>
-                  <option :value="5">5 days</option>
-                  <option :value="7">7 days</option>
-                  <option :value="10">10 days</option>
-                  <option :value="14">14 days</option>
-                  <option :value="21">21 days</option>
-                  <option :value="30">30 days</option>
-                </select>
+                <V2Select v-model="slowMovingDays" :options="slowMovingDayOptions" placeholder="Days" size="compact" aria-label="Slow moving threshold" />
               </div>
             </div>
           </div>
@@ -547,18 +533,9 @@
             <!-- Sort + filter row -->
             <div class="v2-analytics-bar">
               <div class="v2-analytics-bar__label">Sort by</div>
-              <select v-model="analyticsSortBy" class="v2-inline-select" style="font-size:.8125rem;padding:.3rem .6rem">
-                <option value="quantity">Quantity</option>
-                <option value="revenue">Revenue</option>
-                <option value="avgPrice">Avg price</option>
-                <option value="frequency">Sales count</option>
-              </select>
+              <V2Select v-model="analyticsSortBy" :options="analyticsSortOptions" placeholder="Sort" size="compact" aria-label="Analytics sort" />
               <div class="v2-analytics-bar__label" style="margin-left:.75rem">Timeframe</div>
-              <select v-model="analyticsTimeframe" class="v2-inline-select" style="font-size:.8125rem;padding:.3rem .6rem">
-                <option value="all">All time</option>
-                <option value="month">This month</option>
-                <option value="week">This week</option>
-              </select>
+              <V2Select v-model="analyticsTimeframe" :options="timeframeOptions" placeholder="Timeframe" size="compact" aria-label="Analytics timeframe" />
             </div>
 
             <!-- Empty -->
@@ -603,16 +580,9 @@
           <div v-if="analyticsTab === 'trends'">
             <div class="v2-analytics-bar">
               <div class="v2-analytics-bar__label">Timeframe</div>
-              <select v-model="trendTimeframe" class="v2-inline-select" style="font-size:.8125rem;padding:.3rem .6rem">
-                <option value="all">All time</option>
-                <option value="month">This month</option>
-                <option value="week">This week</option>
-              </select>
+              <V2Select v-model="trendTimeframe" :options="timeframeOptions" placeholder="Timeframe" size="compact" aria-label="Trend timeframe" />
               <div class="v2-analytics-bar__label" style="margin-left:.75rem">Monster</div>
-              <select v-model="selectedTrendMonster" class="v2-inline-select" style="font-size:.8125rem;padding:.3rem .6rem">
-                <option value="">All</option>
-                <option v-for="name in monstersWithPriceData" :key="name" :value="name">{{ name }}</option>
-              </select>
+              <V2Select v-model="selectedTrendMonster" :options="trendMonsterOptions" placeholder="Monster" size="compact" aria-label="Trend monster" />
             </div>
 
             <div v-if="filteredPriceTrends.length === 0" class="v2-empty">
@@ -712,7 +682,6 @@
 
 <script setup lang="ts">
 import monstersJson from '@/data/monsters.json'
-definePageMeta({ layout: 'v2' })
 
 const { appendActivity } = useAppDataStore()
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
@@ -761,6 +730,12 @@ type OcreFilter = 'all' | 'missing' | 'done'
 const search = ref('')
 const filter = ref<OcreFilter>('all')
 const typeFilter = ref('archimonstre')
+const monsterTypeOptions = [
+  { key: 'archimonstre', label: 'Archimonstres', value: 'archimonstre' },
+  { key: 'monstre', label: 'Monstres', value: 'monstre' },
+  { key: 'boss', label: 'Boss', value: 'boss' },
+  { key: 'all', label: 'All types', value: 'all' },
+]
 const counts = reactive<Record<string, number>>({})
 
 const FILTERS: Array<{ l: string; v: OcreFilter }> = [
@@ -946,6 +921,11 @@ const soldItems = ref<SoldItem[]>([])
 const priceHistory = ref<Record<string, number[]>>({})
 const routeTargets = ref<RouteTarget[]>([])
 const slowMovingDays = ref(7)
+const slowMovingDayOptions = [1, 3, 5, 7, 10, 14, 21, 30].map(days => ({
+  key: String(days),
+  label: `${days} day${days === 1 ? '' : 's'}`,
+  value: days,
+}))
 
 // Add form
 const searchMonster = ref('')
@@ -1295,6 +1275,21 @@ const analyticsSortBy = ref<'quantity' | 'revenue' | 'avgPrice' | 'frequency'>('
 const analyticsTimeframe = ref<'all' | 'month' | 'week'>('all')
 const trendTimeframe = ref<'all' | 'month' | 'week'>('all')
 const selectedTrendMonster = ref('')
+const analyticsSortOptions = [
+  { key: 'quantity', label: 'Quantity', value: 'quantity' },
+  { key: 'revenue', label: 'Revenue', value: 'revenue' },
+  { key: 'avgPrice', label: 'Avg price', value: 'avgPrice' },
+  { key: 'frequency', label: 'Sales count', value: 'frequency' },
+]
+const timeframeOptions = [
+  { key: 'all', label: 'All time', value: 'all' },
+  { key: 'month', label: 'This month', value: 'month' },
+  { key: 'week', label: 'This week', value: 'week' },
+]
+const trendMonsterOptions = computed(() => [
+  { key: 'all', label: 'All', value: '' },
+  ...monstersWithPriceData.value.map(name => ({ key: name, label: name, value: name })),
+])
 
 const getFilteredSold = () => {
   const now = new Date()
@@ -1637,6 +1632,19 @@ watch([selectedServer, selectedCharacter], () => {
 .v2-inline-select {
   background: rgba(0,0,0,.25); border: 1px solid var(--v2-border-med); border-radius: 6px;
   color: #a07840; font-size: .6875rem; padding: .125rem .375rem; outline: none; cursor: pointer;
+}
+.v2-pills :deep(.v2s),
+.v2-sstat__sub :deep(.v2s),
+.v2-analytics-bar :deep(.v2s) {
+  min-width: 130px;
+}
+.v2-pills :deep(.v2s__trigger),
+.v2-sstat__sub :deep(.v2s__trigger),
+.v2-analytics-bar :deep(.v2s__trigger) {
+  min-height: 30px;
+  padding: .3rem .55rem;
+  border-radius: 8px;
+  font-size: .8125rem;
 }
 
 /* Add form */

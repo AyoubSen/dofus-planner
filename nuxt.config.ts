@@ -28,9 +28,9 @@ export default defineNuxtConfig({
     },
   },
 
-  // themes.css is transitional: it keeps the not-yet-converted pages alive
+  // legacy-v2.css is transitional: it keeps the not-yet-converted pages alive
   // while the overhaul lands. Removed once the last page drops its v2 CSS.
-  css: ["~/assets/css/main.css", "~/assets/css/themes.css"],
+  css: ["~/assets/css/main.css", "~/assets/css/legacy-v2.css"],
 
   vite: {
     plugins: [tailwindcss()],

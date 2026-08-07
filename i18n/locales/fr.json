@@ -1,6 +1,14 @@
 {
   "nav": {
+    "home": "Accueil",
+    "flipItems": "Flip Objets",
+    "craftFm": "Craft/FM",
+    "breakItems": "Briser Objets",
+    "sellArchis": "Vendre Archis",
+    "prices": "Prix",
+    "history": "Historique",
     "dashboard": "Tableau de bord",
+    "kamas": "Kamas",
     "archimonstres": "Archimonstres",
     "monsters": "Monstres",
     "items": "Objets",
@@ -8,7 +16,8 @@
     "crafting": "Craft",
     "brisage": "Brisage",
     "succes": "Succès",
-    "familiers": "Familiers"
+    "familiers": "Familiers",
+    "more": "Plus"
   },
   "theme": {
     "title": "Thème"
@@ -40,12 +49,14 @@
       "deleteCharacter": "Supprimer le personnage",
       "addCharacter": "Ajouter un personnage",
       "characterName": "Nom du personnage...",
-      "selectClass": "Sélectionner une classe..."
+      "selectClass": "Sélectionner une classe...",
+      "confirmDeleteCharacter": "Supprimer {name} ? Ses sessions et prix suivis seront perdus."
     },
     "dashboard": {
       "welcomeBack": "Bon retour, {name}",
       "welcome": "Bienvenue sur Dofus Tools",
       "startHint": "Cliquez sur le bouton personnage dans la barre latérale pour commencer",
+      "findNextKamasAction": "Trouver la prochaine action kamas",
       "itemsSold": "Objets vendus",
       "kamasEarned": "{amount} kamas gagnés",
       "characters": "Personnages",
@@ -84,32 +95,40 @@
     },
     "pageIntros": {
       "dashboard": {
-        "title": "Votre centre de contrôle Dofus",
-        "desc": "Commencez par un personnage, puis ouvrez un outil pour suivre progression, marché ou profit."
+        "title": "Votre prochaine action kamas",
+        "desc": "Choisissez une action simple : scanner des prix, flip un objet, briser, craft/FM ou revoir ce qui a vraiment rapporté."
+      },
+      "kamas": {
+        "title": "Revoir ce qui a marché",
+        "desc": "Utilisez ventes, sessions et prix enregistrés pour séparer profit réalisé et valeur théorique."
       },
       "archimonstres": {
-        "title": "Suivre les captures Ocre et les ventes d'archimonstres",
-        "desc": "Utilisez cette page pour l'Éternelle Moisson, les doublons et la planification de route."
+        "title": "Vendre des archimonstres avec moins de hasard",
+        "desc": "Suivez captures, prix listés, annonces vieillissantes et vraies ventes."
       },
       "monsters": {
         "title": "Rechercher dans la base des monstres",
         "desc": "Trouvez des monstres par nom, vérifiez niveaux et tags, puis ouvrez le détail si besoin."
       },
       "items": {
-        "title": "Trouver des équipements et opportunités marché",
-        "desc": "Cherchez des objets, filtrez selon le build, comparez les prix et envoyez des listings en revente."
+        "title": "Garder des prix marché fiables",
+        "desc": "Cherchez des objets, sauvegardez les prix observés et alimentez revente, craft et brisage."
+      },
+      "prices": {
+        "title": "Garder des prix exploitables",
+        "desc": "Suivez une courte liste d'objets récurrents, rafraîchissez les prix périmés et envoyez les vrais signaux d'achat vers Flip Items."
       },
       "resale": {
-        "title": "Suivre les flips de l'observation à la vente",
-        "desc": "Suivez chaque opportunité entre observé, acheté, listé, vendu ou annulé."
+        "title": "Apprendre le flip étape par étape",
+        "desc": "Observez un objet, décidez un prix d'achat sûr, listez-le, puis apprenez des ventes ou échecs."
       },
       "crafting": {
-        "title": "Mesurer le profit Craft et FM",
-        "desc": "Créez une session pour suivre coûts, FM, prix listé, revenu de vente et profit net."
+        "title": "Faire des tests Craft/FM plus sûrs",
+        "desc": "Suivez coût recette, budget FM, prix d'équilibre et résultat réel."
       },
       "brisage": {
-        "title": "Suivre les sessions de brisage et le profit runes",
-        "desc": "Enregistrez les objets brisés, comparez coût de craft et valeur réalisée, puis sauvegardez la session."
+        "title": "Briser sans faux profit",
+        "desc": "Enregistrez les sessions, comparez valeur rune théorique et ventes réalisées, et repérez les prix périmés."
       },
       "succes": {
         "title": "Suivre les succès par personnage",
@@ -127,7 +146,9 @@
       "searching": "Recherche...",
       "loading": "Chargement...",
       "selectOption": "Sélectionner une option",
-      "pickDate": "Choisir une date"
+      "pickDate": "Choisir une date",
+      "close": "Fermer",
+      "noResults": "Aucun résultat"
     },
     "archi": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour commencer le suivi des archimonstres.",
@@ -465,6 +486,106 @@
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos succès.",
       "searchAchievements": "Rechercher des succès...",
       "loadingAchievements": "Chargement des succès..."
+    },
+    "kamas": {
+      "noCharacterDesc": "Sélectionnez un personnage pour classer les opportunités depuis vos données revente, craft et brisage.",
+      "stats": {
+        "total": "Signaux",
+        "expectedProfit": "P/L estimé",
+        "missingData": "Données manquantes",
+        "stale": "À revoir"
+      },
+      "filters": {
+        "search": "Rechercher actions, objets ou raisons...",
+        "allTypes": "Tous les types",
+        "allConfidence": "Toutes confiances"
+      },
+      "sort": {
+        "score": "Meilleur score",
+        "profit": "Profit",
+        "margin": "Marge",
+        "updated": "Dernière MAJ"
+      },
+      "types": {
+        "resale": "Revente",
+        "craft": "Craft",
+        "brisage": "Brisage",
+        "familiar": "Familier",
+        "maintenance": "À revoir",
+        "missing-data": "Données manquantes"
+      },
+      "confidence": {
+        "high": "Haute",
+        "medium": "Moyenne",
+        "low": "Faible"
+      },
+      "sections": {
+        "doToday": "À faire aujourd'hui",
+        "doTodayDesc": "Actions les plus utiles depuis les données déjà enregistrées.",
+        "performance": "Performance",
+        "performanceDesc": "Profit estimé ou réalisé groupé par source.",
+        "best": "Meilleures opportunités",
+        "bestDesc": "Recommandations explicables, sans inventer le marché.",
+        "missing": "Données manquantes",
+        "missingDesc": "Ajoutez ces valeurs pour débloquer de meilleures recommandations.",
+        "lessons": "Erreurs et risques",
+        "lessonsDesc": "Pertes, entrées stagnantes et répétitions risquées à vérifier.",
+        "audit": "Audit des données",
+        "auditDesc": "Ce que cette page lit et où les données sont stockées."
+      },
+      "scanner": {
+        "title": "File scanner HDV",
+        "desc": "L'app choisit l'item, tu le cherches dans Dofus, puis le script compagnon capture le prix visible avec le raccourci.",
+        "buildQueue": "Créer la file",
+        "position": "{current} / {total}",
+        "noQueue": "Pas de file",
+        "emptyCurrent": "Crée une file pour commencer",
+        "copy": "Copier l'item",
+        "arm": "Armer le scanner",
+        "skip": "Passer",
+        "clear": "Vider",
+        "inbox": "Prix détectés",
+        "refresh": "Rafraîchir",
+        "accept": "Accepter",
+        "dismiss": "Ignorer",
+        "emptyInbox": "Aucun prix détecté. Lance le script compagnon et appuie sur Ctrl+Alt+P quand le prix HDV est visible."
+      },
+      "table": {
+        "action": "Action",
+        "cost": "Coût",
+        "revenue": "Revenu",
+        "profit": "P/L",
+        "confidence": "Confiance"
+      },
+      "empty": {
+        "noActions": "Aucune action pour l'instant. Ajoutez d'abord des résultats revente, craft ou brisage.",
+        "noMatches": "Aucune opportunité ne correspond aux filtres.",
+        "noMissingData": "Aucune donnée manquante dans les signaux actuels.",
+        "noLessons": "Aucune perte ou signal risqué pour l'instant."
+      }
+    },
+    "language": {
+      "label": "Langue"
+    },
+    "theme": {
+      "label": "Apparence",
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système",
+      "textSize": "Taille du texte"
+    },
+    "data": {
+      "label": "Données",
+      "export": "Exporter la sauvegarde",
+      "importMerge": "Importer (fusionner)",
+      "importReplace": "Importer (tout remplacer)",
+      "restore": "Restaurer la dernière sauvegarde",
+      "exported": "Sauvegarde exportée.",
+      "exportFailed": "Échec de l'exportation.",
+      "importFailed": "Échec de l'importation.",
+      "restored": "Dernière sauvegarde restaurée.",
+      "noBackup": "Aucune sauvegarde restaurable.",
+      "confirmReplace": "Remplacer toutes les données locales par cette sauvegarde ? Tout ce qui n'est pas dans le fichier sera perdu."
     }
   },
   "home": {
@@ -476,22 +597,34 @@
       "archimonstres": {
         "title": "Archimonstres",
         "description": "Maîtrisez la chasse avec des outils de suivi complets pour la quête du Dofus Ocre.",
-        "tags": ["Quête Ocre", "Multi-Perso"]
+        "tags": [
+          "Quête Ocre",
+          "Multi-Perso"
+        ]
       },
       "items": {
         "title": "Objets & Équipement",
         "description": "Base de données complète avec des outils de filtrage et de comparaison avancés.",
-        "tags": ["Base de données", "Optimiseur"]
+        "tags": [
+          "Base de données",
+          "Optimiseur"
+        ]
       },
       "crafting": {
         "title": "Suivi des Ventes",
         "description": "Suivez les ventes d'équipements craftés, les stats personnalisées et les marges de profit.",
-        "tags": ["Profits", "Analytiques"]
+        "tags": [
+          "Profits",
+          "Analytiques"
+        ]
       },
       "succes": {
         "title": "Succès",
         "description": "Parcourez les succès, suivez votre progression et découvrez les récompenses.",
-        "tags": ["Navigateur", "Récompenses"]
+        "tags": [
+          "Navigateur",
+          "Récompenses"
+        ]
       }
     },
     "stats": {
@@ -755,103 +888,103 @@
       }
     },
     "salesAnalytics": {
-  "header": {
-    "title": "Statistiques de Ventes",
-    "subtitle": "Suivez vos monstres les plus vendus et vos performances de vente"
-  },
-  "timeframes": {
-    "all": "Tout le temps",
-    "month": "Ce mois",
-    "week": "Cette semaine",
-    "today": "Aujourd'hui"
-  },
-  "sortOptions": {
-    "quantity": "Plus vendus (Quantité)",
-    "revenue": "Meilleur revenu",
-    "avgPrice": "Prix moyen le plus élevé",
-    "frequency": "Plus fréquents"
-  },
-  "quickStats": {
-    "uniqueMonsters": "Monstres Uniques",
-    "typesSold": "Types vendus",
-    "bestSeller": "Meilleure Vente",
-    "sold": "{count} vendu | {count} vendus",
-    "topRevenue": "Top Revenu",
-    "avgPrice": "Prix Moyen",
-    "perSale": "Par vente"
-  },
-  "tabs": {
-    "salesPerformance": "Performance des Ventes",
-    "capturePatterns": "Schémas de Capture",
-    "priceTrends": "Tendances des Prix",
-    "inconsistencies": "Incohérences"
-  },
-  "salesPerformance": {
-    "title": "Classement des Ventes de Monstres",
-    "subtitle": "{count} monstres • Meilleurs performers",
-    "emptyTitle": "Aucune donnée de vente disponible",
-    "emptyDescription": "Commencez à vendre des monstres pour voir les statistiques ici !",
-    "quantity": "Quantité",
-    "revenue": "Revenu",
-    "avgPrice": "Prix Moy.",
-    "range": "Fourchette",
-    "performance": "Performance",
-    "ofTopSeller": "{percent}% du meilleur vendeur",
-    "sales": "{count} vente | {count} ventes",
-    "last": "Dernier {date}"
-  },
-  "capturePatterns": {
-    "title": "Schémas de Capture",
-    "subtitle": "Basé sur les objets que vous avez ajoutés à la vente",
-    "itemsCaptured": "Objets Capturés",
-    "uniqueMonsters": "{count} monstres uniques",
-    "mostCaptured": "Plus Capturé",
-    "times": "{count} fois",
-    "avgPerDay": "Moy. par Jour",
-    "capturesDaily": "captures par jour",
-    "emptyTitle": "Pas encore de données de capture",
-    "emptyDescription": "Ajoutez des objets à vendre pour suivre vos captures !",
-    "captured": "Capturé",
-    "percentTotal": "% Total",
-    "daysActive": "Jours Actifs",
-    "firstLast": "Premier {first} • Dernier {last}"
-  },
-  "priceTrends": {
-    "title": "Tendances des Prix",
-    "subtitle": "Suivez l'évolution des prix dans le temps",
-    "allMonsters": "Tous les Monstres",
-    "monstersTracked": "Monstres Suivis",
-    "avgPriceChange": "Variation Moy. Prix",
-    "biggestGainer": "Plus Grande Hausse",
-    "biggestLoser": "Plus Grande Baisse",
-    "emptyTitle": "Pas de données de tendance",
-    "emptyDescription": "Vendez le même monstre au moins deux fois pour voir les tendances !",
-    "salesTracked": "{count} ventes suivies",
-    "first": "Premier",
-    "latest": "Dernier",
-    "change": "Variation",
-    "avg": "Moy.",
-    "priceHistory": "Historique des Prix",
-    "dataPoints": "{count} points de données",
-    "rising": "En hausse",
-    "falling": "En baisse",
-    "stable": "Stable"
-  },
-  "inconsistencies": {
-    "title": "Incohérences de Prix",
-    "subtitle": "Monstres avec des prix différents dans vos annonces actuelles",
-    "count": "{count} incohérence | {count} incohérences",
-    "perfectTitle": "Prix parfaits !",
-    "perfectDescription": "Tous vos monstres ont des prix cohérents dans vos annonces.",
-    "itemsAndPrices": "{items} objets • {prices} prix différents",
-    "range": "Fourchette",
-    "variation": "+{percent}% var",
-    "average": "Moyenne",
-    "lowest": "Minimum",
-    "highest": "Maximum",
-    "selectAll": "Tout Sélectionner"
-  }
-}
+      "header": {
+        "title": "Statistiques de Ventes",
+        "subtitle": "Suivez vos monstres les plus vendus et vos performances de vente"
+      },
+      "timeframes": {
+        "all": "Tout le temps",
+        "month": "Ce mois",
+        "week": "Cette semaine",
+        "today": "Aujourd'hui"
+      },
+      "sortOptions": {
+        "quantity": "Plus vendus (Quantité)",
+        "revenue": "Meilleur revenu",
+        "avgPrice": "Prix moyen le plus élevé",
+        "frequency": "Plus fréquents"
+      },
+      "quickStats": {
+        "uniqueMonsters": "Monstres Uniques",
+        "typesSold": "Types vendus",
+        "bestSeller": "Meilleure Vente",
+        "sold": "{count} vendu | {count} vendus",
+        "topRevenue": "Top Revenu",
+        "avgPrice": "Prix Moyen",
+        "perSale": "Par vente"
+      },
+      "tabs": {
+        "salesPerformance": "Performance des Ventes",
+        "capturePatterns": "Schémas de Capture",
+        "priceTrends": "Tendances des Prix",
+        "inconsistencies": "Incohérences"
+      },
+      "salesPerformance": {
+        "title": "Classement des Ventes de Monstres",
+        "subtitle": "{count} monstres • Meilleurs performers",
+        "emptyTitle": "Aucune donnée de vente disponible",
+        "emptyDescription": "Commencez à vendre des monstres pour voir les statistiques ici !",
+        "quantity": "Quantité",
+        "revenue": "Revenu",
+        "avgPrice": "Prix Moy.",
+        "range": "Fourchette",
+        "performance": "Performance",
+        "ofTopSeller": "{percent}% du meilleur vendeur",
+        "sales": "{count} vente | {count} ventes",
+        "last": "Dernier {date}"
+      },
+      "capturePatterns": {
+        "title": "Schémas de Capture",
+        "subtitle": "Basé sur les objets que vous avez ajoutés à la vente",
+        "itemsCaptured": "Objets Capturés",
+        "uniqueMonsters": "{count} monstres uniques",
+        "mostCaptured": "Plus Capturé",
+        "times": "{count} fois",
+        "avgPerDay": "Moy. par Jour",
+        "capturesDaily": "captures par jour",
+        "emptyTitle": "Pas encore de données de capture",
+        "emptyDescription": "Ajoutez des objets à vendre pour suivre vos captures !",
+        "captured": "Capturé",
+        "percentTotal": "% Total",
+        "daysActive": "Jours Actifs",
+        "firstLast": "Premier {first} • Dernier {last}"
+      },
+      "priceTrends": {
+        "title": "Tendances des Prix",
+        "subtitle": "Suivez l'évolution des prix dans le temps",
+        "allMonsters": "Tous les Monstres",
+        "monstersTracked": "Monstres Suivis",
+        "avgPriceChange": "Variation Moy. Prix",
+        "biggestGainer": "Plus Grande Hausse",
+        "biggestLoser": "Plus Grande Baisse",
+        "emptyTitle": "Pas de données de tendance",
+        "emptyDescription": "Vendez le même monstre au moins deux fois pour voir les tendances !",
+        "salesTracked": "{count} ventes suivies",
+        "first": "Premier",
+        "latest": "Dernier",
+        "change": "Variation",
+        "avg": "Moy.",
+        "priceHistory": "Historique des Prix",
+        "dataPoints": "{count} points de données",
+        "rising": "En hausse",
+        "falling": "En baisse",
+        "stable": "Stable"
+      },
+      "inconsistencies": {
+        "title": "Incohérences de Prix",
+        "subtitle": "Monstres avec des prix différents dans vos annonces actuelles",
+        "count": "{count} incohérence | {count} incohérences",
+        "perfectTitle": "Prix parfaits !",
+        "perfectDescription": "Tous vos monstres ont des prix cohérents dans vos annonces.",
+        "itemsAndPrices": "{items} objets • {prices} prix différents",
+        "range": "Fourchette",
+        "variation": "+{percent}% var",
+        "average": "Moyenne",
+        "lowest": "Minimum",
+        "highest": "Maximum",
+        "selectAll": "Tout Sélectionner"
+      }
+    }
   },
   "monsters": {
     "kicker": "Bestiaire DofusDB",
@@ -1357,7 +1490,7 @@
   "familiers": {
     "page": {
       "stats": {
-        "totalXp": "XP total (1→100)",
+        "totalXp": "XP total (1→{level})",
         "xpPerKibble": "XP / croquette",
         "equivalentKibbles": "Croquettes équivalentes",
         "targetPricePerKibble": "Prix cible / croquette",
@@ -1368,7 +1501,10 @@
         "reference": "Référence",
         "manual": "Prix manuels",
         "referenceHint": "Compare les prix max selon ton budget croquettes.",
-        "manualHint": "Saisis tes prix HDV et vois le coût réel pour monter un familier niveau 100."
+        "manualHint": "Saisis tes prix HDV et vois le coût réel pour atteindre le niveau choisi."
+      },
+      "targetLevel": {
+        "label": "Niveau cible"
       },
       "reference": {
         "budgetLabel": "Budget total croquettes",
@@ -1382,7 +1518,7 @@
       },
       "manual": {
         "label": "Prix manuels",
-        "hintPrefix": "Le coût niveau 100 =",
+        "hintPrefix": "Le coût au niveau cible =",
         "hintFormula": "prix saisi × quantité nécessaire",
         "hintSuffix": "Les valeurs sont sauvegardées localement.",
         "clear": "Effacer les prix"
@@ -1395,13 +1531,79 @@
         "xp": "XP",
         "qty": "Qté",
         "price": "Prix max",
+        "targetPrice": "Prix cible",
+        "manualPrice": "Prix manuel",
+        "totalCost": "Coût total",
+        "xpPerKama": "XP/kama",
         "name": "Nom"
+      },
+      "views": {
+        "complete": "Liste complète",
+        "zones": "Zones sélectionnées",
+        "essences": "Essences",
+        "best": "Meilleure valeur"
       },
       "tabs": {
         "zones": "Par zone",
         "essences": "Essences gardiens",
         "all": "Tout afficher",
         "complete": "Liste complète"
+      },
+      "filters": {
+        "allZones": "Toutes les zones",
+        "allPrices": "Tous les prix",
+        "priced": "Avec prix",
+        "unpriced": "Sans prix",
+        "minXp": "XP min",
+        "maxXp": "XP max",
+        "maxQty": "Qté max",
+        "maxUnitPrice": "Prix unitaire max",
+        "maxTotalCost": "Coût total max",
+        "maxDungeonLevel": "Niveau donjon max"
+      },
+      "bulk": {
+        "title": "Coller des prix en masse",
+        "hint": "Colle un item par ligne, par exemple : Agathe 1200. Le matching ignore les accents.",
+        "placeholder": "Agathe 1200\nAigue-Marine: 8500",
+        "apply": "Appliquer les prix",
+        "reset": "Vider le collage",
+        "matched": "{count} matchés",
+        "unmatched": "{count} non matchés"
+      },
+      "queue": {
+        "title": "File de vérification HDV",
+        "hint": "Crée une courte liste de candidats réalistes sans prix, copie chaque nom dans l'HDV, saisis le prix, puis appuie sur Entrée.",
+        "build": "Créer la file",
+        "clear": "Vider la file",
+        "copy": "Copier le nom",
+        "copied": "Copié",
+        "saveNext": "Sauver + suivant",
+        "skip": "Passer",
+        "empty": "Crée une file pour vérifier les bons candidats un par un.",
+        "position": "{current} / {total}",
+        "pricePlaceholder": "Prix unitaire HDV"
+      },
+      "progress": {
+        "title": "Progression d'achat",
+        "hint": "Ajoute ce que tu as déjà acheté. Les quantités, coûts, filtres et recommandations utilisent ensuite l'XP restante.",
+        "boughtXp": "XP achetée",
+        "remainingXp": "XP restante",
+        "progress": "Progression",
+        "itemPlaceholder": "Nom de l'item acheté",
+        "qtyPlaceholder": "Qté achetée",
+        "add": "Ajouter l'achat",
+        "remove": "Retirer",
+        "clear": "Vider la progression",
+        "errors": {
+          "unknownItem": "Item introuvable dans les nourritures familiers.",
+          "badQty": "Entre une quantité supérieure à 0."
+        }
+      },
+      "recommendations": {
+        "cheapest": "Niveau cible le moins cher",
+        "bestXpKama": "Meilleur XP/kama",
+        "underTarget": "Sous le prix cible",
+        "lowQty": "Haute XP, faible Qté"
       },
       "sections": {
         "essences": "Essences de gardien de donjon",
@@ -1421,18 +1623,24 @@
         "manualPricePerUnit": "Prix saisi / unité",
         "totalAtTargetPrice": "Coût total au prix cible",
         "totalLevel100": "Coût total lvl 100",
+        "totalTargetLevel": "Coût restant lvl {level}",
         "dungeonLevel": "Niv. donjon",
-        "zoneOrSource": "Zone / Source"
+        "zoneOrSource": "Zone / Source",
+        "group": "Groupe",
+        "xpPerKama": "XP/kama",
+        "fromResources": "depuis ressources",
+        "limited": "{shown} lignes affichées sur {total}. Utilise les filtres ou la recherche pour en voir plus."
       },
       "empty": {
         "items": "Aucun item trouvé.",
-        "essences": "Aucune essence trouvée."
+        "essences": "Aucune essence trouvée.",
+        "recommendations": "Ajoute des prix manuels pour débloquer ce panneau."
       },
       "source": {
         "essenceLevel": "Essence (niv. {level})"
       },
       "misc": {
-        "emptyValue": "\u2014"
+        "emptyValue": "—"
       }
     },
     "guide": {
@@ -1441,8 +1649,8 @@
       "closeAria": "Fermer le guide",
       "eyebrow": "Guide rapide",
       "title": "Choisis un mode, repère un item, lis le coût final",
-      "referenceIntro": "Le mode référence part d’un budget croquettes pour te donner un plafond d’achat par item et le coût total si tu montes un familier 1→100 avec cet item seul.",
-      "manualIntro": "Le mode prix manuels part de tes prix HDV réels et calcule directement combien te coûterait un familier 1→100 avec chaque item.",
+      "referenceIntro": "Le mode référence part d’un budget croquettes pour te donner un plafond d’achat par item et le coût total si tu montes un familier jusqu’au niveau choisi avec cet item seul.",
+      "manualIntro": "Le mode prix manuels part de tes prix HDV réels et calcule directement combien te coûterait un familier jusqu’au niveau choisi avec chaque item.",
       "activeModeLabel": "Mode actif",
       "referenceModeName": "Référence croquettes",
       "manualModeName": "Prix HDV manuels",
@@ -1459,8 +1667,8 @@
         },
         "step3": {
           "title": "Lis d’abord la dernière colonne",
-          "referenceText": "Coût total au prix cible est le vrai total estimé pour monter un familier 1→100 avec cet item seul.",
-          "manualText": "Coût total lvl 100 est le vrai total estimé pour monter un familier 1→100 avec cet item seul."
+          "referenceText": "Coût total au prix cible est le vrai total estimé pour atteindre le niveau choisi avec cet item seul.",
+          "manualText": "Coût total au niveau cible est le vrai total estimé pour atteindre le niveau choisi avec cet item seul."
         }
       },
       "cards": {
@@ -1469,13 +1677,13 @@
           "xpLabel": "XP / unité",
           "xpText": "XP donné par un item.",
           "qtyLabel": "Qté nécessaire",
-          "qtyText": "nombre d’unités nécessaires pour monter 1→100.",
+          "qtyText": "nombre d’unités nécessaires pour atteindre le niveau choisi.",
           "referencePriceLabel": "Prix cible / unité",
           "referencePriceText": "plafond d’achat conseillé par unité.",
           "manualPriceLabel": "Prix saisi / unité",
           "manualPriceText": "prix HDV unitaire que tu as saisi.",
           "referenceTotalLabel": "Coût total au prix cible",
-          "manualTotalLabel": "Coût total lvl 100",
+          "manualTotalLabel": "Coût total au niveau cible",
           "totalText": "montant final estimé."
         },
         "example": {
@@ -1596,92 +1804,90 @@
       "delete": "Supprimer"
     },
     "trackerInterface": {
-  "characterLevel": "Niveau du Personnage",
-  "completed": "Complétés",
-  "percentDone": "{percent}% terminé",
-  "overallProgress": "Progression Globale",
-  "searchPlaceholder": "Rechercher des succès...",
-  "allCategories": "Toutes les Catégories",
-  "statusAll": "Tous",
-  "statusCompleted": "Complétés",
-  "statusRemaining": "Restants",
-  "actions": "Actions",
-  "bulkActions": "Actions groupées :",
-  "markFilteredDone": "Marquer filtrés comme faits",
-  "markFilteredUndone": "Marquer filtrés comme non faits",
-  "export": "Exporter",
-  "import": "Importer",
-  "resetAll": "Réinitialiser",
-  "showing": "Affichage de",
-  "of": "sur",
-  "achievements": "succès",
-  "completedCount": "{count} complétés",
-  "remainingCount": "{count} restants",
-  "loading": "Chargement des succès...",
-  "unknown": "Inconnu",
-  "noDescription": "Pas de description",
-  "levelShort": "Niv.{level}",
-  "noAchievements": "Aucun succès trouvé",
-  "tryAdjusting": "Essayez d'ajuster vos filtres",
-  "previous": "Précédent",
-  "next": "Suivant",
-  "noCategory": "Pas de catégorie",
-  "markNotCompleted": "✗ Marquer comme non complété",
-  "markCompleted": "✓ Marquer comme complété",
-  "description": "Description",
-  "level": "Niveau",
-  "id": "ID",
-  "na": "N/A",
-  "rewardsAtLevel": "Récompenses (au Niv.{level})",
-  "xp": "XP",
-  "kamas": "Kamas",
-  "guildPoints": "Points de Guilde",
-  "itemRewards": "Objets",
-  "unknownItem": "Objet Inconnu",
-  "item": "Objet",
-  "titles": "Titres",
-  "ornaments": "Ornements",
-  "emotes": "Emotes",
-  "emoteNumber": "Emote #{id}",
-  "resetProgressTitle": "Réinitialiser la progression ?",
-  "resetProgressMessage": "Cela supprimera toutes les données de complétion pour ce personnage. Cette action est irréversible.",
-  "cancel": "Annuler"
-},
-"multiTracker": {
-  "selectTitle": "Sélectionnez les Personnages à Comparer",
-  "selectSubtitle": "Choisissez jusqu'à {max} personnages",
-  "selectedCount": "{count} / {max} sélectionnés",
-  "clearAll": "Tout Effacer",
-  "emptyTitle": "Sélectionnez des personnages pour commencer",
-  "emptyDescription": "Cliquez sur les personnages ci-dessus pour les ajouter à la comparaison",
-  "totalCompleted": "Total Complétés",
-  "uniqueAchievements": "Succès Uniques",
-  "searchPlaceholder": "Rechercher des succès...",
-  "allCategories": "Toutes les Catégories",
-  "filterAll": "Tous les Succès",
-  "filterNone": "Aucun Complété",
-  "filterPartial": "Partiellement Complétés",
-  "filterAllCompleted": "Tous les Personnages Complétés",
-  "tableView": "Vue Tableau",
-  "gridView": "Vue Grille",
-  "loading": "Chargement des succès...",
-  "achievement": "Succès",
-  "xpAtLevel": "XP (Niv.{level})",
-  "kamas": "Kamas",
-  "xp": "XP",
-  "unknown": "Inconnu",
-  "levelShort": "Niv.{level}",
-  "completionStatus": "{done}/{total} faits",
-  "noMatch": "Aucun succès ne correspond à vos filtres",
-  "previous": "Précédent",
-  "next": "Suivant",
-  "noCategory": "Pas de catégorie",
-  "characterProgress": "Progression des Personnages",
-  "description": "Description",
-  "noDescription": "Pas de description",
-  "rewards": "Récompenses"
-}
+      "characterLevel": "Niveau du Personnage",
+      "completed": "Complétés",
+      "percentDone": "{percent}% terminé",
+      "overallProgress": "Progression Globale",
+      "searchPlaceholder": "Rechercher des succès...",
+      "allCategories": "Toutes les Catégories",
+      "statusAll": "Tous",
+      "statusCompleted": "Complétés",
+      "statusRemaining": "Restants",
+      "actions": "Actions",
+      "bulkActions": "Actions groupées :",
+      "markFilteredDone": "Marquer filtrés comme faits",
+      "markFilteredUndone": "Marquer filtrés comme non faits",
+      "export": "Exporter",
+      "import": "Importer",
+      "resetAll": "Réinitialiser",
+      "showing": "Affichage de",
+      "of": "sur",
+      "achievements": "succès",
+      "completedCount": "{count} complétés",
+      "remainingCount": "{count} restants",
+      "loading": "Chargement des succès...",
+      "unknown": "Inconnu",
+      "noDescription": "Pas de description",
+      "levelShort": "Niv.{level}",
+      "noAchievements": "Aucun succès trouvé",
+      "tryAdjusting": "Essayez d'ajuster vos filtres",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "noCategory": "Pas de catégorie",
+      "markNotCompleted": "✗ Marquer comme non complété",
+      "markCompleted": "✓ Marquer comme complété",
+      "description": "Description",
+      "level": "Niveau",
+      "id": "ID",
+      "na": "N/A",
+      "rewardsAtLevel": "Récompenses (au Niv.{level})",
+      "xp": "XP",
+      "kamas": "Kamas",
+      "guildPoints": "Points de Guilde",
+      "itemRewards": "Objets",
+      "unknownItem": "Objet Inconnu",
+      "item": "Objet",
+      "titles": "Titres",
+      "ornaments": "Ornements",
+      "emotes": "Emotes",
+      "emoteNumber": "Emote #{id}",
+      "resetProgressTitle": "Réinitialiser la progression ?",
+      "resetProgressMessage": "Cela supprimera toutes les données de complétion pour ce personnage. Cette action est irréversible.",
+      "cancel": "Annuler"
+    },
+    "multiTracker": {
+      "selectTitle": "Sélectionnez les Personnages à Comparer",
+      "selectSubtitle": "Choisissez jusqu'à {max} personnages",
+      "selectedCount": "{count} / {max} sélectionnés",
+      "clearAll": "Tout Effacer",
+      "emptyTitle": "Sélectionnez des personnages pour commencer",
+      "emptyDescription": "Cliquez sur les personnages ci-dessus pour les ajouter à la comparaison",
+      "totalCompleted": "Total Complétés",
+      "uniqueAchievements": "Succès Uniques",
+      "searchPlaceholder": "Rechercher des succès...",
+      "allCategories": "Toutes les Catégories",
+      "filterAll": "Tous les Succès",
+      "filterNone": "Aucun Complété",
+      "filterPartial": "Partiellement Complétés",
+      "filterAllCompleted": "Tous les Personnages Complétés",
+      "tableView": "Vue Tableau",
+      "gridView": "Vue Grille",
+      "loading": "Chargement des succès...",
+      "achievement": "Succès",
+      "xpAtLevel": "XP (Niv.{level})",
+      "kamas": "Kamas",
+      "xp": "XP",
+      "unknown": "Inconnu",
+      "levelShort": "Niv.{level}",
+      "completionStatus": "{done}/{total} faits",
+      "noMatch": "Aucun succès ne correspond à vos filtres",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "noCategory": "Pas de catégorie",
+      "characterProgress": "Progression des Personnages",
+      "description": "Description",
+      "noDescription": "Pas de description",
+      "rewards": "Récompenses"
+    }
   }
-  
 }
-  

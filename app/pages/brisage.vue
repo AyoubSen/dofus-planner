@@ -11,7 +11,37 @@
     </div>
 
     <template v-else>
-      <div class="br-stats">
+      <section class="br-next">
+        <div>
+          <div class="br-next__eyebrow">Break Items</div>
+          <h2>{{ brisageNextAction.title }}</h2>
+          <p>{{ brisageNextAction.desc }}</p>
+        </div>
+        <button class="br-submit-btn br-submit-btn--secondary br-next__btn" @click="runBrisageNextAction">
+          {{ brisageNextAction.cta }}
+        </button>
+      </section>
+
+      <div class="br-flow__actions br-main-tabs">
+        <button class="br-flow-tab" :class="{ 'br-flow-tab--active': activeMainTab === 'history' }" @click="activeMainTab = 'history'">
+          Realized Brisage History
+          <span class="br-badge">{{ sessions.length }}</span>
+        </button>
+        <button class="br-flow-tab" :class="{ 'br-flow-tab--active': activeMainTab === 'opportunities' }" @click="activeMainTab = 'opportunities'">
+          Brisage Opportunities
+          <span class="br-badge">{{ brisageOpportunities.length }}</span>
+        </button>
+        <button class="br-flow-tab" :class="{ 'br-flow-tab--active': activeMainTab === 'prices' }" @click="activeMainTab = 'prices'">
+          Market Prices
+          <span class="br-badge">{{ marketPrices.length }}</span>
+        </button>
+      </div>
+
+      <div v-if="activeMainTab === 'history'" class="br-warning">
+        This is a historical result, not a future prediction. Rune value is theoretical until sold.
+      </div>
+
+      <div v-if="activeMainTab === 'history'" class="br-stats">
         <div class="br-stat">
           <div class="br-stat__icon">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +95,7 @@
         </div>
       </div>
 
-      <div class="br-flow">
+      <div v-if="activeMainTab === 'history'" class="br-flow">
         <div class="br-flow__actions">
           <button class="br-flow-tab" :class="{ 'br-flow-tab--active': brisageMode === 'history' }" @click="showSessionHistory">
             {{ $t('v2.brisage.sections.sessionHistory') }}
@@ -93,7 +123,7 @@
         </div>
       </div>
 
-      <div class="br-layout" :class="`br-layout--${brisageMode}`">
+      <div v-if="activeMainTab === 'history'" class="br-layout" :class="`br-layout--${brisageMode}`">
         <div v-show="brisageMode === 'builder'" class="br-panel">
           <div class="br-panel-title">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,12 +341,105 @@
 
                     <div class="br-form__row">
                       <div class="br-form__field">
-                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.estimatedRuneValue') }}</label>
-                        <input v-model.number="run.realizedRuneValue" type="number" min="0" step="1000" class="br-field-input" />
+                        <label class="br-field-lbl">Theoretical rune value</label>
+                        <input v-model.number="run.theoreticalRuneValue" type="number" min="0" step="1000" class="br-field-input" />
                       </div>
                       <div class="br-form__field">
-                        <label class="br-field-lbl">{{ $t('v2.brisage.fields.runNote') }}</label>
-                        <input v-model="run.notes" type="text" :placeholder="$t('v2.brisage.placeholders.runNote')" class="br-field-input" />
+                        <label class="br-field-lbl">Actual sold rune value</label>
+                        <input v-model.number="run.actualSoldRuneValue" type="number" min="0" step="1000" class="br-field-input" />
+                      </div>
+                    </div>
+
+                    <div class="br-form__row">
+                      <div class="br-form__field">
+                        <label class="br-field-lbl">Unsold rune value</label>
+                        <input v-model.number="run.unsoldRuneValue" type="number" min="0" step="1000" class="br-field-input" />
+                      </div>
+                      <div class="br-form__field">
+                        <label class="br-field-lbl">Sale notes</label>
+                        <input v-model="run.saleNotes" type="text" placeholder="Sold price, date, undercut notes..." class="br-field-input" />
+                      </div>
+                    </div>
+
+                    <label class="br-check-row">
+                      <input v-model="run.soldConfirmed" type="checkbox">
+                      <span>Sold runes confirmed</span>
+                    </label>
+
+                    <div class="br-rune-output-box">
+                      <div class="br-rune-output-box__head">
+                        <div>
+                          <div class="br-rune-output-box__title">Rune outputs</div>
+                          <div class="br-field-help">Enter how many of each rune you got. Paper value uses the latest rune price from Market Prices.</div>
+                        </div>
+                        <button class="br-submit-btn br-submit-btn--secondary" @click="addRuneOutputToRun(run)">Add rune</button>
+                      </div>
+
+                      <div v-if="!run.runeOutputs.length" class="br-empty-hint">No rune outputs recorded for this run.</div>
+
+                      <div v-for="output in run.runeOutputs" :key="output.id" class="br-rune-output-row">
+                        <div class="br-form__field">
+                          <label class="br-field-lbl">Rune</label>
+                          <V2Select
+                            :model-value="output.runeName || null"
+                            :options="runePriceOptions"
+                            placeholder="Select rune"
+                            @update:model-value="setRuneOutputName(output, $event)"
+                          />
+                          <input v-model="output.runeName" type="text" class="br-field-input br-rune-output-row__manual" placeholder="Or type rune name" @change="refreshRuneOutputValue(output); refreshRunRuneValues(run)" />
+                        </div>
+                        <div class="br-form__field">
+                          <label class="br-field-lbl">Quantity got</label>
+                          <input v-model.number="output.quantity" type="number" min="0" class="br-field-input" @change="refreshRuneOutputValue(output); refreshRunRuneValues(run)" />
+                        </div>
+                        <div class="br-form__field">
+                          <label class="br-field-lbl">Sold qty</label>
+                          <input v-model.number="output.soldQuantity" type="number" min="0" class="br-field-input" @change="refreshRuneOutputValue(output); refreshRunRuneValues(run)" />
+                        </div>
+                        <div class="br-form__field">
+                          <label class="br-field-lbl">Sold value</label>
+                          <input v-model.number="output.actualSoldValue" type="number" min="0" step="1000" class="br-field-input" @change="refreshRunRuneValues(run)" />
+                        </div>
+                        <div class="br-rune-output-row__value">
+                          <span>Unit {{ formatKamas(outputUnitPrice(output)) }}</span>
+                          <strong>{{ formatKamas(output.theoreticalValue) }}</strong>
+                        </div>
+                        <button class="br-entry__del" @click="removeRuneOutputFromRun(run, output.id)">Remove</button>
+                      </div>
+
+                      <div v-if="run.runeOutputs.length" class="br-profit-preview">
+                        <div class="br-profit-row">
+                          <span>Output paper value</span>
+                          <span>{{ formatKamas(runRuneOutputTheoreticalValue(run)) }}</span>
+                        </div>
+                        <div class="br-profit-row">
+                          <span>Output sold value</span>
+                          <span>{{ formatKamas(runRuneOutputSoldValue(run)) }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="br-form__field">
+                      <label class="br-field-lbl">{{ $t('v2.brisage.fields.runNote') }}</label>
+                      <input v-model="run.notes" type="text" :placeholder="$t('v2.brisage.placeholders.runNote')" class="br-field-input" />
+                    </div>
+
+                    <div class="br-warning br-warning--compact" v-if="!run.soldConfirmed">
+                      Rune value is theoretical until sold.
+                    </div>
+
+                    <div class="br-profit-preview">
+                      <div class="br-profit-row">
+                        <span>Paper profit</span>
+                        <span :class="runPaperProfit(run) >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                          {{ runPaperProfit(run) >= 0 ? '+' : '' }}{{ formatKamas(runPaperProfit(run)) }}
+                        </span>
+                      </div>
+                      <div class="br-profit-row">
+                        <span>Realized profit</span>
+                        <span :class="runRealizedProfit(run) >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                          {{ runRealizedProfit(run) >= 0 ? '+' : '' }}{{ formatKamas(runRealizedProfit(run)) }}
+                        </span>
                       </div>
                     </div>
 
@@ -572,14 +695,273 @@
           </div>
         </div>
       </div>
+
+      <div v-if="activeMainTab === 'opportunities'" class="br-panel br-op-panel">
+        <div class="br-panel-title">
+          Brisage Opportunities
+          <span class="br-badge">EV, not guaranteed profit</span>
+        </div>
+
+        <div class="br-warning">
+          Future opportunities use manual market prices and risk assumptions. Validate with small batches first, especially around an 8M bankroll.
+        </div>
+
+        <div class="br-form br-settings-grid">
+          <div class="br-form__field">
+            <label class="br-field-lbl">Candidate category</label>
+            <V2Select
+              :model-value="draftSession.categoryTypeIds[0] ?? null"
+              :options="brisageCategorySelectOptions"
+              placeholder="Select category"
+              @update:model-value="setSingleOpportunityCategory"
+            />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Level min</label>
+            <input v-model.number="draftSession.levelMin" type="number" min="1" max="200" class="br-field-input" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Level max</label>
+            <input v-model.number="draftSession.levelMax" type="number" min="1" max="200" class="br-field-input" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Bankroll</label>
+            <input v-model.number="opportunityConfig.bankroll" type="number" step="1000" class="br-field-input" @change="saveOpportunitySettings" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Safety markup %</label>
+            <input v-model.number="opportunityConfig.safetyMarkupPercent" type="number" min="0" class="br-field-input" @change="saveOpportunitySettings" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Pessimistic multiplier</label>
+            <input v-model.number="opportunityConfig.pessimisticRuneMultiplier" type="number" min="0" max="1" step="0.05" class="br-field-input" @change="saveOpportunitySettings" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Batch bankroll %</label>
+            <input v-model.number="opportunityConfig.bankrollBatchPercent" type="number" min="1" max="100" class="br-field-input" @change="saveOpportunitySettings" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Max batch cap</label>
+            <input v-model.number="opportunityConfig.maxBatchCostCap" type="number" step="1000" class="br-field-input" @change="saveOpportunitySettings" />
+          </div>
+        </div>
+
+        <div class="br-batch-controls">
+          <button
+            class="br-submit-btn br-submit-btn--secondary"
+            :disabled="!draftSession.categoryTypeIds.length || !draftSession.levelMin || !draftSession.levelMax || loadingBatchResults"
+            @click="loadCategoryBatch"
+          >
+            Load candidate items
+          </button>
+          <div class="br-field-help">Use the same category and level filters from the history builder, then add candidates below.</div>
+        </div>
+
+        <div class="br-results" v-if="results.length">
+          <button v-for="item in results.slice(0, 20)" :key="`opp-${item.id}`" class="br-result" @click="addOpportunityFromItem(item)">
+            <img :src="getItemImg(item)" :alt="item.name?.fr ?? ''" class="br-result__img" @error="onImgErr" />
+            <div class="br-result__info">
+              <div class="br-result__name">{{ item.name?.fr ?? item.id }}</div>
+              <div class="br-result__sub">{{ item.type?.name?.fr ?? '' }} · Lv {{ item.level ?? '?' }}</div>
+            </div>
+            <span class="br-result__cta">Track EV</span>
+          </button>
+        </div>
+
+        <div v-if="!brisageOpportunities.length" class="br-log-empty">
+          Add candidate items to calculate craft cost, EV, risk, and bankroll-aware batch sizing.
+        </div>
+
+        <div v-else class="br-op-list">
+          <div v-for="opportunity in brisageOpportunities" :key="opportunity.id" class="br-entry">
+            <div class="br-entry__header">
+              <div class="br-entry__meta">
+                <div class="br-entry__name">{{ opportunity.itemName }}</div>
+                <div class="br-entry__sub">
+                  {{ opportunity.status }} · Risk {{ opportunity.riskLevel }} · x{{ opportunity.recommendedQuantity }} validation batch
+                </div>
+              </div>
+              <button class="br-entry__del" @click="removeOpportunityCandidate(opportunity.id)">Remove</button>
+            </div>
+
+            <div class="br-entry__prices">
+              <div class="br-price-cell">
+                <div class="br-price-cell__lbl">Craft cost</div>
+                <div class="br-price-cell__val">{{ formatKamas(opportunity.craftCost) }}</div>
+              </div>
+              <div class="br-price-cell">
+                <div class="br-price-cell__lbl">Conservative cost</div>
+                <div class="br-price-cell__val">{{ formatKamas(opportunity.conservativeCraftCost) }}</div>
+              </div>
+              <div class="br-price-cell">
+                <div class="br-price-cell__lbl">Estimated runes</div>
+                <div class="br-price-cell__val">{{ formatKamas(opportunity.estimatedRuneValue) }}</div>
+              </div>
+              <div class="br-price-cell">
+                <div class="br-price-cell__lbl">Pessimistic profit</div>
+                <div class="br-price-cell__val" :class="opportunity.pessimisticProfit >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                  {{ opportunity.pessimisticProfit >= 0 ? '+' : '' }}{{ formatKamas(opportunity.pessimisticProfit) }}
+                </div>
+              </div>
+            </div>
+
+            <div class="br-entry__profits">
+              <div class="br-profit-pill" :class="opportunity.expectedProfit >= 0 ? 'br-profit-pill--pos' : 'br-profit-pill--neg'">
+                EV: {{ opportunity.expectedProfit >= 0 ? '+' : '' }}{{ formatKamas(opportunity.expectedProfit) }}
+              </div>
+              <div class="br-profit-pill">
+                Margin: {{ opportunity.marginPercent >= 0 ? '+' : '' }}{{ opportunity.marginPercent }}%
+              </div>
+              <div class="br-profit-pill">
+                Batch: {{ formatKamas(opportunity.recommendedBatchCost) }} / {{ opportunity.bankrollExposurePercent }}%
+              </div>
+              <div class="br-profit-pill" v-if="opportunity.missingPriceCount">
+                Missing prices: {{ opportunity.missingPriceCount }}
+              </div>
+            </div>
+
+            <div v-if="opportunity.warnings.length" class="br-warning br-warning--compact">
+              <div v-for="warning in opportunity.warnings" :key="warning">{{ warning }}</div>
+            </div>
+
+            <div class="br-form br-settings-grid">
+              <template v-for="candidate in opportunityCandidates.filter(candidate => candidate.id === opportunity.id)" :key="candidate.id">
+                <div class="br-form__field">
+                  <label class="br-field-lbl">Status</label>
+                  <V2Select
+                    v-model="candidate.status"
+                    :options="opportunityStatusOptions"
+                    placeholder="Select status"
+                    @update:model-value="updateOpportunityCandidate(candidate)"
+                  />
+                </div>
+                <div class="br-form__field">
+                  <label class="br-field-lbl">Manual estimated rune value</label>
+                  <input v-model.number="candidate.expectedRuneValueManual" type="number" step="1000" class="br-field-input" @change="updateOpportunityCandidate(candidate)" />
+                </div>
+                <div class="br-form__field">
+                  <label class="br-field-lbl">Sample size</label>
+                  <input v-model.number="candidate.sampleSize" type="number" min="0" class="br-field-input" @change="updateOpportunityCandidate(candidate)" />
+                </div>
+                <div class="br-form__field">
+                  <label class="br-field-lbl">Unsold rune value</label>
+                  <input v-model.number="candidate.unsoldRuneValue" type="number" min="0" step="1000" class="br-field-input" @change="updateOpportunityCandidate(candidate)" />
+                </div>
+                <button class="br-submit-btn br-submit-btn--secondary" @click="applyStatusSuggestion(candidate)">
+                  Apply history status
+                </button>
+                <div class="br-field-help">Sold confirmed sessions: {{ soldConfirmedSessionCount(candidate) }}</div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="activeMainTab === 'prices'" class="br-panel br-op-panel">
+        <div class="br-panel-title">Market Prices</div>
+        <div class="br-warning">Manual Kourial price book. Add rune prices morning/evening; every save is kept as a timestamped history point. Fresh under 24h, aging 24h-72h, stale over 72h.</div>
+
+        <div class="br-form br-settings-grid">
+          <div class="br-form__field">
+            <label class="br-field-lbl">Name</label>
+            <input v-model="marketPriceDraft.name" type="text" class="br-field-input" placeholder="Rune or resource name" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Item/resource/rune id</label>
+            <input v-model="marketPriceDraft.itemId" type="text" class="br-field-input" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Kind</label>
+            <V2Select v-model="marketPriceDraft.kind" :options="marketPriceKindOptions" placeholder="Select kind" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Price</label>
+            <input v-model.number="marketPriceDraft.price" type="number" min="0" step="1" class="br-field-input" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Quantity basis</label>
+            <input v-model.number="marketPriceDraft.quantityBasis" type="number" min="1" class="br-field-input" />
+          </div>
+          <div class="br-form__field">
+            <label class="br-field-lbl">Note</label>
+            <input v-model="marketPriceDraft.note" type="text" class="br-field-input" />
+          </div>
+          <button class="br-submit-btn" @click="addMarketPrice">Save price</button>
+        </div>
+
+        <div v-if="!marketPrices.length" class="br-log-empty">No manual market prices yet.</div>
+
+        <div v-if="latestRunePrices.length" class="br-panel-title br-panel-title--sub">Latest rune prices</div>
+        <div v-if="latestRunePrices.length" class="br-resource-list br-resource-list--saved">
+          <div v-for="price in latestRunePrices" :key="`latest-rune-${price.id}`" class="br-resource-row br-resource-row--saved">
+            <div class="br-resource-row__meta">
+              <div class="br-resource-row__name">{{ price.name }}</div>
+              <div class="br-resource-row__sub">
+                {{ freshnessLabel(price.timestamp) }} · unit {{ formatKamas(unitMarketPrice(price) ?? 0) }}
+                <span v-if="priceTrend(price) !== null" :class="priceTrend(price)! >= 0 ? 'br-profit--up' : 'br-profit--down'">
+                  · {{ priceTrend(price)! >= 0 ? '+' : '' }}{{ priceTrend(price) }}% vs previous
+                </span>
+              </div>
+              <div v-if="price.note" class="br-resource-row__sub">{{ price.note }}</div>
+            </div>
+            <div class="br-resource-row__qty">{{ formatKamas(price.price) }} / x{{ price.quantityBasis }}</div>
+            <div class="br-resource-row__sub">{{ priceHistoryCount(price) }} point{{ priceHistoryCount(price) === 1 ? '' : 's' }}</div>
+          </div>
+        </div>
+
+        <div v-if="latestResourcePrices.length" class="br-panel-title br-panel-title--sub">Latest resource / item prices</div>
+        <div v-if="latestResourcePrices.length" class="br-resource-list br-resource-list--saved">
+          <div v-for="price in latestResourcePrices" :key="`latest-resource-${price.id}`" class="br-resource-row br-resource-row--saved">
+            <div class="br-resource-row__meta">
+              <div class="br-resource-row__name">{{ price.name }}</div>
+              <div class="br-resource-row__sub">
+                {{ priceKindLabel(price.kind) }} · {{ freshnessLabel(price.timestamp) }} · unit {{ formatKamas(unitMarketPrice(price) ?? 0) }}
+              </div>
+              <div v-if="price.note" class="br-resource-row__sub">{{ price.note }}</div>
+            </div>
+            <div class="br-resource-row__qty">{{ formatKamas(price.price) }} / x{{ price.quantityBasis }}</div>
+          </div>
+        </div>
+
+        <div v-if="marketPrices.length" class="br-panel-title br-panel-title--sub">Recent price entries</div>
+        <div v-if="marketPrices.length" class="br-resource-list br-resource-list--saved">
+          <div v-for="price in marketPrices.slice(0, 20)" :key="price.id" class="br-resource-row br-resource-row--saved">
+            <div class="br-resource-row__meta">
+              <div class="br-resource-row__name">{{ price.name }}</div>
+              <div class="br-resource-row__sub">
+                {{ priceKindLabel(price.kind) }} · {{ formatDisplayDate(price.timestamp) }} · unit {{ formatKamas(unitMarketPrice(price) ?? 0) }}
+              </div>
+            </div>
+            <div class="br-resource-row__qty">{{ formatKamas(price.price) }} / x{{ price.quantityBasis }}</div>
+            <button class="br-entry__del" @click="removeMarketPrice(price.id)">Remove entry</button>
+          </div>
+        </div>
+      </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { BRISAGE_CATEGORY_OPTIONS } from '@/data/brisageCategories'
+import type { BrisageOpportunityCandidate, BrisageOpportunityConfig, OpportunityStatus } from '@/utils/brisageOpportunities'
+import { buildBrisageOpportunity, defaultBrisageOpportunityConfig, rankBrisageOpportunities } from '@/utils/brisageOpportunities'
+import type { MarketPrice, MarketPriceKind } from '@/utils/marketPrices'
+import { createMarketPrice, latestMarketPrices, loadMarketPrices, marketPriceHistoryFor, marketPriceTrendPercent, normalizeMarketPriceName, priceFreshness, saveMarketPrices, unitMarketPrice } from '@/utils/marketPrices'
+import {
+  itemActualSoldRuneValue,
+  itemCraftTotal,
+  itemQuantityTotal,
+  itemRealizedProfit,
+  brisageMarginPercent,
+  runCraftCost,
+  runPaperProfit,
+  runRealizedProfit,
+  runRuneOutputSoldValue,
+  runRuneOutputTheoreticalValue,
+  sessionQuantityTotal,
+  sessionTotals as accountingSessionTotals,
+} from '@/utils/brisageAccounting'
 
-definePageMeta({ layout: 'v2' })
 const { t } = useI18n()
 
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
@@ -598,7 +980,24 @@ interface BrisageItemRun {
   buyStartKamas: number
   buyEndKamas: number
   realizedRuneValue: number
+  theoreticalRuneValue: number
+  actualSoldRuneValue: number
+  unsoldRuneValue: number
+  soldConfirmed: boolean
+  saleNotes: string
+  runeOutputs: BrisageRunRuneOutput[]
   notes: string
+}
+
+interface BrisageRunRuneOutput {
+  id: string
+  runeId: string | number | null
+  runeName: string
+  quantity: number
+  soldQuantity: number
+  actualSoldValue: number
+  theoreticalValue: number
+  note: string
 }
 
 interface BrisageSessionResource {
@@ -653,8 +1052,18 @@ const sessionsKey = computed(() =>
 const legacyEntriesKey = computed(() =>
   `brisage_entries_${selectedServer.value?.id}_${selectedCharacter.value?.id}`,
 )
+const opportunityCandidatesKey = computed(() =>
+  `brisage_opportunity_candidates_v1_${selectedServer.value?.id}_${selectedCharacter.value?.id}`,
+)
+const opportunityConfigKey = computed(() =>
+  `brisage_opportunity_config_v1_${selectedServer.value?.id}_${selectedCharacter.value?.id}`,
+)
 
 const sessions = ref<BrisageSession[]>([])
+const marketPrices = ref<MarketPrice[]>([])
+const opportunityCandidates = ref<BrisageOpportunityCandidate[]>([])
+const opportunityConfig = ref<BrisageOpportunityConfig>(defaultBrisageOpportunityConfig())
+const activeMainTab = ref<'history' | 'opportunities' | 'prices'>('history')
 const draftItems = ref<BrisageSessionItem[]>([])
 const expandedDraftItemIds = ref<string[]>([])
 const expandedSessionIds = ref<string[]>([])
@@ -668,6 +1077,40 @@ const recipeChecklistState = ref({
   isLoading: false,
   error: '',
 })
+
+const brisageNextAction = computed(() => {
+  if (draftItems.value.length > 0 || brisageMode.value === 'builder') {
+    return {
+      title: 'Finish the current brisage log',
+      desc: 'Save the session before checking more opportunities so paper value and realized rune sales stay tied to one experiment.',
+      cta: 'Continue session',
+      target: 'builder' as const,
+    }
+  }
+  if (marketPrices.value.length === 0) {
+    return {
+      title: 'Add rune prices before trusting opportunities',
+      desc: 'Brisage estimates are only useful when rune/resource prices are fresh. Start with the prices you actually check in HDV.',
+      cta: 'Open prices',
+      target: 'prices' as const,
+    }
+  }
+  return {
+    title: 'Log a small realized brisage session',
+    desc: 'Use history first. Opportunities are expected value only; profit becomes real when runes are sold or confirmed.',
+    cta: 'Start session',
+    target: 'builder' as const,
+  }
+})
+
+const runBrisageNextAction = () => {
+  if (brisageNextAction.value.target === 'prices') {
+    activeMainTab.value = 'prices'
+    return
+  }
+  activeMainTab.value = 'history'
+  startSessionBuilder()
+}
 const draftSession = ref({
   date: todayISO(),
   startingKamas: 0,
@@ -689,6 +1132,52 @@ const loadingBatchResults = ref(false)
 const categoryPickerOpen = ref(false)
 const categoryPickerEl = ref<HTMLElement | null>(null)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+const marketPriceDraft = ref({
+  itemId: '',
+  name: '',
+  kind: 'resource' as MarketPriceKind,
+  price: 0,
+  quantityBasis: 1,
+  note: '',
+})
+
+const brisageCategorySelectOptions = computed(() => [
+  { key: 'none', label: 'Select category', value: null },
+  ...BRISAGE_CATEGORY_OPTIONS.map(option => ({
+    key: String(option.typeId),
+    label: option.label,
+    value: option.typeId,
+  })),
+])
+
+const opportunityStatusOptions = [
+  { key: 'idea', label: 'Idea', value: 'idea', description: 'Fresh lead, not tested yet.' },
+  { key: 'test-batch', label: 'Test batch', value: 'test-batch', description: 'One profitable sold-confirmed run.' },
+  { key: 'validated', label: 'Validated', value: 'validated', description: 'Two separate profitable sold-confirmed runs.' },
+  { key: 'scaled', label: 'Scaled', value: 'scaled', description: 'Validated and being repeated cautiously.' },
+  { key: 'retired', label: 'Retired', value: 'retired', description: 'No longer worth testing.' },
+]
+
+const marketPriceKindOptions = [
+  { key: 'resource', label: 'Resource', value: 'resource', description: 'Craft ingredient price.' },
+  { key: 'rune', label: 'Rune', value: 'rune', description: 'Rune sell price basis.' },
+  { key: 'finished-item', label: 'Finished item', value: 'finished-item', description: 'Optional crafted item reference.' },
+]
+
+const latestPrices = computed(() => latestMarketPrices(marketPrices.value))
+const latestRunePrices = computed(() => latestPrices.value.filter(price => price.kind === 'rune'))
+const latestResourcePrices = computed(() => latestPrices.value.filter(price => price.kind !== 'rune'))
+
+const runePriceOptions = computed(() => [
+  { key: 'manual', label: 'Type rune name manually', value: null },
+  ...latestRunePrices.value.map(price => ({
+    key: price.id,
+    label: price.name,
+    value: price.name,
+    description: `${formatKamas(unitMarketPrice(price) ?? 0)} each · ${freshnessLabel(price.timestamp)}`,
+  })),
+])
 
 const normalizeLevelValue = (value: unknown) => {
   const num = Number(value)
@@ -728,13 +1217,39 @@ const normalizeSessionItem = (record: any): BrisageSessionItem | null => {
 
 const normalizeItemRun = (record: any): BrisageItemRun | null => {
   if (!record?.id) return null
+  const theoreticalRuneValue = Math.max(0, Number(record.theoreticalRuneValue ?? record.realizedRuneValue ?? 0) || 0)
+  const actualSoldRuneValue = Math.max(0, Number(record.actualSoldRuneValue ?? record.realizedRuneValue ?? 0) || 0)
+  const runeOutputs = Array.isArray(record.runeOutputs)
+    ? record.runeOutputs.map(normalizeRuneOutput).filter(Boolean) as BrisageRunRuneOutput[]
+    : []
   return {
     id: String(record.id),
     quantity: Math.max(1, Number(record.quantity ?? 1) || 1),
     buyStartKamas: Math.max(0, Number(record.buyStartKamas ?? 0) || 0),
     buyEndKamas: Math.max(0, Number(record.buyEndKamas ?? 0) || 0),
-    realizedRuneValue: Math.max(0, Number(record.realizedRuneValue ?? 0) || 0),
+    realizedRuneValue: theoreticalRuneValue,
+    theoreticalRuneValue,
+    actualSoldRuneValue,
+    unsoldRuneValue: Math.max(0, Number(record.unsoldRuneValue ?? Math.max(0, theoreticalRuneValue - actualSoldRuneValue)) || 0),
+    soldConfirmed: Boolean(record.soldConfirmed ?? actualSoldRuneValue > 0),
+    saleNotes: String(record.saleNotes ?? ''),
+    runeOutputs,
     notes: String(record.notes ?? ''),
+  }
+}
+
+const normalizeRuneOutput = (record: any): BrisageRunRuneOutput | null => {
+  const runeName = String(record?.runeName ?? '').trim()
+  if (!runeName) return null
+  return {
+    id: String(record?.id || crypto.randomUUID()),
+    runeId: record?.runeId ?? null,
+    runeName,
+    quantity: Math.max(0, Number(record?.quantity ?? 0) || 0),
+    soldQuantity: Math.max(0, Number(record?.soldQuantity ?? 0) || 0),
+    actualSoldValue: Math.max(0, Number(record?.actualSoldValue ?? 0) || 0),
+    theoreticalValue: Math.max(0, Number(record?.theoreticalValue ?? 0) || 0),
+    note: String(record?.note ?? ''),
   }
 }
 
@@ -750,6 +1265,12 @@ const buildFallbackRuns = (record: any): BrisageItemRun[] => {
     buyStartKamas: fallbackCost,
     buyEndKamas: 0,
     realizedRuneValue: Math.max(0, Number(record?.realizedRuneValue ?? 0) || 0),
+    theoreticalRuneValue: Math.max(0, Number(record?.theoreticalRuneValue ?? record?.realizedRuneValue ?? 0) || 0),
+    actualSoldRuneValue: Math.max(0, Number(record?.actualSoldRuneValue ?? record?.realizedRuneValue ?? 0) || 0),
+    unsoldRuneValue: Math.max(0, Number(record?.unsoldRuneValue ?? 0) || 0),
+    soldConfirmed: Boolean(record?.soldConfirmed ?? record?.realizedRuneValue > 0),
+    saleNotes: String(record?.saleNotes ?? ''),
+    runeOutputs: [],
     notes: String(record?.notes ?? ''),
   }]
 }
@@ -844,6 +1365,12 @@ const migrateLegacyEntries = (legacyEntries: LegacyBrisageEntry[]) =>
             buyStartKamas: entry.craftPrice,
             buyEndKamas: 0,
             realizedRuneValue: entry.runeValue,
+            theoreticalRuneValue: entry.runeValue,
+            actualSoldRuneValue: entry.runeValue,
+            unsoldRuneValue: 0,
+            soldConfirmed: true,
+            saleNotes: 'Migrated legacy brisage value.',
+            runeOutputs: [],
             notes: entry.notes,
           },
         ],
@@ -854,6 +1381,12 @@ const migrateLegacyEntries = (legacyEntries: LegacyBrisageEntry[]) =>
 
 const saveSessions = () =>
   localStorage.setItem(sessionsKey.value, JSON.stringify(sessions.value))
+
+const saveOpportunityCandidates = () =>
+  localStorage.setItem(opportunityCandidatesKey.value, JSON.stringify(opportunityCandidates.value))
+
+const saveOpportunityConfig = () =>
+  localStorage.setItem(opportunityConfigKey.value, JSON.stringify(opportunityConfig.value))
 
 const loadData = () => {
   if (!hasContext.value) return
@@ -876,6 +1409,44 @@ const loadData = () => {
 
   sessions.value = migrateLegacyEntries(normalizedLegacyEntries)
   saveSessions()
+}
+
+const normalizeOpportunityCandidate = (record: any): BrisageOpportunityCandidate | null => {
+  if (!record?.id || !record?.item || record?.itemId == null) return null
+  const status = ['idea', 'test-batch', 'validated', 'scaled', 'retired'].includes(record.status)
+    ? record.status as OpportunityStatus
+    : 'idea'
+  return {
+    id: String(record.id),
+    itemId: record.itemId,
+    item: record.item,
+    status,
+    expectedRuneValueManual: Math.max(0, Number(record.expectedRuneValueManual ?? 0) || 0),
+    expectedRuneOutputs: Array.isArray(record.expectedRuneOutputs) ? record.expectedRuneOutputs : [],
+    sampleSize: Math.max(0, Number(record.sampleSize ?? 0) || 0),
+    soldConfirmedSessions: Math.max(0, Number(record.soldConfirmedSessions ?? 0) || 0),
+    unsoldRuneValue: Math.max(0, Number(record.unsoldRuneValue ?? 0) || 0),
+    note: String(record.note ?? ''),
+  }
+}
+
+const loadMarketAndOpportunities = () => {
+  if (!hasContext.value) return
+  marketPrices.value = loadMarketPrices(selectedServer.value?.id)
+
+  const rawCandidates = localStorage.getItem(opportunityCandidatesKey.value)
+  const parsedCandidates = rawCandidates ? JSON.parse(rawCandidates) : []
+  opportunityCandidates.value = Array.isArray(parsedCandidates)
+    ? parsedCandidates.map(normalizeOpportunityCandidate).filter(Boolean) as BrisageOpportunityCandidate[]
+    : []
+
+  const rawConfig = localStorage.getItem(opportunityConfigKey.value)
+  const parsedConfig = rawConfig ? JSON.parse(rawConfig) : {}
+  opportunityConfig.value = {
+    ...defaultBrisageOpportunityConfig(),
+    ...parsedConfig,
+    bankroll: Number(parsedConfig?.bankroll ?? draftSession.value.startingKamas ?? 0) || 0,
+  }
 }
 
 const onSearchInput = () => {
@@ -973,6 +1544,12 @@ const toggleCategoryType = (typeId: number) => {
   syncDraftCategoryMeta()
 }
 
+const setSingleOpportunityCategory = (value: string | number | null) => {
+  const typeId = Number(value)
+  draftSession.value.categoryTypeIds = Number.isFinite(typeId) && typeId > 0 ? [typeId] : []
+  syncDraftCategoryMeta()
+}
+
 const draftItemIdSet = computed(() =>
   new Set(draftItems.value.map(item => String(item.itemId))),
 )
@@ -1016,6 +1593,91 @@ const addItemToDraft = (item: any) => {
   if (loadedBatchResults.value.length) {
     filterLoadedBatchResults()
   }
+}
+
+const ensureItemRecipe = async (item: any) => {
+  if (item?.recipe?.ingredientIds?.length) return item
+  try {
+    const recipe = await $fetch<any>(`/api/dofusdb/recipes/${encodeURIComponent(String(item.id))}`, {
+      query: { lang: 'fr' },
+    })
+    return { ...item, recipe }
+  }
+  catch {
+    return item
+  }
+}
+
+const addMarketPrice = () => {
+  if (!marketPriceDraft.value.name.trim() || marketPriceDraft.value.price <= 0) return
+  const next = createMarketPrice({
+    itemId: marketPriceDraft.value.itemId || null,
+    name: marketPriceDraft.value.name,
+    kind: marketPriceDraft.value.kind,
+    price: marketPriceDraft.value.price,
+    quantityBasis: marketPriceDraft.value.quantityBasis,
+    serverId: String(selectedServer.value?.id || 'server'),
+    note: marketPriceDraft.value.note,
+  })
+  marketPrices.value = [next, ...marketPrices.value]
+  saveMarketPrices(selectedServer.value?.id, marketPrices.value)
+  marketPriceDraft.value = { itemId: '', name: '', kind: 'resource', price: 0, quantityBasis: 1, note: '' }
+}
+
+const removeMarketPrice = (id: string) => {
+  marketPrices.value = marketPrices.value.filter(price => price.id !== id)
+  saveMarketPrices(selectedServer.value?.id, marketPrices.value)
+}
+
+const addOpportunityFromItem = async (item: any) => {
+  const itemWithRecipe = await ensureItemRecipe(item)
+  opportunityCandidates.value.unshift({
+    id: crypto.randomUUID(),
+    itemId: itemWithRecipe.id,
+    item: itemWithRecipe,
+    status: 'idea',
+    expectedRuneValueManual: 0,
+    expectedRuneOutputs: [],
+    sampleSize: 0,
+    soldConfirmedSessions: 0,
+    unsoldRuneValue: 0,
+    note: '',
+  })
+  saveOpportunityCandidates()
+  activeMainTab.value = 'opportunities'
+}
+
+const removeOpportunityCandidate = (id: string) => {
+  opportunityCandidates.value = opportunityCandidates.value.filter(candidate => candidate.id !== id)
+  saveOpportunityCandidates()
+}
+
+const updateOpportunityCandidate = (candidate: BrisageOpportunityCandidate) => {
+  const index = opportunityCandidates.value.findIndex(entry => entry.id === candidate.id)
+  if (index < 0) return
+  opportunityCandidates.value[index] = { ...candidate }
+  saveOpportunityCandidates()
+}
+
+const opportunityStatusSuggestion = (candidate: BrisageOpportunityCandidate): OpportunityStatus => {
+  const profitableSoldSessions = sessions.value.filter(session =>
+    session.items.some(item => String(item.itemId) === String(candidate.itemId))
+    && sessionTotals(session).realizedProfit > 0
+    && session.items.some(item => item.runs.some(run => run.soldConfirmed)),
+  ).length
+  if (profitableSoldSessions >= 2) return 'validated'
+  if (profitableSoldSessions >= 1) return 'test-batch'
+  return candidate.status
+}
+
+const applyStatusSuggestion = (candidate: BrisageOpportunityCandidate) => {
+  updateOpportunityCandidate({
+    ...candidate,
+    status: opportunityStatusSuggestion(candidate),
+    sampleSize: Math.max(Number(candidate.sampleSize ?? 0) || 0, sessions.value.filter(session =>
+      session.items.some(item => String(item.itemId) === String(candidate.itemId)),
+    ).length),
+  })
 }
 
 const loadCategoryBatch = async () => {
@@ -1116,7 +1778,24 @@ const createEmptyRun = (): BrisageItemRun => ({
   buyStartKamas: 0,
   buyEndKamas: 0,
   realizedRuneValue: 0,
+  theoreticalRuneValue: 0,
+  actualSoldRuneValue: 0,
+  unsoldRuneValue: 0,
+  soldConfirmed: false,
+  saleNotes: '',
+  runeOutputs: [],
   notes: '',
+})
+
+const createEmptyRuneOutput = (): BrisageRunRuneOutput => ({
+  id: crypto.randomUUID(),
+  runeId: null,
+  runeName: '',
+  quantity: 0,
+  soldQuantity: 0,
+  actualSoldValue: 0,
+  theoreticalValue: 0,
+  note: '',
 })
 
 const addRunToDraftItem = (itemId: string) => {
@@ -1138,23 +1817,56 @@ const removeRunFromDraftItem = (itemId: string, runId: string) => {
   item.runs = item.runs.filter(run => run.id !== runId)
 }
 
-const runCraftCost = (run: BrisageItemRun) =>
-  Math.max(0, (Number(run.buyStartKamas) || 0) - (Number(run.buyEndKamas) || 0))
+const addRuneOutputToRun = (run: BrisageItemRun) => {
+  run.runeOutputs.push(createEmptyRuneOutput())
+}
 
-const runProfit = (run: BrisageItemRun) =>
-  (Number(run.realizedRuneValue) || 0) - runCraftCost(run)
+const removeRuneOutputFromRun = (run: BrisageItemRun, outputId: string) => {
+  run.runeOutputs = run.runeOutputs.filter(output => output.id !== outputId)
+  refreshRunRuneValues(run)
+}
 
-const itemQuantityTotal = (item: BrisageSessionItem) =>
-  item.runs.reduce((sum, run) => sum + (Number(run.quantity) || 0), 0)
+const latestRunePriceForOutput = (output: BrisageRunRuneOutput): MarketPrice | null => {
+  const idKey = output.runeId != null && output.runeId !== '' ? String(output.runeId) : ''
+  const nameKey = normalizeMarketPriceName(output.runeName)
+  return latestRunePrices.value.find(price =>
+    (idKey && String(price.itemId ?? '') === idKey)
+    || normalizeMarketPriceName(price.name) === nameKey,
+  ) ?? null
+}
 
-const sessionQuantityTotal = (session: BrisageSession) =>
-  session.items.reduce((sum, item) => sum + itemQuantityTotal(item), 0)
+const outputUnitPrice = (output: BrisageRunRuneOutput): number => unitMarketPrice(latestRunePriceForOutput(output)) ?? 0
 
-const itemCraftTotal = (item: BrisageSessionItem) =>
-  item.runs.reduce((sum, run) => sum + runCraftCost(run), 0)
+const refreshRuneOutputValue = (output: BrisageRunRuneOutput) => {
+  const unit = outputUnitPrice(output)
+  output.theoreticalValue = Math.round(output.quantity * unit)
+  if (output.soldQuantity > 0 && output.actualSoldValue <= 0 && unit > 0) {
+    output.actualSoldValue = Math.round(output.soldQuantity * unit)
+  }
+}
 
-const itemRealizedTotal = (item: BrisageSessionItem) =>
-  item.runs.reduce((sum, run) => sum + (Number(run.realizedRuneValue) || 0), 0)
+const refreshRunRuneValues = (run: BrisageItemRun) => {
+  run.runeOutputs.forEach(refreshRuneOutputValue)
+  const paperValue = runRuneOutputTheoreticalValue(run)
+  const soldValue = runRuneOutputSoldValue(run)
+  if (paperValue > 0) {
+    run.theoreticalRuneValue = paperValue
+    run.realizedRuneValue = paperValue
+  }
+  if (soldValue > 0) {
+    run.actualSoldRuneValue = soldValue
+  }
+  run.unsoldRuneValue = Math.max(0, paperValue - soldValue)
+}
+
+const setRuneOutputName = (output: BrisageRunRuneOutput, value: string | number | null) => {
+  output.runeName = String(value ?? '')
+  refreshRuneOutputValue(output)
+}
+
+const runProfit = (run: BrisageItemRun) => runRealizedProfit(run)
+const itemProfit = (item: BrisageSessionItem) => itemRealizedProfit(item)
+const itemRealizedTotal = (item: BrisageSessionItem) => itemActualSoldRuneValue(item)
 
 const draftRecipeSignature = computed(() =>
   JSON.stringify(
@@ -1312,38 +2024,24 @@ const toggleDraftResourceDone = (resourceId: number) => {
   )
 }
 
-const itemProfit = (item: BrisageSessionItem) =>
-  itemRealizedTotal(item) - itemCraftTotal(item)
-
 const sessionTotals = (session: BrisageSession) => {
-  const craft = session.items.reduce((sum, item) => sum + itemCraftTotal(item), 0)
-  const realized = session.items.reduce((sum, item) => sum + itemRealizedTotal(item), 0)
-  const startingKamas = Number(session.startingKamas) || 0
-  const hdvKamas = Number(session.endingKamas) || 0
-  const collectedKamas = Number(session.externalDelta) || 0
-  const expectedEndKamas = startingKamas - craft + hdvKamas + collectedKamas
+  const totals = accountingSessionTotals(session)
   return {
-    craft,
-    realized,
-    profit: realized - craft,
-    expectedEndKamas,
-    bankrollDelta: expectedEndKamas - startingKamas,
+    ...totals,
+    realized: totals.actualSoldRuneValue,
+    profit: totals.realizedProfit,
   }
 }
 
 const draftTotals = computed(() => {
-  const craft = draftItems.value.reduce((sum, item) => sum + itemCraftTotal(item), 0)
-  const realized = draftItems.value.reduce((sum, item) => sum + itemRealizedTotal(item), 0)
-  const startingKamas = Number(draftSession.value.startingKamas) || 0
-  const hdvKamas = Number(draftSession.value.endingKamas) || 0
-  const collectedKamas = Number(draftSession.value.externalDelta) || 0
-  const expectedEndKamas = startingKamas - craft + hdvKamas + collectedKamas
+  const totals = accountingSessionTotals({
+    ...draftSession.value,
+    items: draftItems.value,
+  })
   return {
-    craft,
-    realized,
-    profit: realized - craft,
-    expectedEndKamas,
-    bankrollDelta: expectedEndKamas - startingKamas,
+    ...totals,
+    realized: totals.actualSoldRuneValue,
+    profit: totals.realizedProfit,
   }
 })
 
@@ -1362,8 +2060,54 @@ const avgSessionPL = computed(() => {
 
 const sessionMargin = (session: BrisageSession) => {
   const totals = sessionTotals(session)
-  if (!totals.craft) return 0
-  return Math.round((totals.profit / totals.craft) * 100)
+  return brisageMarginPercent(totals.realizedProfit, totals.craft)
+}
+
+const brisageOpportunities = computed(() =>
+  rankBrisageOpportunities(
+    opportunityCandidates.value.map(candidate =>
+      buildBrisageOpportunity(candidate, marketPrices.value, opportunityConfig.value),
+    ),
+  ),
+)
+
+const soldConfirmedSessionCount = (candidate: BrisageOpportunityCandidate) =>
+  sessions.value.filter(session =>
+    session.items.some(item => String(item.itemId) === String(candidate.itemId))
+    && sessionTotals(session).realizedProfit > 0
+    && session.items.some(item => item.runs.some(run => run.soldConfirmed)),
+  ).length
+
+const freshnessLabel = (timestamp: string) => {
+  const freshness = priceFreshness(timestamp)
+  if (freshness === 'fresh') return 'Fresh'
+  if (freshness === 'aging') return 'Aging'
+  return 'Stale'
+}
+
+const priceKindLabel = (kind: MarketPriceKind) => {
+  if (kind === 'finished-item') return 'Finished item'
+  if (kind === 'rune') return 'Rune'
+  return 'Resource'
+}
+
+const priceHistory = (price: MarketPrice) => marketPriceHistoryFor(marketPrices.value, price)
+
+const priceHistoryCount = (price: MarketPrice) => priceHistory(price).length
+
+const priceTrend = (price: MarketPrice) => marketPriceTrendPercent(priceHistory(price))
+
+const saveOpportunitySettings = () => {
+  opportunityConfig.value = {
+    ...opportunityConfig.value,
+    safetyMarkupPercent: Math.max(0, Number(opportunityConfig.value.safetyMarkupPercent) || 0),
+    pessimisticRuneMultiplier: Math.max(0, Number(opportunityConfig.value.pessimisticRuneMultiplier) || 0),
+    bankroll: Math.max(0, Number(opportunityConfig.value.bankroll) || 0),
+    bankrollBatchPercent: Math.max(0, Number(opportunityConfig.value.bankrollBatchPercent) || 0),
+    maxBatchCostCap: Math.max(0, Number(opportunityConfig.value.maxBatchCostCap) || 0),
+    maxExposureWarningPercent: Math.max(0, Number(opportunityConfig.value.maxExposureWarningPercent) || 0),
+  }
+  saveOpportunityConfig()
 }
 
 const resetDraft = () => {
@@ -1452,7 +2196,22 @@ const saveSession = () => {
         quantity: Math.max(1, Number(run.quantity) || 1),
         buyStartKamas: Math.max(0, Number(run.buyStartKamas) || 0),
         buyEndKamas: Math.max(0, Number(run.buyEndKamas) || 0),
-        realizedRuneValue: Math.max(0, Number(run.realizedRuneValue) || 0),
+        realizedRuneValue: Math.max(0, Number(run.theoreticalRuneValue ?? run.realizedRuneValue) || 0),
+        theoreticalRuneValue: Math.max(0, Number(run.theoreticalRuneValue ?? run.realizedRuneValue) || 0),
+        actualSoldRuneValue: Math.max(0, Number(run.actualSoldRuneValue) || 0),
+        unsoldRuneValue: Math.max(0, Number(run.unsoldRuneValue) || 0),
+        soldConfirmed: Boolean(run.soldConfirmed),
+        saleNotes: run.saleNotes.trim(),
+        runeOutputs: run.runeOutputs.map(output => ({
+          id: output.id,
+          runeId: output.runeId ?? null,
+          runeName: output.runeName.trim(),
+          quantity: Math.max(0, Number(output.quantity) || 0),
+          soldQuantity: Math.max(0, Number(output.soldQuantity) || 0),
+          actualSoldValue: Math.max(0, Number(output.actualSoldValue) || 0),
+          theoreticalValue: Math.max(0, Number(output.theoreticalValue) || 0),
+          note: output.note.trim(),
+        })).filter(output => output.runeName && output.quantity > 0),
         notes: run.notes.trim(),
       })),
     })),
@@ -1525,11 +2284,15 @@ const onDocMousedown = (e: MouseEvent) => {
 onMounted(() => {
   initContext()
   loadData()
+  loadMarketAndOpportunities()
   document.addEventListener('mousedown', onDocMousedown)
 })
 
 onUnmounted(() => document.removeEventListener('mousedown', onDocMousedown))
-watch([selectedServer, selectedCharacter], loadData)
+watch([selectedServer, selectedCharacter], () => {
+  loadData()
+  loadMarketAndOpportunities()
+})
 watch(
   () => [
     draftSession.value.categoryTypeIds.join(','),
@@ -1558,6 +2321,51 @@ watch(draftRecipeSignature, async () => {
 </script>
 
 <style scoped>
+.br-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--v2-border-med);
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--v2-hover-subtle), rgba(0,0,0,.14));
+}
+.br-next__eyebrow {
+  color: var(--v2-accent);
+  font-size: .625rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.br-next h2 {
+  margin-top: .25rem;
+  color: var(--v2-text);
+  font-size: 1.1rem;
+  font-weight: 850;
+}
+.br-next p {
+  margin-top: .35rem;
+  color: var(--v2-text-secondary);
+  font-size: .875rem;
+  line-height: 1.45;
+  max-width: 72ch;
+}
+.br-next__btn {
+  width: auto;
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .br-next {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .br-next__btn {
+    width: 100%;
+  }
+}
+
 .br-stats {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -1600,6 +2408,113 @@ watch(draftRecipeSignature, async () => {
   flex-direction: column;
   gap: .75rem;
   margin-bottom: 1rem;
+}
+
+.br-main-tabs {
+  margin-bottom: 1rem;
+}
+
+.br-warning {
+  padding: .75rem .875rem;
+  margin-bottom: .875rem;
+  border: 1px solid rgba(245,158,11,.35);
+  background: rgba(245,158,11,.08);
+  color: #fbbf24;
+  border-radius: 10px;
+  font-size: .8125rem;
+  font-weight: 700;
+}
+
+.br-warning--compact {
+  margin: .5rem 0;
+  padding: .625rem .75rem;
+}
+
+.br-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.br-op-panel {
+  margin-top: 1rem;
+}
+
+.br-op-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.br-check-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 34px;
+  color: var(--v2-text-secondary);
+  font-size: .8125rem;
+  font-weight: 700;
+}
+
+.br-rune-output-box {
+  margin: .75rem 0;
+  padding: .75rem;
+  border: 1px solid var(--v2-border-med);
+  border-radius: 10px;
+  background: rgba(0,0,0,.12);
+}
+
+.br-rune-output-box__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .75rem;
+}
+
+.br-rune-output-box__title {
+  color: var(--v2-text);
+  font-size: .875rem;
+  font-weight: 800;
+}
+
+.br-rune-output-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(90px, .75fr)) minmax(105px, .6fr) auto;
+  gap: .5rem;
+  align-items: end;
+  padding: .5rem 0;
+  border-top: 1px solid var(--v2-border-subtle);
+}
+
+.br-rune-output-row__manual {
+  margin-top: .35rem;
+}
+
+.br-rune-output-row__value {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  color: var(--v2-text-dim);
+  font-size: .6875rem;
+  line-height: 1.2;
+}
+
+.br-rune-output-row__value strong {
+  color: var(--v2-accent);
+  font-size: .875rem;
+}
+
+@media (max-width: 860px) {
+  .br-rune-output-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .br-rune-output-box__head {
+    flex-direction: column;
+  }
 }
 
 .br-flow__actions {
