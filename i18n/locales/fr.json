@@ -149,7 +149,10 @@
       "pickDate": "Choisir une date",
       "close": "Fermer",
       "noResults": "Aucun résultat",
-      "advanced": "Avancé"
+      "advanced": "Avancé",
+      "pagination": "Pagination",
+      "previous": "Précédent",
+      "next": "Suivant"
     },
     "archi": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour commencer le suivi des archimonstres.",
@@ -486,7 +489,18 @@
     "succes": {
       "noCharacterDesc": "Sélectionnez un personnage dans la barre latérale pour suivre vos succès.",
       "searchAchievements": "Rechercher des succès...",
-      "loadingAchievements": "Chargement des succès..."
+      "loadingAchievements": "Chargement des succès...",
+      "completion": "Progression",
+      "categories": "Catégories",
+      "allAchievements": "Tous les succès",
+      "filterLabel": "Filtre de progression",
+      "filters": {
+        "all": "Tous",
+        "done": "Terminés",
+        "todo": "À faire"
+      },
+      "empty": "Aucun succès trouvé",
+      "emptyDesc": "Essayez une autre catégorie ou un autre terme."
     },
     "kamas": {
       "noCharacterDesc": "Sélectionnez un personnage pour classer les opportunités depuis vos données revente, craft et brisage.",
@@ -1037,8 +1051,17 @@
       "canTackle": "Peut tacler",
       "canUsePortal": "Peut utiliser les portails",
       "objectId": "Objet #{id}",
-      "noDrops": "Aucun drop exposé pour ce monstre."
-    }
+      "noDrops": "Aucun drop exposé pour ce monstre.",
+      "foundIn": "Présent dans",
+      "dungeon": "Donjon",
+      "killSpells": "Sorts de mort instantanée",
+      "item": "Objet",
+      "dropRate": "Taux de drop",
+      "conditional": "Ce drop a des conditions",
+      "conditionalShort": "cond."
+    },
+    "level": "Niv. {level}",
+    "spellCount": "{count} sorts"
   },
   "items": {
     "usageHint": "Sélectionnez vos filtres, puis choisissez un emplacement pour analyser les prix.",

@@ -149,7 +149,10 @@
       "pickDate": "Pick a date",
       "close": "Close",
       "noResults": "No results",
-      "advanced": "Advanced"
+      "advanced": "Advanced",
+      "pagination": "Pagination",
+      "previous": "Previous",
+      "next": "Next"
     },
     "archi": {
       "noCharacterDesc": "Select a character in the sidebar to start tracking your archimonstres.",
@@ -486,7 +489,18 @@
     "succes": {
       "noCharacterDesc": "Select a character in the sidebar to track your achievements.",
       "searchAchievements": "Search achievements...",
-      "loadingAchievements": "Loading achievements..."
+      "loadingAchievements": "Loading achievements...",
+      "completion": "Completion",
+      "categories": "Categories",
+      "allAchievements": "All achievements",
+      "filterLabel": "Completion filter",
+      "filters": {
+        "all": "All",
+        "done": "Completed",
+        "todo": "To do"
+      },
+      "empty": "No achievements found",
+      "emptyDesc": "Try a different category or search term."
     },
     "kamas": {
       "noCharacterDesc": "Select a character so the app can rank opportunities from your saved resale, crafting, and brisage data.",
@@ -1037,8 +1051,17 @@
       "canTackle": "Can tackle",
       "canUsePortal": "Can use portal",
       "objectId": "Object #{id}",
-      "noDrops": "No drops exposed on this monster."
-    }
+      "noDrops": "No drops exposed on this monster.",
+      "foundIn": "Found in",
+      "dungeon": "Dungeon",
+      "killSpells": "Instant-kill spells",
+      "item": "Item",
+      "dropRate": "Drop rate",
+      "conditional": "This drop has conditions",
+      "conditionalShort": "cond."
+    },
+    "level": "Lv. {level}",
+    "spellCount": "{count} spells"
   },
   "items": {
     "usageHint": "Select your filters above, then pick a slot to start scanning prices.",
