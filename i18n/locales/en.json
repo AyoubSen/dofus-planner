@@ -724,7 +724,7 @@
         "emptyDraft": "Search for an item, add it to the draft session, then enter the total rune value you realized after breaking it in game.",
         "recipeHelp": "Aggregates all recipe ingredients from the current draft items using their total crafted quantity.",
         "noSessions": "No brisage sessions recorded yet.",
-        "noSessionsHint": "Create a draft session on the left and save it once your batch is logged.",
+        "noSessionsHint": "Create a draft session in the Session builder and save it once your batch is logged.",
         "noRuneOutputs": "No rune outputs recorded for this run.",
         "emptyOpportunities": "Add candidate items to calculate craft cost, EV, risk, and bankroll-aware batch sizing.",
         "emptyPrices": "No manual market prices yet.",
@@ -950,6 +950,16 @@
       "restored": "Last backup restored.",
       "noBackup": "No restorable backup found.",
       "confirmReplace": "Replace all local data with this backup? Anything not in the file will be lost."
+    },
+    "storage": {
+      "keys": {
+        "appData": "App data (resale, accounts…)",
+        "observedPrices": "Observed prices + screenshots",
+        "recipeCache": "Recipe cache",
+        "resourcePrices": "Resource prices",
+        "statPriorities": "Stat priorities",
+        "selectedCharacter": "Selected character"
+      }
     }
   },
   "home": {

@@ -126,7 +126,7 @@
                 {{ selectedCharacter?.name ?? $t('v2.layout.selectCharacter') }}
               </span>
               <span class="truncate text-xs text-subtle">
-                {{ hasContext ? `${selectedCharacter?.class} · ${selectedServer?.name}` : $t('v2.layout.clickToStart') }}
+                {{ hasContext ? characterSubtitle : $t('v2.layout.clickToStart') }}
               </span>
             </span>
             <UiIcon name="chevronDown" class="text-subtle" />
@@ -225,6 +225,12 @@ const { initTheme } = useAppTheme()
 const { initFontScale } = useFontScale()
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 
+// Older saved characters can be missing a class, and interpolating one
+// straight into the template prints a literal "undefined" in the sidebar.
+const characterSubtitle = computed(() =>
+  [selectedCharacter.value?.class, selectedServer.value?.name].filter(Boolean).join(' · '),
+)
+
 const mobileOpen = ref(false)
 const pickerOpen = ref(false)
 const storageOpen = ref(false)
@@ -292,13 +298,15 @@ const STORAGE_LIMIT = 10 * 1024 * 1024
 const storageBytes = ref(0)
 let storageTimer: ReturnType<typeof setInterval> | undefined
 
+// Raw localStorage keys mean nothing to a user reading the storage meter, so
+// each known one gets a plain-language name. Unknown keys fall back to the key.
 const STORAGE_KEY_LABELS: Record<string, string> = {
-  'dofus-app-store': 'App data (resale, accounts…)',
-  'dofus-items-observed-prices-v1': 'Observed prices + screenshots',
-  'dofus-items-dofusdb-recipe-cache-v1': 'Recipe cache',
-  'dofus-items-resource-prices-v1': 'Resource prices',
-  'dofus-items-stat-priorities-v1': 'Stat priorities',
-  'v2-context': 'Selected character',
+  'dofus-app-store': 'appData',
+  'dofus-items-observed-prices-v1': 'observedPrices',
+  'dofus-items-dofusdb-recipe-cache-v1': 'recipeCache',
+  'dofus-items-resource-prices-v1': 'resourcePrices',
+  'dofus-items-stat-priorities-v1': 'statPriorities',
+  'v2-context': 'selectedCharacter',
 }
 
 const storageEntries = ref<{ key: string, bytes: number }[]>([])
@@ -319,7 +327,10 @@ const measureStorage = () => {
 }
 
 const storageBreakdown = computed(() =>
-  storageEntries.value.map(e => ({ ...e, label: STORAGE_KEY_LABELS[e.key] ?? e.key })),
+  storageEntries.value.map((e) => {
+    const known = STORAGE_KEY_LABELS[e.key]
+    return { ...e, label: known ? t(`v2.storage.keys.${known}`) : e.key }
+  }),
 )
 
 watch(storageOpen, (open) => { if (open) measureStorage() })

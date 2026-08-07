@@ -43,7 +43,14 @@
       @add="addItemToExistingCraftingSession"
     />
 
-    <Transition name="fade">
+    <!-- Utility classes, not a named transition: no `fade` CSS exists, and
+         these are what prefers-reduced-motion neutralises app-wide. -->
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      leave-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
       <div
         v-if="craftingToast.message"
         class="fixed right-4 bottom-4 z-50 rounded-md border px-3 py-2 text-sm shadow-md"
@@ -1234,8 +1241,12 @@ const findSpecialMageDef = (label: string) => {
 
 const scrollSectionIntoView = async (getTarget: () => HTMLElement | null | undefined) => {
   await nextTick()
+  // The CSS `scroll-behavior` override can't reach a scripted smooth scroll,
+  // so reduced-motion has to be honoured here explicitly.
+  const reduceMotion = import.meta.client
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   getTarget()?.scrollIntoView({
-    behavior: 'smooth',
+    behavior: reduceMotion ? 'auto' : 'smooth',
     block: 'start',
   })
 }

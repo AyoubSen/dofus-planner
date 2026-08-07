@@ -1,4 +1,7 @@
 <template>
+  <!-- Selection reads from the surface and shadow, never from font weight:
+       bolding the active label makes it wider than the flex basis measured at
+       normal weight, so `truncate` then clips it ("MD" renders as "M..."). -->
   <div
     :class="['inline-flex min-w-0 gap-0.5 rounded-md border border-line bg-sunken p-0.5', block && 'flex w-full']"
     role="tablist"
@@ -16,7 +19,7 @@
         'disabled:cursor-not-allowed disabled:opacity-45',
         size === 'sm' ? 'h-7 text-xs' : 'h-8 text-sm',
         isSelected(option.value)
-          ? 'bg-raised text-ink font-medium shadow-sm'
+          ? 'bg-raised text-ink shadow-sm'
           : 'text-muted hover:text-ink',
       ]"
       @click="$emit('update:modelValue', option.value)"

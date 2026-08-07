@@ -724,7 +724,7 @@
         "emptyDraft": "Recherchez un objet, ajoutez-le à la session de draft, puis saisissez la valeur totale des runes obtenues après l'avoir brisé en jeu.",
         "recipeHelp": "Agrège tous les ingrédients de recette des objets du draft selon leur quantité totale craftée.",
         "noSessions": "Aucune session de brisage enregistrée.",
-        "noSessionsHint": "Créez une session de draft à gauche puis enregistrez-la une fois votre batch saisi.",
+        "noSessionsHint": "Crée une session dans le constructeur de session et enregistre-la une fois ton lot consigné.",
         "noRuneOutputs": "Aucune rune enregistrée pour ce run.",
         "emptyOpportunities": "Ajoute des objets candidats pour calculer le coût de craft, l’EV, le risque et la taille de lot adaptée à ta bankroll.",
         "emptyPrices": "Aucun prix de marché saisi pour l’instant.",
@@ -950,6 +950,16 @@
       "restored": "Dernière sauvegarde restaurée.",
       "noBackup": "Aucune sauvegarde restaurable.",
       "confirmReplace": "Remplacer toutes les données locales par cette sauvegarde ? Tout ce qui n'est pas dans le fichier sera perdu."
+    },
+    "storage": {
+      "keys": {
+        "appData": "Données de l’app (revente, comptes…)",
+        "observedPrices": "Prix observés + captures",
+        "recipeCache": "Cache des recettes",
+        "resourcePrices": "Prix des ressources",
+        "statPriorities": "Priorités de stats",
+        "selectedCharacter": "Personnage sélectionné"
+      }
     }
   },
   "home": {

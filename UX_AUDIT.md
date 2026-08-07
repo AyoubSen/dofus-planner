@@ -2,6 +2,15 @@
 
 Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 
+> **Calm Ledger overhaul (branch `ui-overhaul-calm-ledger`).** All 12 pages were
+> rebuilt on a shared token layer and `Ui*` component library; `legacy-v2.css`
+> and every page's scoped CSS are gone. Items ticked below were closed by that
+> work. Items still open are product/content changes the overhaul did not cover.
+>
+> Verified in a browser at the end of Phase 5: focus-visible ring, light theme,
+> 125% font scale, keyboard tab order, storage meter. **Not** verified: mobile
+> breakpoints (could not force a narrow viewport through the automation).
+
 ---
 
 ## Dashboard (`/`)
@@ -30,10 +39,10 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 
 ## Crafting Page (`/crafting`)
 
-- [ ] No-context state offers no direct action — add a button that triggers the character picker.
+- [x] No-context state offers no direct action — add a button that triggers the character picker.
 - [ ] "Invested" / "Realized" labels in stats strip are unclear — rename to "Cost" / "Revenue" or add tooltips.
 - [ ] "Expected" metric in session stats has no explanation — add tooltip.
-- [ ] "Create Session" panel is a lot of empty space for a single button — compact it.
+- [x] "Create Session" panel is a lot of empty space for a single button — compact it.
 - [ ] Delete button on sessions has no confirmation — add confirm step (or undo).
 - [ ] No way to sort/filter sessions by P/L or margin (TODO: `Crafting Filter/Sort by Margin`).
 - [ ] `Crafting Cost Field + Profit Margin Column` — "expected" is opaque without actual margin display.
@@ -42,20 +51,20 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 
 ## Brisage Page (`/brisage`)
 
-- [ ] No-context state offers no direct action — same fix as crafting.
+- [x] No-context state offers no direct action — same fix as crafting.
 - [ ] "Focus Category" field label is jargon — add a subtitle or tooltip explaining it's the item type for brisage.
-- [ ] Level Min / Level Max look like two unrelated fields — visually group them as a range (e.g. "Level range: [min] – [max]").
+- [x] Level Min / Level Max look like two unrelated fields — visually group them as a range (e.g. "Level range: [min] – [max]").
 - [ ] Rune names are free-text — same rune entered differently creates fragmented history. Needs normalized rune catalog (TODO: `Brisage Normalized Rune Catalog`).
-- [ ] P/L colors use hardcoded hex values (`#34d399` / `#f87171`) — replace with theme tokens.
+- [x] P/L colors use hardcoded hex values (`#34d399` / `#f87171`) — replace with theme tokens.
 - [ ] No explanation of what brisage is for new users — add a brief description or guide button like other pages.
 
 ---
 
 ## Resale Page (`/resale`)
 
-- [ ] "No character selected" hardcoded English — move to i18n.
+- [x] "No character selected" hardcoded English — move to i18n.
 - [ ] "Transfer character data" panel is at the top of the page — this is a rare admin action, move it to the bottom or behind a settings section.
-- [ ] Stats strip labels ("Tracked", "Active", "Sold", "Realized P/L", "Avg hold", "Avg reprices") all hardcoded English — move to i18n.
+- [x] Stats strip labels ("Tracked", "Active", "Sold", "Realized P/L", "Avg hold", "Avg reprices") all hardcoded English — move to i18n.
 - [ ] "Avg reprices" has no explanation — add tooltip: "How many times you updated the price before the item sold".
 
 ---
@@ -64,8 +73,8 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 
 - [ ] Mode buttons ("Dofus Ocre" / "Sell Only" / "Route Planner") have no tooltip explaining what each mode does.
 - [ ] Progress strip "× 1" / "× 2+" notation is unexplained — add a legend or tooltip (each archimonstre can be captured multiple times).
-- [ ] Type filter is a `<select>` while all other filters are pill/chip buttons — make it consistent.
-- [ ] Toolbar (filter pills + type select + search) is too crowded on medium screens — restructure layout.
+- [x] Type filter is a `<select>` while all other filters are pill/chip buttons — make it consistent.
+- [x] Toolbar (filter pills + type select + search) is too crowded on medium screens — restructure layout.
 - [ ] No "Missing Only" filter view sorted by Etape (TODO: `Archimonstres Missing-Only View Sorted by Etape`).
 
 ---
@@ -73,7 +82,7 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 ## Succes Page (`/succes`)
 
 - [ ] "Completion" label and "All achievements" button are hardcoded English — move to i18n.
-- [ ] Category names only rendered in French (`cat.name?.fr`) — use locale-aware key or fallback chain.
+- [x] Category names only rendered in French (`cat.name?.fr`) — use locale-aware key or fallback chain.
 - [ ] No per-category progress (X/Y completed) shown when selecting a category — sidebar is navigational only (TODO: `Succes Category Progress Bars`).
 - [ ] Mobile layout likely stacks awkwardly — check and fix sidebar collapse behavior on small screens.
 
@@ -81,7 +90,7 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 
 ## Familiers Page (`/familiers`)
 
-- [ ] Stats strip shows game constants (not user data) in the same style as dynamic stats — visually separate constants from live metrics.
+- [x] Stats strip shows game constants (not user data) in the same style as dynamic stats — visually separate constants from live metrics.
 - [ ] Budget input step is 100,000 — far too coarse, change to a smaller step or remove step attribute.
 - [ ] Reference mode formula hint is verbose inline math — simplify to plain language.
 - [ ] No explanation of the page purpose for new users — add a brief subtitle or guide button (there is a guide button, but it's small and below the stats strip).
@@ -91,10 +100,10 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 
 ## Global / Layout Issues
 
-- [ ] Character picker in sidebar looks like a decorative avatar — it's the primary CTA for new users but doesn't read as clickable. Make it more obviously interactive.
-- [ ] Resale and Items share the same sidebar icon — differentiate them.
-- [ ] Storage indicator label "Storage" with no units until hover/click — show unit inline at all times.
-- [ ] i18n parity pass needed across archimonstres, crafting, brisage, succes, familiers (TODO: `V2 i18n Parity`).
+- [x] Character picker in sidebar looks like a decorative avatar — it's the primary CTA for new users but doesn't read as clickable. Make it more obviously interactive.
+- [x] Resale and Items share the same sidebar icon — differentiate them.
+- [x] Storage indicator label "Storage" with no units until hover/click — show unit inline at all times.
+- [x] i18n parity pass needed across archimonstres, crafting, brisage, succes, familiers (TODO: `V2 i18n Parity`).
 
 ---
 
