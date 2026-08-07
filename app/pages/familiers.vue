@@ -1,297 +1,334 @@
 <template>
-  <div>
-    <div class="fam-stats">
-      <div class="fam-stat">
-        <div class="fam-stat__val">{{ fmt(targetXp) }}</div>
-        <div class="fam-stat__label">{{ $t('familiers.page.stats.totalXp', { level: targetLevel }) }}</div>
-      </div>
-      <div class="fam-stat">
-        <div class="fam-stat__val">{{ XP_PER_KIBBLE }}</div>
-        <div class="fam-stat__label">{{ $t('familiers.page.stats.xpPerKibble') }}</div>
-      </div>
-      <div class="fam-stat">
-        <div class="fam-stat__val">{{ fmtQty(KIBBLE_COUNT) }}</div>
-        <div class="fam-stat__label">{{ $t('familiers.page.stats.equivalentKibbles') }}</div>
-      </div>
-      <div class="fam-stat">
-        <div class="fam-stat__val">{{ pricingMode === 'reference' ? `${fmt(Math.round(pricePerKibble))} k` : `${manualPricedCount}` }}</div>
-        <div class="fam-stat__label">{{ pricingMode === 'reference' ? $t('familiers.page.stats.targetPricePerKibble') : $t('familiers.page.stats.manualPricedItems') }}</div>
-      </div>
-    </div>
+  <div class="flex flex-col gap-5">
+    <!-- Game constants render recessed and dashed so they never read as
+         live, user-driven numbers the way they used to. -->
+    <UiStatRow>
+      <UiStat
+        kind="constant"
+        :label="$t('familiers.page.stats.totalXp', { level: targetLevel })"
+        :value="fmt(targetXp)"
+      />
+      <UiStat kind="constant" :label="$t('familiers.page.stats.xpPerKibble')" :value="XP_PER_KIBBLE" />
+      <UiStat kind="constant" :label="$t('familiers.page.stats.equivalentKibbles')" :value="fmtQty(KIBBLE_COUNT)" />
+      <UiStat
+        :label="pricingMode === 'reference' ? $t('familiers.page.stats.targetPricePerKibble') : $t('familiers.page.stats.manualPricedItems')"
+        tone="accent"
+      >
+        <UiMoney v-if="pricingMode === 'reference'" :value="Math.round(pricePerKibble)" size="lg" />
+        <span v-else class="tabular text-xl font-semibold text-accent">{{ manualPricedCount }}</span>
+      </UiStat>
+    </UiStatRow>
 
-    <div class="fam-budget fam-budget--mode">
-      <span class="fam-budget__label">{{ $t('familiers.page.mode.label') }}</span>
-      <div class="fam-mode-toggle">
-        <button class="fam-mode-toggle__btn" :class="{ 'fam-mode-toggle__btn--on': pricingMode === 'reference' }" @click="pricingMode = 'reference'">{{ $t('familiers.page.mode.reference') }}</button>
-        <button class="fam-mode-toggle__btn" :class="{ 'fam-mode-toggle__btn--on': pricingMode === 'manual' }" @click="pricingMode = 'manual'">{{ $t('familiers.page.mode.manual') }}</button>
-      </div>
-      <label class="fam-target-level">
-        <span>{{ $t('familiers.page.targetLevel.label') }}</span>
-        <input v-model.number="targetLevel" type="number" min="1" max="100" step="1" class="fam-target-level__input" @change="clampTargetLevel" />
-      </label>
-      <span class="fam-budget__hint">
-        {{ pricingMode === 'reference' ? $t('familiers.page.mode.referenceHint') : $t('familiers.page.mode.manualHint') }}
-      </span>
-      <button class="fam-help-btn" type="button" :aria-label="$t('familiers.guide.openAria')" @click="guideOpen = true">?</button>
-    </div>
+    <!-- ── Mode + target ────────────────────────────────────────────────── -->
+    <UiCard>
+      <div class="flex flex-wrap items-end gap-4">
+        <UiField :label="$t('familiers.page.mode.label')">
+          <UiSegmented
+            v-model="pricingMode"
+            :options="modeOptions"
+            :aria-label="$t('familiers.page.mode.label')"
+          />
+        </UiField>
 
-    <div v-if="pricingMode === 'reference'" class="fam-budget">
-      <span class="fam-budget__label">{{ $t('familiers.page.reference.budgetLabel') }}</span>
-      <div class="fam-budget__input-wrap">
-        <input v-model.number="budget" type="number" min="0" step="100000" class="fam-budget__input" />
-        <span class="fam-budget__unit">{{ $t('familiers.page.reference.kamasUnit') }}</span>
-      </div>
-      <span class="fam-budget__hint">
-        {{ $t('familiers.page.reference.formulaPrefix') }}
-        <strong>{{ fmt(Math.round(pricePerKibble)) }} k</strong>, {{ $t('familiers.page.reference.formulaMiddle') }} <strong>X XP</strong>
-        {{ $t('familiers.page.reference.formulaSuffix') }}
-        <strong>{{ fmt(Math.round(pricePerKibble)) }} x X / {{ XP_PER_KIBBLE }}</strong> {{ $t('familiers.page.reference.kamasShort') }}
-      </span>
-    </div>
+        <UiField :label="$t('familiers.page.targetLevel.label')" class="w-28">
+          <UiNumberInput v-model="targetLevel" :min="1" @update:model-value="clampTargetLevel" />
+        </UiField>
 
-    <div v-else class="fam-budget fam-budget--manual">
-      <span class="fam-budget__label">{{ $t('familiers.page.manual.label') }}</span>
-      <span class="fam-budget__hint">
-        {{ $t('familiers.page.manual.hintPrefix') }}
-        <strong>{{ $t('familiers.page.manual.hintFormula') }}</strong>. {{ $t('familiers.page.manual.hintSuffix') }}
-      </span>
-      <button class="fam-clear-btn" @click="clearManualPrices">{{ $t('familiers.page.manual.clear') }}</button>
-    </div>
+        <UiField v-if="pricingMode === 'reference'" :label="$t('familiers.page.reference.budgetLabel')" class="w-44">
+          <UiNumberInput v-model="budget" :min="0" :unit="$t('familiers.page.reference.kamasUnit')" />
+        </UiField>
 
-    <div class="fam-panel fam-progress">
-      <div class="fam-progress__top">
-        <div>
-          <div class="fam-section-title">{{ $t('familiers.page.progress.title') }}</div>
-          <div class="fam-muted">{{ $t('familiers.page.progress.hint') }}</div>
-        </div>
-        <button class="fam-clear-btn" :disabled="plannedPurchases.length === 0" @click="clearPlannedPurchases">{{ $t('familiers.page.progress.clear') }}</button>
+        <UiButton variant="ghost" size="sm" class="ml-auto" @click="guideOpen = true">
+          {{ $t('familiers.guide.openAria') }}
+        </UiButton>
       </div>
-      <div class="fam-progress__stats">
-        <div>
-          <span>{{ $t('familiers.page.progress.boughtXp') }}</span>
-          <strong>{{ fmt(purchasedXp) }} / {{ fmt(targetXp) }}</strong>
-        </div>
-        <div>
-          <span>{{ $t('familiers.page.progress.remainingXp') }}</span>
-          <strong>{{ fmt(remainingXp) }}</strong>
-        </div>
-        <div>
-          <span>{{ $t('familiers.page.progress.progress') }}</span>
-          <strong>{{ progressPercent.toLocaleString(numberLocale, { maximumFractionDigits: 1 }) }}%</strong>
-        </div>
-      </div>
-      <div class="fam-progress__entry">
-        <input ref="purchaseNameInput" type="text" class="fam-field" :placeholder="$t('familiers.page.progress.itemPlaceholder')" />
-        <input ref="purchaseQtyInput" type="number" min="0" step="1" class="fam-field fam-progress__qty" :placeholder="$t('familiers.page.progress.qtyPlaceholder')" @keydown.enter.prevent="addPlannedPurchase" />
-        <button class="fam-action-btn" @click="addPlannedPurchase">{{ $t('familiers.page.progress.add') }}</button>
-      </div>
-      <div v-if="purchaseError" class="fam-error">{{ purchaseError }}</div>
-      <div v-if="plannedPurchases.length" class="fam-progress__list">
-        <div v-for="entry in plannedPurchases" :key="entry.name" class="fam-progress__row">
-          <span>{{ entry.name }}</span>
-          <strong>{{ fmtQty(entry.qty) }} x {{ fmtDecimal(entry.xp) }} XP = {{ fmt(Math.round(entry.qty * entry.xp)) }} XP</strong>
-          <button class="fam-clear-btn" @click="removePlannedPurchase(entry.name)">{{ $t('familiers.page.progress.remove') }}</button>
-        </div>
-      </div>
-    </div>
 
-    <Transition name="fam-modal">
-      <div v-if="guideOpen" class="fam-guide-modal" role="dialog" aria-modal="true" :aria-label="$t('familiers.guide.dialogAria')" @click.self="guideOpen = false">
-        <div class="fam-guide">
-          <div class="fam-guide__topbar">
-            <div>
-              <div class="fam-guide__eyebrow">{{ $t('familiers.guide.eyebrow') }}</div>
-              <div class="fam-guide__title">{{ $t('familiers.guide.title') }}</div>
-            </div>
-            <button class="fam-guide__close" type="button" :aria-label="$t('familiers.guide.closeAria')" @click="guideOpen = false">x</button>
-          </div>
-          <div class="fam-guide__hero">
-            <div class="fam-guide__intro">
-              {{ pricingMode === 'reference' ? $t('familiers.guide.referenceIntro') : $t('familiers.guide.manualIntro') }}
-            </div>
-            <div class="fam-guide__mode-badge">
-              <span class="fam-guide__mode-label">{{ $t('familiers.guide.activeModeLabel') }}</span>
-              <strong>{{ pricingMode === 'reference' ? $t('familiers.guide.referenceModeName') : $t('familiers.guide.manualModeName') }}</strong>
-            </div>
-          </div>
-          <div class="fam-guide__legend">
-            <div class="fam-guide-card">
-              <div class="fam-guide-card__title">{{ $t('familiers.guide.cards.columns.title') }}</div>
-              <div class="fam-guide-card__list">
-                <div><strong>{{ $t('familiers.guide.cards.columns.xpLabel') }}</strong> = {{ $t('familiers.guide.cards.columns.xpText') }}</div>
-                <div><strong>{{ $t('familiers.guide.cards.columns.qtyLabel') }}</strong> = {{ $t('familiers.guide.cards.columns.qtyText') }}</div>
-                <div><strong>{{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referencePriceLabel') : $t('familiers.guide.cards.columns.manualPriceLabel') }}</strong> = {{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referencePriceText') : $t('familiers.guide.cards.columns.manualPriceText') }}</div>
-                <div><strong>{{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referenceTotalLabel') : $t('familiers.guide.cards.columns.manualTotalLabel') }}</strong> = {{ $t('familiers.guide.cards.columns.totalText') }}</div>
-              </div>
-            </div>
-            <div class="fam-guide-card">
-              <div class="fam-guide-card__title">{{ $t('familiers.guide.cards.example.title') }}</div>
-              <div class="fam-guide-card__list">
-                <div>{{ $t('familiers.guide.cards.example.line1') }}</div>
-                <div>{{ $t('familiers.guide.cards.example.line2') }}</div>
-              </div>
-            </div>
-          </div>
+      <p class="mt-3 text-sm text-muted">
+        <template v-if="pricingMode === 'reference'">
+          {{ $t('familiers.page.reference.formulaPrefix') }}
+          <span class="tabular text-ink">{{ fmt(Math.round(pricePerKibble)) }} k</span>,
+          {{ $t('familiers.page.reference.formulaMiddle') }} <span class="text-ink">X XP</span>
+          {{ $t('familiers.page.reference.formulaSuffix') }}
+          <span class="tabular text-ink">{{ fmt(Math.round(pricePerKibble)) }} × X / {{ XP_PER_KIBBLE }}</span>
+          {{ $t('familiers.page.reference.kamasShort') }}
+        </template>
+        <template v-else>
+          {{ $t('familiers.page.manual.hintPrefix') }}
+          <span class="text-ink">{{ $t('familiers.page.manual.hintFormula') }}</span>.
+          {{ $t('familiers.page.manual.hintSuffix') }}
+          <UiButton variant="ghost" size="sm" class="ml-2" @click="clearManualPrices">
+            {{ $t('familiers.page.manual.clear') }}
+          </UiButton>
+        </template>
+      </p>
+    </UiCard>
+
+    <!-- ── Progress ─────────────────────────────────────────────────────── -->
+    <UiCard :title="$t('familiers.page.progress.title')" :subtitle="$t('familiers.page.progress.hint')">
+      <template #actions>
+        <UiButton variant="ghost" size="sm" :disabled="!plannedPurchases.length" @click="clearPlannedPurchases">
+          {{ $t('familiers.page.progress.clear') }}
+        </UiButton>
+      </template>
+
+      <UiProgress
+        :value="purchasedXp"
+        :max="targetXp"
+        tone="positive"
+        :label="$t('familiers.page.progress.boughtXp')"
+        show-value
+        :value-text="`${fmt(purchasedXp)} / ${fmt(targetXp)} (${progressPercent.toLocaleString(numberLocale, { maximumFractionDigits: 1 })}%)`"
+      />
+      <p class="mt-1.5 text-xs text-subtle">
+        {{ $t('familiers.page.progress.remainingXp') }}:
+        <span class="tabular text-muted">{{ fmt(remainingXp) }}</span>
+      </p>
+
+      <div class="mt-3 flex flex-wrap items-end gap-2">
+        <input
+          ref="purchaseNameInput"
+          type="text"
+          :class="[inputClass, 'min-w-0 flex-1']"
+          :placeholder="$t('familiers.page.progress.itemPlaceholder')"
+        >
+        <input
+          ref="purchaseQtyInput"
+          type="number"
+          min="0"
+          step="1"
+          :class="[inputClass, 'tabular w-24']"
+          :placeholder="$t('familiers.page.progress.qtyPlaceholder')"
+          @keydown.enter.prevent="addPlannedPurchase"
+        >
+        <UiButton variant="primary" @click="addPlannedPurchase">{{ $t('familiers.page.progress.add') }}</UiButton>
+      </div>
+      <p v-if="purchaseError" class="mt-1.5 text-xs text-negative">{{ purchaseError }}</p>
+
+      <div v-if="plannedPurchases.length" class="mt-3 flex flex-col">
+        <div
+          v-for="entry in plannedPurchases"
+          :key="entry.name"
+          class="flex items-center gap-3 border-b border-line py-1.5 text-sm last:border-0"
+        >
+          <span class="min-w-0 flex-1 truncate text-ink">{{ entry.name }}</span>
+          <span class="tabular text-muted">
+            {{ fmtQty(entry.qty) }} × {{ fmtDecimal(entry.xp) }} = {{ fmt(Math.round(entry.qty * entry.xp)) }} XP
+          </span>
+          <UiButton variant="ghost" size="sm" icon :aria-label="$t('familiers.page.progress.remove')" @click="removePlannedPurchase(entry.name)">
+            <UiIcon name="close" />
+          </UiButton>
         </div>
       </div>
-    </Transition>
+    </UiCard>
 
-    <div class="fam-panel">
-      <div class="fam-tabs">
-        <button v-for="view in viewOptions" :key="view.id" class="fam-tab" :class="{ 'fam-tab--on': activeView === view.id }" @click="activeView = view.id">
-          {{ $t(view.label) }}
-        </button>
+    <!-- ── Bulk prices (manual mode only) ───────────────────────────────── -->
+    <UiCard v-if="pricingMode === 'manual'" :title="$t('familiers.page.bulk.title')" :subtitle="$t('familiers.page.bulk.hint')">
+      <textarea
+        v-model="bulkText"
+        rows="4"
+        :class="[inputClass, 'h-auto w-full py-2 leading-relaxed']"
+        :placeholder="$t('familiers.page.bulk.placeholder')"
+      />
+      <div class="mt-2 flex gap-2">
+        <UiButton variant="primary" size="sm" @click="applyBulkPrices">{{ $t('familiers.page.bulk.apply') }}</UiButton>
+        <UiButton variant="ghost" size="sm" @click="bulkText = ''; bulkResult = null">{{ $t('familiers.page.bulk.reset') }}</UiButton>
       </div>
+      <p v-if="bulkResult" class="mt-2 text-sm">
+        <span class="text-positive">{{ $t('familiers.page.bulk.matched', { count: bulkResult.matched }) }}</span>
+        <span class="ml-2 text-muted">{{ $t('familiers.page.bulk.unmatched', { count: bulkResult.unmatched.length }) }}</span>
+        <span v-if="bulkResult.unmatched.length" class="mt-1 block text-xs text-subtle">
+          {{ bulkResult.unmatched.slice(0, 6).join(' · ') }}
+        </span>
+      </p>
+    </UiCard>
 
-      <div class="fam-filter-grid">
-        <input v-model="search" type="text" :placeholder="$t('familiers.page.search.placeholder')" class="fam-field fam-field--wide" />
-        <select v-if="activeView === 'zones'" v-model="selectedZone" class="fam-field">
-          <option value="">{{ $t('familiers.page.filters.allZones') }}</option>
-          <option v-for="zone in zones" :key="zone.id" :value="zone.id">{{ zone.name }}</option>
-        </select>
-        <select v-model="pricedFilter" class="fam-field">
-          <option value="all">{{ $t('familiers.page.filters.allPrices') }}</option>
-          <option value="priced">{{ $t('familiers.page.filters.priced') }}</option>
-          <option value="unpriced">{{ $t('familiers.page.filters.unpriced') }}</option>
-        </select>
-        <input v-model.number="filters.minXp" type="number" min="0" class="fam-field" :placeholder="$t('familiers.page.filters.minXp')" />
-        <input v-model.number="filters.maxXp" type="number" min="0" class="fam-field" :placeholder="$t('familiers.page.filters.maxXp')" />
-        <input v-model.number="filters.maxQty" type="number" min="0" class="fam-field" :placeholder="$t('familiers.page.filters.maxQty')" />
-        <input v-model.number="filters.maxUnitPrice" type="number" min="0" class="fam-field" :placeholder="$t('familiers.page.filters.maxUnitPrice')" />
-        <input v-model.number="filters.maxTotalCost" type="number" min="0" class="fam-field" :placeholder="$t('familiers.page.filters.maxTotalCost')" />
-        <input v-if="activeView === 'essences'" v-model.number="filters.maxDungeonLevel" type="number" min="0" class="fam-field" :placeholder="$t('familiers.page.filters.maxDungeonLevel')" />
-      </div>
+    <!-- ── Price-check queue ────────────────────────────────────────────── -->
+    <UiCard :title="$t('familiers.page.queue.title')" :subtitle="$t('familiers.page.queue.hint')">
+      <template #actions>
+        <UiButton size="sm" @click="buildCheckQueue">{{ $t('familiers.page.queue.build') }}</UiButton>
+        <UiButton variant="ghost" size="sm" :disabled="!checkQueue.length" @click="clearCheckQueue">
+          {{ $t('familiers.page.queue.clear') }}
+        </UiButton>
+      </template>
 
-      <div class="fam-sort">
-        <span class="fam-sort__label">{{ $t('familiers.page.sort.label') }}</span>
-        <button v-for="sort in sortOptions" :key="sort.id" class="fam-sort__btn" :class="{ 'fam-sort__btn--on': sortBy === sort.id }" @click="toggleSort(sort.id)">
-          {{ $t(sort.label) }} {{ sortBy === sort.id ? sortArrow : '' }}
-        </button>
-      </div>
-    </div>
-
-    <div v-if="pricingMode === 'manual'" class="fam-panel fam-bulk">
-      <div>
-        <div class="fam-section-title">{{ $t('familiers.page.bulk.title') }}</div>
-        <div class="fam-muted">{{ $t('familiers.page.bulk.hint') }}</div>
-      </div>
-      <textarea v-model="bulkText" class="fam-bulk__input" :placeholder="$t('familiers.page.bulk.placeholder')" />
-      <div class="fam-bulk__actions">
-        <button class="fam-action-btn" @click="applyBulkPrices">{{ $t('familiers.page.bulk.apply') }}</button>
-        <button class="fam-clear-btn" @click="bulkText = ''; bulkResult = null">{{ $t('familiers.page.bulk.reset') }}</button>
-      </div>
-      <div v-if="bulkResult" class="fam-bulk__result">
-        <strong>{{ $t('familiers.page.bulk.matched', { count: bulkResult.matched }) }}</strong>
-        <span>{{ $t('familiers.page.bulk.unmatched', { count: bulkResult.unmatched.length }) }}</span>
-        <div v-if="bulkResult.unmatched.length" class="fam-muted">{{ bulkResult.unmatched.slice(0, 6).join(' | ') }}</div>
-      </div>
-    </div>
-
-    <div class="fam-panel fam-queue">
-      <div class="fam-queue__top">
-        <div>
-          <div class="fam-section-title">{{ $t('familiers.page.queue.title') }}</div>
-          <div class="fam-muted">{{ $t('familiers.page.queue.hint') }}</div>
+      <div v-if="currentQueueItem">
+        <p class="text-xs font-medium tracking-wide text-subtle uppercase">
+          {{ $t('familiers.page.queue.position', { current: queueIndex + 1, total: checkQueue.length }) }}
+        </p>
+        <p class="mt-0.5 text-lg font-semibold text-ink">{{ currentQueueItem.name }}</p>
+        <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+          <span>{{ $t('familiers.page.table.xpPerUnit') }}: <span class="tabular">{{ fmtDecimal(currentQueueItem.xp) }}</span></span>
+          <span>{{ $t('familiers.page.table.qtyNeeded') }}: <span class="tabular">{{ fmtQty(qtyToBuy(currentQueueItem.xp)) }}</span></span>
+          <span>{{ $t('familiers.page.table.targetPricePerUnit') }}: <span class="tabular">{{ fmt(maxPrice(currentQueueItem.xp)) }} k</span></span>
         </div>
-        <div class="fam-queue__actions">
-          <button class="fam-action-btn" @click="buildCheckQueue">{{ $t('familiers.page.queue.build') }}</button>
-          <button class="fam-clear-btn" :disabled="checkQueue.length === 0" @click="clearCheckQueue">{{ $t('familiers.page.queue.clear') }}</button>
-        </div>
-      </div>
 
-      <div v-if="currentQueueItem" class="fam-queue-card">
-        <div class="fam-queue-card__main">
-          <div class="fam-queue-card__eyebrow">{{ $t('familiers.page.queue.position', { current: queueIndex + 1, total: checkQueue.length }) }}</div>
-          <div class="fam-queue-card__name">{{ currentQueueItem.name }}</div>
-          <div class="fam-queue-card__meta">
-            <span>{{ $t('familiers.page.table.xpPerUnit') }}: {{ fmtDecimal(currentQueueItem.xp) }}</span>
-            <span>{{ $t('familiers.page.table.qtyNeeded') }}: {{ fmtQty(qtyToBuy(currentQueueItem.xp)) }}</span>
-            <span>{{ $t('familiers.page.table.targetPricePerUnit') }}: {{ fmt(maxPrice(currentQueueItem.xp)) }} k</span>
-          </div>
-        </div>
-        <div class="fam-queue-card__entry">
-          <button class="fam-action-btn" @click="copyQueueItemName">{{ queueCopyStatus || $t('familiers.page.queue.copy') }}</button>
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <UiButton size="sm" @click="copyQueueItemName">{{ queueCopyStatus || $t('familiers.page.queue.copy') }}</UiButton>
           <input
             ref="queuePriceInput"
             type="number"
             min="0"
             step="1"
-            class="fam-field fam-queue-price"
+            :class="[inputClass, 'tabular w-32']"
             :placeholder="$t('familiers.page.queue.pricePlaceholder')"
             @keydown.enter.prevent="saveQueuePriceAndNext"
-          />
-          <button class="fam-action-btn" @click="saveQueuePriceAndNext">{{ $t('familiers.page.queue.saveNext') }}</button>
-          <button class="fam-clear-btn" @click="skipQueueItem">{{ $t('familiers.page.queue.skip') }}</button>
+          >
+          <UiButton variant="primary" size="sm" @click="saveQueuePriceAndNext">{{ $t('familiers.page.queue.saveNext') }}</UiButton>
+          <UiButton variant="ghost" size="sm" @click="skipQueueItem">{{ $t('familiers.page.queue.skip') }}</UiButton>
         </div>
       </div>
-      <div v-else class="fam-empty fam-empty--small">{{ $t('familiers.page.queue.empty') }}</div>
-    </div>
+      <p v-else class="text-sm text-subtle">{{ $t('familiers.page.queue.empty') }}</p>
+    </UiCard>
 
-    <div class="fam-recs">
-      <div v-for="panel in recommendationPanels" :key="panel.id" class="fam-rec">
-        <div class="fam-section-title">{{ $t(panel.title) }}</div>
-        <div v-if="panel.items.length" class="fam-rec__list">
-          <div v-for="item in panel.items" :key="`${panel.id}-${item.name}`" class="fam-rec__row">
-            <span>{{ item.name }}</span>
-            <strong>{{ recommendationValue(panel.id, item) }}</strong>
+    <!-- ── Recommendations ──────────────────────────────────────────────── -->
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <UiCard v-for="panel in recommendationPanels" :key="panel.id" :title="$t(panel.title)">
+        <div v-if="panel.items.length" class="flex flex-col">
+          <div
+            v-for="item in panel.items"
+            :key="`${panel.id}-${item.name}`"
+            class="flex items-baseline justify-between gap-3 border-b border-line py-1.5 text-sm last:border-0"
+          >
+            <span class="min-w-0 truncate text-muted">{{ item.name }}</span>
+            <span class="tabular shrink-0 text-ink">{{ recommendationValue(panel.id, item) }}</span>
           </div>
         </div>
-        <div v-else class="fam-empty fam-empty--small">{{ $t('familiers.page.empty.recommendations') }}</div>
-      </div>
+        <p v-else class="text-sm text-subtle">{{ $t('familiers.page.empty.recommendations') }}</p>
+      </UiCard>
     </div>
 
-    <div class="fam-table-wrap">
-      <div class="fam-table-head">
-        <span class="fam-table-title">{{ currentSectionTitle }}</span>
-        <span class="fam-table-count">{{ visibleTableItems.length }} / {{ filteredItems.length }} {{ $t('familiers.page.count.items') }}</span>
+    <!-- ── Items table ──────────────────────────────────────────────────── -->
+    <UiPageSection :title="currentSectionTitle">
+      <template #actions>
+        <span class="tabular text-xs text-subtle">
+          {{ visibleTableItems.length }} / {{ filteredItems.length }} {{ $t('familiers.page.count.items') }}
+        </span>
+      </template>
+
+      <UiToolbar>
+        <template #search>
+          <UiInput v-model="search" type="search" :placeholder="$t('familiers.page.search.placeholder')">
+            <template #prefix><UiIcon name="search" /></template>
+          </UiInput>
+        </template>
+        <template #filters>
+          <UiSegmented v-model="activeView" :options="viewSegments" size="sm" :aria-label="$t('familiers.page.sort.label')" />
+          <UiSelect
+            v-if="activeView === 'zones'"
+            v-model="selectedZone"
+            :options="zoneOptions"
+            size="sm"
+            class="w-44"
+            :aria-label="$t('familiers.page.filters.allZones')"
+          />
+          <UiSelect
+            v-model="pricedFilter"
+            :options="pricedOptions"
+            size="sm"
+            class="w-40"
+            :aria-label="$t('familiers.page.filters.allPrices')"
+          />
+        </template>
+        <template #extra>
+          <!-- Numeric bounds are secondary: they live on their own row so the
+               primary filters above stay readable on medium screens. -->
+          <UiNumberInput v-model="filters.minXp" :min="0" size="sm" class="w-28" :placeholder="$t('familiers.page.filters.minXp')" />
+          <UiNumberInput v-model="filters.maxXp" :min="0" size="sm" class="w-28" :placeholder="$t('familiers.page.filters.maxXp')" />
+          <UiNumberInput v-model="filters.maxQty" :min="0" size="sm" class="w-28" :placeholder="$t('familiers.page.filters.maxQty')" />
+          <UiNumberInput v-model="filters.maxUnitPrice" :min="0" size="sm" class="w-32" :placeholder="$t('familiers.page.filters.maxUnitPrice')" />
+          <UiNumberInput v-model="filters.maxTotalCost" :min="0" size="sm" class="w-32" :placeholder="$t('familiers.page.filters.maxTotalCost')" />
+          <UiNumberInput
+            v-if="activeView === 'essences'"
+            v-model="filters.maxDungeonLevel"
+            :min="0"
+            size="sm"
+            class="w-32"
+            :placeholder="$t('familiers.page.filters.maxDungeonLevel')"
+          />
+        </template>
+      </UiToolbar>
+
+      <UiTable
+        :columns="tableColumns"
+        :sort-key="sortBy"
+        :sort-desc="sortDesc"
+        :empty="!filteredItems.length"
+        :empty-text="$t('familiers.page.empty.items')"
+        @sort="toggleSort"
+      >
+        <tr v-for="item in visibleTableItems" :key="item.key" class="border-t border-line hover:bg-sunken">
+          <td class="px-3 py-2 text-sm text-ink">{{ item.name }}</td>
+          <td class="px-3 py-2 text-sm text-subtle">{{ item.groupName }}</td>
+          <td class="tabular px-3 py-2 text-right text-sm text-muted">{{ fmtDecimal(item.xp) }}</td>
+          <td class="tabular px-3 py-2 text-right text-sm text-muted">{{ fmtQty(qtyToBuy(item.xp)) }}</td>
+          <td class="tabular px-3 py-2 text-right text-sm text-accent">{{ fmt(maxPrice(item.xp)) }} k</td>
+          <td class="px-3 py-2 text-right">
+            <input
+              :value="draftManualPrices[item.name] ?? manualPrices[item.name] ?? ''"
+              type="number"
+              min="0"
+              step="1"
+              :class="[inputClass, 'tabular h-8 w-24 text-right text-xs']"
+              @input="setDraftManualPrice(item.name, ($event.target as HTMLInputElement).value)"
+              @change="commitDraftManualPrice(item.name)"
+              @keydown.enter.prevent="commitDraftManualPrice(item.name)"
+            >
+            <p v-if="manualPrices[item.name] == null && importedResourcePrice(item.name) != null" class="tabular mt-0.5 text-xs text-subtle">
+              {{ fmt(importedResourcePrice(item.name) || 0) }} k {{ $t('familiers.page.table.fromResources') }}
+            </p>
+          </td>
+          <td class="tabular px-3 py-2 text-right text-sm text-ink">{{ levelCostLabel(item) }}</td>
+          <td class="tabular px-3 py-2 text-right text-sm text-muted">{{ xpPerKamaLabel(item) }}</td>
+        </tr>
+        <tr v-if="filteredItems.length > visibleTableItems.length">
+          <td colspan="8" class="px-3 py-3 text-center text-xs text-subtle">
+            {{ $t('familiers.page.table.limited', { shown: visibleTableItems.length, total: filteredItems.length }) }}
+          </td>
+        </tr>
+      </UiTable>
+    </UiPageSection>
+
+    <!-- ── Guide ────────────────────────────────────────────────────────── -->
+    <UiModal :open="guideOpen" :title="$t('familiers.guide.title')" size="lg" @close="guideOpen = false">
+      <p class="text-sm text-muted">
+        {{ pricingMode === 'reference' ? $t('familiers.guide.referenceIntro') : $t('familiers.guide.manualIntro') }}
+      </p>
+      <p class="mt-2 text-sm">
+        <span class="text-subtle">{{ $t('familiers.guide.activeModeLabel') }}</span>
+        <span class="ml-1.5 font-medium text-accent">
+          {{ pricingMode === 'reference' ? $t('familiers.guide.referenceModeName') : $t('familiers.guide.manualModeName') }}
+        </span>
+      </p>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <p class="mb-1.5 text-xs font-medium tracking-wide text-subtle uppercase">
+            {{ $t('familiers.guide.cards.columns.title') }}
+          </p>
+          <dl class="flex flex-col gap-1 text-sm text-muted">
+            <div><span class="text-ink">{{ $t('familiers.guide.cards.columns.xpLabel') }}</span> = {{ $t('familiers.guide.cards.columns.xpText') }}</div>
+            <div><span class="text-ink">{{ $t('familiers.guide.cards.columns.qtyLabel') }}</span> = {{ $t('familiers.guide.cards.columns.qtyText') }}</div>
+            <div>
+              <span class="text-ink">{{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referencePriceLabel') : $t('familiers.guide.cards.columns.manualPriceLabel') }}</span>
+              = {{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referencePriceText') : $t('familiers.guide.cards.columns.manualPriceText') }}
+            </div>
+            <div>
+              <span class="text-ink">{{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referenceTotalLabel') : $t('familiers.guide.cards.columns.manualTotalLabel') }}</span>
+              = {{ $t('familiers.guide.cards.columns.totalText') }}
+            </div>
+          </dl>
+        </div>
+        <div>
+          <p class="mb-1.5 text-xs font-medium tracking-wide text-subtle uppercase">
+            {{ $t('familiers.guide.cards.example.title') }}
+          </p>
+          <div class="flex flex-col gap-1 text-sm text-muted">
+            <p>{{ $t('familiers.guide.cards.example.line1') }}</p>
+            <p>{{ $t('familiers.guide.cards.example.line2') }}</p>
+          </div>
+        </div>
       </div>
-      <table class="fam-table">
-        <thead>
-          <tr>
-            <th>{{ $t('familiers.page.table.item') }}</th>
-            <th>{{ $t('familiers.page.table.group') }}</th>
-            <th class="text-right">{{ $t('familiers.page.table.xpPerUnit') }}</th>
-            <th class="text-right">{{ $t('familiers.page.table.qtyNeeded') }}</th>
-            <th class="text-right">{{ $t('familiers.page.table.targetPricePerUnit') }}</th>
-            <th class="text-right">{{ $t('familiers.page.table.manualPricePerUnit') }}</th>
-            <th class="text-right">{{ $t('familiers.page.table.totalTargetLevel', { level: targetLevel }) }}</th>
-            <th class="text-right">{{ $t('familiers.page.table.xpPerKama') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in visibleTableItems" :key="item.key">
-            <td class="fam-item-name">{{ item.name }}</td>
-            <td class="fam-muted">{{ item.groupName }}</td>
-            <td class="fam-num fam-xp text-right">{{ fmtDecimal(item.xp) }}</td>
-            <td class="fam-num text-right">{{ fmtQty(qtyToBuy(item.xp)) }}</td>
-            <td class="fam-num fam-price text-right">{{ fmt(maxPrice(item.xp)) }} k</td>
-            <td class="text-right">
-              <input
-                :value="draftManualPrices[item.name] ?? manualPrices[item.name] ?? ''"
-                type="number"
-                min="0"
-                step="1"
-                class="fam-price-input"
-                @input="setDraftManualPrice(item.name, ($event.target as HTMLInputElement).value)"
-                @change="commitDraftManualPrice(item.name)"
-                @keydown.enter.prevent="commitDraftManualPrice(item.name)"
-              />
-              <div v-if="manualPrices[item.name] == null && importedResourcePrice(item.name) != null" class="fam-price-source">
-                {{ fmt(importedResourcePrice(item.name) || 0) }} k {{ $t('familiers.page.table.fromResources') }}
-              </div>
-            </td>
-            <td class="fam-num fam-price text-right">{{ levelCostLabel(item) }}</td>
-            <td class="fam-num text-right">{{ xpPerKamaLabel(item) }}</td>
-          </tr>
-          <tr v-if="filteredItems.length === 0">
-            <td colspan="8" class="fam-empty">{{ $t('familiers.page.empty.items') }}</td>
-          </tr>
-          <tr v-else-if="filteredItems.length > visibleTableItems.length">
-            <td colspan="8" class="fam-empty fam-empty--small">{{ $t('familiers.page.table.limited', { shown: visibleTableItems.length, total: filteredItems.length }) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    </UiModal>
   </div>
 </template>
 
@@ -378,7 +415,44 @@ const numberLocale = computed(() => locale.value === 'fr' ? 'fr-FR' : 'en-US')
 const fmt = (n: number) => Math.round(n).toLocaleString(numberLocale.value)
 const fmtDecimal = (n: number) => n.toLocaleString(numberLocale.value, { maximumFractionDigits: 3 })
 const fmtQty = (n: number) => n % 1 === 0 ? n.toString() : n.toLocaleString(numberLocale.value, { maximumFractionDigits: 1 })
-const sortArrow = computed(() => sortDir.value === 'desc' ? 'down' : 'up')
+const sortDesc = computed(() => sortDir.value === 'desc')
+
+// Shared styling for the handful of inputs that keep a template ref, so they
+// can't be swapped for UiInput without rewriting the logic that reads them.
+const inputClass = 'h-9 rounded-md border border-line bg-sunken px-2.5 text-sm text-ink transition-colors hover:border-line-strong focus:border-accent focus:outline-none'
+
+const modeOptions = computed(() => [
+  { label: t('familiers.page.mode.reference'), value: 'reference' },
+  { label: t('familiers.page.mode.manual'), value: 'manual' },
+])
+
+const viewSegments = computed(() =>
+  viewOptions.map(view => ({ label: t(view.label), value: view.id })),
+)
+
+const zoneOptions = computed(() => [
+  { key: 'all', label: t('familiers.page.filters.allZones'), value: '' },
+  ...zones.map(zone => ({ key: zone.id, label: zone.name, value: zone.id })),
+])
+
+const pricedOptions = computed(() => [
+  { key: 'all', label: t('familiers.page.filters.allPrices'), value: 'all' },
+  { key: 'priced', label: t('familiers.page.filters.priced'), value: 'priced' },
+  { key: 'unpriced', label: t('familiers.page.filters.unpriced'), value: 'unpriced' },
+])
+
+// Column keys double as sort keys, so the header click maps straight onto
+// toggleSort without a lookup table.
+const tableColumns = computed(() => [
+  { key: 'name', label: t('familiers.page.table.item'), sortable: true },
+  { key: 'group', label: t('familiers.page.table.group') },
+  { key: 'xp', label: t('familiers.page.table.xpPerUnit'), align: 'right' as const, sortable: true },
+  { key: 'qty', label: t('familiers.page.table.qtyNeeded'), align: 'right' as const, sortable: true },
+  { key: 'targetPrice', label: t('familiers.page.table.targetPricePerUnit'), align: 'right' as const, sortable: true },
+  { key: 'manualPrice', label: t('familiers.page.table.manualPricePerUnit'), align: 'right' as const, sortable: true },
+  { key: 'totalCost', label: t('familiers.page.table.totalTargetLevel', { level: targetLevel.value }), align: 'right' as const, sortable: true },
+  { key: 'xpPerKama', label: t('familiers.page.table.xpPerKama'), align: 'right' as const, sortable: true },
+])
 
 const normalizeName = (value: string) => value
   .toLowerCase()
@@ -770,337 +844,3 @@ watch(plannedPurchases, (value) => {
   localStorage.setItem(PLANNED_PURCHASES_KEY, JSON.stringify(value))
 })
 </script>
-
-<style scoped>
-.fam-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .625rem;
-  margin-bottom: .875rem;
-}
-@media (max-width: 640px) { .fam-stats { grid-template-columns: repeat(2, 1fr); } }
-.fam-stat, .fam-panel, .fam-rec, .fam-table-wrap {
-  background: var(--v2-hover-subtle);
-  border: 1px solid var(--v2-active);
-  border-radius: 12px;
-}
-.fam-stat { padding: .875rem 1rem; text-align: center; }
-.fam-stat__val { font-size: 1.25rem; font-weight: 800; color: var(--v2-accent); line-height: 1.2; }
-.fam-stat__label { font-size: .6875rem; color: var(--v2-text-secondary); margin-top: 2px; }
-.fam-budget {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: .75rem;
-  background: var(--v2-hover-subtle);
-  border: 1px solid var(--v2-active);
-  border-radius: 12px;
-  padding: .75rem 1rem;
-  margin-bottom: .875rem;
-}
-.fam-budget--mode { justify-content: space-between; }
-.fam-budget__label, .fam-sort__label {
-  font-size: .75rem;
-  font-weight: 700;
-  color: var(--v2-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  white-space: nowrap;
-}
-.fam-mode-toggle, .fam-tabs {
-  display: flex;
-  gap: 4px;
-  padding: .25rem;
-  border-radius: 10px;
-  background: rgba(0,0,0,.2);
-  border: 1px solid var(--v2-border-subtle);
-  flex-wrap: wrap;
-}
-.fam-mode-toggle__btn, .fam-tab {
-  padding: .375rem .75rem;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: var(--v2-text-secondary);
-  font-size: .8125rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-.fam-mode-toggle__btn--on, .fam-tab--on { background: var(--v2-active-strong); color: var(--v2-text); }
-.fam-target-level {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-  color: var(--v2-text-secondary);
-  font-size: .75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-.fam-target-level__input {
-  width: 74px;
-  padding: .36rem .5rem;
-  border-radius: 8px;
-  border: 1px solid var(--v2-border-med);
-  background: rgba(0,0,0,.25);
-  color: var(--v2-text);
-  font-size: .85rem;
-  font-weight: 800;
-  text-align: center;
-  outline: none;
-}
-.fam-help-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--v2-active);
-  background: linear-gradient(180deg, var(--v2-active-strong), var(--v2-active));
-  color: var(--v2-text);
-  font-size: 1.05rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-.fam-clear-btn, .fam-action-btn {
-  padding: .42rem .75rem;
-  border-radius: 8px;
-  font-size: .75rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.fam-clear-btn {
-  border: 1px solid rgba(248,113,113,.2);
-  background: transparent;
-  color: #f87171;
-}
-.fam-action-btn {
-  border: 1px solid var(--v2-border-med);
-  background: var(--v2-active-strong);
-  color: var(--v2-text);
-}
-.fam-budget__input-wrap { display: flex; align-items: center; gap: .375rem; }
-.fam-budget__input, .fam-field, .fam-bulk__input, .fam-price-input {
-  background: rgba(0,0,0,.25);
-  border: 1px solid var(--v2-border-med);
-  border-radius: 8px;
-  color: var(--v2-text);
-  outline: none;
-}
-.fam-budget__input { padding: .375rem .625rem; width: 140px; font-size: .9375rem; font-weight: 700; }
-.fam-budget__unit, .fam-budget__hint, .fam-muted { font-size: .8125rem; color: var(--v2-text-muted); }
-.fam-budget__hint strong { color: var(--v2-text-hover); }
-.fam-panel {
-  padding: .75rem;
-  margin-bottom: .875rem;
-}
-.fam-filter-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: .5rem;
-  margin: .75rem 0;
-}
-.fam-field { min-width: 0; padding: .46rem .65rem; font-size: .82rem; }
-.fam-field--wide { grid-column: span 2; }
-.fam-sort { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
-.fam-sort__btn {
-  padding: .3125rem .625rem;
-  border-radius: 7px;
-  border: 1px solid var(--v2-active);
-  background: transparent;
-  color: var(--v2-text-muted);
-  font-size: .75rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-.fam-sort__btn--on { background: var(--v2-border-med); border-color: var(--v2-border-strong); color: var(--v2-text); }
-.fam-bulk { display: grid; gap: .625rem; }
-.fam-bulk__input { width: 100%; min-height: 92px; padding: .65rem; resize: vertical; }
-.fam-bulk__actions, .fam-bulk__result { display: flex; gap: .625rem; align-items: center; flex-wrap: wrap; }
-.fam-section-title { font-size: .9rem; font-weight: 800; color: var(--v2-text-hover); }
-.fam-queue { display: grid; gap: .75rem; }
-.fam-queue__top {
-  display: flex;
-  justify-content: space-between;
-  gap: .75rem;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-.fam-queue__actions, .fam-queue-card__entry {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  flex-wrap: wrap;
-}
-.fam-queue-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: center;
-  padding: .85rem;
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 10px;
-  background: rgba(0,0,0,.16);
-}
-.fam-queue-card__main { min-width: 220px; }
-.fam-queue-card__eyebrow {
-  font-size: .68rem;
-  font-weight: 800;
-  color: var(--v2-accent);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  margin-bottom: .25rem;
-}
-.fam-queue-card__name {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--v2-text-hover);
-  margin-bottom: .35rem;
-}
-.fam-queue-card__meta {
-  display: flex;
-  gap: .65rem;
-  flex-wrap: wrap;
-  font-size: .78rem;
-  color: var(--v2-text-muted);
-}
-.fam-queue-price { width: 150px; }
-.fam-progress { display: grid; gap: .7rem; }
-.fam-progress__top,
-.fam-progress__entry,
-.fam-progress__row {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  flex-wrap: wrap;
-}
-.fam-progress__top { justify-content: space-between; align-items: flex-start; }
-.fam-progress__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .5rem;
-}
-.fam-progress__stats div {
-  padding: .65rem .75rem;
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 8px;
-  background: rgba(0,0,0,.16);
-}
-.fam-progress__stats span {
-  display: block;
-  margin-bottom: .2rem;
-  font-size: .68rem;
-  font-weight: 800;
-  color: var(--v2-text-muted);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-.fam-progress__stats strong { color: var(--v2-accent); font-size: .95rem; }
-.fam-progress__entry .fam-field:first-child { flex: 1 1 260px; }
-.fam-progress__qty { width: 130px; }
-.fam-progress__list { display: grid; gap: .4rem; }
-.fam-progress__row {
-  justify-content: space-between;
-  padding: .5rem .6rem;
-  border: 1px solid var(--v2-border-subtle);
-  border-radius: 8px;
-  background: rgba(0,0,0,.12);
-  font-size: .78rem;
-}
-.fam-progress__row span { color: var(--v2-text-hover); font-weight: 700; }
-.fam-progress__row strong { color: var(--v2-text-secondary); font-weight: 600; }
-.fam-error { color: #f87171; font-size: .78rem; font-weight: 700; }
-.fam-recs {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: .625rem;
-  margin-bottom: .875rem;
-}
-.fam-rec { padding: .75rem; min-height: 160px; }
-.fam-rec__list { display: grid; gap: .45rem; margin-top: .6rem; }
-.fam-rec__row {
-  display: flex;
-  justify-content: space-between;
-  gap: .65rem;
-  font-size: .78rem;
-  color: var(--v2-text-secondary);
-}
-.fam-rec__row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fam-rec__row strong { color: var(--v2-accent); white-space: nowrap; }
-.fam-table-wrap { overflow: hidden; }
-.fam-table-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: .75rem 1rem;
-  border-bottom: 1px solid var(--v2-border-subtle);
-}
-.fam-table-title { font-size: .9375rem; font-weight: 700; color: var(--v2-text-hover); }
-.fam-table-count {
-  font-size: .6875rem;
-  background: var(--v2-active);
-  color: var(--v2-accent);
-  padding: .125rem .5rem;
-  border-radius: 999px;
-  font-weight: 600;
-}
-.fam-table { width: 100%; border-collapse: collapse; overflow-x: auto; display: block; }
-.fam-table thead tr, .fam-table tbody tr { border-bottom: 1px solid var(--v2-border-subtle); }
-.fam-table th {
-  padding: .5rem .875rem;
-  font-size: .6875rem;
-  font-weight: 700;
-  color: var(--v2-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  text-align: left;
-  white-space: nowrap;
-}
-.fam-table td { padding: .5rem .875rem; vertical-align: top; }
-.fam-item-name { font-size: .875rem; font-weight: 600; color: var(--v2-text); min-width: 180px; }
-.fam-num { font-size: .875rem; white-space: nowrap; }
-.fam-price-input { width: 120px; max-width: 100%; padding: .35rem .55rem; font-size: .8125rem; text-align: right; }
-.fam-price-source { margin-top: .2rem; font-size: .67rem; color: var(--v2-text-muted); white-space: nowrap; }
-.fam-xp { color: var(--v2-text-hover); font-weight: 600; }
-.fam-price { color: var(--v2-accent); font-weight: 700; }
-.fam-empty { text-align: center; color: var(--v2-text-dim); font-size: .875rem; padding: 2.5rem; }
-.fam-empty--small { padding: 1rem .25rem; font-size: .78rem; }
-.fam-guide-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: rgba(0, 0, 0, .72);
-}
-.fam-guide {
-  width: min(960px, 100%);
-  max-height: min(88vh, 900px);
-  overflow: auto;
-  padding: 1rem;
-  border-radius: 16px;
-  border: 1px solid var(--v2-border-med);
-  background: var(--v2-bg);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
-}
-.fam-guide__topbar, .fam-guide__hero { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: .8rem; }
-.fam-guide__close { width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); color: #f2fff8; cursor: pointer; }
-.fam-guide__eyebrow { font-size: .6875rem; font-weight: 800; color: var(--v2-accent); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .35rem; }
-.fam-guide__title { font-size: 1rem; font-weight: 800; color: var(--v2-text-hover); }
-.fam-guide__intro { max-width: 70ch; font-size: .84rem; color: #dbece4; line-height: 1.5; }
-.fam-guide__mode-badge, .fam-guide-card { padding: .75rem .85rem; border-radius: 12px; background: var(--v2-hover-subtle); border: 1px solid var(--v2-border-subtle); }
-.fam-guide__mode-label { display: block; font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--v2-text-muted); margin-bottom: .2rem; }
-.fam-guide__legend { display: grid; grid-template-columns: 1.4fr 1fr; gap: .75rem; }
-.fam-guide-card__title { font-size: .78rem; font-weight: 800; color: var(--v2-text-hover); margin-bottom: .45rem; }
-.fam-guide-card__list { display: grid; gap: .38rem; font-size: .8rem; color: #d8e8e1; line-height: 1.45; }
-.fam-modal-enter-active, .fam-modal-leave-active { transition: opacity .18s ease; }
-.fam-modal-enter-from, .fam-modal-leave-to { opacity: 0; }
-@media (max-width: 980px) {
-  .fam-filter-grid, .fam-recs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .fam-field--wide { grid-column: span 2; }
-  .fam-queue-card { align-items: flex-start; flex-direction: column; }
-}
-@media (max-width: 640px) {
-  .fam-filter-grid, .fam-recs, .fam-guide__legend, .fam-progress__stats { grid-template-columns: 1fr; }
-  .fam-field--wide { grid-column: span 1; }
-}
-</style>
