@@ -307,6 +307,81 @@
       },
       "time": {
         "now": "now"
+      },
+      "guide": {
+        "eyebrow": "Beginner flipping flow",
+        "workflow": "Resale workflow"
+      },
+      "create": {
+        "title": "Watch one item before buying",
+        "eyebrow": "Add a beginner flip",
+        "ruleLabel": "Beginner rule:",
+        "rule": "start with one watched item. Enter the price you think it can sell for and the minimum profit you want — the app works out the maximum buy price.",
+        "itemName": "Item name",
+        "itemNamePlaceholder": "Gelano, rune, resource…",
+        "targetSellPrice": "Observed / target sell price",
+        "minProfit": "Minimum profit wanted",
+        "note": "Optional note",
+        "notePlaceholder": "Why this item looked interesting…",
+        "safeBuyPrice": "Safe buy price",
+        "submit": "Create watched flip",
+        "reset": "Reset",
+        "enterTarget": "Enter a target price",
+        "orLess": "{amount} kamas or less",
+        "hintName": "Start by naming the item you want to watch.",
+        "hintTarget": "Enter the price you realistically expect to sell it for.",
+        "hintProfit": "Add a minimum profit so you do not buy on a tiny unsafe margin.",
+        "hintResult": "For at least {profit} kamas profit, do not buy above {max} kamas."
+      },
+      "next": {
+        "stale": {
+          "title": "Relist or cancel stale listings first.",
+          "desc": "{count} listed flips have been sitting for 3+ days. Locked capital is the hidden cost of flipping.",
+          "cta": "Show listed flips",
+          "hint": "If it does not sell: lower the price, relist, or cancel and record the lesson."
+        },
+        "bought": {
+          "title": "List bought items before hunting more deals.",
+          "desc": "You have {count} bought items still without a listing price. Profit starts as a plan and only becomes real after the sale.",
+          "cta": "Show bought flips",
+          "hint": "Set a list price, then mark as listed so hold time starts counting."
+        },
+        "watched": {
+          "title": "Decide: buy, ignore, or keep watching.",
+          "desc": "You have {count} watched items. Do not buy unless the expected margin comfortably beats your risk.",
+          "cta": "Show watched flips",
+          "hint": "If the spread is small or the price data is old, skip it."
+        },
+        "sold": {
+          "title": "Review what sold before repeating it.",
+          "desc": "You have {count} completed flips with {profit} kamas realized P/L. Repeat the winners, avoid the slow losers.",
+          "cta": "Show sold flips",
+          "hint": "Realized profit teaches more than estimated profit."
+        },
+        "idle": {
+          "title": "Keep the loop small and measurable.",
+          "desc": "Watch one item, buy only with a safe margin, list it, then mark it sold or cancelled with notes.",
+          "cta": "Show all flips",
+          "hint": "The app should teach from your actual outcomes."
+        }
+      },
+      "steps": {
+        "watch": {
+          "title": "Watch",
+          "desc": "Pick one item and record a target price."
+        },
+        "buy": {
+          "title": "Buy",
+          "desc": "Only under your safe buy price."
+        },
+        "list": {
+          "title": "List",
+          "desc": "Set a price and start the clock."
+        },
+        "close": {
+          "title": "Close",
+          "desc": "Mark sold or cancelled and keep the lesson."
+        }
       }
     },
     "crafting": {

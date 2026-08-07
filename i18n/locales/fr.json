@@ -307,6 +307,81 @@
       },
       "time": {
         "now": "maintenant"
+      },
+      "guide": {
+        "eyebrow": "Flux de revente pour débutants",
+        "workflow": "Étapes de revente"
+      },
+      "create": {
+        "title": "Observez un objet avant d’acheter",
+        "eyebrow": "Ajouter un flip débutant",
+        "ruleLabel": "Règle débutant :",
+        "rule": "commencez par un seul objet observé. Indiquez le prix de vente visé et le profit minimum souhaité — l’app calcule le prix d’achat maximum.",
+        "itemName": "Nom de l’objet",
+        "itemNamePlaceholder": "Gelano, rune, ressource…",
+        "targetSellPrice": "Prix de vente observé / visé",
+        "minProfit": "Profit minimum souhaité",
+        "note": "Note optionnelle",
+        "notePlaceholder": "Pourquoi cet objet vous intéresse…",
+        "safeBuyPrice": "Prix d’achat sûr",
+        "submit": "Créer le flip observé",
+        "reset": "Réinitialiser",
+        "enterTarget": "Entrez un prix cible",
+        "orLess": "{amount} kamas ou moins",
+        "hintName": "Commencez par nommer l’objet à observer.",
+        "hintTarget": "Entrez le prix auquel vous pensez réellement pouvoir le vendre.",
+        "hintProfit": "Ajoutez un profit minimum pour ne pas acheter sur une marge trop faible.",
+        "hintResult": "Pour au moins {profit} kamas de profit, n’achetez pas au-dessus de {max} kamas."
+      },
+      "next": {
+        "stale": {
+          "title": "Repositionnez ou annulez les annonces bloquées.",
+          "desc": "{count} annonces sont en vente depuis 3 jours ou plus. Le capital immobilisé est le coût caché de la revente.",
+          "cta": "Voir les annonces",
+          "hint": "Si ça ne se vend pas : baissez le prix, remettez en vente, ou annulez et notez la leçon."
+        },
+        "bought": {
+          "title": "Mettez en vente avant de chercher d’autres affaires.",
+          "desc": "Vous avez {count} objets achetés sans prix de vente. Le profit n’est réel qu’après la vente.",
+          "cta": "Voir les objets achetés",
+          "hint": "Fixez un prix, puis marquez comme en vente pour lancer le compteur."
+        },
+        "watched": {
+          "title": "Décidez : acheter, ignorer, ou continuer à observer.",
+          "desc": "Vous avez {count} objets observés. N’achetez que si la marge attendue dépasse nettement le risque.",
+          "cta": "Voir les objets observés",
+          "hint": "Si l’écart est faible ou les prix anciens, passez votre tour."
+        },
+        "sold": {
+          "title": "Analysez vos ventes avant de recommencer.",
+          "desc": "Vous avez {count} flips terminés pour {profit} kamas de P/L réalisé. Répétez ce qui marche, évitez ce qui traîne.",
+          "cta": "Voir les ventes",
+          "hint": "Le profit réalisé apprend plus que le profit estimé."
+        },
+        "idle": {
+          "title": "Gardez la boucle petite et mesurable.",
+          "desc": "Observez un objet, achetez avec une marge sûre, mettez en vente, puis marquez vendu ou annulé avec des notes.",
+          "cta": "Voir tous les flips",
+          "hint": "L’app doit apprendre de vos résultats réels."
+        }
+      },
+      "steps": {
+        "watch": {
+          "title": "Observer",
+          "desc": "Choisissez un objet et notez un prix cible."
+        },
+        "buy": {
+          "title": "Acheter",
+          "desc": "Uniquement sous votre prix d’achat sûr."
+        },
+        "list": {
+          "title": "Vendre",
+          "desc": "Fixez un prix et lancez le compteur."
+        },
+        "close": {
+          "title": "Clôturer",
+          "desc": "Marquez vendu ou annulé et gardez la leçon."
+        }
       }
     },
     "crafting": {
