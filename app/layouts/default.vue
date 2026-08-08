@@ -35,11 +35,14 @@
           </span>
           <span v-if="!collapsed" class="truncate text-sm font-semibold">{{ $t('v2.layout.brand') }}</span>
         </NuxtLink>
+        <!-- max-lg:, not `hidden`: UiButton hardcodes `inline-flex`, which
+             outranks an unprefixed `hidden` from a caller, so the plain form
+             leaked this desktop-only control into the mobile drawer. -->
         <UiButton
           variant="ghost"
           size="sm"
           icon
-          class="hidden lg:inline-flex"
+          class="max-lg:hidden"
           :aria-label="collapsed ? $t('v2.layout.expandSidebar') : $t('v2.layout.collapseSidebar')"
           @click="toggleCollapsed"
         >

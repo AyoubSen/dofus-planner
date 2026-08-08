@@ -4,30 +4,7 @@
       v-model:collapsed="filtersCollapsed"
       :filters="filters"
       @set="setFilter"
-      @open-guide="openGuide('main')"
     />
-
-    <!-- ── How this page is meant to be used ────────────────────────────── -->
-    <UiCard :title="$t('items.pricesWorkflow.title')" :subtitle="$t('items.pricesWorkflow.eyebrow')">
-      <p class="text-sm text-muted">{{ $t('items.pricesWorkflow.intro') }}</p>
-      <ol class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <li
-          v-for="(step, index) in workflowSteps"
-          :key="step"
-          class="rounded-md border border-line bg-sunken p-2.5"
-        >
-          <div class="flex items-baseline gap-2">
-            <span class="tabular text-xs text-subtle">{{ index + 1 }}</span>
-            <span class="text-sm font-medium text-ink">{{ $t(`items.pricesWorkflow.steps.${step}`) }}</span>
-          </div>
-          <p class="mt-0.5 text-xs text-subtle">{{ $t(`items.pricesWorkflow.steps.${step}Hint`) }}</p>
-        </li>
-      </ol>
-    </UiCard>
-
-    <p class="text-xs text-subtle">{{ $t('items.usageHint') }}</p>
-
-    <ItemsGuideModal :open="guideOpen" :mode="guideMode" @close="guideOpen = false" />
 
     <ItemsCraftingPicker
       :open="craftingPickerState.isOpen"
@@ -63,21 +40,6 @@
       </div>
     </Transition>
 
-    <!-- ── Data slice ───────────────────────────────────────────────────── -->
-    <template v-if="stats">
-      <UiStatRow min="10rem">
-        <UiStat :label="$t('items.stats.totalEquipment')" :value="stats.totalEquipments" />
-        <UiStat :label="$t('items.stats.uniqueItems')" :value="stats.uniqueItems" />
-        <UiStat :label="$t('items.stats.mostVariedSlot')" :value="stats.mostPopularSlot?.slot ?? '—'" />
-        <UiStat :label="$t('items.stats.avgItemsPerSet')" :value="stats.avgItemsPerSet.toFixed(1)" />
-      </UiStatRow>
-
-      <div>
-        <p class="text-xs font-medium tracking-wide text-subtle uppercase">{{ $t('items.contextTitle') }}</p>
-        <p class="mt-0.5 text-sm text-muted">{{ itemsDataContextSubtitle }}</p>
-      </div>
-    </template>
-
     <div v-if="loading" class="flex flex-col gap-2">
       <UiSkeleton v-for="i in 6" :key="i" height="4rem" />
     </div>
@@ -105,27 +67,18 @@
 
       <!-- Slot content -->
       <div v-if="currentSlotStats">
-        <div v-if="!selectedRecipeItem && !aggregateRecipeState.isOpen" class="mb-3">
-          <h2 class="text-sm font-semibold text-ink">{{ $t(`items.slots.${activeSlot}`) }}</h2>
-          <p class="mt-0.5 text-xs text-subtle">{{ activeSlotContextSubtitle }}</p>
-        </div>
         <div v-if="selectedRecipeItem" class="flex flex-col gap-4">
           <ItemsRecipeHeader
             :item="selectedRecipeItem"
             :slot-label="$t(`items.slots.${activeSlot}`)"
             :confidence="recipeLookupState.confidence"
             :source="recipeLookupState.source"
-            :ocr="ocrState"
+            :ocr-loading="ocrState.isLoading"
+            :ocr-error="ocrState.error"
             :saved-price-count="selectedItemObservations.length"
-            :format-kamas="formatKamasFull"
             @back="resetRecipeView"
-            @open-guide="openGuide('recipe')"
             @refetch="refetchSelectedRecipe"
-            @open-ocr-picker="openOcrPicker"
-            @paste-screenshot="pasteMarketScreenshot"
-            @save-ocr-prices="saveOcrSnapshotPrices"
-            @use-candidate="selectedRecipeSellPrice = $event"
-            @focus-best-buys="focusObservedBestBuys"
+            @image="captureMarketScreenshot"
           />
 
           <div v-if="recipeLookupState.isLoading" class="flex flex-col gap-2">
@@ -133,7 +86,7 @@
           </div>
 
           <p v-else-if="recipeLookupState.error" class="text-xs text-negative">
-            {{ $t('items.detail.flipFlow.loadError') }}
+            {{ $t('items.detail.recipe.loadError') }}
           </p>
 
           <template v-else>
@@ -152,10 +105,6 @@
               :format-kamas="formatKamasFull"
               @back="closeObservationDetail"
               @use-as-sell-price="selectedRecipeSellPrice = $event"
-              @clear-market-screenshot="clearObservationScreenshots(selectedObservationDetail.id, { market: true })"
-              @clear-stats-screenshot="clearObservationScreenshots(selectedObservationDetail.id, { stats: true })"
-              @upload-stats-screenshot="openStatsScreenshotPicker(selectedObservationDetail.id)"
-              @paste-stats-screenshot="pasteStatsScreenshot(selectedObservationDetail.id)"
               @send-to-tracker="sendObservationToResaleTracker(selectedObservationDetail)"
               @add-expected-stat="addExpectedObservationStat"
               @add-stat-entry="addObservationStatEntry"
@@ -172,8 +121,8 @@
               v-model:valuation-mode="valuationMode"
               v-model:only-undervalued="showOnlyUndervaluedListings"
               v-model:show-table="showAdvancedValuationTable"
+              v-model:capture-row-id="statsCaptureRowId"
               :observations="selectedItemObservations"
-              :screenshot-summary="selectedItemScreenshotSummary"
               :valuation-map="allObservedValuationMap"
               :valuations="allObservedValuations"
               :displayed-valuations="displayedObservedValuations"
@@ -184,14 +133,13 @@
               :can-track="canUseCraftingSessions"
               :valuation-confidence="valuationConfidence"
               :valuation-mode-summary="valuationModeSummary"
+              :stats-loading="statsOcrState.isLoading"
               :format-kamas="formatKamasFull"
               @use-as-sell-price="selectedRecipeSellPrice = $event"
               @open-detail="openObservationDetail"
-              @upload-stats-screenshot="openStatsScreenshotPicker"
-              @clear-screenshots="clearObservationScreenshots($event, { market: true, stats: true })"
+              @stats-image="captureStatsScreenshot"
               @send-to-tracker="sendObservationToResaleTracker"
               @remove="removeObservation"
-              @clear-all-screenshots="clearAllObservationScreenshots"
               @remove-all="removeAllObservations"
             />
           </template>
@@ -236,15 +184,43 @@
       <template #icon><UiIcon name="items" /></template>
     </UiEmptyState>
 
-    <!-- The pickers are driven from several places in the detail panel, so the
-         inputs themselves stay here where the click handlers can reach them. -->
-    <input ref="ocrFileInput" type="file" accept="image/*" class="hidden" @change="handleOcrFileChange">
-    <input ref="statsScreenshotInput" type="file" accept="image/*" class="hidden" @change="handleStatsScreenshotChange">
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      leave-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="undoState"
+        class="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-md border border-line bg-raised px-3 py-2 text-sm shadow-md"
+        role="status"
+      >
+        <span class="text-ink">{{ t('items.detail.capture.saved', { count: undoState.count }) }}</span>
+        <UiButton variant="ghost" size="sm" @click="undoLastScan">
+          {{ $t('items.detail.capture.undo') }}
+        </UiButton>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useResaleTracker } from '~/composables/useResaleTracker'
+import {
+  readClipboardImageDataUrl,
+  readFileAsDataUrl,
+  runPriceOcr,
+  runStatsOcr,
+} from '~/composables/useScreenshotOcr'
+import {
+  CHARACTERISTIC_TO_STAT_KEY,
+  WEAPON_ATTACK_EFFECT_CATEGORY,
+  findSpecialMageDef,
+  hasWholeWordStatAliasMatch,
+  normalizeLabelForStatKey,
+  specialMageStatKeys,
+  statsOcrDefs,
+} from '~/utils/itemStats'
 
 const { t } = useI18n()
 const { appendActivity } = useAppDataStore()
@@ -291,17 +267,15 @@ const filtersCollapsed = ref(false)
 // survives a reload the same way it did before the split.
 watch(filtersCollapsed, value => localStorage.setItem('items-filters-collapsed', String(value)))
 
-const guideOpen = ref(false)
-const guideMode = ref<'main' | 'recipe'>('main')
 const loading = ref(false)
 const activeSlot = ref('ar')
 const viewMode = ref<'grid' | 'list' | 'table'>('grid')
 const stats = ref<any>(null)
 const selectedRecipeItem = ref<any>(null)
 const selectedRecipeSellPrice = ref(0)
-const ocrFileInput = ref<HTMLInputElement | null>(null)
-const statsScreenshotInput = ref<HTMLInputElement | null>(null)
-const pendingStatsObservationId = ref('')
+/** Which price row has its inline stats capture open, so a stray Ctrl+V lands
+ *  on that row instead of the item. */
+const statsCaptureRowId = ref('')
 type RecipeLookupSource = 'cache' | 'network' | ''
 type RecipeMatchConfidence = 'exact' | 'approx' | ''
 type CachedDofusdbRecipeEntry = {
@@ -329,8 +303,9 @@ type StoredObservedPriceEntry = {
   price: number
   createdAt: string
   source: 'ocr'
-  marketScreenshotDataUrl: string
-  statsScreenshotDataUrl?: string
+  /** Short digest of the screenshot this price came from. Lets a rescan of the
+   *  same image dedupe without keeping the image itself. */
+  scanHash?: string
   statsRawText?: string
   statsEntries: Array<{
     key: string
@@ -421,16 +396,6 @@ interface CraftFmSession {
   resourceChecklist: RecipeChecklistResource[]
 }
 
-type OcrWord = {
-  text?: string
-  confidence?: number
-  bbox?: {
-    x0: number
-    y0: number
-    x1: number
-    y1: number
-  }
-}
 
 const DOFUSDB_RECIPE_CACHE_KEY = 'dofus-items-dofusdb-recipe-cache-v1'
 const ITEM_RESOURCE_PRICES_KEY = 'dofus-items-resource-prices-v1'
@@ -559,6 +524,7 @@ const observationStatOptions = [
   { key: 'sagesse', label: 'Sagesse', suffix: '' },
   { key: 'initiative', label: 'Initiative', suffix: '' },
   { key: 'critique', label: 'Critique', suffix: '%' },
+  { key: 'dommages', label: 'Dommages', suffix: '' },
   { key: 'dommages_critiques', label: 'Dommages Critiques', suffix: '' },
   { key: 'resistance_critique', label: 'Résistance Critique', suffix: '' },
   { key: 'pa', label: 'PA', suffix: '' },
@@ -588,44 +554,6 @@ const observationStatOptions = [
   { key: 'dommages_sort', label: 'Dommages Sort', suffix: '%' },
   { key: 'arme_de_chasse', label: 'Arme de Chasse', suffix: '' },
 ]
-const statsOcrDefs = [
-  { key: 'vitalite', label: 'Vitalité', aliases: ['vitalite'] },
-  { key: 'force', label: 'Force', aliases: ['force'] },
-  { key: 'intelligence', label: 'Intelligence', aliases: ['intelligence'] },
-  { key: 'chance', label: 'Chance', aliases: ['chance'] },
-  { key: 'agilite', label: 'Agilité', aliases: ['agilite'] },
-  { key: 'sagesse', label: 'Sagesse', aliases: ['sagesse'] },
-  { key: 'initiative', label: 'Initiative', aliases: ['initiative', 'ini'] },
-  { key: 'retrait_pa', label: 'Retrait PA', aliases: ['retrait pa'] },
-  { key: 'retrait_pm', label: 'Retrait PM', aliases: ['retrait pm'] },
-  { key: 'esquive_pa', label: 'Esquive PA', aliases: ['esquive pa'] },
-  { key: 'esquive_pm', label: 'Esquive PM', aliases: ['esquive pm'] },
-  { key: 'critique', label: 'Critique', aliases: ['critique'], suffix: '%' as const },
-  { key: 'dommages_critiques', label: 'Dommages Critiques', aliases: ['dommages critiques', 'dommage critique', 'do crit', 'do cri'] },
-  { key: 'resistance_critique', label: 'Résistance Critique', aliases: ['resistance critique', 'résistance critique', 'resistances critiques', 'résistances critiques'] },
-  { key: 'pa', label: 'PA', aliases: [' pa ', 'pa [', 'pa'] },
-  { key: 'pm', label: 'PM', aliases: [' pm ', 'pm [', 'pm'] },
-  { key: 'po', label: 'PO', aliases: [' po ', 'portee', 'portée', 'po ['] },
-  { key: 'invocation', label: 'Invocation', aliases: ['invocation'] },
-  { key: 'dommages_neutre', label: 'Dommages Neutre', aliases: ['dommages neutre'] },
-  { key: 'dommages_terre', label: 'Dommages Terre', aliases: ['dommages terre'] },
-  { key: 'dommages_feu', label: 'Dommages Feu', aliases: ['dommages feu'] },
-  { key: 'dommages_eau', label: 'Dommages Eau', aliases: ['dommages eau'] },
-  { key: 'dommages_air', label: 'Dommages Air', aliases: ['dommages air'] },
-  { key: 'prospection', label: 'Prospection', aliases: ['prospection'] },
-  { key: 'resistance_air', label: 'Résistance Air', aliases: ['resistance air', 'résistance air'], suffix: '%' as const },
-  { key: 'resistance_terre', label: 'Résistance Terre', aliases: ['resistance terre', 'résistance terre'], suffix: '%' as const },
-  { key: 'resistance_feu', label: 'Résistance Feu', aliases: ['resistance feu', 'résistance feu'], suffix: '%' as const },
-  { key: 'resistance_eau', label: 'Résistance Eau', aliases: ['resistance eau', 'résistance eau'], suffix: '%' as const },
-  { key: 'resistance_neutre', label: 'Résistance Neutre', aliases: ['resistance neutre', 'résistance neutre'], suffix: '%' as const },
-  { key: 'fuite', label: 'Fuite', aliases: ['fuite'] },
-  { key: 'tacle', label: 'Tacle', aliases: ['tacle'] },
-  { key: 'dommages_poussee', label: 'Dommages Poussée', aliases: ['dommages poussee', 'dommage poussee', 'dommages poussée', 'dommage poussée', 'do pou', 'dopou'] },
-  { key: 'dommages_distance', label: 'Dommages Distance', aliases: ['dommages distance', 'dommages distances', 'dommages a distance', 'dommages à distance', 'do distance', 'do distances', 'do a distance', 'do à distance'], suffix: '%' as const },
-  { key: 'dommages_melee', label: 'Dommages Melee', aliases: ['dommages melee', 'dommages mêlee', 'dommages mêlée', 'dommages au corps a corps', 'dommages au corps à corps', 'corps a corps', 'corps à corps', 'do melee', 'do mêlee', 'do mêlée'], suffix: '%' as const },
-  { key: 'dommages_sort', label: 'Dommages Sort', aliases: ['dommages sort', 'dommages sorts', 'dommages au sort', 'dommages aux sorts', 'dommages sorts', 'do sort', 'do sorts'], suffix: '%' as const },
-  { key: 'arme_de_chasse', label: 'Arme de Chasse', aliases: ['arme de chasse', 'arme chasse', 'chasse'], binary: true as const },
-]
 const statPriorityPresets = [
   { key: 'ignore', label: 'Ignore', multiplier: 0 },
   { key: 'low', label: 'Low', multiplier: 0.75 },
@@ -641,6 +569,7 @@ const observationStatWeightMap: Record<string, number> = {
   agilite: 1,
   initiative: 0.4,
   critique: 1.5,
+  dommages: 2.4,
   dommages_critiques: 2.4,
   resistance_critique: 1.8,
   pa: 4,
@@ -670,19 +599,6 @@ const observationStatWeightMap: Record<string, number> = {
   dommages_sort: 3,
   arme_de_chasse: 2.5,
 }
-const specialMageStatKeys = new Set([
-  'pa',
-  'pm',
-  'po',
-  'invocation',
-  'dommages_critiques',
-  'dommages_poussee',
-  'dommages_distance',
-  'dommages_melee',
-  'dommages_sort',
-  'arme_de_chasse',
-])
-
 const setFilter = (key: keyof typeof filters, val: string) => {
   filters[key] = val
   fetchData()
@@ -692,48 +608,10 @@ const getSlotStats = (slotKey: string) => stats.value?.slotStats?.[slotKey] ?? n
 
 const currentSlotStats = computed(() => getSlotStats(activeSlot.value))
 
-const titleCase = (value: string) =>
-  value ? value.charAt(0).toUpperCase() + value.slice(1) : value
-
-const itemsDataContextSubtitle = computed(() => {
-  const parts = [
-    filters.mode ? filters.mode.toUpperCase() : t('items.detail.context.allModes'),
-    filters.level ? t('items.detail.context.level', { level: filters.level }) : t('items.detail.context.allLevels'),
-    filters.classe ? titleCase(filters.classe) : t('items.detail.context.allClasses'),
-    filters.element ? titleCase(filters.element) : t('items.detail.context.allElements'),
-    filters.budget ? t('items.detail.context.budget', { budget: titleCase(filters.budget) }) : t('items.detail.context.allBudgets'),
-  ]
-
-  const count = stats.value?.totalEquipments ?? 0
-  return `${parts.join(' · ')} · ${t('items.detail.context.matchingBuilds', { count })}`
-})
-
-const activeSlotContextSubtitle = computed(() => {
-  const slot = currentSlotStats.value
-  if (!slot) return ''
-
-  const topCount = slot.topItems?.[0]?.count ?? 0
-  const totalItems = slot.totalItems ?? 0
-  const slotName = t(`items.slots.${activeSlot.value}`)
-  return t('items.detail.context.slotSummary', {
-    count: totalItems,
-    slot: slotName.toLowerCase(),
-    topCount,
-  })
-})
-
 const craftingSessionsKey = computed(() => {
   if (!selectedServer.value?.id || !selectedCharacter.value?.id) return ''
   return `${CRAFT_FM_SESSIONS_KEY_PREFIX}${selectedServer.value.id}_${selectedCharacter.value.id}`
 })
-
-const normalizeDofusdbSearch = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[’`]/g, "'")
-    .toLowerCase()
-    .trim()
 
 const getRecipeMatchConfidence = (searchedName: string, matchedName: string): Exclude<RecipeMatchConfidence, ''> => {
   return normalizeDofusdbSearch(searchedName) === normalizeDofusdbSearch(matchedName)
@@ -790,8 +668,16 @@ const readObservedPrices = (): Record<string, StoredObservedPriceEntry[]> => {
       Object.entries(parsed).map(([key, value]) => [
         key,
         Array.isArray(value)
+          // Rebuilt field by field rather than spread, so the screenshot data
+          // URLs older versions stored are dropped here rather than carried
+          // forward invisibly.
           ? value.map((entry: any) => ({
-              ...entry,
+              id: entry?.id,
+              itemKey: entry?.itemKey,
+              itemName: entry?.itemName,
+              price: entry?.price,
+              createdAt: entry?.createdAt,
+              source: entry?.source,
               statsEntries: Array.isArray(entry?.statsEntries)
                 ? entry.statsEntries
                 : Array.isArray(entry?.statsLines)
@@ -805,8 +691,7 @@ const readObservedPrices = (): Record<string, StoredObservedPriceEntry[]> => {
                     }))
                   : [],
               statsRawText: typeof entry?.statsRawText === 'string' ? entry.statsRawText : '',
-              statsScreenshotDataUrl: entry?.statsScreenshotDataUrl || '',
-              marketScreenshotDataUrl: entry?.marketScreenshotDataUrl || '',
+              scanHash: typeof entry?.scanHash === 'string' ? entry.scanHash : '',
             }))
           : [],
       ])
@@ -889,24 +774,27 @@ const ensureEffectLabels = async (effects: Array<{ effectId?: number; id?: numbe
   writeEffectCache(nextCache)
 }
 
+/** DofusDB descriptions are templates like `#1{{~1~2 à }}#2 Dommage{{~ps}}{{~zs}}`.
+ *  `#1`/`#2` are the bounds; a `{{~1~2 ...}}` group is kept only when the two
+ *  differ, and `{{~ps}}`/`{{~zs}}` are pluralisation markers. The braces are
+ *  doubled — reading them as single ones ate the " à " separator and left
+ *  stray `}}` behind ("5 à 7 Dommages" came out as "57 Dommage}}"). */
 const formatEffectLabel = (effData: any, eff: any): string => {
-  let desc = effData?.description?.fr ?? effData?.description?.en ?? `Effet ${eff.effectId ?? eff.id}`
+  const template = effData?.description?.fr ?? effData?.description?.en ?? `Effet ${eff.effectId ?? eff.id}`
   const from = eff.from ?? eff.value ?? 0
   const to = eff.to ?? eff.value ?? 0
-  if (from === to) {
-    desc = desc
-      .replace(/\{[^}]*\}/g, '')
-      .replace(/#1/g, String(from))
-      .replace(/#2/g, '')
-      .trim()
-  } else {
-    desc = desc
-      .replace(/#1/g, String(from))
-      .replace(/#2/g, String(to))
-      .replace(/\{~1~2 ([^}]*)\}/g, '$1')
-      .replace(/\{[^}]*\}/g, '')
-      .trim()
-  }
+  // DofusDB encodes a fixed value as `to: 0` (that is how the tooltip's
+  // "-1 PA" and "1 Portée" are stored), not as from === to.
+  const isRange = from !== to && to !== 0
+
+  const desc = template
+    // Range-only group: keep its text when the bounds differ, else drop it.
+    .replace(/\{\{~1~2([^}]*)\}\}/g, isRange ? '$1' : '')
+    // Pluralisation and other conditional markers carry no text we need.
+    .replace(/\{\{[^}]*\}\}/g, '')
+    .replace(/#1/g, String(from))
+    .replace(/#2/g, isRange ? String(to) : '')
+
   return desc.replace(/\s{2,}/g, ' ').trim()
 }
 
@@ -960,8 +848,6 @@ const getCraftingSessionMeta = (session: CraftFmSession) => [
   formatWorkflowShortLabel(session.workflow),
   t('v2.crafting.index.itemsCount', { count: session.items?.length || 0 }),
 ].join(' · ')
-
-const workflowSteps = ['search', 'save', 'compare', 'track'] as const
 
 const formatWorkflowShortLabel = (value: WorkflowMode | string | undefined) =>
   value === 'craft'
@@ -1187,57 +1073,6 @@ const parseObservationRange = (rangeText: string) => {
   }
 }
 
-const normalizeLabelForStatKey = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[{}[\]()]/g, ' ')
-    .replace(/[^a-z0-9%+\-\s]/g, ' ')
-    .replace(/\b\d+\b/g, ' ')
-    .replace(/\bdommage\b/g, 'dommages')
-    .replace(/\bresistances?\b/g, 'resistance')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-const escapeRegExp = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-const hasWholeWordStatAliasMatch = (normalizedLabel: string, normalizedAlias: string) => {
-  if (!normalizedLabel || !normalizedAlias) return false
-  if (normalizedLabel === normalizedAlias) return true
-  if (normalizedAlias.length < 3 || normalizedLabel.length < 3) return false
-
-  const aliasPattern = new RegExp(`(^|\\s)${escapeRegExp(normalizedAlias)}(\\s|$)`)
-  const labelPattern = new RegExp(`(^|\\s)${escapeRegExp(normalizedLabel)}(\\s|$)`)
-
-  return aliasPattern.test(normalizedLabel) || labelPattern.test(normalizedAlias)
-}
-
-const normalizeSpecialMageSignature = (value: string) =>
-  normalizeLabelForStatKey(value)
-    .replace(/\b(aux|au|a|de|des|du|les|le|la)\b/g, ' ')
-    .replace(/\bcorps a corps\b/g, 'melee')
-    .replace(/\bcorps\b/g, 'melee')
-    .replace(/\bsorts?\b/g, 'sort')
-    .replace(/\bdistances?\b/g, 'distance')
-    .replace(/\s+/g, '')
-    .trim()
-
-const findSpecialMageDef = (label: string) => {
-  const signature = normalizeSpecialMageSignature(label)
-  if (!signature) return undefined
-
-  return statsOcrDefs.find((def) => {
-    if (!specialMageStatKeys.has(def.key)) return false
-    return [def.label, ...def.aliases].some((alias) => {
-      const aliasSignature = normalizeSpecialMageSignature(alias)
-      return signature === aliasSignature
-        || signature.includes(aliasSignature)
-        || aliasSignature.includes(signature)
-    })
-  })
-}
 
 const scrollSectionIntoView = async (getTarget: () => HTMLElement | null | undefined) => {
   await nextTick()
@@ -1294,12 +1129,19 @@ const currentItemEffectMappings = computed(() => {
   if (!Array.isArray(effects)) return []
 
   return effects
+    // The weapon's own attack line is not a roll the player can observe.
+    .filter((effect: any) => effect?.category !== WEAPON_ATTACK_EFFECT_CATEGORY)
     .map((effect: any) => {
       const cached = effectCache.value[String(effect.effectId)]?.data
       if (!cached) return null
       const label = formatEffectLabel(cached, effect)
-      const option = findStatOptionByLabel(label)
-      const range = effect.from === effect.to
+      // Prefer DofusDB's numeric characteristic; fall back to reading the
+      // French description only when the effect has no usable one.
+      const byCharacteristic = CHARACTERISTIC_TO_STAT_KEY[effect?.characteristic as number]
+      const option = (byCharacteristic
+        && observationStatOptions.find(entry => entry.key === byCharacteristic))
+        || findStatOptionByLabel(label)
+      const range = (effect.from === effect.to || effect.to === 0)
         ? `[${effect.from}]`
         : `[${effect.from} à ${effect.to}]`
       return {
@@ -1926,23 +1768,6 @@ const selectedObservationDetail = computed(() => {
   return selectedItemObservations.value.find((entry) => entry.id === selectedObservationId.value) || null
 })
 
-const selectedItemScreenshotSummary = computed(() => {
-  const observations = selectedItemObservations.value
-  let marketCount = 0
-  let statsCount = 0
-
-  observations.forEach((entry) => {
-    if (entry.marketScreenshotDataUrl) marketCount += 1
-    if (entry.statsScreenshotDataUrl) statsCount += 1
-  })
-
-  return {
-    marketCount,
-    statsCount,
-    totalCount: marketCount + statsCount,
-  }
-})
-
 const selectedObservationStatsHealth = computed(() => {
   const observation = selectedObservationDetail.value
   if (!observation) {
@@ -2338,475 +2163,6 @@ const resetOcrState = () => {
     screenshotDataUrl: '',
     debugRows: [],
   }
-  if (ocrFileInput.value) {
-    ocrFileInput.value.value = ''
-  }
-}
-
-const openOcrPicker = () => {
-  ocrFileInput.value?.click()
-}
-
-const readFileAsDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result || ''))
-    reader.onerror = () => reject(new Error('Failed to read image file'))
-    reader.readAsDataURL(file)
-  })
-
-const normalizeOcrLine = (line: string) =>
-  line
-    .replace(/\s+/g, ' ')
-    .replace(/[€$£¥]/g, '')
-    .trim()
-
-const loadImageElement = (dataUrl: string) =>
-  new Promise<HTMLImageElement>((resolve, reject) => {
-    if (!import.meta.client) {
-      reject(new Error('Image loading is only available in the browser.'))
-      return
-    }
-
-    const image = new Image()
-    image.onload = () => resolve(image)
-    image.onerror = () => reject(new Error('Failed to load screenshot image'))
-    image.src = dataUrl
-  })
-
-const buildProcessedImageDataUrl = async (
-  imageBase64: string,
-  options: {
-    cropLeftRatio?: number
-    cropTopRatio?: number
-    cropWidthRatio?: number
-    cropHeightRatio?: number
-    scale?: number
-    grayscale?: boolean
-    threshold?: number | null
-    contrast?: number
-    brightness?: number
-  }
-) => {
-  if (!import.meta.client) {
-    return imageBase64
-  }
-
-  const image = await loadImageElement(imageBase64)
-  const cropLeft = Math.max(0, Math.floor(image.width * (options.cropLeftRatio ?? 0)))
-  const cropTop = Math.max(0, Math.floor(image.height * (options.cropTopRatio ?? 0)))
-  const cropWidth = Math.max(1, Math.floor(image.width * (options.cropWidthRatio ?? 1)))
-  const cropHeight = Math.max(1, Math.floor(image.height * (options.cropHeightRatio ?? 1)))
-  const scale = options.scale ?? 1
-
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.max(1, Math.floor(cropWidth * scale))
-  canvas.height = Math.max(1, Math.floor(cropHeight * scale))
-  const ctx = canvas.getContext('2d')
-  if (!ctx) {
-    return imageBase64
-  }
-
-  ctx.imageSmoothingEnabled = true
-  ctx.imageSmoothingQuality = 'high'
-  ctx.drawImage(
-    image,
-    cropLeft,
-    cropTop,
-    cropWidth,
-    cropHeight,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  )
-
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-  const { data } = imageData
-  const contrast = options.contrast ?? 1
-  const brightness = options.brightness ?? 0
-  const threshold = options.threshold ?? null
-  const grayscale = options.grayscale !== false
-
-  for (let i = 0; i < data.length; i += 4) {
-    let r = data[i]
-    let g = data[i + 1]
-    let b = data[i + 2]
-
-    if (grayscale) {
-      const gray = r * 0.299 + g * 0.587 + b * 0.114
-      r = gray
-      g = gray
-      b = gray
-    }
-
-    r = Math.max(0, Math.min(255, (r - 128) * contrast + 128 + brightness))
-    g = Math.max(0, Math.min(255, (g - 128) * contrast + 128 + brightness))
-    b = Math.max(0, Math.min(255, (b - 128) * contrast + 128 + brightness))
-
-    if (threshold !== null) {
-      const binary = r >= threshold ? 255 : 0
-      r = binary
-      g = binary
-      b = binary
-    }
-
-    data[i] = r
-    data[i + 1] = g
-    data[i + 2] = b
-  }
-
-  ctx.putImageData(imageData, 0, 0)
-  return canvas.toDataURL('image/png')
-}
-
-const preprocessImageForPriceOcrClient = async (imageBase64: string) => {
-  const image = await loadImageElement(imageBase64)
-  const isNarrowPriceCrop = image.width < 220
-
-  return buildProcessedImageDataUrl(imageBase64, {
-    cropLeftRatio: isNarrowPriceCrop ? 0 : 0.48,
-    cropTopRatio: isNarrowPriceCrop ? 0 : 0.14,
-    cropWidthRatio: isNarrowPriceCrop ? 1 : 0.52,
-    cropHeightRatio: isNarrowPriceCrop ? 1 : 0.86,
-    scale: 3,
-    grayscale: true,
-    contrast: 1.35,
-    threshold: 150,
-  })
-}
-
-const preprocessStatsImageClient = async (imageBase64: string) =>
-  buildProcessedImageDataUrl(imageBase64, {
-    scale: 3,
-    grayscale: true,
-    contrast: 1.15,
-    brightness: -10,
-    threshold: null,
-  })
-
-let tesseractModulePromise: Promise<any> | null = null
-
-const loadTesseractModule = async () => {
-  if (!import.meta.client) {
-    throw new Error(t('items.detail.ocr.errors.browserOnly'))
-  }
-
-  if (!tesseractModulePromise) {
-    tesseractModulePromise = import('tesseract.js')
-  }
-
-  return tesseractModulePromise
-}
-
-const parsePriceFromNumericTokens = (tokens: string[]) => {
-  if (!tokens.length) return null
-
-  const normalized = tokens
-    .map((token) => token.replace(/[^\d]/g, ''))
-    .filter(Boolean)
-    .flatMap((token) => {
-      if (token.length <= 3) return [token]
-
-      const groups: string[] = []
-      let cursor = token
-      while (cursor.length > 3) {
-        groups.unshift(cursor.slice(-3))
-        cursor = cursor.slice(0, -3)
-      }
-      if (cursor) groups.unshift(cursor)
-      return groups
-    })
-
-  if (!normalized.length) return null
-
-  for (let start = 0; start < normalized.length; start++) {
-    for (let end = normalized.length; end > start; end--) {
-      const slice = normalized.slice(start, end)
-      if (slice.length < 2) continue
-      if (slice[0].length < 1 || slice[0].length > 3) continue
-      if (!slice.slice(1).every((part) => part.length === 3)) continue
-
-      const value = Number(slice.join(''))
-      if (!Number.isFinite(value) || value < 100000 || value > 100000000) continue
-
-      const hasSingleDigitPrefix = start > 0 && normalized[start - 1].length === 1
-      if (hasSingleDigitPrefix || slice[0].length >= 2 || slice.length >= 2) {
-        return value
-      }
-    }
-  }
-
-  const standalone = normalized
-    .map((token) => Number(token))
-    .filter((value) => Number.isFinite(value) && value >= 100000 && value <= 100000000)
-
-  return standalone.length ? Math.max(...standalone) : null
-}
-
-const extractListingCandidatesFromWords = (words: OcrWord[]) => {
-  const validWords = words
-    .filter((word) => word.text?.trim() && word.bbox)
-    .map((word) => ({
-      text: normalizeOcrLine(word.text || ''),
-      confidence: word.confidence ?? 0,
-      x0: word.bbox!.x0,
-      y0: word.bbox!.y0,
-      x1: word.bbox!.x1,
-      y1: word.bbox!.y1,
-    }))
-    .filter((word) => word.text)
-
-  if (!validWords.length) {
-    return { candidates: [] as number[], debugRows: [] as typeof ocrState.value.debugRows }
-  }
-
-  const maxX = Math.max(...validWords.map((word) => word.x1))
-  const maxY = Math.max(...validWords.map((word) => word.y1))
-  const listingWords = validWords
-    .filter((word) => {
-      const lower = word.text.toLowerCase()
-      if (/(acheter|prix|moyen|inventaire|banque|havre|sac|niv|niveau|lot)/.test(lower)) {
-        return false
-      }
-      return word.x0 >= maxX * 0.45 && word.y0 >= maxY * 0.18
-    })
-    .sort((a, b) => {
-      if (Math.abs(a.y0 - b.y0) > 6) return a.y0 - b.y0
-      return a.x0 - b.x0
-    })
-
-  const rows: typeof listingWords[] = []
-  for (const word of listingWords) {
-    const lastRow = rows.at(-1)
-    if (!lastRow) {
-      rows.push([word])
-      continue
-    }
-    const lastY = lastRow.reduce((sum, item) => sum + item.y0, 0) / lastRow.length
-    if (Math.abs(word.y0 - lastY) <= 10) {
-      lastRow.push(word)
-    } else {
-      rows.push([word])
-    }
-  }
-
-  const candidates: number[] = []
-  const debugRows: typeof ocrState.value.debugRows = []
-
-  for (const row of rows) {
-    const rowTokens = row.map((word) => word.text).filter(Boolean)
-    const numericTokens = rowTokens
-      .filter((token) => /\d/.test(token))
-      .map((token) => token.replace(/[^\d]/g, ''))
-      .filter((token) => token.length > 0)
-
-    if (!numericTokens.length && !rowTokens.length) continue
-
-    const numeric = parsePriceFromNumericTokens(numericTokens)
-    debugRows.push({
-      source: 'word',
-      raw: rowTokens.join(' '),
-      tokens: numericTokens,
-      candidate: numeric,
-    })
-
-    if (!numeric) continue
-    candidates.push(numeric)
-  }
-
-  return { candidates, debugRows }
-}
-
-const extractListingCandidatesFromText = (text: string) => {
-  const lines = text
-    .split(/\r?\n/)
-    .map(normalizeOcrLine)
-    .filter(Boolean)
-
-  const candidates: number[] = []
-  const debugRows: typeof ocrState.value.debugRows = []
-
-  for (const line of lines) {
-    const lower = line.toLowerCase()
-    if (
-      lower.includes('prix moyen') ||
-      lower.includes('quantite en inventaire') ||
-      lower.includes('quantite en banque') ||
-      lower.includes('quantite en havre-sac') ||
-      lower.includes('niv.') ||
-      lower.includes('niveau')
-    ) {
-      continue
-    }
-
-    const numericTokens = line.match(/\d+/g) ?? []
-    const numeric = parsePriceFromNumericTokens(numericTokens)
-    debugRows.push({
-      source: 'text',
-      raw: line,
-      tokens: numericTokens,
-      candidate: numeric,
-    })
-
-    if (!numeric) continue
-    candidates.push(numeric)
-  }
-
-  return { candidates, debugRows }
-}
-
-const cleanStatLine = (line: string) => {
-  let cleaned = normalizeOcrLine(line)
-  cleaned = cleaned.replace(/^[^0-9A-Za-zàâäçéèêëîïôöùûüÿœ%+\-\[]+/, '')
-  cleaned = cleaned.replace(/^[A-Za-z]{1,2}\s+(?=\d)/, '')
-  cleaned = cleaned.replace(/^(\d{1,2})\s+(\d{1,3})(?=\s+[A-Za-zàâäçéèêëîïôöùûüÿœ])/i, '$2')
-  cleaned = cleaned.replace(/(\d)\s+%/g, '$1%')
-  cleaned = cleaned.replace(/\[\s+/g, '[').replace(/\s+\]/g, ']')
-  return cleaned.trim()
-}
-
-const parseClientStatLine = (line: string) => {
-  const specialDef = findSpecialMageDef(line)
-  if (specialDef) {
-    const rangeMatch = line.match(/\[[^\]]+\]/)
-    const firstNumberMatch = line.match(/-?\d+/)
-    const value = firstNumberMatch
-      ? Number(firstNumberMatch[0])
-      : specialDef.binary
-        ? 1
-        : null
-
-    return {
-      key: specialDef.key,
-      label: specialDef.label,
-      value: Number.isFinite(value as number) ? value : null,
-      suffix: specialDef.suffix || '',
-      rangeText: rangeMatch?.[0] || '',
-      raw: line,
-    }
-  }
-
-  const normalized = normalizeLabelForStatKey(line)
-  const exactDef = statsOcrDefs.find((def) =>
-    [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
-  )
-  const matchedDef = exactDef || statsOcrDefs
-    .map((def) => ({
-      def,
-      matchedAlias: [def.label, ...def.aliases]
-        .map((alias) => normalizeLabelForStatKey(alias))
-        .find((alias) => hasWholeWordStatAliasMatch(normalized, alias)) || '',
-    }))
-    .filter((entry) => entry.matchedAlias)
-    .sort((a, b) => b.matchedAlias.length - a.matchedAlias.length)[0]?.def
-
-  if (!matchedDef) return null
-
-  const firstNumberMatch = line.match(/-?\d+/)
-  const value = firstNumberMatch
-    ? Number(firstNumberMatch[0])
-    : matchedDef.binary
-      ? 1
-      : null
-  const rangeMatch = line.match(/\[[^\]]+\]/)
-
-  return {
-    key: matchedDef.key,
-    label: matchedDef.label,
-    value: Number.isFinite(value as number) ? value : null,
-    suffix: matchedDef.suffix || '',
-    rangeText: rangeMatch?.[0] || '',
-    raw: line,
-  }
-}
-
-const extractClientStatEntries = (rawLines: string[]) => {
-  const lines = rawLines.map(cleanStatLine).filter(Boolean)
-  const candidates = lines.filter((line) => {
-    const lower = line.toLowerCase()
-    if (lower.includes('niv.') || lower.includes('niveau')) return false
-    if (lower.includes('armes') || lower.includes('weapon')) return false
-    if (line.length < 4) return false
-    if (!/[A-Za-zàâäçéèêëîïôöùûüÿœ]/i.test(line)) return false
-
-    if (/\d/.test(line)) return true
-
-    const normalized = normalizeLabelForStatKey(line)
-    return statsOcrDefs.some((def) =>
-      def.binary && [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
-    )
-  })
-
-  const unique: Array<StoredObservedPriceEntry['statsEntries'][number]> = []
-  const seen = new Set<string>()
-
-  for (const line of candidates) {
-    const parsed = parseClientStatLine(line)
-    if (!parsed) continue
-    const dedupeKey = `${parsed.key}:${parsed.value ?? 'na'}:${parsed.rangeText}`
-    if (seen.has(dedupeKey)) continue
-    seen.add(dedupeKey)
-    unique.push(parsed)
-  }
-
-  return unique
-}
-
-const runClientPriceOcr = async (imageBase64: string) => {
-  const { createWorker } = await loadTesseractModule()
-  const worker = await createWorker('eng')
-
-  try {
-    const ocrInput = await preprocessImageForPriceOcrClient(imageBase64)
-    await worker.setParameters({
-      tessedit_pageseg_mode: '6',
-      tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .,'-:",
-      preserve_interword_spaces: '1',
-    })
-
-    const result = await worker.recognize(ocrInput)
-    const text = result?.data?.text || ''
-    const wordResult = extractListingCandidatesFromWords(result?.data?.words || [])
-    const fallbackResult = extractListingCandidatesFromText(text)
-    const useWordCandidates = wordResult.candidates.length > 0
-
-    return {
-      text,
-      candidates: useWordCandidates ? wordResult.candidates : fallbackResult.candidates,
-      debugMode: useWordCandidates ? 'word' : 'text',
-      debugRows: useWordCandidates ? wordResult.debugRows : fallbackResult.debugRows,
-    }
-  } finally {
-    await worker.terminate()
-  }
-}
-
-const runClientStatsOcr = async (imageBase64: string) => {
-  const { createWorker } = await loadTesseractModule()
-  const worker = await createWorker('eng')
-
-  try {
-    const ocrInput = await preprocessStatsImageClient(imageBase64)
-    await worker.setParameters({
-      tessedit_pageseg_mode: '6',
-      tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàâäçéèêëîïôöùûüÿœ%+-[]() .,'-:",
-      preserve_interword_spaces: '1',
-    })
-
-    const result = await worker.recognize(ocrInput)
-    const text = result?.data?.text || ''
-    const ocrLines = Array.isArray(result?.data?.lines)
-      ? result.data.lines.map((line: any) => normalizeOcrLine(line?.text || '')).filter(Boolean)
-      : text.split(/\r?\n/).map(normalizeOcrLine).filter(Boolean)
-
-    return {
-      text,
-      entries: extractClientStatEntries(ocrLines),
-    }
-  } finally {
-    await worker.terminate()
-  }
 }
 
 const processMarketScreenshotImage = async (imageBase64: string) => {
@@ -2821,7 +2177,7 @@ const processMarketScreenshotImage = async (imageBase64: string) => {
   }
 
   try {
-    const result = await runClientPriceOcr(imageBase64)
+    const result = await runPriceOcr(imageBase64)
 
     ocrState.value = {
       isLoading: false,
@@ -2856,20 +2212,20 @@ const processStatsScreenshotImage = async (imageBase64: string, observationId: s
       error: '',
     }
 
-    const result = await runClientStatsOcr(imageBase64)
+    const result = await runStatsOcr(imageBase64)
 
     updateObservationEntries(itemKey, (entry) =>
       entry.id === observationId
         ? {
             ...entry,
-            statsScreenshotDataUrl: imageBase64,
             statsRawText: result.text,
             statsEntries: result.entries,
           }
         : entry
     )
 
-    selectedObservationId.value = observationId
+    // Deliberately does not open the detail view: the point of the inline
+    // capture is that a row can be filled in without leaving the list.
     statsOcrState.value = {
       isLoading: false,
       error: '',
@@ -2881,53 +2237,7 @@ const processStatsScreenshotImage = async (imageBase64: string, observationId: s
       error: t('items.detail.ocr.errors.statsFailed'),
     }
   } finally {
-    pendingStatsObservationId.value = ''
-    if (statsScreenshotInput.value) {
-      statsScreenshotInput.value.value = ''
-    }
-  }
-}
-
-const readClipboardImageDataUrl = async () => {
-  if (!import.meta.client || !navigator.clipboard?.read) {
-    throw new Error('Clipboard image reading is not supported here.')
-  }
-
-  const clipboardItems = await navigator.clipboard.read()
-  for (const item of clipboardItems) {
-    const imageType = item.types.find((type) => type.startsWith('image/'))
-    if (!imageType) continue
-    const blob = await item.getType(imageType)
-    return await readFileAsDataUrl(new File([blob], `clipboard.${imageType.split('/')[1] || 'png'}`, { type: imageType }))
-  }
-
-  throw new Error('No image found in clipboard.')
-}
-
-const pasteMarketScreenshot = async () => {
-  try {
-    const imageBase64 = await readClipboardImageDataUrl()
-    await processMarketScreenshotImage(imageBase64)
-  } catch (error) {
-    console.error('Error pasting market screenshot:', error)
-    ocrState.value = {
-      ...ocrState.value,
-      isLoading: false,
-      error: 'Failed to paste an image from the clipboard.',
-    }
-  }
-}
-
-const pasteStatsScreenshot = async (observationId: string) => {
-  try {
-    const imageBase64 = await readClipboardImageDataUrl()
-    await processStatsScreenshotImage(imageBase64, observationId)
-  } catch (error) {
-    console.error('Error pasting stats screenshot:', error)
-    statsOcrState.value = {
-      isLoading: false,
-      error: 'Failed to paste an image from the clipboard.',
-    }
+    statsCaptureRowId.value = ''
   }
 }
 
@@ -2949,13 +2259,20 @@ const handleGlobalPaste = async (event: ClipboardEvent) => {
   event.preventDefault()
   const imageBase64 = await readFileAsDataUrl(file)
 
+  // Most specific target first: an armed row, then the open listing, then the
+  // item itself.
+  if (statsCaptureRowId.value) {
+    await captureStatsScreenshot(statsCaptureRowId.value, imageBase64)
+    return
+  }
+
   if (selectedObservationDetail.value) {
-    await processStatsScreenshotImage(imageBase64, selectedObservationDetail.value.id)
+    await captureStatsScreenshot(selectedObservationDetail.value.id, imageBase64)
     return
   }
 
   if (selectedRecipeItem.value) {
-    await processMarketScreenshotImage(imageBase64)
+    await captureMarketScreenshot(imageBase64)
   }
 }
 
@@ -2966,8 +2283,20 @@ const buildObservationStatsSignature = (statsEntries: StoredObservedPriceEntry['
     .sort((a, b) => a.localeCompare(b))
     .join('|')
 
+/** FNV-1a over the data URL. Not cryptographic — it only has to tell two
+ *  screenshots apart, at ~8 characters instead of a megabyte of base64. */
+const hashScreenshot = (dataUrl: string) => {
+  if (!dataUrl) return ''
+  let hash = 0x811c9dc5
+  for (let i = 0; i < dataUrl.length; i++) {
+    hash ^= dataUrl.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return (hash >>> 0).toString(36)
+}
+
 const isDuplicateObservedEntry = (
-  candidate: Pick<StoredObservedPriceEntry, 'price' | 'statsEntries' | 'createdAt' | 'source' | 'marketScreenshotDataUrl'>,
+  candidate: Pick<StoredObservedPriceEntry, 'price' | 'statsEntries' | 'createdAt' | 'source' | 'scanHash'>,
   existing: StoredObservedPriceEntry
 ) => {
   if (candidate.price !== existing.price) return false
@@ -2978,7 +2307,7 @@ const isDuplicateObservedEntry = (
   if (candidateSignature !== existingSignature) return false
 
   if (!candidateSignature && candidate.source === 'ocr' && existing.source === 'ocr') {
-    if (!candidate.marketScreenshotDataUrl || candidate.marketScreenshotDataUrl !== existing.marketScreenshotDataUrl) {
+    if (!candidate.scanHash || candidate.scanHash !== existing.scanHash) {
       return false
     }
   }
@@ -2990,20 +2319,12 @@ const isDuplicateObservedEntry = (
   return diffMs <= 15 * 60 * 1000
 }
 
-const handleOcrFileChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-  const imageBase64 = await readFileAsDataUrl(file)
-  await processMarketScreenshotImage(imageBase64)
-}
-
 const saveOcrSnapshotPrices = async () => {
   const item = selectedRecipeItem.value
   const itemKey = selectedObservationKey.value
 
   if (!item || !itemKey || !ocrState.value.screenshotDataUrl || !ocrState.value.candidates.length) {
-    return
+    return 0
   }
 
   const existing = observedPrices.value[itemKey] || []
@@ -3015,8 +2336,7 @@ const saveOcrSnapshotPrices = async () => {
     price,
     createdAt,
     source: 'ocr' as const,
-    marketScreenshotDataUrl: ocrState.value.screenshotDataUrl,
-    statsScreenshotDataUrl: '',
+    scanHash: hashScreenshot(ocrState.value.screenshotDataUrl),
     statsRawText: '',
     statsEntries: [],
   }))
@@ -3025,9 +2345,7 @@ const saveOcrSnapshotPrices = async () => {
     !existing.some((entry) => isDuplicateObservedEntry(candidate, entry))
   )
 
-  if (!additions.length) {
-    return
-  }
+  if (!additions.length) return 0
 
   const nextObserved = {
     ...observedPrices.value,
@@ -3054,6 +2372,44 @@ const saveOcrSnapshotPrices = async () => {
     })
   }
   await scrollSectionIntoView(() => observedPricesComp.value?.sectionEl)
+  return additions.length
+}
+
+/** A paste should be one action, so prices save themselves. `undoLastScan`
+ *  restores the previous list while the toast is still up. */
+const undoState = ref<{ itemKey: string, entries: StoredObservedPriceEntry[], count: number } | null>(null)
+let undoTimer: ReturnType<typeof setTimeout> | undefined
+
+const undoLastScan = () => {
+  const snapshot = undoState.value
+  if (!snapshot) return
+  const nextObserved = { ...observedPrices.value, [snapshot.itemKey]: snapshot.entries }
+  observedPrices.value = nextObserved
+  writeObservedPrices(nextObserved)
+  undoState.value = null
+  clearTimeout(undoTimer)
+}
+
+const captureMarketScreenshot = async (dataUrl: string) => {
+  const itemKey = selectedObservationKey.value
+  if (!itemKey) return
+  const before = [...(observedPrices.value[itemKey] || [])]
+
+  await processMarketScreenshotImage(dataUrl)
+  if (ocrState.value.error || !ocrState.value.candidates.length) return
+
+  const saved = await saveOcrSnapshotPrices()
+  // Drop the image as soon as it has been read.
+  ocrState.value = { ...ocrState.value, screenshotDataUrl: '', candidates: [] }
+  if (!saved) return
+
+  undoState.value = { itemKey, entries: before, count: saved }
+  clearTimeout(undoTimer)
+  undoTimer = setTimeout(() => { undoState.value = null }, 10_000)
+}
+
+const captureStatsScreenshot = async (observationId: string, dataUrl: string) => {
+  await processStatsScreenshotImage(dataUrl, observationId)
 }
 
 const focusObservedBestBuys = async () => {
@@ -3108,8 +2464,8 @@ const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) =
     estimatedScore: valuation?.score ?? computeObservationScore(observation),
     estimatedDelta: estimatedProfit,
     observedListingId: observation.id,
-    marketScreenshotDataUrl: observation.marketScreenshotDataUrl || '',
-    statsScreenshotDataUrl: observation.statsScreenshotDataUrl || '',
+    marketScreenshotDataUrl: '',
+    statsScreenshotDataUrl: '',
     statsEntries: observation.statsEntries.map((entry) => ({ ...entry })),
     notes: valuation
       ? `Tracked from Prices. Observed at ${formatKamasFull(observation.price)}. Suggested relist ${formatKamasFull(targetRelistPrice)}. Estimated gross profit ${formatKamasFull(estimatedProfit)}.`
@@ -3172,42 +2528,6 @@ const removeObservation = (observationId: string) => {
   }
 }
 
-const clearObservationScreenshots = (
-  observationId: string,
-  options: { market?: boolean; stats?: boolean } = { market: true, stats: true },
-) => {
-  const itemKey = selectedObservationKey.value
-  if (!itemKey) return
-
-  const removeMarket = options.market ?? false
-  const removeStats = options.stats ?? false
-  if (!removeMarket && !removeStats) return
-
-  updateObservationEntries(itemKey, (entry) => {
-    if (entry.id !== observationId) return entry
-    return {
-      ...entry,
-      marketScreenshotDataUrl: removeMarket ? '' : entry.marketScreenshotDataUrl,
-      statsScreenshotDataUrl: removeStats ? '' : entry.statsScreenshotDataUrl,
-      statsRawText: removeStats ? '' : entry.statsRawText,
-    }
-  })
-}
-
-const clearAllObservationScreenshots = () => {
-  const itemKey = selectedObservationKey.value
-  const summary = selectedItemScreenshotSummary.value
-  if (!itemKey || !summary.totalCount) return
-  if (!confirm(t('items.detail.observed.confirm.clearScreenshots', { count: summary.totalCount }))) return
-
-  updateObservationEntries(itemKey, (entry) => ({
-    ...entry,
-    marketScreenshotDataUrl: '',
-    statsScreenshotDataUrl: '',
-    statsRawText: '',
-  }))
-}
-
 const removeAllObservations = () => {
   const itemKey = selectedObservationKey.value
   if (!itemKey) return
@@ -3217,11 +2537,6 @@ const removeAllObservations = () => {
   observedPrices.value = nextObserved
   writeObservedPrices(nextObserved)
   selectedObservationId.value = ''
-}
-
-const openStatsScreenshotPicker = (observationId: string) => {
-  pendingStatsObservationId.value = observationId
-  statsScreenshotInput.value?.click()
 }
 
 const openObservationDetail = (observationId: string) => {
@@ -3361,16 +2676,6 @@ const removeObservationStatEntry = (index: number) => {
       statsEntries: entry.statsEntries.filter((_, lineIndex) => lineIndex !== index),
     }
   })
-}
-
-const handleStatsScreenshotChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  const observationId = pendingStatsObservationId.value
-
-  if (!file || !observationId) return
-  const imageBase64 = await readFileAsDataUrl(file)
-  await processStatsScreenshotImage(imageBase64, observationId)
 }
 
 const formatPriceFreshness = (iso: string) => {
@@ -3620,15 +2925,17 @@ const noImg = (e: Event) => {
 const formatKamasFull = (value: number) =>
   new Intl.NumberFormat('fr-FR').format(Math.round(value || 0))
 
-const openGuide = (mode: 'main' | 'recipe') => {
-  guideMode.value = mode
-  guideOpen.value = true
-}
-
 onMounted(() => {
   filtersCollapsed.value = localStorage.getItem('items-filters-collapsed') === 'true'
   resourcePrices.value = readResourcePrices()
+  // Screenshots used to be persisted alongside every price (the same market
+  // image once per detected price). They are never needed after OCR, so the
+  // first load after this change drops them and writes the storage back.
+  const storedRaw = import.meta.client ? localStorage.getItem(ITEM_OBSERVED_PRICES_KEY) : null
   observedPrices.value = readObservedPrices()
+  if (storedRaw?.includes('ScreenshotDataUrl')) {
+    writeObservedPrices(observedPrices.value)
+  }
   effectCache.value = readEffectCache()
   itemStatPriorities.value = readItemStatPriorities()
   window.addEventListener('paste', handleGlobalPaste)

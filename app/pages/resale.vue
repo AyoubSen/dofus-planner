@@ -3,7 +3,10 @@
     <!-- ── Next action ──────────────────────────────────────────────────── -->
     <UiCard>
       <div class="flex flex-wrap gap-5">
-        <div class="min-w-0 flex-1">
+        <!-- basis-72: flex-1 alone has a 0% basis, so on a phone this column
+             never forces a wrap — it just crushes against the step list's
+             min-w-60 and renders one word per line. -->
+        <div class="min-w-0 flex-1 basis-72">
           <p class="text-xs font-medium tracking-wide text-subtle uppercase">{{ $t('v2.resale.guide.eyebrow') }}</p>
           <h2 class="mt-1 text-lg font-semibold text-ink">{{ resaleNextAction.title }}</h2>
           <p class="mt-1 text-sm text-muted">{{ resaleNextAction.desc }}</p>

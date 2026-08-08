@@ -10,15 +10,19 @@ export const formatKamas = (value: number | null | undefined): string => {
   return `${Math.round(value).toLocaleString('fr-FR')} k`
 }
 
-/** Short form for dense contexts: 1.2M k */
+/** Short form for dense contexts: 1.2M, 340k, 8 500.
+ *
+ *  No trailing kamas "k" here: the thousands abbreviation is already a k, and
+ *  carrying both rendered 100 000 as "100k k". UiMoney exposes the exact figure
+ *  with its unit on hover, so the unit is not lost. */
 export const formatKamasShort = (value: number | null | undefined): string => {
   if (value === null || value === undefined || !Number.isFinite(value)) return '—'
   const abs = Math.abs(value)
   const sign = value < 0 ? '-' : ''
-  if (abs >= 1_000_000_000) return `${sign}${(abs / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B k`
-  if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(1).replace(/\.0$/, '')}M k`
-  if (abs >= 10_000) return `${sign}${Math.round(abs / 1000)}k k`
-  return `${sign}${Math.round(abs).toLocaleString('fr-FR')} k`
+  if (abs >= 1_000_000_000) return `${sign}${(abs / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B`
+  if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
+  if (abs >= 10_000) return `${sign}${Math.round(abs / 1000)}k`
+  return `${sign}${Math.round(abs).toLocaleString('fr-FR')}`
 }
 
 /** Same as formatKamas but always carries an explicit + or −. */

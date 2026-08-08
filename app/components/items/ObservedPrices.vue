@@ -1,7 +1,5 @@
 <script setup lang="ts">
-// Every listing saved for the open item, plus the optional full valuation
-// table. The plain-language recommendation above the list is the part most
-// users act on; the table is opt-in.
+// Every listing saved for the open item, plus the optional valuation table.
 export interface ObservationBadge {
   label: string
   tone: 'good' | 'bad' | 'warn' | 'neutral'
@@ -11,7 +9,6 @@ defineProps<{
   observations: any[]
   expanded: boolean
   sortMode: string
-  screenshotSummary: { totalCount: number; marketCount: number; statsCount: number }
   valuationMap: Record<string, any>
   valuations: any[]
   displayedValuations: any[]
@@ -26,6 +23,9 @@ defineProps<{
   valuationModeSummary: string
   onlyUndervalued: boolean
   showTable: boolean
+  /** Row whose inline stats capture is open, if any. */
+  captureRowId: string
+  statsLoading: boolean
   formatKamas: (value: number) => string
 }>()
 
@@ -35,19 +35,17 @@ const emit = defineEmits<{
   'update:valuationMode': [value: string]
   'update:onlyUndervalued': [value: boolean]
   'update:showTable': [value: boolean]
+  'update:captureRowId': [value: string]
   useAsSellPrice: [price: number]
   openDetail: [id: string]
-  uploadStatsScreenshot: [id: string]
-  clearScreenshots: [id: string]
+  statsImage: [id: string, dataUrl: string]
   sendToTracker: [observation: any]
   remove: [id: string]
-  clearAllScreenshots: []
   removeAll: []
 }>()
 
 const { t } = useI18n()
 
-// The page scrolls here after saving prices or jumping to "best buys".
 const sectionEl = ref<HTMLElement | null>(null)
 defineExpose({ sectionEl })
 
@@ -83,65 +81,33 @@ const valuationColumns = computed(() => ([
   <div ref="sectionEl" class="flex flex-col gap-3">
     <UiCard :title="$t('items.detail.observed.listTitle')">
       <template #actions>
+        <UiSegmented
+          :model-value="sortMode"
+          :options="sortOptions"
+          size="sm"
+          :aria-label="$t('items.detail.observed.sort.label')"
+          @update:model-value="emit('update:sortMode', String($event))"
+        />
         <UiButton variant="ghost" size="sm" @click="emit('update:expanded', !expanded)">
           {{ expanded ? $t('items.detail.common.collapse') : $t('items.detail.common.expand') }}
         </UiButton>
+        <UiButton variant="danger" size="sm" @click="emit('removeAll')">
+          {{ $t('items.detail.observed.actions.removeAll') }}
+        </UiButton>
       </template>
 
-      <UiToolbar>
-        <template #filters>
-          <span class="text-xs text-subtle">{{ $t('items.detail.observed.sort.label') }}</span>
-          <UiSegmented
-            :model-value="sortMode"
-            :options="sortOptions"
-            size="sm"
-            :aria-label="$t('items.detail.observed.sort.label')"
-            @update:model-value="emit('update:sortMode', String($event))"
-          />
-        </template>
-        <template #actions>
-          <UiButton
-            v-if="screenshotSummary.totalCount"
-            size="sm"
-            @click="emit('clearAllScreenshots')"
-          >
-            {{ $t('items.detail.observed.actions.clearScreenshots') }}
-          </UiButton>
-          <UiButton variant="danger" size="sm" @click="emit('removeAll')">
-            {{ $t('items.detail.observed.actions.removeAll') }}
-          </UiButton>
-        </template>
-        <template #extra>
-          <span class="text-xs text-subtle">
-            {{ $t('items.detail.observed.savedCount', { count: observations.length }) }}
-          </span>
-          <span v-if="screenshotSummary.totalCount" class="text-xs text-subtle">
-            {{ $t('items.detail.observed.screenshotSummary', {
-              market: screenshotSummary.marketCount,
-              stats: screenshotSummary.statsCount,
-            }) }}
-          </span>
-        </template>
-      </UiToolbar>
-
-      <!-- Plain-language recommendation -->
-      <div class="flex flex-wrap items-center gap-3 rounded-md border border-line bg-sunken p-3">
-        <div class="min-w-0 flex-1">
-          <p class="text-xs tracking-wide text-subtle uppercase">{{ $t('items.detail.nextStep.eyebrow') }}</p>
-          <p class="mt-0.5 text-sm font-medium text-ink">
-            <template v-if="bestBuy">
-              {{ $t('items.detail.nextStep.best', {
-                buy: formatKamas(bestBuy.price),
-                relist: formatKamas(bestBuy.fairRelist),
-              }) }}
-            </template>
-            <template v-else-if="valuations.length >= 2">{{ $t('items.detail.nextStep.noneYet') }}</template>
-            <template v-else>{{ $t('items.detail.nextStep.needMore') }}</template>
-          </p>
-          <p class="mt-0.5 text-xs text-subtle">{{ $t('items.detail.nextStep.hint') }}</p>
-        </div>
+      <!-- One actionable line, only when there is something to act on. -->
+      <div
+        v-if="bestBuy"
+        class="mb-3 flex flex-wrap items-center gap-3 rounded-md border border-line bg-sunken px-3 py-2"
+      >
+        <p class="min-w-0 flex-1 text-sm text-ink">
+          {{ $t('items.detail.nextStep.best', {
+            buy: formatKamas(bestBuy.price),
+            relist: formatKamas(bestBuy.fairRelist),
+          }) }}
+        </p>
         <UiButton
-          v-if="bestBuy"
           variant="primary"
           size="sm"
           :disabled="trackedIds.has(bestBuy.id) || !canTrack"
@@ -153,117 +119,115 @@ const valuationColumns = computed(() => ([
         </UiButton>
       </div>
 
-      <!-- Listings -->
-      <div v-show="expanded" class="mt-3 flex flex-col gap-2">
+      <div v-show="expanded" class="flex flex-col gap-2">
         <article
           v-for="observation in observations"
           :key="observation.id"
-          class="flex flex-wrap items-start gap-3 rounded-md border border-line bg-surface p-2.5"
+          class="rounded-md border border-line bg-surface p-2.5"
         >
-          <button
-            type="button"
-            class="tabular shrink-0 rounded-md border border-line bg-sunken px-2.5 py-1.5 text-sm text-ink transition-colors hover:border-line-strong"
-            @click="emit('useAsSellPrice', observation.price)"
-          >
-            {{ formatKamas(observation.price) }}
-          </button>
+          <div class="flex flex-wrap items-start gap-3">
+            <button
+              type="button"
+              class="tabular shrink-0 rounded-md border border-line bg-sunken px-2.5 py-1.5 text-sm text-ink transition-colors hover:border-line-strong"
+              @click="emit('useAsSellPrice', observation.price)"
+            >
+              {{ formatKamas(observation.price) }}
+            </button>
 
-          <div class="min-w-0 flex-1">
-            <p class="text-xs text-subtle">{{ freshnessFor(observation.createdAt) }}</p>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs text-subtle">{{ freshnessFor(observation.createdAt) }}</p>
 
-            <div v-if="badgesFor(observation).length" class="mt-1 flex flex-wrap gap-1">
-              <UiBadge
-                v-for="badge in badgesFor(observation)"
-                :key="`${observation.id}-${badge.label}`"
-                :tone="badgeTone(badge.tone)"
-              >
-                {{ badge.label }}
-              </UiBadge>
+              <div v-if="badgesFor(observation).length" class="mt-1 flex flex-wrap gap-1">
+                <UiBadge
+                  v-for="badge in badgesFor(observation)"
+                  :key="`${observation.id}-${badge.label}`"
+                  :tone="badgeTone(badge.tone)"
+                >
+                  {{ badge.label }}
+                </UiBadge>
+              </div>
+
+              <div v-if="valuationMap[observation.id]" class="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-subtle">
+                <span class="tabular">
+                  {{ $t('items.detail.observed.relist.quick') }} {{ formatKamas(valuationMap[observation.id].quickRelist) }}
+                </span>
+                <span class="tabular">
+                  {{ $t('items.detail.observed.relist.fair') }} {{ formatKamas(valuationMap[observation.id].fairRelist) }}
+                </span>
+                <span class="tabular">
+                  {{ $t('items.detail.observed.relist.greedy') }} {{ formatKamas(valuationMap[observation.id].greedyRelist) }}
+                </span>
+              </div>
             </div>
 
-            <div v-if="valuationMap[observation.id]" class="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-subtle">
-              <span>{{ $t('items.detail.observed.relist.label') }}</span>
-              <span class="tabular">
-                {{ $t('items.detail.observed.relist.quick') }} {{ formatKamas(valuationMap[observation.id].quickRelist) }}
-              </span>
-              <span class="tabular">
-                {{ $t('items.detail.observed.relist.fair') }} {{ formatKamas(valuationMap[observation.id].fairRelist) }}
-              </span>
-              <span class="tabular">
-                {{ $t('items.detail.observed.relist.greedy') }} {{ formatKamas(valuationMap[observation.id].greedyRelist) }}
-              </span>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <!-- Stats without leaving the list: arm this row, then paste. -->
+              <UiButton
+                size="sm"
+                :variant="captureRowId === observation.id ? 'primary' : 'secondary'"
+                @click="emit('update:captureRowId', captureRowId === observation.id ? '' : observation.id)"
+              >
+                {{ observation.statsEntries.length
+                  ? $t('items.detail.observed.actions.viewStats')
+                  : $t('items.detail.observed.actions.addStats') }}
+              </UiButton>
+              <UiButton
+                variant="primary"
+                size="sm"
+                :disabled="trackedIds.has(observation.id) || !canTrack"
+                @click="emit('sendToTracker', observation)"
+              >
+                {{ trackedIds.has(observation.id)
+                  ? $t('items.detail.observed.actions.tracked')
+                  : $t('items.detail.observed.actions.trackResale') }}
+              </UiButton>
+              <UiButton
+                variant="danger"
+                size="sm"
+                icon
+                :aria-label="$t('items.detail.common.remove')"
+                @click="emit('remove', observation.id)"
+              >
+                <UiIcon name="trash" />
+              </UiButton>
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-1.5">
-            <UiButton
-              v-if="observation.marketScreenshotDataUrl || observation.statsScreenshotDataUrl"
+          <div v-if="captureRowId === observation.id" class="mt-2.5 flex flex-col gap-2 border-t border-line pt-2.5">
+            <UiDropZone
               size="sm"
-              @click="emit('clearScreenshots', observation.id)"
-            >
-              {{ $t('items.detail.observed.actions.clearScreenshots') }}
-            </UiButton>
-            <UiButton size="sm" @click="emit('openDetail', observation.id)">
-              {{ observation.statsEntries.length
-                ? $t('items.detail.observed.actions.viewStats')
-                : $t('items.detail.observed.actions.addStats') }}
-            </UiButton>
-            <UiButton size="sm" @click="emit('uploadStatsScreenshot', observation.id)">
-              {{ observation.statsScreenshotDataUrl
-                ? $t('items.detail.observed.actions.replaceStatsScreenshot')
-                : $t('items.detail.observed.actions.addStatsScreenshot') }}
-            </UiButton>
+              :label="$t('items.detail.capture.stats')"
+              :loading="statsLoading"
+              @image="emit('statsImage', observation.id, $event)"
+            />
             <UiButton
-              variant="primary"
+              v-if="observation.statsEntries.length"
+              variant="ghost"
               size="sm"
-              :disabled="trackedIds.has(observation.id) || !canTrack"
-              @click="emit('sendToTracker', observation)"
+              @click="emit('openDetail', observation.id)"
             >
-              {{ trackedIds.has(observation.id)
-                ? $t('items.detail.observed.actions.tracked')
-                : $t('items.detail.observed.actions.trackResale') }}
-            </UiButton>
-            <UiButton size="sm" to="/resale">
-              {{ $t('items.detail.observed.actions.openTracker') }}
-            </UiButton>
-            <UiButton
-              variant="danger"
-              size="sm"
-              icon
-              :aria-label="$t('items.detail.common.remove')"
-              @click="emit('remove', observation.id)"
-            >
-              <UiIcon name="trash" />
+              {{ $t('items.detail.capture.openStats', { count: observation.statsEntries.length }) }}
             </UiButton>
           </div>
         </article>
       </div>
     </UiCard>
 
-    <!-- Opt-in valuation table -->
-    <template v-if="valuations.length >= 2 && expanded">
-      <div class="flex flex-wrap items-center gap-3 rounded-md border border-line bg-surface p-3">
-        <div class="min-w-0 flex-1">
-          <p class="text-sm font-medium text-ink">{{ $t('items.detail.advancedValuation.title') }}</p>
-          <p class="mt-0.5 text-xs text-subtle">{{ $t('items.detail.advancedValuation.hint') }}</p>
-        </div>
+    <UiCard v-if="valuations.length >= 2 && expanded" :title="$t('items.detail.valuation.listingTitle')">
+      <template #actions>
+        <UiBadge :tone="valuationConfidence.level === 'high' ? 'positive' : 'warning'">
+          {{ valuationConfidence.label }}
+        </UiBadge>
         <UiButton size="sm" @click="emit('update:showTable', !showTable)">
           {{ showTable
             ? $t('items.detail.advancedValuation.hide')
             : $t('items.detail.advancedValuation.show') }}
         </UiButton>
-      </div>
+      </template>
 
-      <UiCard v-if="showTable" :title="$t('items.detail.valuation.listingTitle')">
-        <template #actions>
-          <UiBadge :tone="valuationConfidence.level === 'high' ? 'positive' : 'warning'">
-            {{ valuationConfidence.label }}
-          </UiBadge>
-        </template>
-
+      <template v-if="showTable">
         <UiToolbar>
           <template #filters>
-            <span class="text-xs text-subtle">{{ $t('items.detail.valuation.model') }}</span>
             <UiSegmented
               :model-value="valuationMode"
               :options="modelOptions"
@@ -280,12 +244,6 @@ const valuationColumns = computed(() => ([
               >
               {{ $t('items.detail.valuation.buyCandidatesOnly') }}
             </label>
-          </template>
-          <template #extra>
-            <span class="text-xs text-subtle">
-              {{ $t('items.detail.valuation.summary', { count: valuations.length, mode: valuationModeSummary }) }}
-            </span>
-            <span class="text-xs text-subtle">{{ valuationConfidence.details }}</span>
           </template>
         </UiToolbar>
 
@@ -311,9 +269,7 @@ const valuationColumns = computed(() => ([
             <td class="tabular px-3 py-2 text-right text-subtle">{{ formatKamas(row.greedyRelist) }}</td>
           </tr>
         </UiTable>
-
-        <p class="mt-3 text-xs text-subtle">{{ $t('items.detail.valuation.note') }}</p>
-      </UiCard>
-    </template>
+      </template>
+    </UiCard>
   </div>
 </template>

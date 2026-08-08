@@ -94,7 +94,6 @@
       },
       "startAction": "Commencer par une action",
       "whatNext": "Que faire ensuite ?",
-      "whatNextDesc": "Suggestions basées sur ce que vous suivez actuellement.",
       "overview": "Vue d'ensemble",
       "workflows": "Flux de travail",
       "soldCount": "{count} vendus",
@@ -654,8 +653,6 @@
         "runNote": "Note du run",
         "itemNote": "Note sur l'objet",
         "levelRange": "Plage de niveau",
-        "theoreticalRuneValue": "Valeur théorique des runes",
-        "actualSoldRuneValue": "Valeur réellement vendue",
         "unsoldRuneValue": "Valeur des runes invendues",
         "saleNotes": "Notes de vente",
         "rune": "Rune",
@@ -676,7 +673,8 @@
         "priceKind": "Type",
         "price": "Prix",
         "quantityBasis": "Quantité de référence",
-        "priceNote": "Note"
+        "priceNote": "Note",
+        "focusCategoryHint": "Les types d’objets brisés dans ce lot."
       },
       "placeholders": {
         "selectCategory": "Sélectionner une catégorie",
@@ -684,7 +682,6 @@
         "runNote": "Coef, pression du marché, décision de retry...",
         "itemNote": "Conclusion globale pour cet objet",
         "saleNotes": "Prix de vente, date, notes de sous-cotation...",
-        "typeRuneName": "Ou saisis le nom de la rune",
         "selectRune": "Choisir une rune",
         "selectStatus": "Choisir un statut",
         "selectKind": "Choisir un type",
@@ -777,8 +774,7 @@
         "vsPrevious": "vs précédent",
         "perBasis": "/ x{basis}",
         "runCountShort": "x{count}",
-        "typeRuneManually": "Saisir le nom de la rune manuellement",
-        "eachFreshness": "{price} pièce · {freshness}"
+        "noPrice": "Aucun prix enregistré"
       },
       "common": {
         "resource": "Ressource"
@@ -787,23 +783,6 @@
         "history": "Historique réalisé",
         "opportunities": "Opportunités",
         "prices": "Prix du marché"
-      },
-      "nextAction": {
-        "finishTitle": "Termine le brisage en cours",
-        "finishDesc": "Enregistre la session avant de regarder d’autres opportunités, pour que la valeur théorique et les ventes de runes restent liées à une seule expérience.",
-        "finishCta": "Continuer la session",
-        "pricesTitle": "Ajoute des prix de runes avant de te fier aux opportunités",
-        "pricesDesc": "Les estimations de brisage ne valent que si les prix runes/ressources sont récents. Commence par les prix que tu relèves vraiment en HDV.",
-        "pricesCta": "Ouvrir les prix",
-        "startTitle": "Enregistre une petite session de brisage réalisée",
-        "startDesc": "Commence par l’historique. Les opportunités ne sont que de l’espérance de gain ; le profit devient réel quand les runes sont vendues ou confirmées.",
-        "startCta": "Démarrer une session"
-      },
-      "warnings": {
-        "historical": "C’est un résultat historique, pas une prédiction. La valeur des runes reste théorique tant qu’elles ne sont pas vendues.",
-        "opportunities": "Les opportunités futures reposent sur des prix saisis manuellement et des hypothèses de risque. Valide d’abord avec de petits lots.",
-        "prices": "Carnet de prix manuel. Ajoute les prix des runes matin et soir ; chaque enregistrement est conservé comme point d’historique horodaté. Frais sous 24h, vieillissant 24-72h, périmé au-delà de 72h.",
-        "runeTheoretical": "La valeur des runes est théorique tant qu’elles ne sont pas vendues."
       },
       "freshness": {
         "fresh": "Frais",
@@ -832,6 +811,20 @@
         "range": "Niv. {min}-{max}",
         "minOnly": "Niv. {min}+",
         "maxOnly": "Jusqu’au niv. {max}"
+      },
+      "capture": {
+        "price": "Colle ou dépose une capture HDV pour remplir le prix",
+        "picked": "Prix détectés",
+        "soldValue": "Colle ou dépose une capture HDV pour remplir la valeur vendue"
+      },
+      "confirm": {
+        "removeItem": "Supprimer {name} et tout ce qui y est enregistré ?",
+        "removeRun": "Supprimer ce run et ses runes ?",
+        "deleteSession": "Supprimer {name} et son {count} objet enregistré ? Action irréversible. | Supprimer {name} et ses {count} objets enregistrés ? Action irréversible."
+      },
+      "sort": {
+        "label": "Trier",
+        "date": "Date"
       }
     },
     "succes": {
@@ -1422,18 +1415,16 @@
     "spellCount": "{count} sorts"
   },
   "items": {
-    "usageHint": "Sélectionnez vos filtres, puis choisissez un emplacement pour analyser les prix.",
     "backToHome": "Retour à l'accueil",
     "title": "Statistiques d'Équipement",
     "subtitle": "Analysez les tendances d'utilisation et la méta",
     "loading": "Chargement des statistiques...",
     "noData": "Aucune donnée disponible pour cet emplacement",
-    "contextTitle": "Tranche de données actuelle",
     "uses": "utilisations",
     "viewModes": {
-      "list": "Vue liste",
-      "grid": "Vue grille",
-      "table": "Vue tableau"
+      "list": "Liste",
+      "grid": "Grille",
+      "table": "Tableau"
     },
     "table": {
       "image": "Image",
@@ -1443,7 +1434,7 @@
       "distribution": "Distribution"
     },
     "filters": {
-      "title": "FILTRES",
+      "title": "Filtres",
       "elements": {
         "title": "Éléments",
         "all": "Tous les Éléments",
@@ -1479,13 +1470,6 @@
       },
       "showFilters": "Afficher les filtres",
       "hideFilters": "Masquer les filtres"
-    },
-    "stats": {
-      "totalEquipment": "Équipements Totaux",
-      "uniqueItems": "Objets Uniques",
-      "mostVariedSlot": "Emplacement Plus Varié",
-      "avgItemsPerSet": "Moy. Objets/Set",
-      "na": "N/A"
     },
     "slots": {
       "ar": "Arme",
@@ -1530,17 +1514,6 @@
         "emptySymbol": "∅",
         "emptyValue": "—"
       },
-      "context": {
-        "allModes": "Tous les modes",
-        "allLevels": "Tous les niveaux",
-        "allClasses": "Toutes les classes",
-        "allElements": "Tous les éléments",
-        "allBudgets": "Tous les budgets",
-        "level": "Niveau {level}",
-        "budget": "Budget {budget}",
-        "matchingBuilds": "{count} builds correspondants",
-        "slotSummary": "{count} objets uniques en {slot} · le top pick apparaît dans {topCount} builds"
-      },
       "recipe": {
         "sectionTitle": "Recette",
         "profession": "Métier",
@@ -1548,9 +1521,7 @@
         "id": "ID recette",
         "loading": "Chargement de la recette...",
         "actions": {
-          "refetch": "Recharger la recette",
-          "ocrScreenshot": "Screenshot OCR",
-          "pasteScreenshot": "Coller le screenshot"
+          "refetch": "Recharger la recette"
         },
         "confidence": {
           "exact": "Correspondance exacte",
@@ -1563,7 +1534,8 @@
         "errors": {
           "loadFailed": "Impossible de charger la recette pour cet objet.",
           "resolveFailed": "Impossible de résoudre l'objet DofusDB pour \"{name}\""
-        }
+        },
+        "loadError": "Impossible de charger les données de comparaison. Tu peux quand même enregistrer des prix."
       },
       "cost": {
         "sectionTitle": "Coût de craft",
@@ -1578,17 +1550,7 @@
         "marginRate": "Taux de marge"
       },
       "ocr": {
-        "loadingPrices": "Extraction des candidats de prix depuis le screenshot...",
-        "loadingStats": "Extraction des lignes de stats depuis le screenshot...",
-        "candidatesTitle": "Candidats de prix OCR",
-        "clickHint": "Clique sur l'un d'eux pour remplir le prix de vente",
-        "save": "Enregistrer les prix OCR",
-        "debugTitle": "Lignes debug OCR",
-        "mode": "Mode",
-        "noTokens": "aucun token",
-        "rejected": "rejeté",
         "errors": {
-          "browserOnly": "L'OCR est disponible uniquement dans le navigateur.",
           "noPriceCandidates": "L'OCR a tourné, mais aucun candidat de prix n'a été détecté.",
           "marketFailed": "Impossible d'exécuter l'OCR sur ce screenshot.",
           "statsFailed": "Impossible d'exécuter l'OCR sur le screenshot de stats."
@@ -1685,8 +1647,6 @@
         "price": "Prix observé",
         "listTitle": "Prix observés",
         "savedCount": "{count} sauvegardés",
-        "screenshotSummary": "{market} HDV · {stats} screenshots de stats",
-        "statsScreenshotAlt": "Screenshot de stats observées",
         "rawText": "Texte brut OCR des stats",
         "badges": {
           "missingStats": "Stats manquantes",
@@ -1714,18 +1674,12 @@
         },
         "actions": {
           "useAsSellPrice": "Utiliser comme prix de vente",
-          "removeMarketScreenshot": "Supprimer le screenshot HDV",
-          "replaceStatsScreenshot": "Remplacer le screenshot de stats",
-          "uploadStatsScreenshot": "Ajouter un screenshot de stats",
-          "removeStatsScreenshot": "Supprimer le screenshot de stats",
           "sendToTracker": "Envoyer au tracker",
           "tracked": "Tracké",
           "openTracker": "Ouvrir le tracker",
-          "clearScreenshots": "Effacer les screenshots",
           "removeAll": "Tout supprimer",
           "viewStats": "Voir les stats",
           "addStats": "Ajouter des stats",
-          "addStatsScreenshot": "Ajouter un screenshot de stats",
           "trackResale": "Suivre la revente"
         },
         "feedback": {
@@ -1734,7 +1688,6 @@
           "removedActivity": "Annonce observée supprimée"
         },
         "confirm": {
-          "clearScreenshots": "Supprimer les {count} screenshots sauvegardés pour cet objet ?",
           "removeAll": "Supprimer tous les {count} prix observés pour cet objet ?"
         },
         "statsHealth": {
@@ -1767,35 +1720,21 @@
           "empty": "Aucune ligne de stat sauvegardée pour le moment. Ajoute un screenshot de stats ou saisis-les manuellement."
         }
       },
-      "flipFlow": {
-        "eyebrow": "Repérage de flips",
-        "title": "Utilise les prix observés pour juger si cet objet est bon marché",
-        "savedCount": "{count} prix enregistré | {count} prix enregistrés",
-        "scanTitle": "1. Scanner les prix HDV",
-        "scanHint": "L’OCR lit les annonces en cours depuis une capture d’écran.",
-        "pasteTitle": "2. Coller une capture",
-        "pasteHint": "Chemin rapide si ta capture du marché est dans le presse-papiers.",
-        "compareTitle": "3. Comparer les meilleurs achats",
-        "compareHint": "Trie les annonces enregistrées par sous-évaluées / meilleur achat.",
-        "manageTitle": "4. Gérer les flips",
-        "manageHint": "Les annonces suivies continuent dans Flip Items.",
-        "rule": "Règle de base : le prix de vente visé doit venir d’annonces observées comparables, pas d’un prix rêvé. Enregistre plusieurs prix, puis ne suis que celle clairement sous-évaluée.",
-        "preparing": "Préparation de la comparaison des prix…",
-        "loadError": "Impossible de charger les données de comparaison. Tu peux toujours enregistrer des prix observés manuellement."
-      },
       "nextStep": {
-        "eyebrow": "Prochaine étape",
         "best": "Meilleur candidat : achète autour de {buy}, remets en vente vers {relist}.",
-        "noneYet": "Pas encore d’annonce clairement bon marché. Continue de scanner ou attends un prix plus bas.",
-        "needMore": "Enregistre au moins 2 annonces avec leurs stats avant de te fier à un signal de flip.",
-        "hint": "Trie par Meilleur achat, active Candidats à l’achat uniquement, puis ne suis que les annonces marquées sous-évaluées.",
         "trackBest": "Suivre le meilleur flip"
       },
       "advancedValuation": {
-        "title": "Besoin du tableau de valorisation complet ?",
-        "hint": "La recommandation simple ci-dessus suffit pour la plupart des décisions de flip.",
         "show": "Afficher le tableau",
         "hide": "Masquer le tableau"
+      },
+      "capture": {
+        "prices": "Colle, dépose ou clique pour une capture HDV",
+        "pricesHint": "Les prix sont lus et enregistrés automatiquement.",
+        "stats": "Colle ou dépose les stats de l’objet",
+        "openStats": "Voir les {count} stats",
+        "saved": "{count} prix enregistré | {count} prix enregistrés",
+        "undo": "Annuler"
       }
     },
     "aggregate": {
@@ -1834,72 +1773,6 @@
       },
       "noData": "Aucune donnée de recette agrégée trouvée."
     },
-    "guide": {
-      "entryTitle": "Guide de page",
-      "entrySubtitle": "Comprendre la page principale des objets et le workflow screenshots/OCR.",
-      "openAria": "Ouvrir le guide des objets",
-      "openRecipeAria": "Ouvrir le guide du détail d'objet",
-      "dialogAria": "Guide des objets",
-      "closeAria": "Fermer le guide",
-      "eyebrow": "Guide rapide",
-      "main": {
-        "title": "Page objets : filtre les slots, repère la demande, puis ouvre un objet cible",
-        "intro": "La page principale sert d'abord à réduire le dataset, puis à ouvrir un objet précis quand quelque chose mérite d'être inspecté.",
-        "steps": {
-          "filter": {
-            "title": "Filtre le dataset",
-            "text": "Utilise les filtres élément, mode, niveau, budget et classe pour réduire la liste aux builds qui t'intéressent."
-          },
-          "slot": {
-            "title": "Choisis un slot",
-            "text": "Les onglets de slot sont la navigation principale. Ils permettent de se concentrer sur une catégorie d'équipement et de comparer ce qui revient le plus souvent."
-          },
-          "detail": {
-            "title": "Ouvre un objet pour le détail",
-            "text": "Quand tu cliques sur un objet, tu passes au workflow détaillé recette + OCR. Cette vue a son propre guide."
-          }
-        },
-        "cards": {
-          "overview": {
-            "title": "Ce que montre la page principale",
-            "text": "Les cartes de stats résument la tranche actuelle, le bandeau contexte explique ce que tu regardes, et les onglets de slot montrent où la variété d'objets est la plus forte."
-          },
-          "next": {
-            "title": "Ce qu'il faut faire ensuite",
-            "text": "Si un objet paraît intéressant, ouvre-le pour inspecter la recette, enregistrer des prix observés, lancer l'OCR sur des screenshots HDV et comparer les coûts réels de craft."
-          }
-        }
-      },
-      "recipe": {
-        "title": "Détail d'objet : utilise des screenshots propres pour un OCR fiable",
-        "intro": "Cette vue contient deux workflows screenshots : un pour détecter les prix HDV, et un pour extraire les lignes de stats d'un objet observé. Plus le screenshot est propre et cohérent, meilleur sera l'OCR.",
-        "steps": {
-          "crop": {
-            "title": "Garde seulement la zone utile du jeu",
-            "text": "Évite les bordures du bureau, Discord, le navigateur ou toute UI parasite autour de la fenêtre Dofus."
-          },
-          "framing": {
-            "title": "Garde toujours le même cadrage",
-            "text": "Essaie de conserver la colonne des prix et le bloc de stats à peu près au même endroit pour rendre l'OCR plus prévisible."
-          },
-          "quality": {
-            "title": "Privilégie des screenshots nets",
-            "text": "Les captures en résolution native fonctionnent mieux que les photos floues ou les images compressées envoyées en chat."
-          }
-        },
-        "cards": {
-          "market": {
-            "title": "Screenshot HDV",
-            "text": "À utiliser quand tu cliques sur OCR screenshot ou Paste screenshot dans la section recette. La liste des prix doit être bien lisible et centrée dans la capture."
-          },
-          "stats": {
-            "title": "Screenshot de stats",
-            "text": "À utiliser quand tu enregistres les stats observées d'un objet. Le bloc de stats doit être entièrement visible, sans lignes coupées ni tooltips hors sujet."
-          }
-        },
-        "placeholderTitle": "Image d'exemple à ajouter"
-      }
-    },
     "craftFm": "Craft / FM",
     "addToSession": "Ajouter à la session",
     "recipePressure": "Pression des recettes",
@@ -1914,21 +1787,6 @@
       "noSessions": "Aucune session de craft pour l’instant. Crées-en une avec les réglages par défaut et l’objet sélectionné y sera ajouté immédiatement.",
       "emptySession": "Session vide",
       "plusMore": "{name} + {count} autres"
-    },
-    "pricesWorkflow": {
-      "eyebrow": "Flux des prix",
-      "title": "Repère les annonces bon marché avant de les envoyer vers Flip Items",
-      "intro": "Utilise cette page comme ton carnet HDV : cherche un objet, ouvre-le, enregistre les prix observés, puis laisse l’app les comparer et marquer les bonnes affaires.",
-      "steps": {
-        "search": "Chercher un objet",
-        "searchHint": "Ouvre la fiche de l’objet plutôt que de parcourir sans fin.",
-        "save": "Enregistrer les prix",
-        "saveHint": "Via OCR ou saisie manuelle des annonces observées.",
-        "compare": "Comparer",
-        "compareHint": "Trie par Meilleur achat / Écart et vérifie la fraîcheur.",
-        "track": "Suivre le flip",
-        "trackHint": "Envoie le meilleur candidat vers Flip Items."
-      }
     }
   },
   "familiers": {
@@ -2085,56 +1943,6 @@
       },
       "misc": {
         "emptyValue": "—"
-      }
-    },
-    "guide": {
-      "openAria": "Ouvrir le guide des familiers",
-      "dialogAria": "Guide des familiers",
-      "closeAria": "Fermer le guide",
-      "eyebrow": "Guide rapide",
-      "title": "Choisis un mode, repère un item, lis le coût final",
-      "referenceIntro": "Le mode référence part d’un budget croquettes pour te donner un plafond d’achat par item et le coût total si tu montes un familier jusqu’au niveau choisi avec cet item seul.",
-      "manualIntro": "Le mode prix manuels part de tes prix HDV réels et calcule directement combien te coûterait un familier jusqu’au niveau choisi avec chaque item.",
-      "activeModeLabel": "Mode actif",
-      "referenceModeName": "Référence croquettes",
-      "manualModeName": "Prix HDV manuels",
-      "steps": {
-        "step1": {
-          "referenceTitle": "Définis ton budget croquettes",
-          "manualTitle": "Renseigne tes prix HDV",
-          "referenceText": "Entre le budget total que tu paierais pour monter un familier avec des croquettes. La page convertit ensuite ce budget en prix cible par XP.",
-          "manualText": "Tape le prix unitaire vu en HDV pour les items qui t’intéressent. Les autres lignes peuvent rester vides."
-        },
-        "step2": {
-          "title": "Choisis un item ou une essence",
-          "text": "Utilise les onglets, la recherche et le tri pour isoler la source que tu veux comparer ou acheter en boucle."
-        },
-        "step3": {
-          "title": "Lis d’abord la dernière colonne",
-          "referenceText": "Coût total au prix cible est le vrai total estimé pour atteindre le niveau choisi avec cet item seul.",
-          "manualText": "Coût total au niveau cible est le vrai total estimé pour atteindre le niveau choisi avec cet item seul."
-        }
-      },
-      "cards": {
-        "columns": {
-          "title": "Colonnes",
-          "xpLabel": "XP / unité",
-          "xpText": "XP donné par un item.",
-          "qtyLabel": "Qté nécessaire",
-          "qtyText": "nombre d’unités nécessaires pour atteindre le niveau choisi.",
-          "referencePriceLabel": "Prix cible / unité",
-          "referencePriceText": "plafond d’achat conseillé par unité.",
-          "manualPriceLabel": "Prix saisi / unité",
-          "manualPriceText": "prix HDV unitaire que tu as saisi.",
-          "referenceTotalLabel": "Coût total au prix cible",
-          "manualTotalLabel": "Coût total au niveau cible",
-          "totalText": "montant final estimé."
-        },
-        "example": {
-          "title": "Exemple",
-          "line1": "Si une ligne affiche 13 815 en quantité et 362 k en prix unitaire, il faut environ 13 815 unités.",
-          "line2": "Le total sera donc environ 13 815 × 362, soit un coût proche du budget de référence."
-        }
       }
     }
   },

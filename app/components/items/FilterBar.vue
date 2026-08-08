@@ -51,7 +51,6 @@ defineProps<{ filters: ItemFilters; collapsed: boolean }>()
 const emit = defineEmits<{
   set: [key: keyof ItemFilters, value: string]
   'update:collapsed': [value: boolean]
-  openGuide: []
 }>()
 
 // Icons are remote-ish assets; a broken one falls back to a short text label
@@ -69,21 +68,11 @@ const chipClass = (active: boolean) => [
 
 <template>
   <UiCard
-    :title="$t('items.guide.entryTitle')"
-    :subtitle="$t('items.guide.entrySubtitle')"
+    :title="$t('items.filters.title')"
   >
     <template #actions>
       <UiButton size="sm" @click="emit('update:collapsed', !collapsed)">
         {{ collapsed ? $t('items.filters.showFilters') : $t('items.filters.hideFilters') }}
-      </UiButton>
-      <UiButton
-        variant="ghost"
-        size="sm"
-        icon
-        :aria-label="$t('items.guide.openAria')"
-        @click="emit('openGuide')"
-      >
-        ?
       </UiButton>
     </template>
 

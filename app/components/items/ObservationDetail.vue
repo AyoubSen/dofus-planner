@@ -19,10 +19,6 @@ const emit = defineEmits<{
   back: []
   'update:detailTab': [value: 'stats' | 'explain']
   useAsSellPrice: [price: number]
-  clearMarketScreenshot: []
-  clearStatsScreenshot: []
-  uploadStatsScreenshot: []
-  pasteStatsScreenshot: []
   sendToTracker: []
   addExpectedStat: [key: string]
   addStatEntry: []
@@ -76,28 +72,6 @@ const hasHealthIssues = (health: any) =>
             {{ $t('items.detail.observed.actions.useAsSellPrice') }}
           </UiButton>
           <UiButton
-            v-if="observation.marketScreenshotDataUrl"
-            size="sm"
-            @click="emit('clearMarketScreenshot')"
-          >
-            {{ $t('items.detail.observed.actions.removeMarketScreenshot') }}
-          </UiButton>
-          <UiButton size="sm" @click="emit('uploadStatsScreenshot')">
-            {{ observation.statsScreenshotDataUrl
-              ? $t('items.detail.observed.actions.replaceStatsScreenshot')
-              : $t('items.detail.observed.actions.uploadStatsScreenshot') }}
-          </UiButton>
-          <UiButton
-            v-if="observation.statsScreenshotDataUrl"
-            size="sm"
-            @click="emit('clearStatsScreenshot')"
-          >
-            {{ $t('items.detail.observed.actions.removeStatsScreenshot') }}
-          </UiButton>
-          <UiButton size="sm" @click="emit('pasteStatsScreenshot')">
-            {{ $t('items.detail.recipe.actions.pasteScreenshot') }}
-          </UiButton>
-          <UiButton
             variant="primary"
             size="sm"
             :disabled="isTracked || !canTrack"
@@ -128,14 +102,6 @@ const hasHealthIssues = (health: any) =>
       <UiSkeleton v-for="i in 3" :key="i" height="2.5rem" />
     </div>
     <p v-else-if="statsOcr.error" class="text-xs text-negative">{{ statsOcr.error }}</p>
-
-    <div v-if="observation.statsScreenshotDataUrl" class="overflow-hidden rounded-lg border border-line bg-sunken">
-      <img
-        :src="observation.statsScreenshotDataUrl"
-        :alt="$t('items.detail.observed.statsScreenshotAlt')"
-        class="w-full object-contain"
-      >
-    </div>
 
     <!-- ── Stats ────────────────────────────────────────────────────────── -->
     <template v-if="detailTab === 'stats'">

@@ -94,7 +94,6 @@
       },
       "startAction": "Start with one action",
       "whatNext": "What should I do next?",
-      "whatNextDesc": "Suggestions based on what you are currently tracking.",
       "overview": "Overview",
       "workflows": "Workflows",
       "soldCount": "{count} sold",
@@ -654,8 +653,6 @@
         "runNote": "Run note",
         "itemNote": "Item note",
         "levelRange": "Level range",
-        "theoreticalRuneValue": "Theoretical rune value",
-        "actualSoldRuneValue": "Actual sold rune value",
         "unsoldRuneValue": "Unsold rune value",
         "saleNotes": "Sale notes",
         "rune": "Rune",
@@ -676,7 +673,8 @@
         "priceKind": "Kind",
         "price": "Price",
         "quantityBasis": "Quantity basis",
-        "priceNote": "Note"
+        "priceNote": "Note",
+        "focusCategoryHint": "Which item types this batch breaks."
       },
       "placeholders": {
         "selectCategory": "Select category",
@@ -684,7 +682,6 @@
         "runNote": "Coef, market pressure, retry decision...",
         "itemNote": "Overall conclusion for this item",
         "saleNotes": "Sold price, date, undercut notes...",
-        "typeRuneName": "Or type rune name",
         "selectRune": "Select rune",
         "selectStatus": "Select status",
         "selectKind": "Select kind",
@@ -777,8 +774,7 @@
         "vsPrevious": "vs previous",
         "perBasis": "/ x{basis}",
         "runCountShort": "x{count}",
-        "typeRuneManually": "Type rune name manually",
-        "eachFreshness": "{price} each · {freshness}"
+        "noPrice": "No saved price"
       },
       "common": {
         "resource": "Resource"
@@ -787,23 +783,6 @@
         "history": "Realized history",
         "opportunities": "Opportunities",
         "prices": "Market prices"
-      },
-      "nextAction": {
-        "finishTitle": "Finish the current brisage log",
-        "finishDesc": "Save the session before checking more opportunities so paper value and realized rune sales stay tied to one experiment.",
-        "finishCta": "Continue session",
-        "pricesTitle": "Add rune prices before trusting opportunities",
-        "pricesDesc": "Brisage estimates are only useful when rune/resource prices are fresh. Start with the prices you actually check in HDV.",
-        "pricesCta": "Open prices",
-        "startTitle": "Log a small realized brisage session",
-        "startDesc": "Use history first. Opportunities are expected value only; profit becomes real when runes are sold or confirmed.",
-        "startCta": "Start session"
-      },
-      "warnings": {
-        "historical": "This is a historical result, not a future prediction. Rune value is theoretical until sold.",
-        "opportunities": "Future opportunities use manual market prices and risk assumptions. Validate with small batches first.",
-        "prices": "Manual price book. Add rune prices morning and evening; every save is kept as a timestamped history point. Fresh under 24h, aging 24-72h, stale over 72h.",
-        "runeTheoretical": "Rune value is theoretical until sold."
       },
       "freshness": {
         "fresh": "Fresh",
@@ -832,6 +811,20 @@
         "range": "Lv {min}-{max}",
         "minOnly": "Lv {min}+",
         "maxOnly": "Up to Lv {max}"
+      },
+      "capture": {
+        "price": "Paste or drop a HDV screenshot to fill the price",
+        "picked": "Detected prices",
+        "soldValue": "Paste or drop an HDV screenshot to fill the sold value"
+      },
+      "confirm": {
+        "removeItem": "Remove {name} and everything logged against it?",
+        "removeRun": "Remove this run and its rune outputs?",
+        "deleteSession": "Delete {name} and its {count} logged item? This cannot be undone. | Delete {name} and its {count} logged items? This cannot be undone."
+      },
+      "sort": {
+        "label": "Sort",
+        "date": "Date"
       }
     },
     "succes": {
@@ -1422,18 +1415,16 @@
     "spellCount": "{count} spells"
   },
   "items": {
-    "usageHint": "Select your filters above, then pick a slot to start scanning prices.",
     "backToHome": "Back to Home",
     "title": "Equipment Statistics",
     "subtitle": "Analyze equipment usage patterns and meta trends",
     "loading": "Loading statistics...",
     "noData": "No data available for this slot",
-    "contextTitle": "Current data slice",
     "uses": "uses",
     "viewModes": {
-      "list": "List view",
-      "grid": "Grid view",
-      "table": "Table view"
+      "list": "List",
+      "grid": "Grid",
+      "table": "Table"
     },
     "table": {
       "image": "Image",
@@ -1443,7 +1434,7 @@
       "distribution": "Distribution"
     },
     "filters": {
-      "title": "FILTERS",
+      "title": "Filters",
       "elements": {
         "title": "Elements",
         "all": "All Elements",
@@ -1479,13 +1470,6 @@
       },
       "showFilters": "Show filters",
       "hideFilters": "Hide filters"
-    },
-    "stats": {
-      "totalEquipment": "Total Equipment",
-      "uniqueItems": "Unique Items",
-      "mostVariedSlot": "Most Varied Slot",
-      "avgItemsPerSet": "Avg Items/Set",
-      "na": "N/A"
     },
     "slots": {
       "ar": "Weapon",
@@ -1530,17 +1514,6 @@
         "emptySymbol": "∅",
         "emptyValue": "—"
       },
-      "context": {
-        "allModes": "All modes",
-        "allLevels": "All levels",
-        "allClasses": "All classes",
-        "allElements": "All elements",
-        "allBudgets": "All budgets",
-        "level": "Level {level}",
-        "budget": "{budget} budget",
-        "matchingBuilds": "{count} matching builds",
-        "slotSummary": "{count} unique items in {slot} · top pick appears in {topCount} builds"
-      },
       "recipe": {
         "sectionTitle": "Recipe",
         "profession": "Profession",
@@ -1548,9 +1521,7 @@
         "id": "Recipe ID",
         "loading": "Loading recipe...",
         "actions": {
-          "refetch": "Refetch recipe",
-          "ocrScreenshot": "OCR screenshot",
-          "pasteScreenshot": "Paste screenshot"
+          "refetch": "Refetch recipe"
         },
         "confidence": {
           "exact": "Exact match",
@@ -1563,7 +1534,8 @@
         "errors": {
           "loadFailed": "Failed to load recipe for this item.",
           "resolveFailed": "Could not resolve DofusDB item for \"{name}\""
-        }
+        },
+        "loadError": "Could not load comparison data. You can still save prices."
       },
       "cost": {
         "sectionTitle": "Craft cost",
@@ -1578,17 +1550,7 @@
         "marginRate": "Margin rate"
       },
       "ocr": {
-        "loadingPrices": "Extracting price candidates from screenshot...",
-        "loadingStats": "Extracting stat lines from screenshot...",
-        "candidatesTitle": "OCR price candidates",
-        "clickHint": "Click one to fill the sell price",
-        "save": "Save OCR prices",
-        "debugTitle": "OCR debug rows",
-        "mode": "Mode",
-        "noTokens": "no tokens",
-        "rejected": "rejected",
         "errors": {
-          "browserOnly": "OCR is only available in the browser.",
           "noPriceCandidates": "OCR ran, but no price candidates were detected.",
           "marketFailed": "Failed to run OCR on this screenshot.",
           "statsFailed": "Failed to run OCR on the stats screenshot."
@@ -1685,8 +1647,6 @@
         "price": "Observed price",
         "listTitle": "Observed prices",
         "savedCount": "{count} saved",
-        "screenshotSummary": "{market} market · {stats} stats screenshots",
-        "statsScreenshotAlt": "Observed stats screenshot",
         "rawText": "Stats OCR raw text",
         "badges": {
           "missingStats": "Missing stats",
@@ -1714,18 +1674,12 @@
         },
         "actions": {
           "useAsSellPrice": "Use as sell price",
-          "removeMarketScreenshot": "Remove market screenshot",
-          "replaceStatsScreenshot": "Replace stats screenshot",
-          "uploadStatsScreenshot": "Upload stats screenshot",
-          "removeStatsScreenshot": "Remove stats screenshot",
           "sendToTracker": "Send to tracker",
           "tracked": "Tracked",
           "openTracker": "Open tracker",
-          "clearScreenshots": "Clear screenshots",
           "removeAll": "Remove all",
           "viewStats": "View stats",
           "addStats": "Add stats",
-          "addStatsScreenshot": "Add stats screenshot",
           "trackResale": "Track resale"
         },
         "feedback": {
@@ -1734,7 +1688,6 @@
           "removedActivity": "Removed an observed listing"
         },
         "confirm": {
-          "clearScreenshots": "Remove {count} saved screenshots for this item?",
           "removeAll": "Remove all {count} observed prices for this item?"
         },
         "statsHealth": {
@@ -1767,35 +1720,21 @@
           "empty": "No stat lines saved yet. Upload a stats screenshot or add them manually."
         }
       },
-      "flipFlow": {
-        "eyebrow": "Flip discovery",
-        "title": "Use observed prices to decide if this item is cheap",
-        "savedCount": "{count} saved price | {count} saved prices",
-        "scanTitle": "1. Scan HDV prices",
-        "scanHint": "OCR reads the current listings from a screenshot.",
-        "pasteTitle": "2. Paste screenshot",
-        "pasteHint": "Fast path if your market screenshot is in clipboard.",
-        "compareTitle": "3. Compare best buys",
-        "compareHint": "Sort saved listings by underpriced / best buy.",
-        "manageTitle": "4. Manage flips",
-        "manageHint": "Tracked listings continue in Flip Items.",
-        "rule": "Beginner rule: target sell price should come from comparable observed listings, not a dream price. Save several prices, then track only the clearly underpriced one.",
-        "preparing": "Preparing price comparison…",
-        "loadError": "Could not load item comparison data. You can still save observed prices manually."
-      },
       "nextStep": {
-        "eyebrow": "Beginner next step",
         "best": "Best candidate: buy around {buy}, relist near {relist}.",
-        "noneYet": "No clear cheap listing yet. Keep scanning or wait for a lower price.",
-        "needMore": "Save at least 2 listings with stats before trusting a flip signal.",
-        "hint": "Sort by Best buy, enable Buy candidates only, then only track listings marked underpriced.",
         "trackBest": "Track best flip"
       },
       "advancedValuation": {
-        "title": "Want the full valuation table?",
-        "hint": "The simple recommendation above is enough for most flip decisions.",
         "show": "Show valuation table",
         "hide": "Hide valuation table"
+      },
+      "capture": {
+        "prices": "Paste, drop or click a HDV screenshot",
+        "pricesHint": "Prices are read and saved automatically.",
+        "stats": "Paste or drop the item stats",
+        "openStats": "Review {count} stats",
+        "saved": "Saved {count} price | Saved {count} prices",
+        "undo": "Undo"
       }
     },
     "aggregate": {
@@ -1834,72 +1773,6 @@
       },
       "noData": "No aggregate recipe data found."
     },
-    "guide": {
-      "entryTitle": "Page guide",
-      "entrySubtitle": "Understand the main items page and the screenshot/OCR workflow.",
-      "openAria": "Open items guide",
-      "openRecipeAria": "Open item detail guide",
-      "dialogAria": "Items guide",
-      "closeAria": "Close guide",
-      "eyebrow": "Quick guide",
-      "main": {
-        "title": "Items page: browse slots, inspect demand, then open a target item",
-        "intro": "The main page helps you narrow the dataset first, then jump into a specific item when something looks worth investigating.",
-        "steps": {
-          "filter": {
-            "title": "Filter the dataset",
-            "text": "Use element, mode, level, budget and class filters to reduce the item pool to the kind of builds you care about."
-          },
-          "slot": {
-            "title": "Choose a slot",
-            "text": "The slot tabs are the main navigation. They let you focus on one equipment category and compare what appears most often there."
-          },
-          "detail": {
-            "title": "Open an item for detail",
-            "text": "Once you click an item, you switch to the detailed recipe and OCR workflow. That view has its own dedicated guide."
-          }
-        },
-        "cards": {
-          "overview": {
-            "title": "What the main page shows",
-            "text": "The stat cards summarize the current slice, the context strip explains what you are looking at, and the slot tabs show where item variety is concentrated."
-          },
-          "next": {
-            "title": "What to do next",
-            "text": "If an item looks promising, open it to inspect the recipe, save observed prices, run OCR on market screenshots, and compare real crafting costs."
-          }
-        }
-      },
-      "recipe": {
-        "title": "Item detail: use clean screenshots for reliable OCR",
-        "intro": "This view has two screenshot workflows: one to detect market prices, and one to extract stat lines from an observed item. For both, the cleaner and more consistent the screenshot is, the better the OCR results will be.",
-        "steps": {
-          "crop": {
-            "title": "Keep only the useful game area",
-            "text": "Avoid desktop borders, Discord, browser chrome, or extra UI around the Dofus window."
-          },
-          "framing": {
-            "title": "Use the same framing every time",
-            "text": "Try to keep the price column and stats block in roughly the same position so OCR remains predictable."
-          },
-          "quality": {
-            "title": "Prefer sharp screenshots over compressed captures",
-            "text": "Full-resolution screenshots work better than blurry phone photos or heavily compressed chat images."
-          }
-        },
-        "cards": {
-          "market": {
-            "title": "Market screenshot",
-            "text": "Use this when clicking OCR screenshot or Paste screenshot in the recipe section. The price list should be clearly readable and centered in the capture."
-          },
-          "stats": {
-            "title": "Stats screenshot",
-            "text": "Use this when saving observed item stats. The item stat block should be fully visible, without cutting lines or mixing in unrelated tooltips."
-          }
-        },
-        "placeholderTitle": "Placeholder image"
-      }
-    },
     "craftFm": "Craft / FM",
     "addToSession": "Add to session",
     "recipePressure": "Recipe pressure",
@@ -1914,21 +1787,6 @@
       "noSessions": "No crafting sessions yet. Create one with default settings and the selected item will be added immediately.",
       "emptySession": "Empty session",
       "plusMore": "{name} + {count} more"
-    },
-    "pricesWorkflow": {
-      "eyebrow": "Prices workflow",
-      "title": "Find cheap listings before sending them to Flip Items",
-      "intro": "Use this page like your HDV notebook: search an item, open it, save observed listing prices, then let the app compare them and mark best buys.",
-      "steps": {
-        "search": "Search item",
-        "searchHint": "Open the item detail instead of browsing forever.",
-        "save": "Save prices",
-        "saveHint": "Use OCR or manual observed listings.",
-        "compare": "Compare",
-        "compareHint": "Sort by Best buy / Delta and check freshness.",
-        "track": "Track flip",
-        "trackHint": "Send the best candidate to Flip Items."
-      }
     }
   },
   "familiers": {
@@ -2085,56 +1943,6 @@
       },
       "misc": {
         "emptyValue": "—"
-      }
-    },
-    "guide": {
-      "openAria": "Open familiers guide",
-      "dialogAria": "Familiers guide",
-      "closeAria": "Close guide",
-      "eyebrow": "Quick guide",
-      "title": "Choose a mode, pick an item, read the final cost",
-      "referenceIntro": "Reference mode starts from a croquette budget to give you a maximum buy price per item and the total cost if you level a familier to the selected target using only that item.",
-      "manualIntro": "Manual price mode starts from your real HDV prices and directly calculates how much a familier would cost to reach the selected target with each item.",
-      "activeModeLabel": "Active mode",
-      "referenceModeName": "Croquette reference",
-      "manualModeName": "Manual HDV prices",
-      "steps": {
-        "step1": {
-          "referenceTitle": "Set your croquette budget",
-          "manualTitle": "Enter your HDV prices",
-          "referenceText": "Enter the total amount you would pay to level a familier with croquettes. The page then converts that budget into a target XP price.",
-          "manualText": "Type the unit price you saw in HDV for the items you care about. The other rows can stay empty."
-        },
-        "step2": {
-          "title": "Choose an item or an essence",
-          "text": "Use the tabs, search, and sorting to isolate the source you want to compare or buy in a loop."
-        },
-        "step3": {
-          "title": "Read the last column first",
-          "referenceText": "Total cost at target price is the real estimated total to reach the selected level with that item only.",
-          "manualText": "Total target-level cost is the real estimated total to reach the selected level with that item only."
-        }
-      },
-      "cards": {
-        "columns": {
-          "title": "Columns",
-          "xpLabel": "XP / unité",
-          "xpText": "XP given by one item.",
-          "qtyLabel": "Qté nécessaire",
-          "qtyText": "Number of units needed to reach the selected level.",
-          "referencePriceLabel": "Prix cible / unité",
-          "referencePriceText": "recommended maximum buy price per unit.",
-          "manualPriceLabel": "Prix saisi / unité",
-          "manualPriceText": "HDV unit price you entered.",
-          "referenceTotalLabel": "Coût total au prix cible",
-          "manualTotalLabel": "Total target-level cost",
-          "totalText": "final estimated amount."
-        },
-        "example": {
-          "title": "Example",
-          "line1": "If a row shows 13 815 in quantity and 362 k in unit price, you need about 13 815 units.",
-          "line2": "The final total will therefore be about 13 815 × 362, which lands close to the reference budget."
-        }
       }
     }
   },

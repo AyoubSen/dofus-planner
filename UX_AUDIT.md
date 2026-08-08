@@ -8,8 +8,15 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 > work. Items still open are product/content changes the overhaul did not cover.
 >
 > Verified in a browser at the end of Phase 5: focus-visible ring, light theme,
-> 125% font scale, keyboard tab order, storage meter. **Not** verified: mobile
-> breakpoints (could not force a narrow viewport through the automation).
+> 125% font scale, keyboard tab order, storage meter.
+>
+> **Mobile breakpoints verified** in a later pass, at 390px (phone portrait, below
+> `sm`) and 768px (tablet, `md`, below the `lg` sidebar breakpoint), across all 11
+> routes plus a monster detail. `resize_window` still cannot shrink a maximised
+> Chrome window — the workaround is a same-origin iframe sized to the target
+> width, since media queries inside an iframe evaluate against its own box.
+> No page scrolls horizontally at either width. Five layout breaks were found and
+> fixed; see the Global section. Desktop (1280px) re-checked afterwards.
 
 ---
 
@@ -52,11 +59,11 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 ## Brisage Page (`/brisage`)
 
 - [x] No-context state offers no direct action — same fix as crafting.
-- [ ] "Focus Category" field label is jargon — add a subtitle or tooltip explaining it's the item type for brisage.
+- [x] "Focus Category" field label is jargon — added a hint line under the field.
 - [x] Level Min / Level Max look like two unrelated fields — visually group them as a range (e.g. "Level range: [min] – [max]").
-- [ ] Rune names are free-text — same rune entered differently creates fragmented history. Needs normalized rune catalog (TODO: `Brisage Normalized Rune Catalog`).
+- [x] Rune names are free-text — same rune entered differently creates fragmented history. Now a single picker over the 105 canonical runes (`app/data/runes.json`), and each output stores the real `runeId`.
 - [x] P/L colors use hardcoded hex values (`#34d399` / `#f87171`) — replace with theme tokens.
-- [ ] No explanation of what brisage is for new users — add a brief description or guide button like other pages.
+- [~] No explanation of what brisage is for new users — **won't do as written**: guide modals were deliberately removed app-wide. Addressed instead with clearer field labels and hints.
 
 ---
 
@@ -84,7 +91,7 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 - [ ] "Completion" label and "All achievements" button are hardcoded English — move to i18n.
 - [x] Category names only rendered in French (`cat.name?.fr`) — use locale-aware key or fallback chain.
 - [ ] No per-category progress (X/Y completed) shown when selecting a category — sidebar is navigational only (TODO: `Succes Category Progress Bars`).
-- [ ] Mobile layout likely stacks awkwardly — check and fix sidebar collapse behavior on small screens.
+- [x] Mobile layout likely stacks awkwardly — checked. The category rail stacks above the list and is capped at `26rem`, so it costs about one screen, not a dead scroll. It did hide a worse bug: the rail was a flex column, so its ~50 rows shrank to 12px each to fit the cap instead of scrolling, squashing every label into its own border. This was broken on desktop too, not just mobile. Fixed by dropping `flex` from the container.
 
 ---
 
@@ -104,6 +111,23 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
 - [x] Resale and Items share the same sidebar icon — differentiate them.
 - [x] Storage indicator label "Storage" with no units until hover/click — show unit inline at all times.
 - [x] i18n parity pass needed across archimonstres, crafting, brisage, succes, familiers (TODO: `V2 i18n Parity`).
+
+### Mobile breakpoint pass — fixed
+
+Four of the five were the same root cause: a `flex-1` column has a `0%` basis, so
+in a `flex-wrap` row it never forces a wrap — it just shrinks until its text is
+one character wide. Giving the column a real `basis-*` makes the row wrap instead.
+
+- [x] `layouts/default.vue` — the desktop-only "collapse sidebar" button appeared inside the mobile drawer. `UiButton` hardcodes `inline-flex`, which outranks an unprefixed `hidden` from a caller; variant-prefixed classes (`lg:hidden`) do win, which is why the hamburger was correct. Fixed with `max-lg:hidden`.
+- [x] `pages/index.vue` — the greeting truncated to "Welcome ba…" because the CTA stayed on its row.
+- [x] `pages/resale.vue` — the beginner-flow explainer crushed against the step list's `min-w-60` and rendered one word per line.
+- [x] `components/items/RecipeHeader.vue` — the opened item's name collapsed to "G…".
+- [x] `components/ui/PageSection.vue` — section headings squeezed to "Most Used…" rather than dropping their actions to a second row. Shared by most pages.
+- [x] `components/ui/Segmented.vue` — `block` mode ellipsised *every* option at once on a phone (all three Break Items tabs). Segments now refuse to shrink below their label and the row scrolls sideways instead; desktop equal-width division is unchanged.
+
+Not fixed, cosmetic only: a few `truncate` labels still clip at 390px by design
+(`TARGET PRICE PER KI…` on Familiers, a Buying-progress hint). These are single
+labels inside otherwise correct layouts, not layout breaks.
 
 ---
 

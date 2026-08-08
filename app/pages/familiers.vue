@@ -38,9 +38,6 @@
           <UiNumberInput v-model="budget" :min="0" :unit="$t('familiers.page.reference.kamasUnit')" />
         </UiField>
 
-        <UiButton variant="ghost" size="sm" class="ml-auto" @click="guideOpen = true">
-          {{ $t('familiers.guide.openAria') }}
-        </UiButton>
       </div>
 
       <p class="mt-3 text-sm text-muted">
@@ -287,48 +284,6 @@
         </tr>
       </UiTable>
     </UiPageSection>
-
-    <!-- ── Guide ────────────────────────────────────────────────────────── -->
-    <UiModal :open="guideOpen" :title="$t('familiers.guide.title')" size="lg" @close="guideOpen = false">
-      <p class="text-sm text-muted">
-        {{ pricingMode === 'reference' ? $t('familiers.guide.referenceIntro') : $t('familiers.guide.manualIntro') }}
-      </p>
-      <p class="mt-2 text-sm">
-        <span class="text-subtle">{{ $t('familiers.guide.activeModeLabel') }}</span>
-        <span class="ml-1.5 font-medium text-accent">
-          {{ pricingMode === 'reference' ? $t('familiers.guide.referenceModeName') : $t('familiers.guide.manualModeName') }}
-        </span>
-      </p>
-
-      <div class="mt-4 grid gap-4 sm:grid-cols-2">
-        <div>
-          <p class="mb-1.5 text-xs font-medium tracking-wide text-subtle uppercase">
-            {{ $t('familiers.guide.cards.columns.title') }}
-          </p>
-          <dl class="flex flex-col gap-1 text-sm text-muted">
-            <div><span class="text-ink">{{ $t('familiers.guide.cards.columns.xpLabel') }}</span> = {{ $t('familiers.guide.cards.columns.xpText') }}</div>
-            <div><span class="text-ink">{{ $t('familiers.guide.cards.columns.qtyLabel') }}</span> = {{ $t('familiers.guide.cards.columns.qtyText') }}</div>
-            <div>
-              <span class="text-ink">{{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referencePriceLabel') : $t('familiers.guide.cards.columns.manualPriceLabel') }}</span>
-              = {{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referencePriceText') : $t('familiers.guide.cards.columns.manualPriceText') }}
-            </div>
-            <div>
-              <span class="text-ink">{{ pricingMode === 'reference' ? $t('familiers.guide.cards.columns.referenceTotalLabel') : $t('familiers.guide.cards.columns.manualTotalLabel') }}</span>
-              = {{ $t('familiers.guide.cards.columns.totalText') }}
-            </div>
-          </dl>
-        </div>
-        <div>
-          <p class="mb-1.5 text-xs font-medium tracking-wide text-subtle uppercase">
-            {{ $t('familiers.guide.cards.example.title') }}
-          </p>
-          <div class="flex flex-col gap-1 text-sm text-muted">
-            <p>{{ $t('familiers.guide.cards.example.line1') }}</p>
-            <p>{{ $t('familiers.guide.cards.example.line2') }}</p>
-          </div>
-        </div>
-      </div>
-    </UiModal>
   </div>
 </template>
 
@@ -369,7 +324,6 @@ const manualPrices = shallowRef<Record<string, number>>({})
 const draftManualPrices = shallowRef<Record<string, string>>({})
 const resourcePrices = shallowRef<Record<string, number>>({})
 const plannedPurchases = shallowRef<Array<{ name: string; qty: number; xp: number }>>([])
-const guideOpen = ref(false)
 const search = ref('')
 const activeView = ref<ViewId>('complete')
 const selectedZone = ref('')

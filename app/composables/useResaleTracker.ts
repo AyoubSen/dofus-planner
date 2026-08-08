@@ -1,4 +1,4 @@
-import type { ResalePriceAdjustment, ResaleTrackerEntry, ResaleTrackerStatus } from '../app/composables/useAppDataStore'
+import type { ResalePriceAdjustment, ResaleTrackerEntry, ResaleTrackerStatus } from '~/composables/useAppDataStore'
 
 const createResaleEntryId = () =>
   `resale-${new Date().toISOString()}-${Math.random().toString(36).slice(2, 8)}`

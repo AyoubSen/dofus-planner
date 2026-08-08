@@ -50,6 +50,32 @@ export interface ResaleTrackerEntry {
   notes: string
 }
 
+export type MarketCategory = 'rune' | 'miner' | 'farmer' | 'alchemist' | 'resource' | 'other'
+export type MarketSlot = 'morning' | 'midday' | 'evening' | 'night'
+export type MarketLotSize = 1 | 10 | 100
+
+export interface MarketObservation {
+  id: string
+  price: number
+  lotSize: MarketLotSize
+  slot: MarketSlot
+  createdAt: string
+}
+
+export interface TrackedMarketItem {
+  id: string
+  name: string
+  category: MarketCategory
+  preferredLotSize: MarketLotSize
+  buyBelow: number
+  sellAround: number
+  serverId: string
+  characterId: string
+  createdAt: string
+  lastCheckedAt: string | null
+  observations: MarketObservation[]
+}
+
 export type AppActivityType = 'archimonstres' | 'resale' | 'sales' | 'items'
 
 export interface AppActivityEntry {
@@ -90,6 +116,9 @@ export interface AppDataStore {
   resale: {
     entries: ResaleTrackerEntry[]
   }
+  market: {
+    trackedItems: TrackedMarketItem[]
+  }
   activity: {
     entries: AppActivityEntry[]
   }
@@ -99,7 +128,7 @@ const STORAGE_KEY = 'dofus-app-store'
 const MIGRATION_BACKUP_PREFIX = 'dofus-app-store-backup'
 const MIGRATION_LOG_KEY = 'dofus-app-store-last-migration'
 const LAST_BACKUP_POINTER_KEY = 'dofus-app-store-last-backup-key'
-const STORAGE_VERSION = 4
+const STORAGE_VERSION = 5
 
 const LEGACY_KEYS = {
   accounts: 'dofus-game-accounts',
@@ -158,6 +187,9 @@ const createDefaultStore = (): AppDataStore => {
     resale: {
       entries: [],
     },
+    market: {
+      trackedItems: [],
+    },
     activity: {
       entries: [],
     },
@@ -175,6 +207,74 @@ const coerceFiniteNumber = (value: unknown): number | null => {
     return Number.isFinite(parsed) ? parsed : null
   }
   return null
+}
+
+const marketCategories: MarketCategory[] = ['rune', 'miner', 'farmer', 'alchemist', 'resource', 'other']
+const marketSlots: MarketSlot[] = ['morning', 'midday', 'evening', 'night']
+const marketLotSizes: MarketLotSize[] = [1, 10, 100]
+
+const normalizeMarketObservation = (
+  value: unknown,
+  itemId: string,
+  index: number,
+): MarketObservation | null => {
+  if (!isObject(value)) return null
+  const price = coerceFiniteNumber(value.price)
+  if (price === null || price <= 0) return null
+
+  const createdAt = typeof value.createdAt === 'string' ? value.createdAt : new Date().toISOString()
+  return {
+    id: typeof value.id === 'string' && value.id ? value.id : `${itemId}-obs-${createdAt}-${index}`,
+    price,
+    lotSize: marketLotSizes.includes(Number(value.lotSize) as MarketLotSize)
+      ? Number(value.lotSize) as MarketLotSize
+      : 100,
+    slot: typeof value.slot === 'string' && marketSlots.includes(value.slot as MarketSlot)
+      ? value.slot as MarketSlot
+      : 'morning',
+    createdAt,
+  }
+}
+
+const normalizeMarketItem = (value: unknown, index: number): TrackedMarketItem | null => {
+  if (!isObject(value)) return null
+  const name = typeof value.name === 'string' ? value.name.trim() : ''
+  const serverId = typeof value.serverId === 'string' ? value.serverId : ''
+  const characterId = typeof value.characterId === 'string' ? value.characterId : ''
+  if (!name || !serverId || !characterId) return null
+
+  const id = typeof value.id === 'string' && value.id
+    ? value.id
+    : `market-${serverId}-${characterId}-${index}-${Date.now()}`
+
+  return {
+    id,
+    name,
+    category: typeof value.category === 'string' && marketCategories.includes(value.category as MarketCategory)
+      ? value.category as MarketCategory
+      : 'other',
+    preferredLotSize: marketLotSizes.includes(Number(value.preferredLotSize) as MarketLotSize)
+      ? Number(value.preferredLotSize) as MarketLotSize
+      : 100,
+    buyBelow: coerceFiniteNumber(value.buyBelow) ?? 0,
+    sellAround: coerceFiniteNumber(value.sellAround) ?? 0,
+    serverId,
+    characterId,
+    createdAt: typeof value.createdAt === 'string' ? value.createdAt : new Date().toISOString(),
+    lastCheckedAt: typeof value.lastCheckedAt === 'string' ? value.lastCheckedAt : null,
+    observations: Array.isArray(value.observations)
+      ? value.observations
+        .map((observation, observationIndex) => normalizeMarketObservation(observation, id, observationIndex))
+        .filter(Boolean) as MarketObservation[]
+      : [],
+  }
+}
+
+const normalizeMarketItems = (value: unknown): TrackedMarketItem[] => {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((item, index) => normalizeMarketItem(item, index))
+    .filter(Boolean) as TrackedMarketItem[]
 }
 
 const normalizeResalePriceAdjustment = (
@@ -222,6 +322,7 @@ const coerceStoreShape = (input: unknown): AppDataStore | null => {
   const inputAchievements = isObject(input.achievements) ? input.achievements : {}
   const inputSales = isObject(input.sales) ? input.sales : {}
   const inputResale = isObject(input.resale) ? input.resale : {}
+  const inputMarket = isObject(input.market) ? input.market : {}
   const inputActivity = isObject(input.activity) ? input.activity : {}
 
   return {
@@ -283,6 +384,9 @@ const coerceStoreShape = (input: unknown): AppDataStore | null => {
               : [],
           })) as ResaleTrackerEntry[]
         : [],
+    },
+    market: {
+      trackedItems: normalizeMarketItems(inputMarket.trackedItems),
     },
     activity: {
       entries: Array.isArray(inputActivity.entries)
@@ -364,10 +468,28 @@ const migrationV3ToV4: MigrationFn = (store) => {
   }
 }
 
+const migrationV4ToV5: MigrationFn = (store) => {
+  const now = new Date().toISOString()
+  return {
+    ...store,
+    version: 5,
+    market: {
+      trackedItems: normalizeMarketItems((store as AppDataStore).market?.trackedItems),
+    },
+    metadata: {
+      ...store.metadata,
+      updatedAt: now,
+      lastMigrationAt: now,
+      lastMigratedFrom: 4,
+    },
+  }
+}
+
 const migrations: Record<number, MigrationFn> = {
   1: migrationV1ToV2,
   2: migrationV2ToV3,
   3: migrationV3ToV4,
+  4: migrationV4ToV5,
 }
 
 const saveBackupSnapshot = (
@@ -469,6 +591,14 @@ const mergeStores = (current: AppDataStore, incoming: AppDataStore): AppDataStor
     mergedResaleMap.set(entry.id, entry)
   }
 
+  const mergedMarketMap = new Map<string, TrackedMarketItem>()
+  for (const item of current.market.trackedItems) {
+    mergedMarketMap.set(item.id, item)
+  }
+  for (const item of incoming.market.trackedItems) {
+    mergedMarketMap.set(item.id, item)
+  }
+
   const mergedActivityMap = new Map<string, AppActivityEntry>()
   for (const entry of current.activity.entries) {
     mergedActivityMap.set(entry.id, entry)
@@ -495,6 +625,9 @@ const mergeStores = (current: AppDataStore, incoming: AppDataStore): AppDataStor
     },
     resale: {
       entries: Array.from(mergedResaleMap.values()),
+    },
+    market: {
+      trackedItems: Array.from(mergedMarketMap.values()),
     },
     activity: {
       entries: Array.from(mergedActivityMap.values())

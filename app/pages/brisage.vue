@@ -1,28 +1,14 @@
 <template>
   <div v-if="hasContext" class="flex flex-col gap-5">
-    <!-- ── Next action ──────────────────────────────────────────────────── -->
-    <UiCard variant="raised">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="min-w-0 flex-1">
-          <h2 class="text-sm font-semibold text-ink">{{ brisageNextAction.title }}</h2>
-          <p class="mt-1 text-xs text-muted">{{ brisageNextAction.desc }}</p>
-        </div>
-        <UiButton variant="primary" size="sm" @click="runBrisageNextAction">
-          {{ brisageNextAction.cta }}
-        </UiButton>
-      </div>
-    </UiCard>
-
     <UiSegmented
       v-model="activeMainTab"
       :options="mainTabOptions"
+      block
       :aria-label="$t('v2.brisage.sections.sessionHistory')"
     />
 
     <!-- ── Realized history ─────────────────────────────────────────────── -->
     <template v-if="activeMainTab === 'history'">
-      <p class="text-xs text-warning">{{ $t('v2.brisage.warnings.historical') }}</p>
-
       <UiStatRow min="10rem">
         <UiStat :label="$t('v2.brisage.stats.sessions')" :value="sessions.length" />
         <UiStat :label="$t('v2.brisage.stats.itemsLogged')" :value="totalItemsLogged" />
@@ -38,6 +24,7 @@
         :model-value="brisageMode"
         :options="modeOptions"
         size="sm"
+        block
         :aria-label="$t('v2.brisage.sections.sessionHistory')"
         @update:model-value="onModeChange"
       />
@@ -50,7 +37,10 @@
               <UiDateInput v-model="draftSession.date" />
             </UiField>
 
-            <UiField :label="$t('v2.brisage.fields.focusCategory')">
+            <UiField
+              :label="$t('v2.brisage.fields.focusCategory')"
+              :hint="$t('v2.brisage.fields.focusCategoryHint')"
+            >
               <div ref="categoryPickerEl" class="relative">
                 <button
                   type="button"
@@ -274,7 +264,7 @@
                 </UiButton>
               </div>
 
-              <div class="grid gap-3 sm:grid-cols-3">
+              <div class="grid gap-3 sm:grid-cols-4">
                 <UiField :label="$t('v2.brisage.fields.qtyCrafted')">
                   <UiNumberInput v-model="run.quantity" :min="1" size="sm" />
                 </UiField>
@@ -284,65 +274,42 @@
                 <UiField :label="$t('v2.brisage.fields.kamasAfterBuying')">
                   <UiNumberInput v-model="run.buyEndKamas" :min="0" size="sm" />
                 </UiField>
-              </div>
-
-              <div class="mt-3 grid gap-3 sm:grid-cols-3">
-                <UiField :label="$t('v2.brisage.fields.theoreticalRuneValue')">
-                  <UiNumberInput v-model="run.theoreticalRuneValue" :min="0" size="sm" />
-                </UiField>
-                <UiField :label="$t('v2.brisage.fields.actualSoldRuneValue')">
-                  <UiNumberInput v-model="run.actualSoldRuneValue" :min="0" size="sm" />
-                </UiField>
-                <UiField :label="$t('v2.brisage.fields.unsoldRuneValue')">
-                  <UiNumberInput v-model="run.unsoldRuneValue" :min="0" size="sm" />
-                </UiField>
-              </div>
-
-              <UiField :label="$t('v2.brisage.fields.saleNotes')" class="mt-3">
-                <UiInput v-model="run.saleNotes" size="sm" :placeholder="$t('v2.brisage.placeholders.saleNotes')" />
-              </UiField>
-
-              <label class="mt-3 flex cursor-pointer items-center gap-2 text-sm text-ink">
-                <input v-model="run.soldConfirmed" type="checkbox" class="size-4 accent-[var(--c-accent)]">
-                {{ $t('v2.brisage.labels.soldConfirmed') }}
-              </label>
-
-              <!-- Rune outputs -->
-              <div class="mt-3 rounded-md border border-line bg-surface p-3">
-                <div class="flex flex-wrap items-start gap-3">
-                  <div class="min-w-0 flex-1">
-                    <h4 class="text-xs font-semibold text-ink">{{ $t('v2.brisage.labels.runeOutputs') }}</h4>
-                    <p class="mt-0.5 text-xs text-subtle">{{ $t('v2.brisage.labels.runeOutputsHelp') }}</p>
+                <UiField :label="$t('v2.brisage.summary.runCraftCost')">
+                  <div class="flex h-8 items-center rounded-md border border-dashed border-line px-2.5">
+                    <UiMoney :value="runCraftCost(run)" short size="sm" />
                   </div>
+                </UiField>
+              </div>
+
+              <!-- Rune outputs. These are the only place rune value is entered;
+                   the run totals below are read out of them. -->
+              <div class="mt-3 rounded-md border border-line bg-surface p-3">
+                <div class="flex flex-wrap items-center gap-3">
+                  <h4 class="min-w-0 flex-1 text-xs font-semibold text-ink">
+                    {{ $t('v2.brisage.labels.runeOutputs') }}
+                  </h4>
                   <UiButton size="sm" @click="addRuneOutputToRun(run)">
                     <template #icon><UiIcon name="plus" /></template>
                     {{ $t('v2.brisage.actions.addRune') }}
                   </UiButton>
                 </div>
 
-                <p v-if="!run.runeOutputs.length" class="mt-3 text-xs text-subtle">
+                <p v-if="!run.runeOutputs.length" class="mt-2 text-xs text-subtle">
                   {{ $t('v2.brisage.messages.noRuneOutputs') }}
                 </p>
 
                 <div
                   v-for="output in run.runeOutputs"
                   :key="output.id"
-                  class="mt-3 grid items-end gap-2 border-t border-line pt-3 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))_auto_auto]"
+                  class="mt-2 grid items-end gap-2 border-t border-line pt-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))_minmax(0,1.2fr)_auto]"
                 >
                   <UiField :label="$t('v2.brisage.fields.rune')">
                     <UiSelect
-                      :model-value="output.runeName || null"
-                      :options="runePriceOptions"
+                      :model-value="output.runeId"
+                      :options="runeOptions"
                       size="sm"
                       :placeholder="$t('v2.brisage.placeholders.selectRune')"
-                      @update:model-value="setRuneOutputName(output, $event)"
-                    />
-                    <UiInput
-                      v-model="output.runeName"
-                      size="sm"
-                      class="mt-1"
-                      :placeholder="$t('v2.brisage.placeholders.typeRuneName')"
-                      @update:model-value="refreshRuneOutputValue(output); refreshRunRuneValues(run)"
+                      @update:model-value="setRuneOutput(run, output, $event)"
                     />
                   </UiField>
                   <UiField :label="$t('v2.brisage.fields.quantityGot')">
@@ -350,7 +317,7 @@
                       v-model="output.quantity"
                       :min="0"
                       size="sm"
-                      @update:model-value="refreshRuneOutputValue(output); refreshRunRuneValues(run)"
+                      @update:model-value="refreshRunRuneValues(run)"
                     />
                   </UiField>
                   <UiField :label="$t('v2.brisage.fields.soldQuantity')">
@@ -358,7 +325,7 @@
                       v-model="output.soldQuantity"
                       :min="0"
                       size="sm"
-                      @update:model-value="refreshRuneOutputValue(output); refreshRunRuneValues(run)"
+                      @update:model-value="refreshRunRuneValues(run)"
                     />
                   </UiField>
                   <UiField :label="$t('v2.brisage.fields.soldValue')">
@@ -369,12 +336,22 @@
                       @update:model-value="refreshRunRuneValues(run)"
                     />
                   </UiField>
-                  <div class="text-right">
-                    <div class="text-xs text-subtle">
-                      {{ $t('v2.brisage.labels.unitPrice') }}
-                      <UiMoney :value="outputUnitPrice(output)" short size="sm" />
-                    </div>
-                    <UiMoney :value="output.theoreticalValue" short size="sm" />
+                  <div class="flex flex-col gap-0.5 text-xs">
+                    <!-- Nothing to say about a price until a rune is chosen. -->
+                    <span v-if="outputPriceState(output).kind !== 'none'" :class="outputPriceTone(output)">
+                      <template v-if="outputPriceState(output).kind === 'missing'">
+                        {{ outputPriceState(output).label }}
+                      </template>
+                      <template v-else>
+                        {{ $t('v2.brisage.labels.unitPrice') }}
+                        <UiMoney :value="outputUnitPrice(output)" short size="sm" />
+                        <span v-if="outputPriceState(output).label"> · {{ outputPriceState(output).label }}</span>
+                      </template>
+                    </span>
+                    <span class="text-subtle">
+                      {{ $t('v2.brisage.labels.outputPaperValue') }}
+                      <UiMoney :value="output.theoreticalValue" short size="sm" />
+                    </span>
                   </div>
                   <UiButton
                     variant="danger"
@@ -387,27 +364,37 @@
                   </UiButton>
                 </div>
 
-                <dl v-if="run.runeOutputs.length" class="mt-3 grid gap-x-6 gap-y-1.5 border-t border-line pt-3 sm:grid-cols-2">
-                  <div class="flex items-baseline justify-between gap-3">
-                    <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.outputPaperValue') }}</dt>
-                    <dd><UiMoney :value="runRuneOutputTheoreticalValue(run)" short size="sm" /></dd>
-                  </div>
-                  <div class="flex items-baseline justify-between gap-3">
-                    <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.outputSoldValue') }}</dt>
-                    <dd><UiMoney :value="runRuneOutputSoldValue(run)" short size="sm" /></dd>
-                  </div>
-                </dl>
+                <UiDropZone
+                  class="mt-3"
+                  size="sm"
+                  :label="$t('v2.brisage.capture.soldValue')"
+                  :loading="runCaptureId === run.id"
+                  @image="captureRunSoldValue(run, $event)"
+                />
               </div>
+
+              <UiField :label="$t('v2.brisage.fields.saleNotes')" class="mt-3">
+                <UiInput v-model="run.saleNotes" size="sm" :placeholder="$t('v2.brisage.placeholders.saleNotes')" />
+              </UiField>
+
+              <label class="mt-3 flex cursor-pointer items-center gap-2 text-sm text-ink">
+                <input v-model="run.soldConfirmed" type="checkbox" class="size-4 accent-[var(--c-accent)]">
+                {{ $t('v2.brisage.labels.soldConfirmed') }}
+              </label>
 
               <UiField :label="$t('v2.brisage.fields.runNote')" class="mt-3">
                 <UiInput v-model="run.notes" size="sm" :placeholder="$t('v2.brisage.placeholders.runNote')" />
               </UiField>
 
-              <p v-if="!run.soldConfirmed" class="mt-3 text-xs text-warning">
-                {{ $t('v2.brisage.warnings.runeTheoretical') }}
-              </p>
-
-              <dl class="mt-3 grid gap-x-6 gap-y-1.5 border-t border-line pt-3 sm:grid-cols-2 lg:grid-cols-3">
+              <dl class="mt-3 grid gap-x-6 gap-y-1.5 border-t border-line pt-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.outputPaperValue') }}</dt>
+                  <dd><UiMoney :value="runRuneOutputTheoreticalValue(run)" short size="sm" /></dd>
+                </div>
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.outputSoldValue') }}</dt>
+                  <dd><UiMoney :value="runRuneOutputSoldValue(run)" short size="sm" /></dd>
+                </div>
                 <div class="flex items-baseline justify-between gap-3">
                   <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.paperProfit') }}</dt>
                   <dd><UiMoney :value="runPaperProfit(run)" signed short size="sm" /></dd>
@@ -416,17 +403,9 @@
                   <dt class="text-xs text-subtle">{{ $t('v2.brisage.labels.realizedProfit') }}</dt>
                   <dd><UiMoney :value="runRealizedProfit(run)" signed short size="sm" /></dd>
                 </div>
-                <div class="flex items-baseline justify-between gap-3">
-                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.runCraftCost') }}</dt>
-                  <dd><UiMoney :value="runCraftCost(run)" short size="sm" /></dd>
-                </div>
-                <div class="flex items-baseline justify-between gap-3">
-                  <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.runPL') }}</dt>
-                  <dd><UiMoney :value="runProfit(run)" signed short size="sm" /></dd>
-                </div>
                 <div v-if="run.quantity > 0" class="flex items-baseline justify-between gap-3">
                   <dt class="text-xs text-subtle">{{ $t('v2.brisage.summary.avgPerCopy') }}</dt>
-                  <dd><UiMoney :value="Math.round(runProfit(run) / run.quantity)" short size="sm" /></dd>
+                  <dd><UiMoney :value="Math.round(runRealizedProfit(run) / run.quantity)" short size="sm" /></dd>
                 </div>
               </dl>
             </div>
@@ -589,7 +568,19 @@
         </UiEmptyState>
 
         <div v-else class="flex flex-col gap-3">
-          <UiCard v-for="session in sessions" :key="session.id">
+          <UiToolbar>
+            <template #filters>
+              <span class="text-xs text-subtle">{{ $t('v2.brisage.sort.label') }}</span>
+              <UiSegmented
+                v-model="sessionSort"
+                :options="sessionSortOptions"
+                size="sm"
+                :aria-label="$t('v2.brisage.sort.label')"
+              />
+            </template>
+          </UiToolbar>
+
+          <UiCard v-for="session in sortedSessions" :key="session.id">
             <div class="flex flex-wrap items-start gap-3">
               <div class="min-w-0 flex-1">
                 <div class="truncate text-sm font-semibold text-ink">
@@ -723,8 +714,6 @@
         <template #actions>
           <UiBadge tone="warning">{{ $t('v2.brisage.messages.evNotGuaranteed') }}</UiBadge>
         </template>
-
-        <p class="mb-4 text-xs text-warning">{{ $t('v2.brisage.warnings.opportunities') }}</p>
 
         <UiCard>
           <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -941,12 +930,17 @@
     <!-- ── Market prices ────────────────────────────────────────────────── -->
     <template v-else>
       <UiPageSection :title="$t('v2.brisage.tabs.prices')">
-        <p class="mb-4 text-xs text-warning">{{ $t('v2.brisage.warnings.prices') }}</p>
-
         <UiCard>
           <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <UiField :label="$t('v2.brisage.fields.priceName')">
-              <UiInput v-model="marketPriceDraft.name" :placeholder="$t('v2.brisage.placeholders.priceName')" />
+              <UiSelect
+                v-if="marketPriceDraft.kind === 'rune'"
+                :model-value="marketPriceRuneId"
+                :options="runeOptions"
+                :placeholder="$t('v2.brisage.placeholders.selectRune')"
+                @update:model-value="setMarketPriceRune"
+              />
+              <UiInput v-else v-model="marketPriceDraft.name" :placeholder="$t('v2.brisage.placeholders.priceName')" />
             </UiField>
             <UiField :label="$t('v2.brisage.fields.priceItemId')">
               <UiInput v-model="marketPriceDraft.itemId" />
@@ -968,6 +962,28 @@
               <UiInput v-model="marketPriceDraft.note" />
             </UiField>
           </div>
+
+          <UiDropZone
+            class="mt-3"
+            size="sm"
+            :label="$t('v2.brisage.capture.price')"
+            :loading="priceCapture.isLoading"
+            @image="capturePriceScreenshot"
+          />
+
+          <div v-if="priceCapture.candidates.length > 1" class="mt-2 flex flex-wrap items-center gap-1.5">
+            <span class="text-xs text-subtle">{{ $t('v2.brisage.capture.picked') }}</span>
+            <UiButton
+              v-for="candidate in priceCapture.candidates"
+              :key="candidate"
+              size="sm"
+              @click="marketPriceDraft.price = candidate"
+            >
+              {{ formatKamasShort(candidate) }}
+            </UiButton>
+          </div>
+
+          <p v-if="priceCapture.error" class="mt-2 text-xs text-negative">{{ priceCapture.error }}</p>
 
           <div class="mt-4 border-t border-line pt-3">
             <UiButton variant="primary" size="sm" @click="addMarketPrice">
@@ -1002,6 +1018,9 @@
                     </span>
                   </div>
                   <div v-if="price.note" class="truncate text-xs text-subtle">{{ price.note }}</div>
+                </div>
+                <div v-if="priceChartPoints(price).length >= 2" class="h-10 w-32 shrink-0">
+                  <UiSparkline :points="priceChartPoints(price)" :label="price.name" />
                 </div>
                 <div class="shrink-0 text-right">
                   <UiMoney :value="price.price" short size="sm" />
@@ -1094,6 +1113,9 @@ import {
   sessionTotals as accountingSessionTotals,
 } from '@/utils/brisageAccounting'
 import { formatKamasShort } from '~/utils/format'
+import { runPriceOcr } from '~/composables/useScreenshotOcr'
+import runeCatalogue from '~/data/runes.json'
+import { normalizeDofusdbSearch } from '~/utils/dofusdb'
 
 const { t } = useI18n()
 
@@ -1179,6 +1201,9 @@ interface LegacyBrisageEntry {
   notes: string
 }
 
+const draftKey = computed(() =>
+  `brisage_draft_${selectedServer.value?.id}_${selectedCharacter.value?.id}`,
+)
 const sessionsKey = computed(() =>
   `brisage_sessions_${selectedServer.value?.id}_${selectedCharacter.value?.id}`,
 )
@@ -1240,44 +1265,31 @@ const canLoadBatch = computed(() =>
 
 const candidatesFor = (id: string) => opportunityCandidates.value.filter(candidate => candidate.id === id)
 
-const brisageNextAction = computed(() => {
-  if (draftItems.value.length > 0 || brisageMode.value === 'builder') {
-    return {
-      title: t('v2.brisage.nextAction.finishTitle'),
-      desc: t('v2.brisage.nextAction.finishDesc'),
-      cta: t('v2.brisage.nextAction.finishCta'),
-      target: 'builder' as const,
+/** Reads the price off an HDV screenshot into the draft. The image is parsed
+ *  and dropped — nothing about it is stored. */
+const priceCapture = ref({ isLoading: false, error: '', candidates: [] as number[] })
+
+const capturePriceScreenshot = async (dataUrl: string) => {
+  priceCapture.value = { isLoading: true, error: '', candidates: [] }
+  try {
+    const result = await runPriceOcr(dataUrl)
+    if (!result.candidates.length) {
+      priceCapture.value = { isLoading: false, error: t('items.detail.ocr.errors.noPriceCandidates'), candidates: [] }
+      return
     }
+    priceCapture.value = { isLoading: false, error: '', candidates: result.candidates }
+    marketPriceDraft.value.price = result.candidates[0]!
   }
-  if (marketPrices.value.length === 0) {
-    return {
-      title: t('v2.brisage.nextAction.pricesTitle'),
-      desc: t('v2.brisage.nextAction.pricesDesc'),
-      cta: t('v2.brisage.nextAction.pricesCta'),
-      target: 'prices' as const,
-    }
+  catch {
+    priceCapture.value = { isLoading: false, error: t('items.detail.ocr.errors.marketFailed'), candidates: [] }
   }
-  return {
-    title: t('v2.brisage.nextAction.startTitle'),
-    desc: t('v2.brisage.nextAction.startDesc'),
-    cta: t('v2.brisage.nextAction.startCta'),
-    target: 'builder' as const,
-  }
-})
+}
 
 const onModeChange = (value: string | number | null) => {
   if (value === 'builder') startSessionBuilder()
   else showSessionHistory()
 }
 
-const runBrisageNextAction = () => {
-  if (brisageNextAction.value.target === 'prices') {
-    activeMainTab.value = 'prices'
-    return
-  }
-  activeMainTab.value = 'history'
-  startSessionBuilder()
-}
 const draftSession = ref({
   date: todayISO(),
   startingKamas: 0,
@@ -1339,18 +1351,17 @@ const latestPrices = computed(() => latestMarketPrices(marketPrices.value))
 const latestRunePrices = computed(() => latestPrices.value.filter(price => price.kind === 'rune'))
 const latestResourcePrices = computed(() => latestPrices.value.filter(price => price.kind !== 'rune'))
 
-const runePriceOptions = computed(() => [
-  { key: 'manual', label: t('v2.brisage.labels.typeRuneManually'), value: null },
-  ...latestRunePrices.value.map(price => ({
-    key: price.id,
-    label: price.name,
-    value: price.name,
-    description: t('v2.brisage.labels.eachFreshness', {
-      price: formatKamasShort(unitMarketPrice(price) ?? 0),
-      freshness: freshnessLabel(price.timestamp),
-    }),
-  })),
-])
+/** The canonical forgemagie runes (app/data/runes.json, regenerate with
+ *  scripts/fetch-runes.mjs). Picking from this list is what lets a rune output
+ *  carry a real `runeId`, so the price book matches on id instead of on however
+ *  the name happened to be typed. */
+const runeOptions = runeCatalogue.map(rune => ({
+  key: String(rune.id),
+  label: rune.name,
+  value: rune.id,
+}))
+
+const runeNameById = new Map(runeCatalogue.map(rune => [String(rune.id), rune.name]))
 
 const normalizeLevelValue = (value: unknown) => {
   const num = Number(value)
@@ -1555,6 +1566,53 @@ const migrateLegacyEntries = (legacyEntries: LegacyBrisageEntry[]) =>
 const saveSessions = () =>
   localStorage.setItem(sessionsKey.value, JSON.stringify(sessions.value))
 
+/** A session is easily a hundred typed fields, and nothing else on the page
+ *  writes the draft, so leaving the tab used to discard all of it. */
+const draftIsEmpty = () =>
+  !draftItems.value.length
+  && !draftSession.value.categoryTypeIds.length
+  && !draftSession.value.levelMin
+  && !draftSession.value.levelMax
+  && !draftSession.value.notes
+  && !draftSession.value.startingKamas
+  && !draftSession.value.endingKamas
+  && !draftSession.value.externalDelta
+
+const clearStoredDraft = () => {
+  if (import.meta.client && hasContext.value) localStorage.removeItem(draftKey.value)
+}
+
+const saveDraft = () => {
+  if (!import.meta.client || !hasContext.value) return
+  if (draftIsEmpty()) return clearStoredDraft()
+  localStorage.setItem(draftKey.value, JSON.stringify({
+    editingSessionId: editingSessionId.value,
+    session: draftSession.value,
+    items: draftItems.value,
+  }))
+}
+
+const loadDraft = () => {
+  if (!import.meta.client || !hasContext.value) return
+  const raw = localStorage.getItem(draftKey.value)
+  if (!raw) return
+  try {
+    const parsed = JSON.parse(raw)
+    // Run it through the same normalisers as a saved session, so a stale or
+    // hand-edited draft cannot put a malformed run into the builder.
+    const items = Array.isArray(parsed?.items)
+      ? parsed.items.map(normalizeSessionItem).filter(Boolean) as BrisageSessionItem[]
+      : []
+    if (!items.length && !parsed?.session) return
+    draftItems.value = items
+    if (parsed?.session) draftSession.value = { ...draftSession.value, ...parsed.session }
+    editingSessionId.value = parsed?.editingSessionId ?? null
+  }
+  catch {
+    clearStoredDraft()
+  }
+}
+
 const saveOpportunityCandidates = () =>
   localStorage.setItem(opportunityCandidatesKey.value, JSON.stringify(opportunityCandidates.value))
 
@@ -1563,6 +1621,7 @@ const saveOpportunityConfig = () =>
 
 const loadData = () => {
   if (!hasContext.value) return
+  loadDraft()
 
   const rawSessions = localStorage.getItem(sessionsKey.value)
   if (rawSessions) {
@@ -1665,7 +1724,7 @@ const doSearch = async () => {
   try {
     const res = await $fetch<any>('/api/dofusdb/items', {
       query: {
-        'slug.fr[$search]': search.value.trim(),
+        'slug.fr[$search]': normalizeDofusdbSearch(search.value),
         'typeId[$ne]': 203,
         '$sort': '-id',
         'level[$gte]': 0,
@@ -1779,6 +1838,19 @@ const ensureItemRecipe = async (item: any) => {
   catch {
     return item
   }
+}
+
+/** For runes the name and id come from the catalogue, so a price and the run
+ *  that consumes it always agree on which rune they mean. */
+const marketPriceRuneId = computed(() => {
+  const match = runeCatalogue.find(rune => rune.name === marketPriceDraft.value.name)
+  return match ? match.id : null
+})
+
+const setMarketPriceRune = (value: string | number | null) => {
+  const name = value == null ? '' : (runeNameById.get(String(value)) ?? '')
+  marketPriceDraft.value.name = name
+  marketPriceDraft.value.itemId = value == null ? '' : String(value)
 }
 
 const addMarketPrice = () => {
@@ -1921,7 +1993,17 @@ const loadCategoryBatch = async () => {
   }
 }
 
+/** Only guard deletes that destroy real typing. A single rune row or price
+ *  entry is cheap to redo, so those stay instant. */
+const runHasData = (run: BrisageItemRun) =>
+  run.runeOutputs.length > 0 || run.buyStartKamas > 0 || run.buyEndKamas > 0 || run.quantity > 1
+
 const removeDraftItem = (id: string) => {
+  const item = draftItems.value.find(entry => entry.id === id)
+  if (item?.runs.some(runHasData)) {
+    const name = item.item?.name?.fr ?? item.item?.name?.en ?? String(item.itemId)
+    if (!confirm(t('v2.brisage.confirm.removeItem', { name }))) return
+  }
   draftItems.value = draftItems.value.filter(item => item.id !== id)
   expandedDraftItemIds.value = expandedDraftItemIds.value.filter(currentId => currentId !== id)
   if (loadedBatchResults.value.length) {
@@ -1983,6 +2065,8 @@ const addRunToDraftItem = (itemId: string) => {
 const removeRunFromDraftItem = (itemId: string, runId: string) => {
   const item = draftItems.value.find(entry => entry.id === itemId)
   if (!item) return
+  const run = item.runs.find(entry => entry.id === runId)
+  if (run && runHasData(run) && !confirm(t('v2.brisage.confirm.removeRun'))) return
   if (item.runs.length === 1) {
     item.runs[0] = createEmptyRun()
     return
@@ -2010,6 +2094,23 @@ const latestRunePriceForOutput = (output: BrisageRunRuneOutput): MarketPrice | n
 
 const outputUnitPrice = (output: BrisageRunRuneOutput): number => unitMarketPrice(latestRunePriceForOutput(output)) ?? 0
 
+/** The paper value on a rune row is only as good as the price behind it, so the
+ *  row says how old that price is — and says plainly when there is none, which
+ *  previously just showed a confident "Unit 0". */
+const outputPriceState = (output: BrisageRunRuneOutput) => {
+  if (!output.runeId && !output.runeName) return { kind: 'none' as const, label: '' }
+  const price = latestRunePriceForOutput(output)
+  if (!price) return { kind: 'missing' as const, label: t('v2.brisage.labels.noPrice') }
+  return { kind: priceFreshness(price.timestamp), label: freshnessLabel(price.timestamp) }
+}
+
+const outputPriceTone = (output: BrisageRunRuneOutput) => {
+  const state = outputPriceState(output)
+  if (state.kind === 'missing' || state.kind === 'stale') return 'text-warning'
+  if (state.kind === 'aging') return 'text-warning'
+  return 'text-subtle'
+}
+
 const refreshRuneOutputValue = (output: BrisageRunRuneOutput) => {
   const unit = outputUnitPrice(output)
   output.theoreticalValue = Math.round(output.quantity * unit)
@@ -2018,23 +2119,46 @@ const refreshRuneOutputValue = (output: BrisageRunRuneOutput) => {
   }
 }
 
+/** Rune outputs are the single source of truth for a run's rune value.
+ *
+ *  brisageAccounting only falls back to the outputs when the stored totals are
+ *  zero, so sessions saved before this change keep the exact figures they were
+ *  saved with. The moment their runes are edited we clear those stored
+ *  overrides, which hands the run over to the derived values. */
 const refreshRunRuneValues = (run: BrisageItemRun) => {
   run.runeOutputs.forEach(refreshRuneOutputValue)
-  const paperValue = runRuneOutputTheoreticalValue(run)
-  const soldValue = runRuneOutputSoldValue(run)
-  if (paperValue > 0) {
-    run.theoreticalRuneValue = paperValue
-    run.realizedRuneValue = paperValue
-  }
-  if (soldValue > 0) {
-    run.actualSoldRuneValue = soldValue
-  }
-  run.unsoldRuneValue = Math.max(0, paperValue - soldValue)
+  run.theoreticalRuneValue = 0
+  run.realizedRuneValue = 0
+  run.actualSoldRuneValue = 0
+  run.unsoldRuneValue = 0
 }
 
-const setRuneOutputName = (output: BrisageRunRuneOutput, value: string | number | null) => {
-  output.runeName = String(value ?? '')
-  refreshRuneOutputValue(output)
+/** Which run's capture zone is busy, so only that one shows a spinner. */
+const runCaptureId = ref('')
+
+const captureRunSoldValue = async (run: BrisageItemRun, dataUrl: string) => {
+  runCaptureId.value = run.id
+  try {
+    const result = await runPriceOcr(dataUrl)
+    const value = result.candidates[0]
+    if (!value) return
+    // Applied to the last rune row, which is the one just sold.
+    const target = run.runeOutputs.at(-1)
+    if (target) {
+      target.actualSoldValue = value
+      refreshRunRuneValues(run)
+    }
+  }
+  finally {
+    runCaptureId.value = ''
+  }
+}
+
+const setRuneOutput = (run: BrisageItemRun, output: BrisageRunRuneOutput, value: string | number | null) => {
+  const id = value == null || value === '' ? null : value
+  output.runeId = id
+  output.runeName = id == null ? '' : (runeNameById.get(String(id)) ?? '')
+  refreshRunRuneValues(run)
 }
 
 const runProfit = (run: BrisageItemRun) => runRealizedProfit(run)
@@ -2231,6 +2355,27 @@ const avgSessionPL = computed(() => {
   return Math.round(totalPL.value / sessions.value.length)
 })
 
+const sessionSort = ref<'date' | 'profit' | 'margin'>('date')
+
+const sessionSortOptions = computed(() => ([
+  { label: t('v2.brisage.sort.date'), value: 'date' },
+  { label: t('v2.brisage.summary.sessionPL'), value: 'profit' },
+  { label: t('v2.brisage.summary.margin'), value: 'margin' },
+]))
+
+/** Sorts a copy — the stored order is the order sessions were logged in and
+ *  must not change just because the list is being viewed differently. */
+const sortedSessions = computed(() => {
+  const list = [...sessions.value]
+  if (sessionSort.value === 'profit') {
+    return list.sort((a, b) => sessionTotals(b).profit - sessionTotals(a).profit)
+  }
+  if (sessionSort.value === 'margin') {
+    return list.sort((a, b) => sessionMargin(b) - sessionMargin(a))
+  }
+  return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+})
+
 const sessionMargin = (session: BrisageSession) => {
   const totals = sessionTotals(session)
   return brisageMarginPercent(totals.realizedProfit, totals.craft)
@@ -2270,6 +2415,18 @@ const priceHistoryCount = (price: MarketPrice) => priceHistory(price).length
 
 const priceTrend = (price: MarketPrice) => marketPriceTrendPercent(priceHistory(price))
 
+/** History comes back newest-first; the chart wants it chronological. Plots the
+ *  unit price so the line stays comparable when quantityBasis differs between
+ *  entries. */
+const priceChartPoints = (price: MarketPrice) =>
+  [...priceHistory(price)]
+    .reverse()
+    .map(entry => ({
+      id: entry.id,
+      price: unitMarketPrice(entry) ?? entry.price,
+      createdAt: entry.timestamp,
+    }))
+
 const saveOpportunitySettings = () => {
   opportunityConfig.value = {
     ...opportunityConfig.value,
@@ -2289,6 +2446,7 @@ const setPessimisticMultiplier = (value: string) => {
 }
 
 const resetDraft = () => {
+  clearStoredDraft()
   editingSessionId.value = null
   draftItems.value = []
   expandedDraftItemIds.value = []
@@ -2406,6 +2564,11 @@ const saveSession = () => {
 }
 
 const deleteSession = (id: string) => {
+  const session = sessions.value.find(entry => entry.id === id)
+  if (session) {
+    const name = session.categoryLabel || t('v2.brisage.labels.generalSession')
+    if (!confirm(t('v2.brisage.confirm.deleteSession', { name, count: session.items.length }))) return
+  }
   sessions.value = sessions.value.filter(session => session.id !== id)
   if (editingSessionId.value === id) resetDraft()
   saveSessions()
@@ -2458,10 +2621,32 @@ onMounted(() => {
   document.addEventListener('mousedown', onDocMousedown)
 })
 
-onUnmounted(() => document.removeEventListener('mousedown', onDocMousedown))
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onDocMousedown)
+  // Navigating away inside the debounce window would otherwise drop the last
+  // keystrokes; flush rather than wait.
+  clearTimeout(draftSaveTimer)
+  saveDraft()
+})
 watch([selectedServer, selectedCharacter], () => {
   loadData()
   loadMarketAndOpportunities()
+})
+
+// Watches only the mutable parts of the draft. A deep watch would traverse the
+// embedded DofusDB item payload (~40KB per item, never edited after it is added)
+// on every keystroke; runs and notes are the only things that change.
+const draftSignature = computed(() => [
+  editingSessionId.value,
+  JSON.stringify(draftSession.value),
+  draftItems.value.map(item => `${item.id}:${item.notes}:${JSON.stringify(item.runs)}`).join('|'),
+].join('~'))
+
+// Debounced so a burst of keystrokes writes once, not per character.
+let draftSaveTimer: ReturnType<typeof setTimeout> | undefined
+watch(draftSignature, () => {
+  clearTimeout(draftSaveTimer)
+  draftSaveTimer = setTimeout(saveDraft, 400)
 })
 watch(
   () => [

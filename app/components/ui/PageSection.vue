@@ -1,7 +1,10 @@
 <template>
   <section class="min-w-0">
-    <header v-if="title || $slots.actions" class="mb-3 flex items-center gap-3">
-      <div class="min-w-0 flex-1">
+    <!-- flex-wrap + a real basis on the title: with shrink-0 actions and a
+         0%-basis title, a phone squeezed headings down to "Most Used…" rather
+         than dropping the actions onto their own row. -->
+    <header v-if="title || $slots.actions" class="mb-3 flex flex-wrap items-center gap-3">
+      <div class="min-w-0 flex-1 basis-48">
         <h2 class="truncate text-sm font-semibold text-ink">{{ title }}</h2>
         <p v-if="description" class="mt-0.5 text-xs text-subtle">{{ description }}</p>
       </div>

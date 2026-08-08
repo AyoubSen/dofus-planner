@@ -19,8 +19,10 @@
         </div>
 
         <!-- Caps the rail so a long category list can't push the achievements
-             below the fold on short screens. -->
-        <div v-else class="flex max-h-[26rem] flex-col overflow-y-auto p-2">
+             below the fold on short screens. Deliberately not a flex column:
+             as flex items the ~50 rows shrank to 12px each to fit the cap
+             instead of scrolling, which squashed every label into its border. -->
+        <div v-else class="max-h-[26rem] overflow-y-auto p-2">
           <button
             type="button"
             :class="catClass(null)"

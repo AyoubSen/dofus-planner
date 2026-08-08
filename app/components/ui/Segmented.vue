@@ -1,9 +1,12 @@
 <template>
-  <!-- Selection reads from the surface and shadow, never from font weight:
-       bolding the active label makes it wider than the flex basis measured at
-       normal weight, so `truncate` then clips it ("MD" renders as "M..."). -->
+  <!-- Three rules keep labels readable: segments size to their content unless
+       `block` is set (equal-width division clipped "Table view" to "Table vi..."),
+       selection reads from the surface, never from font weight (bolding the
+       active label made it wider than its own flex basis), and no segment ever
+       shrinks below its label — when the row cannot fit, as on a phone, it
+       scrolls sideways instead of ellipsising every option at once. -->
   <div
-    :class="['inline-flex min-w-0 gap-0.5 rounded-md border border-line bg-sunken p-0.5', block && 'flex w-full']"
+    :class="['inline-flex min-w-0 max-w-full gap-0.5 overflow-x-auto rounded-md border border-line bg-sunken p-0.5', block && 'flex w-full']"
     role="tablist"
     :aria-label="ariaLabel"
   >
@@ -15,7 +18,8 @@
       :aria-selected="isSelected(option.value)"
       :disabled="option.disabled"
       :class="[
-        'min-w-0 flex-1 truncate rounded-sm px-2.5 transition-colors',
+        'rounded-sm px-2.5 transition-colors',
+        block ? 'min-w-fit flex-1 whitespace-nowrap' : 'shrink-0 whitespace-nowrap',
         'disabled:cursor-not-allowed disabled:opacity-45',
         size === 'sm' ? 'h-7 text-xs' : 'h-8 text-sm',
         isSelected(option.value)

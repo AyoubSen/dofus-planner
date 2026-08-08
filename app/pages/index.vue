@@ -4,7 +4,9 @@
          card; the name is the only part that was ever load-bearing. -->
     <div class="flex flex-wrap items-center gap-3">
       <UiAvatar :name="selectedCharacter?.name" />
-      <div class="min-w-0 flex-1">
+      <!-- basis-64 so the CTA wraps below on a phone instead of squeezing the
+           greeting into "Welcome ba…" — the name is the load-bearing part. -->
+      <div class="min-w-0 flex-1 basis-64">
         <h1 class="truncate text-xl font-semibold text-ink">
           {{ hasContext ? t('v2.dashboard.welcomeBack', { name: selectedCharacter?.name }) : t('v2.dashboard.welcome') }}
         </h1>
@@ -18,7 +20,7 @@
     </div>
 
     <!-- ── What next ────────────────────────────────────────────────────── -->
-    <UiPageSection :title="t('v2.dashboard.whatNext')" :description="t('v2.dashboard.whatNextDesc')">
+    <UiPageSection :title="t('v2.dashboard.whatNext')" >
       <div class="grid gap-3 md:grid-cols-2">
         <NuxtLink
           v-for="action in nextActions"

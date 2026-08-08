@@ -1,5 +1,22 @@
 # What is this?
 
+This is being reshaped into a local-first Dofus kama-making cockpit.
+
+The goal is not to be a generic Dofus database. The goal is to guide a beginner toward better kama decisions: what to flip, craft/FM, break, sell, scan, or avoid, then track whether it actually made money.
+
+Core rule: if a feature does not help decide, execute, or learn from a kama action, it should be secondary, archived, or removed from the main flow.
+
+Current product focus:
+
+- Flip/resale learning workflow.
+- Craft/FM profitability sessions.
+- Brisage paper vs realized profit.
+- Archimonstre selling workflow.
+- Market price freshness and local OCR/manual price capture.
+- Local-only history, export, and import.
+
+See `TODO.md` for the agreed product direction, anti-bloat rules, target navigation, implementation priorities, and the latest session handoff notes for future agents.
+
 I made this cause of 2 reasons:
 
 - Track Archimonsters I'm getting, and which ones I'm actually saving up for the Ocre quest, and which ones I can or want to sell.
