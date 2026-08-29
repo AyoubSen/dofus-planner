@@ -1,4 +1,10 @@
 <script setup lang="ts">
+definePageMeta({
+  middleware: () => {
+    if (!import.meta.dev) return navigateTo('/')
+  },
+})
+
 // The review queue.
 //
 // Turning archived captures into a measurement. Every sample here has a crop of

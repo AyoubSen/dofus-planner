@@ -3,6 +3,7 @@
  * Body: { counts: { [monsterId]: quantity } }
  */
 export default defineEventHandler(async (event) => {
+  const credentials = readMetamobCredentials(event)
   const body = await readBody<{ counts?: Record<string, number> }>(event)
   const counts = body?.counts
   if (!counts || typeof counts !== 'object') {
@@ -19,11 +20,10 @@ export default defineEventHandler(async (event) => {
   if (!monsters.length) return { updated: 0 }
 
   try {
-    const { quest } = await resolveQuest()
-    return { updated: await pushOwnedCounts(quest.slug, monsters), slug: quest.slug }
+    const { quest } = await resolveQuest(credentials)
+    return { updated: await pushOwnedCounts(credentials, quest.slug, monsters), slug: quest.slug }
   } catch (error: any) {
     if (error?.statusCode === 500 || error?.statusCode === 404) throw error
-    console.error('Error pushing metamob quest:', error)
     throw createError({
       statusCode: error?.statusCode || 500,
       statusMessage: 'Failed to push counts to metamob',

@@ -27,10 +27,14 @@ type ZoneNode = {
 
 const IMG_BASE = 'https://www.metamob.fr/img/monsters/'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   try {
-    const { quest } = await resolveQuest()
-    const res = await metamobFetch<{ data: ZoneNode[] }>(`/quests/${quest.slug}/zones`)
+    const credentials = readMetamobCredentials(event)
+    const { quest } = await resolveQuest(credentials)
+    const res = await metamobFetch<{ data: ZoneNode[] }>(
+      credentials,
+      `/quests/${encodeURIComponent(quest.slug)}/zones`,
+    )
 
     const zones = (res?.data ?? []).map(zone => ({
       id: zone.id,
@@ -58,7 +62,6 @@ export default defineEventHandler(async () => {
     return { slug: quest.slug, currentStep: quest.current_step, zones }
   } catch (error: any) {
     if (error?.statusCode === 500 || error?.statusCode === 404) throw error
-    console.error('Error fetching metamob zones:', error)
     throw createError({
       statusCode: error?.statusCode || 500,
       statusMessage: 'Failed to fetch metamob zones',

@@ -82,6 +82,7 @@
           />
 
           <ItemsLiveCapture
+            v-if="localToolsAvailable"
             :armed="liveCaptureArmed"
             :log="liveCaptureLog"
             :error="liveCaptureError"
@@ -89,7 +90,7 @@
             @update:armed="setLiveCaptureArmed"
           />
 
-          <ItemsGlyphTeacher :sample="lastPriceStrip" />
+          <ItemsGlyphTeacher v-if="localToolsAvailable" :sample="lastPriceStrip" />
 
           <div v-if="recipeLookupState.isLoading" class="flex flex-col gap-2">
             <UiSkeleton v-for="i in 4" :key="i" height="3rem" />
@@ -270,6 +271,7 @@ import type {
 } from '~/utils/itemValuation'
 
 const { t } = useI18n()
+const localToolsAvailable = import.meta.dev
 const { appendActivity } = useAppDataStore()
 const { selectedServer, selectedCharacter } = useV2Context()
 const { entries: resaleTrackerEntries, createEntry: createResaleTrackerEntry } = useResaleTracker()
@@ -2231,7 +2233,7 @@ const lastPriceStrip = ref('')
  * can only be collected while the app is being used normally. It writes crops
  * of the price row and tooltip — never the desktop frame — under `corpus/`.
  */
-const corpusArchiveEnabled = ref(true)
+const corpusArchiveEnabled = ref(localToolsAvailable)
 /** Reconstruction atlas for this screen profile, when one has been built. */
 const glyphAtlas = useGlyphAtlas()
 /** Prices read off the rest of the page in the last capture's frame. */
@@ -2287,7 +2289,7 @@ const archiveCorpusSample = async (input: {
   stats?: Array<{ key: string; value: number | null; confidence: number }>
   statsText?: string
 }) => {
-  if (!import.meta.client || !corpusArchiveEnabled.value) return
+  if (!import.meta.client || !localToolsAvailable || !corpusArchiveEnabled.value) return
 
   try {
     await $fetch('/api/corpus', {
@@ -2546,8 +2548,10 @@ const ingestLiveCapture = async (capture: LiveCaptureEntry): Promise<LiveCapture
     // Mirrored to the durable ledger. localStorage stays the read path for now
     // so nothing depends on the server being up, but the ledger is where the
     // history actually survives: a browser profile is not a backup.
-    void $fetch('/api/ledger', { method: 'POST', body: { observations: [observation] } })
-      .catch(() => {})
+    if (localToolsAvailable) {
+      void $fetch('/api/ledger', { method: 'POST', body: { observations: [observation] } })
+        .catch(() => {})
+    }
   }
 
   await nextTick()
@@ -2734,7 +2738,7 @@ const pollLiveCaptures = async () => {
 
 const setLiveCaptureArmed = async (armed: boolean) => {
   // Server-side there is no companion to listen to, and no timers to own.
-  if (!import.meta.client) return
+  if (!import.meta.client || !localToolsAvailable) return
   liveCaptureArmed.value = armed
 
   if (liveCaptureTimer) {
@@ -2791,6 +2795,7 @@ watch(() => selectedRecipeItem.value?.name, (name, previous) => {
 watch(
   () => [Boolean(selectedRecipeItem.value?.name), currentItemSchemaReady.value] as const,
   ([hasItem, ready]) => {
+    if (!localToolsAvailable) return
     if (hasItem && ready && !liveCaptureArmed.value) setLiveCaptureArmed(true)
     else if ((!hasItem || !ready) && liveCaptureArmed.value) setLiveCaptureArmed(false)
   },

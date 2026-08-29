@@ -1,18 +1,13 @@
-const METAMOB_URL = 'https://www.metamob.fr/api/v1/monsters'
 const IMG_BASE = 'https://www.metamob.fr/img/monsters/'
 const LIMIT = 200
 
-export default defineEventHandler(async () => {
-  const token = process.env.METAMOB_BEARER
-  if (!token) throw createError({ statusCode: 500, statusMessage: 'METAMOB_BEARER not set' })
-
-  const headers = { Authorization: `Bearer ${token}` }
-
+export default defineEventHandler(async (event) => {
+  const credentials = readMetamobCredentials(event)
   try {
     const all: any[] = []
 
     // First page — also tells us the total
-    const first = await $fetch<any>(`${METAMOB_URL}?limit=${LIMIT}&offset=0`, { headers })
+    const first = await metamobFetch<any>(credentials, `/monsters?limit=${LIMIT}&offset=0`)
     if (!first?.data) return {}
     all.push(...first.data)
 
@@ -23,7 +18,7 @@ export default defineEventHandler(async () => {
       const remaining = Math.ceil(total / LIMIT) - 1
       const pages = await Promise.all(
         Array.from({ length: remaining }, (_, i) =>
-          $fetch<any>(`${METAMOB_URL}?limit=${LIMIT}&offset=${(i + 1) * LIMIT}`, { headers })
+          metamobFetch<any>(credentials, `/monsters?limit=${LIMIT}&offset=${(i + 1) * LIMIT}`)
         )
       )
       for (const page of pages) {
@@ -41,7 +36,6 @@ export default defineEventHandler(async () => {
     }
     return map
   } catch (error: any) {
-    console.error('Error fetching metamob monsters:', error)
     throw createError({
       statusCode: error?.statusCode || 500,
       statusMessage: 'Failed to fetch metamob monsters',

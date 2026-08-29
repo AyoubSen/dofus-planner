@@ -1,6 +1,84 @@
 <template>
   <div v-if="hasContext" class="flex flex-col gap-5">
-    <UiSegmented v-model="mode" :options="modeOptions" :aria-label="$t('v2.archi.modeLabel')" />
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <UiSegmented v-model="mode" :options="modeOptions" :aria-label="$t('v2.archi.modeLabel')" />
+      <div class="flex items-center gap-2">
+        <UiBadge v-if="metamobConnected" :tone="metamobSync.state === 'error' ? 'negative' : 'positive'" dot>
+          {{ metamobStatusLabel }}
+        </UiBadge>
+        <UiButton size="sm" @click="openMetamobConnection">
+          {{ metamobConnected ? $t('v2.archi.metamob.manage') : $t('v2.archi.metamob.connect') }}
+        </UiButton>
+      </div>
+    </div>
+
+    <UiCard v-if="!metamobConnected" :title="$t('v2.archi.metamob.cardTitle')">
+      <div class="flex flex-wrap items-center gap-3">
+        <p class="min-w-0 flex-1 text-sm text-muted">{{ $t('v2.archi.metamob.cardDescription') }}</p>
+        <UiButton variant="primary" size="sm" @click="openMetamobConnection">
+          {{ $t('v2.archi.metamob.connect') }}
+        </UiButton>
+      </div>
+    </UiCard>
+
+    <p v-else-if="metamobSync.error" class="text-sm text-negative">{{ metamobSync.error }}</p>
+
+    <UiModal
+      :open="metamobConnectionOpen"
+      :title="$t('v2.archi.metamob.modalTitle')"
+      size="sm"
+      @close="metamobConnectionOpen = false"
+    >
+      <form class="flex flex-col gap-4" @submit.prevent="connectMetamob">
+        <p class="text-sm text-muted">{{ $t('v2.archi.metamob.sessionNote') }}</p>
+
+        <UiField :label="$t('v2.archi.metamob.username')" required>
+          <template #default="{ id }">
+            <UiInput :id="id" v-model="metamobDraft.username" :placeholder="$t('v2.archi.metamob.usernamePlaceholder')" />
+          </template>
+        </UiField>
+
+        <UiField
+          :label="$t('v2.archi.metamob.token')"
+          :hint="$t('v2.archi.metamob.tokenHint')"
+          required
+        >
+          <template #default="{ id }">
+            <UiInput :id="id" v-model="metamobDraft.token" type="password" />
+          </template>
+        </UiField>
+
+        <UiField :label="$t('v2.archi.metamob.questSlug')" :hint="$t('v2.archi.metamob.questSlugHint')">
+          <template #default="{ id }">
+            <UiInput :id="id" v-model="metamobDraft.questSlug" />
+          </template>
+        </UiField>
+
+        <p v-if="metamobConnectionError" class="text-sm text-negative">{{ metamobConnectionError }}</p>
+
+        <div class="flex flex-wrap justify-end gap-2">
+          <UiButton
+            v-if="metamobConnected"
+            variant="danger"
+            class="mr-auto"
+            @click="disconnectMetamob"
+          >
+            {{ $t('v2.archi.metamob.disconnect') }}
+          </UiButton>
+          <UiButton variant="ghost" @click="metamobConnectionOpen = false">
+            {{ $t('v2.archi.metamob.cancel') }}
+          </UiButton>
+          <UiButton
+            type="submit"
+            variant="primary"
+            :loading="metamobConnecting"
+            :disabled="!metamobDraft.username.trim() || !metamobDraft.token.trim()"
+          >
+            {{ $t('v2.archi.metamob.save') }}
+          </UiButton>
+        </div>
+      </form>
+    </UiModal>
 
     <!-- ══ Dofus Ocre ═════════════════════════════════════════════════════ -->
     <template v-if="mode === 'dofus-ocre'">
@@ -869,6 +947,62 @@ import { formatDuration } from '@/utils/format'
 
 const { appendActivity } = useAppDataStore()
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
+const { t } = useI18n()
+
+interface BrowserMetamobCredentials {
+  username: string
+  token: string
+  questSlug: string
+}
+
+const METAMOB_SESSION_KEY = 'metamob-connection-v1'
+const metamobCredentials = ref<BrowserMetamobCredentials | null>(null)
+const metamobConnectionOpen = ref(false)
+const metamobConnecting = ref(false)
+const metamobConnectionError = ref('')
+const metamobDraft = reactive<BrowserMetamobCredentials>({ username: '', token: '', questSlug: '' })
+const metamobConnected = computed(() => Boolean(metamobCredentials.value))
+
+const metamobHeaders = (credentials: BrowserMetamobCredentials) => ({
+  'x-metamob-token': credentials.token,
+  'x-metamob-username': encodeURIComponent(credentials.username),
+  'x-metamob-quest': encodeURIComponent(credentials.questSlug),
+})
+
+const metamobRequest = <T>(
+  path: string,
+  options: Record<string, any> = {},
+  credentials = metamobCredentials.value,
+) => {
+  if (!credentials) throw new Error('MetaMob connection required')
+  return $fetch<T>(path, {
+    ...options,
+    headers: { ...options.headers, ...metamobHeaders(credentials) },
+  })
+}
+
+const restoreMetamobConnection = () => {
+  const raw = sessionStorage.getItem(METAMOB_SESSION_KEY)
+  if (!raw) return
+
+  try {
+    const saved = JSON.parse(raw)
+    const username = String(saved?.username || '').trim()
+    const token = String(saved?.token || '').trim()
+    const questSlug = String(saved?.questSlug || '').trim()
+    if (username && token) metamobCredentials.value = { username, token, questSlug }
+  } catch {
+    sessionStorage.removeItem(METAMOB_SESSION_KEY)
+  }
+}
+
+const openMetamobConnection = () => {
+  metamobConnectionError.value = ''
+  metamobDraft.username = metamobCredentials.value?.username || ''
+  metamobDraft.token = metamobCredentials.value?.token || ''
+  metamobDraft.questSlug = metamobCredentials.value?.questSlug || ''
+  metamobConnectionOpen.value = true
+}
 
 // ── Shared ──────────────────────────────────────────────────────────────────
 const mode = ref<'dofus-ocre' | 'sell' | 'route-planner'>('dofus-ocre')
@@ -890,21 +1024,23 @@ const onImgErr = (e: Event) => {
 
 const METAMOB_CACHE_KEY = 'metamob_img_map'
 
-const loadMetamobImages = async () => {
+const loadMetamobImages = async (credentials = metamobCredentials.value) => {
   const cached = localStorage.getItem(METAMOB_CACHE_KEY)
   if (cached) {
     try { metamobImgMap.value = JSON.parse(cached) } catch { /* ignore */ }
     return
   }
-  // Not cached yet — fetch from server proxy
+  if (!credentials) return
+
+  // Not cached yet — fetch from the proxy using this browser's connection.
   try {
-    const map = await $fetch<Record<string, string>>('/api/metamob/monsters')
+    const map = await metamobRequest<Record<string, string>>('/api/metamob/monsters', {}, credentials)
     if (map && Object.keys(map).length > 0) {
       metamobImgMap.value = map
       localStorage.setItem(METAMOB_CACHE_KEY, JSON.stringify(map))
     }
-  } catch (e) {
-    console.warn('Could not load metamob images, using fallback URLs', e)
+  } catch {
+    // monsters.json already carries fallback image URLs.
   }
 }
 
@@ -921,8 +1057,6 @@ const monsterTypeOptions = [
   { key: 'all', label: 'All types', value: 'all' },
 ]
 const counts = reactive<Record<string, number>>({})
-
-const { t } = useI18n()
 
 // ── Control options ───────────────────────────────────────────────────────
 // Every either/or control on this page now renders as the same component,
@@ -1106,52 +1240,116 @@ const metamobSync = reactive({
   error: '',
 })
 
+const metamobStatusLabel = computed(() => {
+  if (metamobSync.state === 'pulling') return t('v2.archi.metamob.pulling')
+  if (metamobSync.state === 'pushing') return t('v2.archi.metamob.pushing')
+  if (metamobSync.state === 'error') return t('v2.archi.metamob.syncError')
+  return t('v2.archi.metamob.connectedAs', {
+    name: metamobSync.characterName || metamobCredentials.value?.username || '',
+  })
+})
+
 // Never push before a pull succeeded — otherwise a failed pull would overwrite
 // the metamob collection with whatever empty state the app started with.
 let metamobPullOk = false
 let metamobPushTimer: ReturnType<typeof setTimeout> | null = null
 
-const pullFromMetamob = async () => {
+type MetamobQuestResponse = { characterName: string, counts: Record<string, number> }
+
+const applyMetamobQuest = (res: MetamobQuestResponse) => {
+  Object.entries(res.counts ?? {}).forEach(([monsterId, quantity]) => {
+    counts[monsterId] = quantity
+    persistMonsterCount(monsterId, quantity)
+    // Match on metamobId — monsters.json ids are a different numbering.
+    const m = monsters.value.find((x: any) => String(x.metamobId) === monsterId)
+    if (m) localStorage.setItem(key(m), String(quantity))
+  })
+  metamobSync.characterName = res.characterName ?? ''
+}
+
+const pullFromMetamob = async (credentials = metamobCredentials.value) => {
+  if (!credentials) return false
   metamobSync.state = 'pulling'
   metamobSync.error = ''
   try {
-    const res = await $fetch<{ characterName: string, counts: Record<string, number> }>('/api/metamob/quest')
-    Object.entries(res.counts ?? {}).forEach(([monsterId, quantity]) => {
-      counts[monsterId] = quantity
-      persistMonsterCount(monsterId, quantity)
-      // Match on metamobId — monsters.json ids are a different numbering.
-      const m = monsters.value.find((x: any) => String(x.metamobId) === monsterId)
-      if (m) localStorage.setItem(key(m), String(quantity))
-    })
-    metamobSync.characterName = res.characterName ?? ''
+    const res = await metamobRequest<MetamobQuestResponse>('/api/metamob/quest', {}, credentials)
+    applyMetamobQuest(res)
     metamobSync.state = 'ready'
     metamobPullOk = true
-  } catch (e: any) {
+    return true
+  } catch {
     metamobSync.state = 'error'
-    metamobSync.error = e?.data?.statusMessage ?? e?.message ?? 'Sync failed'
-    console.warn('Metamob pull failed, keeping local counts', e)
+    metamobSync.error = t('v2.archi.metamob.connectionFailed')
+    return false
   }
 }
 
 const pushToMetamob = async () => {
-  if (!metamobPullOk) return
+  if (!metamobPullOk || !metamobCredentials.value) return
   metamobSync.state = 'pushing'
   try {
     // Retro-only monsters carry a `local:` key and have no metamob counterpart.
     const syncable = Object.fromEntries(Object.entries(counts).filter(([id]) => isSyncable(id)))
-    await $fetch('/api/metamob/quest', { method: 'PATCH', body: { counts: syncable } })
+    await metamobRequest('/api/metamob/quest', { method: 'PATCH', body: { counts: syncable } })
     metamobSync.state = 'ready'
-  } catch (e: any) {
+  } catch {
     metamobSync.state = 'error'
-    metamobSync.error = e?.data?.statusMessage ?? e?.message ?? 'Sync failed'
-    console.warn('Metamob push failed', e)
+    metamobSync.error = t('v2.archi.metamob.syncFailed')
   }
 }
 
 // Coalesce rapid +/- clicks into one batch request.
 const queueMetamobPush = () => {
+  if (!metamobConnected.value) return
   if (metamobPushTimer) clearTimeout(metamobPushTimer)
   metamobPushTimer = setTimeout(pushToMetamob, 1500)
+}
+
+const connectMetamob = async () => {
+  const candidate = {
+    username: metamobDraft.username.trim(),
+    token: metamobDraft.token.trim(),
+    questSlug: metamobDraft.questSlug.trim(),
+  }
+  if (!candidate.username || !candidate.token) return
+
+  const previousCredentials = metamobCredentials.value
+  const previousPullOk = metamobPullOk
+  metamobConnecting.value = true
+  metamobConnectionError.value = ''
+  metamobPullOk = false
+
+  try {
+    if (!await pullFromMetamob(candidate)) {
+      metamobPullOk = previousPullOk
+      metamobSync.state = previousCredentials ? 'ready' : 'idle'
+      metamobSync.error = ''
+      metamobConnectionError.value = t('v2.archi.metamob.connectionFailed')
+      return
+    }
+
+    metamobCredentials.value = candidate
+    sessionStorage.setItem(METAMOB_SESSION_KEY, JSON.stringify(candidate))
+    metamobConnectionOpen.value = false
+    await Promise.all([loadMetamobImages(candidate), loadHuntZones(candidate)])
+  } finally {
+    metamobConnecting.value = false
+  }
+}
+
+const disconnectMetamob = () => {
+  if (metamobPushTimer) clearTimeout(metamobPushTimer)
+  metamobPushTimer = null
+  metamobPullOk = false
+  metamobCredentials.value = null
+  metamobSync.state = 'idle'
+  metamobSync.characterName = ''
+  metamobSync.error = ''
+  metamobConnectionError.value = ''
+  sessionStorage.removeItem(METAMOB_SESSION_KEY)
+  huntZones.value = []
+  huntError.value = t('v2.archi.metamob.connectForPlanner')
+  metamobConnectionOpen.value = false
 }
 
 // ── Hunt log ────────────────────────────────────────────────────────────────
@@ -1759,11 +1957,21 @@ const huntZaapPos = computed(() => {
   return pos
 })
 
-const loadHuntZones = async () => {
+const loadHuntZones = async (credentials = metamobCredentials.value) => {
+  if (!credentials) {
+    huntZones.value = []
+    huntError.value = t('v2.archi.metamob.connectForPlanner')
+    return
+  }
+
   huntLoading.value = true
   huntError.value = ''
   try {
-    const res = await $fetch<{ currentStep: number, zones: typeof huntZones.value }>('/api/metamob/zones')
+    const res = await metamobRequest<{ currentStep: number, zones: typeof huntZones.value }>(
+      '/api/metamob/zones',
+      {},
+      credentials,
+    )
     huntZones.value = res.zones ?? []
     huntCurrentStep.value = res.currentStep ?? 0
 
@@ -1787,9 +1995,8 @@ const loadHuntZones = async () => {
     if (crossLayer.length) {
       console.warn(`${crossLayer.length} subzones sit on a different world-map layer from their zaap; their stops are not distance-ordered.`)
     }
-  } catch (e: any) {
-    huntError.value = e?.data?.statusMessage ?? e?.message ?? 'Could not load zones'
-    console.warn('Metamob zones failed', e)
+  } catch {
+    huntError.value = t('v2.archi.metamob.zonesFailed')
   } finally {
     huntLoading.value = false
   }
@@ -2181,9 +2388,15 @@ watch(huntRadius, (radius) => {
 onMounted(() => {
   initContext()
   init()
+  restoreMetamobConnection()
   loadMetamobImages()
-  pullFromMetamob()
-  loadHuntZones()
+  if (metamobConnected.value) {
+    void pullFromMetamob().then((pulled) => {
+      if (pulled) void loadHuntZones()
+    })
+  } else {
+    void loadHuntZones()
+  }
   loadHuntState()
   // A minute is fine: every countdown here is an estimate, and re-ranking more
   // often than that would move the list under the user's cursor for no gain.
@@ -2194,7 +2407,7 @@ onUnmounted(() => {
   document.removeEventListener('mousedown', onDocMousedownArchi)
   if (huntClock) clearInterval(huntClock)
   // Don't lose an edit made right before navigating away.
-  if (metamobPushTimer) {
+  if (metamobPushTimer && metamobConnected.value) {
     clearTimeout(metamobPushTimer)
     pushToMetamob()
   }

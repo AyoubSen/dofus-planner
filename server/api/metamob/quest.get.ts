@@ -1,8 +1,9 @@
 /** Pull the metamob collection so the page can show what the site knows. */
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   try {
-    const { username, quest } = await resolveQuest()
-    const counts = await fetchOwnedCounts(username, quest.slug)
+    const credentials = readMetamobCredentials(event)
+    const { username, quest } = await resolveQuest(credentials)
+    const counts = await fetchOwnedCounts(credentials, username, quest.slug)
 
     return {
       username,
@@ -14,7 +15,6 @@ export default defineEventHandler(async () => {
     }
   } catch (error: any) {
     if (error?.statusCode === 500 || error?.statusCode === 404) throw error
-    console.error('Error fetching metamob quest:', error)
     throw createError({
       statusCode: error?.statusCode || 500,
       statusMessage: 'Failed to fetch metamob quest',

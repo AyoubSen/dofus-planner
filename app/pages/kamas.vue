@@ -124,7 +124,7 @@
     </div>
 
     <!-- ── Advanced ─────────────────────────────────────────────────────── -->
-    <details class="rounded-lg border border-line bg-surface">
+    <details v-if="localToolsAvailable" class="rounded-lg border border-line bg-surface">
       <summary class="flex cursor-pointer items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
         <div class="min-w-0 flex-1">
           <h2 class="text-sm font-semibold text-ink">{{ $t('v2.kamas.scanner.title') }}</h2>
@@ -204,6 +204,7 @@ import type { KamaOpportunity, KamaOpportunityConfidence, KamaOpportunityType } 
 
 const localePath = useLocalePath()
 const { t } = useI18n()
+const localToolsAvailable = import.meta.dev
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
 const { data, init: initStore } = useAppDataStore()
 
@@ -453,8 +454,10 @@ onMounted(() => {
   initContext()
   initStore()
   loadExternalData()
-  pollScanResults()
-  scanPollTimer = window.setInterval(pollScanResults, 2500)
+  if (localToolsAvailable) {
+    pollScanResults()
+    scanPollTimer = window.setInterval(pollScanResults, 2500)
+  }
 })
 
 watch([selectedServer, selectedCharacter], loadExternalData)
