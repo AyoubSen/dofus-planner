@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { StatPriority } from '~/utils/itemValuation'
 // One saved listing, opened up: its exact stats (typed or OCR'd) and the
 // explanation of how those stats produced a fair value.
 defineProps<{
@@ -13,6 +14,8 @@ defineProps<{
   canTrack: boolean
   feedback: string
   formatKamas: (value: number) => string
+  priorityRows: any[]
+  unmatchedLines: any[]
 }>()
 
 const emit = defineEmits<{
@@ -25,6 +28,8 @@ const emit = defineEmits<{
   updateStatKey: [index: number, key: string]
   updateStatValue: [index: number, value: string]
   removeStatEntry: [index: number]
+  setPriority: [statKey: string, priority: StatPriority]
+  resetPriorities: []
 }>()
 
 const { t } = useI18n()
@@ -48,6 +53,26 @@ const healthSections = [
 
 const hasHealthIssues = (health: any) =>
   healthSections.some(section => health?.[section.key]?.length)
+
+/**
+ * Was this line attributed on thin evidence?
+ *
+ * The matcher accepts an expected line from 0.55 similarity, so "we are fairly
+ * sure" and "we barely guessed" both used to render identically — and the
+ * second is the one that quietly sets a price. Anything under 0.75 is called
+ * out. Hand-entered lines are the user's own claim and are never flagged;
+ * `undefined` is a row written before confidence was persisted, and unknown
+ * provenance is not evidence of a weak read.
+ */
+const isWeakRead = (entry: { confidence?: number; isManual?: boolean }) =>
+  !entry.isManual && typeof entry.confidence === 'number' && entry.confidence < 0.75
+
+const tierTone = (tier: string) =>
+  tier === 'max' ? 'positive'
+    : tier === 'near-max' ? 'accent'
+      : tier === 'absent' ? 'negative'
+        : tier === 'low' ? 'warning'
+          : 'neutral'
 </script>
 
 <template>
@@ -105,6 +130,27 @@ const hasHealthIssues = (health: any) =>
 
     <!-- ── Stats ────────────────────────────────────────────────────────── -->
     <template v-if="detailTab === 'stats'">
+      <!-- Lines the scan read but could not place. Shown rather than dropped,
+           so a stat that went missing is visible instead of silently absent. -->
+      <UiCard v-if="unmatchedLines.length" :title="$t('items.detail.observed.unmatched.title')">
+        <p class="mb-2 text-xs text-muted">{{ $t('items.detail.observed.unmatched.hint') }}</p>
+        <ul class="flex flex-col gap-1">
+          <li
+            v-for="(line, index) in unmatchedLines"
+            :key="`unmatched-${index}`"
+            class="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-line bg-sunken px-2 py-1"
+          >
+            <code class="text-xs text-ink">{{ line.raw }}</code>
+            <span v-if="line.bestGuessKey" class="text-xs text-subtle">
+              {{ $t('items.detail.observed.unmatched.bestGuess', {
+                key: line.bestGuessKey,
+                score: Math.round(line.bestScore * 100),
+              }) }}
+            </span>
+          </li>
+        </ul>
+      </UiCard>
+
       <UiCard v-if="hasHealthIssues(statsHealth)" :title="$t('items.detail.observed.statsHealth.title')">
         <template #actions>
           <UiBadge v-if="statsHealth.missing.length" tone="warning">
@@ -240,6 +286,16 @@ const hasHealthIssues = (health: any) =>
               <div v-else class="min-w-0 flex-1 truncate text-sm text-ink">
                 {{ entry.label }}
                 <span v-if="entry.rangeText" class="tabular text-xs text-subtle">{{ entry.rangeText }}</span>
+                <!--
+                  A weak match used to look exactly like a certain one. The
+                  matcher accepts from 0.55, so a line can be attributed on
+                  barely-better-than-nothing evidence and then be spent against.
+                -->
+                <span
+                  v-if="isWeakRead(entry)"
+                  class="ml-1 rounded bg-warning/15 px-1 text-[10px] font-medium uppercase text-warning"
+                  :title="$t('items.detail.observed.weakReadHint')"
+                >{{ $t('items.detail.observed.weakRead') }}</span>
               </div>
 
               <div class="flex w-32 shrink-0 items-center gap-1">
@@ -274,6 +330,14 @@ const hasHealthIssues = (health: any) =>
 
     <!-- ── Explanation ──────────────────────────────────────────────────── -->
     <template v-else>
+      <!-- Sits above the valuation because it is the input to it: change a
+           priority here and every number below moves. -->
+      <ItemsStatPriorityEditor
+        :rows="priorityRows"
+        @set="(statKey, priority) => emit('setPriority', statKey, priority)"
+        @reset="emit('resetPriorities')"
+      />
+
       <UiEmptyState v-if="!explanation" :title="$t('items.detail.valuation.notEnoughData')">
         <template #icon><UiIcon name="prices" /></template>
       </UiEmptyState>
@@ -285,18 +349,51 @@ const hasHealthIssues = (health: any) =>
           <UiStat :label="$t('items.detail.valuation.fairValue')">
             <span class="tabular text-xl font-semibold text-ink">{{ formatKamas(explanation.fairValue) }}</span>
           </UiStat>
-          <UiStat :label="$t('items.detail.valuation.delta')">
-            <!-- A negative delta means the listing sits under fair value: good
-                 for a buyer, so it reads positive here. -->
+          <UiStat :label="$t('items.detail.valuation.netProfit')">
+            <!-- What the flip actually clears, after the sale tax. This is the
+                 number to act on; the raw gap against fair value is not. -->
             <span
               class="tabular text-xl font-semibold"
-              :class="explanation.delta < 0 ? 'text-positive' : explanation.delta > 0 ? 'text-negative' : 'text-ink'"
+              :class="explanation.netProfit > 0 ? 'text-positive' : explanation.netProfit < 0 ? 'text-negative' : 'text-ink'"
             >
-              {{ explanation.delta > 0 ? '+' : '' }}{{ formatKamas(explanation.delta) }}
+              {{ explanation.netProfit > 0 ? '+' : '' }}{{ formatKamas(explanation.netProfit) }}
+            </span>
+          </UiStat>
+          <UiStat :label="$t('items.detail.valuation.edge.label')">
+            <span
+              class="tabular text-xl font-semibold"
+              :class="explanation.isDeal ? 'text-positive' : 'text-muted'"
+            >
+              {{ explanation.edgeRatio.toFixed(2) }}x
             </span>
           </UiStat>
           <UiStat :label="explanation.referenceLabel" :value="explanation.referenceDisplay" />
         </UiStatRow>
+
+        <p class="text-xs text-subtle">
+          {{ $t('items.detail.valuation.edge.hint') }} · {{ explanation.peerScopeLabel }}
+        </p>
+
+        <!-- When the listing misses a requirement, say which one and by how
+             much, right next to the valuation it disqualified. -->
+        <UiCard
+          v-if="!explanation.requirementsPassed"
+          :title="$t('items.detail.observed.badges.belowRequirement')"
+        >
+          <ul class="flex flex-col gap-1 text-sm">
+            <li
+              v-for="failure in explanation.requirementFailures"
+              :key="failure.statKey"
+              class="flex items-center justify-between gap-3"
+            >
+              <span class="text-ink">{{ failure.label }}</span>
+              <span class="tabular text-warning">
+                {{ failure.got ?? '—' }} / {{ failure.max }}
+                <span class="text-subtle">(≥ {{ failure.needed }})</span>
+              </span>
+            </li>
+          </ul>
+        </UiCard>
 
         <UiCard :title="$t('items.detail.valuation.scoreBuildTitle')">
           <template #actions>
@@ -307,6 +404,7 @@ const hasHealthIssues = (health: any) =>
             { key: 'stat', label: $t('items.detail.valuation.table.stat') },
             { key: 'value', label: $t('items.detail.valuation.table.value'), align: 'right' },
             { key: 'range', label: $t('items.detail.valuation.table.range'), align: 'right' },
+            { key: 'tier', label: $t('items.detail.valuation.table.tier'), align: 'right' },
             { key: 'progress', label: $t('items.detail.valuation.table.progress'), align: 'right' },
             { key: 'weight', label: $t('items.detail.valuation.table.weight'), align: 'right' },
             { key: 'contribution', label: $t('items.detail.valuation.table.contribution'), align: 'right' },
@@ -324,6 +422,16 @@ const hasHealthIssues = (health: any) =>
               </td>
               <td class="tabular px-3 py-2 text-right">{{ row.value ?? '—' }}{{ row.suffix }}</td>
               <td class="tabular px-3 py-2 text-right text-subtle">{{ row.rangeText || '—' }}</td>
+              <td class="px-3 py-2 text-right">
+                <!-- The tier is the whole point of the rewrite: how close to
+                     max this line rolled, in the terms the user thinks in. -->
+                <UiBadge v-if="row.isExo" tone="accent">{{ $t('items.detail.tiers.exo') }}</UiBadge>
+                <UiBadge v-else :tone="tierTone(row.tier)">{{ $t(`items.detail.tiers.${row.tier}`) }}</UiBadge>
+                <UiBadge v-if="row.overmageAmount > 0" tone="positive">
+                  {{ $t('items.detail.tiers.over', { amount: row.overmageAmount }) }}
+                </UiBadge>
+                <span v-if="row.deficit > 0" class="tabular ml-1 text-xs text-subtle">-{{ row.deficit }}</span>
+              </td>
               <td class="tabular px-3 py-2 text-right">{{ row.progress.toFixed(2) }}</td>
               <td class="tabular px-3 py-2 text-right">{{ row.weight.toFixed(2) }}</td>
               <td class="tabular px-3 py-2 text-right">{{ row.contribution.toFixed(2) }}</td>

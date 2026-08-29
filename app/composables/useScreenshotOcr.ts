@@ -9,12 +9,9 @@
 // The preprocessing constants and the token-grouping rules are tuned against
 // real Dofus screenshots; treat them as load-bearing.
 
-import {
-  findSpecialMageDef,
-  hasWholeWordStatAliasMatch,
-  normalizeLabelForStatKey,
-  statsOcrDefs,
-} from '~/utils/itemStats'
+import { normalizeLabelForStatKey, statsOcrDefs } from '~/utils/itemStats'
+import { matchStatLines, splitLeadingValue } from '~/utils/statMatching'
+import type { CandidateLine } from '~/utils/statMatching'
 
 export interface OcrWord {
   text?: string
@@ -77,6 +74,10 @@ const buildProcessedImageDataUrl = async (
     threshold?: number | null
     contrast?: number
     brightness?: number
+    /** Stretch the luma range to 0-255 before the contrast pass. */
+    normalize?: boolean
+    /** Unsharp amount. 0 disables; ~0.6 recovers upscaled glyph edges. */
+    sharpen?: number
   }
 ) => {
   if (!import.meta.client) {
@@ -119,6 +120,31 @@ const buildProcessedImageDataUrl = async (
   const threshold = options.threshold ?? null
   const grayscale = options.grayscale !== false
 
+  // Stretch to the full range before the contrast pass, the way the sharp
+  // pipeline on the server already does. A Dofus tooltip is light text on a
+  // dark panel and rarely uses more than half the available range, so contrast
+  // alone was amplifying a washed-out image instead of a clean one.
+  if (options.normalize) {
+    let min = 255
+    let max = 0
+    for (let i = 0; i < data.length; i += 4) {
+      const luma = data[i]! * 0.299 + data[i + 1]! * 0.587 + data[i + 2]! * 0.114
+      if (luma < min) min = luma
+      if (luma > max) max = luma
+    }
+
+    const span = max - min
+    // Below this the image is flat enough that stretching is amplifying noise.
+    if (span > 8) {
+      const gain = 255 / span
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.max(0, Math.min(255, (data[i]! - min) * gain))
+        data[i + 1] = Math.max(0, Math.min(255, (data[i + 1]! - min) * gain))
+        data[i + 2] = Math.max(0, Math.min(255, (data[i + 2]! - min) * gain))
+      }
+    }
+  }
+
   for (let i = 0; i < data.length; i += 4) {
     let r = data[i]
     let g = data[i + 1]
@@ -147,23 +173,79 @@ const buildProcessedImageDataUrl = async (
     data[i + 2] = b
   }
 
+  // Unsharp mask last, so it sharpens the corrected image rather than the raw
+  // one. Upscaling 3x with smoothing softens every glyph edge; this puts the
+  // edge back, which is what the server's sharp pipeline was already doing.
+  if (options.sharpen && options.sharpen > 0) {
+    applyUnsharpMask(data, canvas.width, canvas.height, options.sharpen)
+  }
+
   ctx.putImageData(imageData, 0, 0)
   return canvas.toDataURL('image/png')
 }
 
-const preprocessImageForPriceOcrClient = async (imageBase64: string) => {
+/**
+ * 3x3 unsharp mask over the luma channel.
+ *
+ * Works on a copy of the source so each output pixel is computed from the
+ * original neighbourhood rather than from partially-sharpened neighbours.
+ */
+const applyUnsharpMask = (
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  amount: number,
+) => {
+  const source = new Uint8ClampedArray(data)
+  const at = (x: number, y: number) => {
+    const cx = Math.max(0, Math.min(width - 1, x))
+    const cy = Math.max(0, Math.min(height - 1, y))
+    return source[(cy * width + cx) * 4]!
+  }
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4
+      const blurred = (
+        at(x - 1, y - 1) + at(x, y - 1) + at(x + 1, y - 1)
+        + at(x - 1, y) + at(x, y) + at(x + 1, y)
+        + at(x - 1, y + 1) + at(x, y + 1) + at(x + 1, y + 1)
+      ) / 9
+      const original = source[index]!
+      const sharpened = Math.max(0, Math.min(255, original + (original - blurred) * amount))
+      data[index] = sharpened
+      data[index + 1] = sharpened
+      data[index + 2] = sharpened
+    }
+  }
+}
+
+const preprocessImageForPriceOcrClient = async (imageBase64: string, preCropped = false) => {
   const image = await loadImageElement(imageBase64)
-  const isNarrowPriceCrop = image.width < 220
+  // The ratios below crop a full HDV screenshot down to its price column. An
+  // image that is already a crop must skip them, or the crop is applied twice:
+  // a 920x32 row strip came out sliced at 48% and trimmed top and bottom, which
+  // cut prices clean in half - "3 695 477" read back as "3695".
+  const skipCrop = preCropped || image.width < 220
 
   return buildProcessedImageDataUrl(imageBase64, {
-    cropLeftRatio: isNarrowPriceCrop ? 0 : 0.48,
-    cropTopRatio: isNarrowPriceCrop ? 0 : 0.14,
-    cropWidthRatio: isNarrowPriceCrop ? 1 : 0.52,
-    cropHeightRatio: isNarrowPriceCrop ? 1 : 0.86,
-    scale: 3,
+    cropLeftRatio: skipCrop ? 0 : 0.48,
+    cropTopRatio: skipCrop ? 0 : 0.14,
+    cropWidthRatio: skipCrop ? 1 : 0.52,
+    cropHeightRatio: skipCrop ? 1 : 0.86,
+    // A row strip is short, so it needs more upscaling than a tall panel to
+    // give tesseract enough pixels per digit.
+    scale: preCropped ? 4 : 3,
     grayscale: true,
-    contrast: 1.35,
-    threshold: 150,
+    // No hard threshold on a row strip. Binarising at 150 was destroying digits
+    // outright - measured over eleven rows of a real HDV list it read 5 of 8
+    // correctly, against 11 of 11 with the softer treatment the stats path
+    // already uses. The full-panel path keeps the threshold, which suits it.
+    normalize: preCropped,
+    sharpen: preCropped ? 0.6 : 0,
+    contrast: preCropped ? 1.15 : 1.35,
+    brightness: preCropped ? -10 : 0,
+    threshold: preCropped ? null : 150,
   })
 }
 
@@ -171,6 +253,8 @@ const preprocessStatsImageClient = async (imageBase64: string) =>
   buildProcessedImageDataUrl(imageBase64, {
     scale: 3,
     grayscale: true,
+    normalize: true,
+    sharpen: 0.6,
     contrast: 1.15,
     brightness: -10,
     threshold: null,
@@ -188,6 +272,60 @@ const loadTesseractModule = async () => {
   }
 
   return tesseractModulePromise
+}
+
+/**
+ * Dofus is played in French and its tooltips are French, so the recognizer has
+ * to be. This used to run `eng`, with the accented characters merely permitted
+ * by the character whitelist — a whitelist lets a glyph through, it does not
+ * teach the model to read it, so `Vitalité`, `Résistance` and `Poussée` were
+ * being decoded by weights that had never seen French.
+ *
+ * The traineddata is served from `public/tessdata` rather than the tesseract.js
+ * CDN so scans work offline and the first paste after a reload doesn't stall on
+ * a download.
+ */
+const OCR_LANGUAGE = 'fra'
+const OCR_WORKER_OPTIONS = { langPath: '/tessdata', gzip: false }
+
+/** One worker for the whole session, rather than one per screenshot. */
+const workerCache = new Map<string, Promise<any>>()
+
+const getWorker = async (params: Record<string, string>) => {
+  const cacheKey = JSON.stringify(params)
+  const cached = workerCache.get(cacheKey)
+  if (cached) return cached
+
+  const created = (async () => {
+    const { createWorker } = await loadTesseractModule()
+    const worker = await createWorker(OCR_LANGUAGE, undefined, OCR_WORKER_OPTIONS)
+    await worker.setParameters(params)
+    return worker
+  })()
+
+  workerCache.set(cacheKey, created)
+
+  try {
+    return await created
+  } catch (error) {
+    // A failed init must not poison the cache, or every later scan inherits it.
+    workerCache.delete(cacheKey)
+    throw error
+  }
+}
+
+/** Releases the workers. Call on teardown; scans re-create them on demand. */
+export const terminateOcrWorkers = async () => {
+  const pending = [...workerCache.values()]
+  workerCache.clear()
+  await Promise.all(pending.map(async (entry) => {
+    try {
+      const worker = await entry
+      await worker.terminate()
+    } catch {
+      // Nothing useful to do if a worker never came up.
+    }
+  }))
 }
 
 const parsePriceFromNumericTokens = (tokens: string[]) => {
@@ -353,150 +491,145 @@ const cleanStatLine = (line: string) => {
   cleaned = cleaned.replace(/^[A-Za-z]{1,2}\s+(?=\d)/, '')
   cleaned = cleaned.replace(/^(\d{1,2})\s+(\d{1,3})(?=\s+[A-Za-zàâäçéèêëîïôöùûüÿœ])/i, '$2')
   cleaned = cleaned.replace(/(\d)\s+%/g, '$1%')
+  // "1PA" — tesseract drops the space on short lines often enough to matter,
+  // and glued together the value and the stat name are both unreadable.
+  cleaned = splitLeadingValue(cleaned)
   cleaned = cleaned.replace(/\[\s+/g, '[').replace(/\s+\]/g, ']')
   return cleaned.trim()
 }
 
-const parseClientStatLine = (line: string) => {
-  const specialDef = findSpecialMageDef(line)
-  if (specialDef) {
-    const rangeMatch = line.match(/\[[^\]]+\]/)
-    const firstNumberMatch = line.match(/-?\d+/)
-    const value = firstNumberMatch
-      ? Number(firstNumberMatch[0])
-      : specialDef.binary
-        ? 1
-        : null
+/**
+ * Whether a cleaned line could plausibly be a stat at all.
+ *
+ * Kept as a cheap pre-filter so tooltip chrome (level lines, weapon headers)
+ * never reaches the matcher. Deciding *which* stat a line is now belongs
+ * entirely to `matchStatLines`, which has the item's own roll table to work
+ * from and does not need to be defended from noise here.
+ */
+const isPlausibleStatLine = (line: string) => {
+  const lower = line.toLowerCase()
+  if (lower.includes('niv.') || lower.includes('niveau')) return false
+  if (lower.includes('armes') || lower.includes('weapon')) return false
+  if (line.length < 4) return false
+  if (!/[A-Za-zÀ-ſ]/.test(line)) return false
 
-    return {
-      key: specialDef.key,
-      label: specialDef.label,
-      value: Number.isFinite(value as number) ? value : null,
-      suffix: specialDef.suffix || '',
-      rangeText: rangeMatch?.[0] || '',
-      raw: line,
-    }
-  }
+  if (/[0-9]/.test(line)) return true
 
+  // A line with no number is only a stat if it is one of the binary ones.
   const normalized = normalizeLabelForStatKey(line)
-  const exactDef = statsOcrDefs.find((def) =>
-    [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
+  return statsOcrDefs.some((def) =>
+    def.binary && [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
   )
-  const matchedDef = exactDef || statsOcrDefs
-    .map((def) => ({
-      def,
-      matchedAlias: [def.label, ...def.aliases]
-        .map((alias) => normalizeLabelForStatKey(alias))
-        .find((alias) => hasWholeWordStatAliasMatch(normalized, alias)) || '',
-    }))
-    .filter((entry) => entry.matchedAlias)
-    .sort((a, b) => b.matchedAlias.length - a.matchedAlias.length)[0]?.def
+}
 
-  if (!matchedDef) return null
 
-  const firstNumberMatch = line.match(/-?\d+/)
-  const value = firstNumberMatch
-    ? Number(firstNumberMatch[0])
-    : matchedDef.binary
-      ? 1
-      : null
-  const rangeMatch = line.match(/\[[^\]]+\]/)
+/** Left edge of the tooltip, taken from where EFFETS was read. */
+const EFFETS_LEFT_MARGIN = 40
+
+/**
+ * Drops everything left of the tooltip's own heading.
+ *
+ * Returns null when the heading was not found, so the caller keeps every line
+ * rather than throwing away a whole capture on a heading the recognizer
+ * happened to miss.
+ */
+export const keepTooltipLines = (lines: any[] | undefined): string[] | null => {
+  if (!Array.isArray(lines) || !lines.length) return null
+
+  const heading = lines.find((line: any) =>
+    normalizeLabelForStatKey(String(line?.text || '')).includes('effets'))
+  const headingX = heading?.bbox?.x0
+  if (!Number.isFinite(headingX)) return null
+
+  const cutoff = Number(headingX) - EFFETS_LEFT_MARGIN
+
+  return lines
+    .filter((line: any) => Number(line?.bbox?.x0 ?? 0) >= cutoff)
+    .map((line: any) => normalizeOcrLine(String(line?.text || '')))
+    .filter(Boolean)
+}
+
+const PRICE_OCR_PARAMS = {
+  tessedit_pageseg_mode: '6',
+  tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .,'-:",
+  preserve_interword_spaces: '1',
+}
+
+/** Accented capitals and the typographic apostrophe were unrepresentable. */
+const STATS_OCR_PARAMS = {
+  tessedit_pageseg_mode: '6',
+  tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸŒabcdefghijklmnopqrstuvwxyzàâäçéèêëîïôöùûüÿœ%+-[]() .,'’:",
+  preserve_interword_spaces: '1',
+}
+
+/**
+ * Reads prices off a screenshot.
+ *
+ * `preCropped` says the caller has already isolated the area — a single row
+ * strip, say — so the built-in crop to the HDV price column must be skipped.
+ */
+export const runPriceOcr = async (imageBase64: string, preCropped = false) => {
+  const worker = await getWorker(PRICE_OCR_PARAMS)
+  const ocrInput = await preprocessImageForPriceOcrClient(imageBase64, preCropped)
+  const result = await worker.recognize(ocrInput)
+  const text = result?.data?.text || ''
+  const wordResult = extractListingCandidatesFromWords(result?.data?.words || [])
+  const fallbackResult = extractListingCandidatesFromText(text)
+  const useWordCandidates = wordResult.candidates.length > 0
 
   return {
-    key: matchedDef.key,
-    label: matchedDef.label,
-    value: Number.isFinite(value as number) ? value : null,
-    suffix: matchedDef.suffix || '',
-    rangeText: rangeMatch?.[0] || '',
-    raw: line,
+    text,
+    candidates: useWordCandidates ? wordResult.candidates : fallbackResult.candidates,
+    debugMode: useWordCandidates ? 'word' : 'text',
+    debugRows: useWordCandidates ? wordResult.debugRows : fallbackResult.debugRows,
+    // What the recognizer was actually given. Showing the raw crop instead hid
+    // the real fault for hours: the crop looked perfectly legible while the
+    // preprocessed image handed to tesseract was mush.
+    processedImage: ocrInput,
   }
 }
 
-const extractClientStatEntries = (rawLines: string[]) => {
-  const lines = rawLines.map(cleanStatLine).filter(Boolean)
-  const candidates = lines.filter((line) => {
-    const lower = line.toLowerCase()
-    if (lower.includes('niv.') || lower.includes('niveau')) return false
-    if (lower.includes('armes') || lower.includes('weapon')) return false
-    if (line.length < 4) return false
-    if (!/[A-Za-zàâäçéèêëîïôöùûüÿœ]/i.test(line)) return false
+/**
+ * Reads the stat lines off a tooltip screenshot.
+ *
+ * `expectedLines` is the item's own roll table. Passing it turns the hard
+ * problem (read arbitrary French text correctly) into an easy one (decide which
+ * of about five known lines this is), which is where most of the accuracy comes
+ * from — see `app/utils/statMatching.ts`. It stays optional so a caller without
+ * a resolved item still gets the catalogue-wide fuzzy match.
+ */
+export const runStatsOcr = async (
+  imageBase64: string,
+  expectedLines: CandidateLine[] = [],
+) => {
+  const worker = await getWorker(STATS_OCR_PARAMS)
+  const ocrInput = await preprocessStatsImageClient(imageBase64)
+  const result = await worker.recognize(ocrInput)
+  const text = result?.data?.text || ''
+  const ocrLines = Array.isArray(result?.data?.lines)
+    ? result.data.lines.map((line: any) => normalizeOcrLine(line?.text || '')).filter(Boolean)
+    : text.split(/\r?\n/).map(normalizeOcrLine).filter(Boolean)
 
-    if (/\d/.test(line)) return true
+  // Keep only what sits inside the tooltip.
+  //
+  // The crop starts at the cursor but Dofus anchors the tooltip to the panel,
+  // so everything between is price rows, inventory and taskbar — fifteen lines
+  // of "1 3 500 000 ACHETER" offered to the stat matcher every capture.
+  // Detecting the panel by pixels failed because both sides are flat UI, but
+  // the tooltip announces itself: it contains EFFETS, and tesseract reports
+  // where it read it.
+  const keptLines = keepTooltipLines(result?.data?.lines)
+  const sourceLines = keptLines ?? ocrLines
 
-    const normalized = normalizeLabelForStatKey(line)
-    return statsOcrDefs.some((def) =>
-      def.binary && [def.label, ...def.aliases].some((alias) => normalizeLabelForStatKey(alias) === normalized),
-    )
-  })
+  const cleaned = sourceLines
+    .map(cleanStatLine)
+    .filter(Boolean)
+    .filter(isPlausibleStatLine)
 
-  const unique: OcrStatEntry[] = []
-  const seen = new Set<string>()
-
-  for (const line of candidates) {
-    const parsed = parseClientStatLine(line)
-    if (!parsed) continue
-    const dedupeKey = `${parsed.key}:${parsed.value ?? 'na'}:${parsed.rangeText}`
-    if (seen.has(dedupeKey)) continue
-    seen.add(dedupeKey)
-    unique.push(parsed)
-  }
-
-  return unique
-}
-
-export const runPriceOcr = async (imageBase64: string) => {
-  const { createWorker } = await loadTesseractModule()
-  const worker = await createWorker('eng')
-
-  try {
-    const ocrInput = await preprocessImageForPriceOcrClient(imageBase64)
-    await worker.setParameters({
-      tessedit_pageseg_mode: '6',
-      tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .,'-:",
-      preserve_interword_spaces: '1',
-    })
-
-    const result = await worker.recognize(ocrInput)
-    const text = result?.data?.text || ''
-    const wordResult = extractListingCandidatesFromWords(result?.data?.words || [])
-    const fallbackResult = extractListingCandidatesFromText(text)
-    const useWordCandidates = wordResult.candidates.length > 0
-
-    return {
-      text,
-      candidates: useWordCandidates ? wordResult.candidates : fallbackResult.candidates,
-      debugMode: useWordCandidates ? 'word' : 'text',
-      debugRows: useWordCandidates ? wordResult.debugRows : fallbackResult.debugRows,
-    }
-  } finally {
-    await worker.terminate()
-  }
-}
-
-export const runStatsOcr = async (imageBase64: string) => {
-  const { createWorker } = await loadTesseractModule()
-  const worker = await createWorker('eng')
-
-  try {
-    const ocrInput = await preprocessStatsImageClient(imageBase64)
-    await worker.setParameters({
-      tessedit_pageseg_mode: '6',
-      tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàâäçéèêëîïôöùûüÿœ%+-[]() .,'-:",
-      preserve_interword_spaces: '1',
-    })
-
-    const result = await worker.recognize(ocrInput)
-    const text = result?.data?.text || ''
-    const ocrLines = Array.isArray(result?.data?.lines)
-      ? result.data.lines.map((line: any) => normalizeOcrLine(line?.text || '')).filter(Boolean)
-      : text.split(/\r?\n/).map(normalizeOcrLine).filter(Boolean)
-
-    return {
-      text,
-      entries: extractClientStatEntries(ocrLines),
-    }
-  } finally {
-    await worker.terminate()
+  return {
+    text,
+    processedImage: ocrInput,
+    ...matchStatLines(cleaned, expectedLines),
   }
 }
 

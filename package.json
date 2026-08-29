@@ -11,7 +11,17 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "dofusdb:smoke": "node scripts/dofusdb-smoke.mjs"
+    "dofusdb:smoke": "node scripts/dofusdb-smoke.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "capture": "powershell -ExecutionPolicy Bypass -File ./scripts/dofus-capture.ps1",
+    "capture:calibrate": "powershell -ExecutionPolicy Bypass -File ./scripts/dofus-capture.ps1 -Calibrate",
+    "corpus:grade": "node scripts/grade-corpus.mjs",
+    "corpus:gate": "node scripts/grade-corpus.mjs --gate",
+    "atlas:build": "node scripts/build-atlas.mjs",
+    "atlas:ingest": "node scripts/ingest-page.mjs",
+    "data:subzones": "node scripts/fetch-subzone-geo.mjs",
+    "data:monster-ids": "node scripts/fetch-monster-ids.mjs"
   },
   "dependencies": {
     "@floating-ui/vue": "^1.1.9",
@@ -28,6 +38,8 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "tailwindcss": "^4.3.3"
+    "jiti": "^2.7.0",
+    "tailwindcss": "^4.3.3",
+    "vitest": "^4.1.10"
   }
 }

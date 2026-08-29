@@ -22,3 +22,22 @@ logs
 .env
 .env.*
 !.env.example
+/capture-regions.json
+
+# Capture archive for recognition validation (phase 0b). Images of your own
+# screen; local research data, never committed.
+/corpus/
+
+# Built from the local corpus; profile-specific, never committed.
+/public/atlas/
+/atlas-report.json
+/reader-report.txt
+
+# Durable market ledger. Local data, not source.
+/ledger/
+
+# Local backups and agent-generated working files
+/backups/
+/.opencode/
+/rows-report.txt
+/claude-opus-5-enhancement-model-748213.md

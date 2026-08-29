@@ -81,6 +81,16 @@
             @image="captureMarketScreenshot"
           />
 
+          <ItemsLiveCapture
+            :armed="liveCaptureArmed"
+            :log="liveCaptureLog"
+            :error="liveCaptureError"
+            :item-name="selectedRecipeItem?.name || ''"
+            @update:armed="setLiveCaptureArmed"
+          />
+
+          <ItemsGlyphTeacher :sample="lastPriceStrip" />
+
           <div v-if="recipeLookupState.isLoading" class="flex flex-col gap-2">
             <UiSkeleton v-for="i in 4" :key="i" height="3rem" />
           </div>
@@ -103,6 +113,8 @@
               :can-track="canUseCraftingSessions"
               :feedback="resaleTrackerFeedback[selectedObservationDetail.id] ?? ''"
               :format-kamas="formatKamasFull"
+              :priority-rows="statPriorityRows"
+              :unmatched-lines="ocrUnmatchedLines"
               @back="closeObservationDetail"
               @use-as-sell-price="selectedRecipeSellPrice = $event"
               @send-to-tracker="sendObservationToResaleTracker(selectedObservationDetail)"
@@ -111,6 +123,8 @@
               @update-stat-key="updateObservationStatKey"
               @update-stat-value="updateObservationStatValue"
               @remove-stat-entry="removeObservationStatEntry"
+              @set-priority="setStatPriority"
+              @reset-priorities="clearStatPriorities"
             />
 
             <ItemsObservedPrices
@@ -118,8 +132,8 @@
               ref="observedPricesComp"
               v-model:expanded="showObservedPrices"
               v-model:sort-mode="observedSortMode"
-              v-model:valuation-mode="valuationMode"
               v-model:only-undervalued="showOnlyUndervaluedListings"
+              v-model:full-sweep="fullSweepCapture"
               v-model:show-table="showAdvancedValuationTable"
               v-model:capture-row-id="statsCaptureRowId"
               :observations="selectedItemObservations"
@@ -141,6 +155,7 @@
               @send-to-tracker="sendObservationToResaleTracker"
               @remove="removeObservation"
               @remove-all="removeAllObservations"
+              @export="exportCurrentItem"
             />
           </template>
         </div>
@@ -221,6 +236,38 @@ import {
   specialMageStatKeys,
   statsOcrDefs,
 } from '~/utils/itemStats'
+import { buildItemExport, itemExportFilename } from '~/utils/itemExport'
+import {
+  checkPriceAgainst,
+  cropDataUrl,
+  imageSize,
+  pickPriceFromStrip,
+  priceStripRect,
+  readPriceByGlyphs,
+  readPagePrices,
+  readPriceByReconstruction,
+  tooltipRect,
+  trimToTextBand,
+  trimToTooltipPanel,
+} from '~/utils/captureCrop'
+import { resolveCaptureIdentity } from '~/utils/captureIdentity'
+import {
+  defaultPriceModelConfig,
+  describeRequirement,
+  emptyPriorityProfiles,
+  migrateObservation,
+  parseObservationRange,
+  reconcileObservations,
+  statPriorityPresets,
+  summariseFailures,
+  valueObservations,
+} from '~/utils/itemValuation'
+import type {
+  ExpectedLine,
+  PriorityProfiles,
+  StatPriority,
+  ValuedObservation,
+} from '~/utils/itemValuation'
 
 const { t } = useI18n()
 const { appendActivity } = useAppDataStore()
@@ -300,9 +347,13 @@ type StoredObservedPriceEntry = {
   id: string
   itemKey: string
   itemName: string
+  /** Which server's market this was seen on. Empty on pre-scoping rows. */
+  serverId?: string
   price: number
   createdAt: string
   source: 'ocr'
+  /** True when nothing existed to check this price against when it was saved. */
+  priceUnverified?: boolean
   /** Short digest of the screenshot this price came from. Lets a rescan of the
    *  same image dedupe without keeping the image itself. */
   scanHash?: string
@@ -315,6 +366,9 @@ type StoredObservedPriceEntry = {
     rangeText: string
     raw?: string
     isManual?: boolean
+    /** 0..1 match confidence, kept so a weak read stays distinguishable. */
+    confidence?: number
+    matchSource?: 'expected' | 'catalogue'
   }>
 }
 
@@ -399,9 +453,11 @@ interface CraftFmSession {
 
 const DOFUSDB_RECIPE_CACHE_KEY = 'dofus-items-dofusdb-recipe-cache-v1'
 const ITEM_RESOURCE_PRICES_KEY = 'dofus-items-resource-prices-v1'
-const ITEM_OBSERVED_PRICES_KEY = 'dofus-items-observed-prices-v1'
+const ITEM_OBSERVED_PRICES_KEY = 'dofus-items-observed-prices-v2'
+const ITEM_OBSERVED_PRICES_KEY_V1 = 'dofus-items-observed-prices-v1'
 const DOFUS_EFFECT_CACHE_KEY = 'dofus-items-effect-cache-v1'
-const ITEM_STAT_PRIORITY_KEY = 'dofus-items-stat-priority-v1'
+const ITEM_STAT_PRIORITY_KEY = 'dofus-items-stat-priority-v2'
+const ITEM_STAT_PRIORITY_KEY_V1 = 'dofus-items-stat-priority-v1'
 const CRAFT_FM_SESSIONS_KEY_PREFIX = 'craft_fm_sessions_'
 
 const recipeLookupState = ref<{
@@ -492,12 +548,47 @@ const observationDetailTab = ref<'stats' | 'explain'>('stats')
 const observedPricesComp = ref<{ sectionEl: HTMLElement | null } | null>(null)
 const observationDetailComp = ref<{ exactStatsEl: HTMLElement | null } | null>(null)
 const resaleTrackerFeedback = ref<Record<string, string>>({})
-const observedSortMode = ref<'newest' | 'price_asc' | 'price_desc' | 'delta' | 'best_buy'>('newest')
+const observedSortMode = ref<'newest' | 'price_asc' | 'price_desc' | 'net_profit' | 'quality' | 'best_buy'>('newest')
 const showOnlyUndervaluedListings = ref(false)
-type ValuationMode = 'score' | 'comparables' | 'auto'
-const valuationMode = ref<ValuationMode>('auto')
+/**
+ * Whether a price capture covers every listing for the item.
+ *
+ * Off by default and deliberately opt-in: reading disappearance as a sale is
+ * only sound when the capture was exhaustive, and guessing wrong would seed the
+ * price history with sales that never happened.
+ */
+const fullSweepCapture = ref(false)
+/**
+ * Kamas available to spend, used to turn the ranked list into a purchase plan.
+ *
+ * Zero by default and left that way until the user says otherwise: an assumed
+ * bankroll would produce a confident plan for money that may not exist.
+ */
+const itemsBankroll = ref(0)
+const ITEMS_BANKROLL_KEY = 'dofus-items-bankroll-v1'
+// Declared here rather than beside the other watchers near the top of the file:
+// a `watch` on a ref that has not been initialised yet is a temporal dead zone
+// error, and it took the whole page down with a 500 rather than failing where
+// it was written.
+watch(itemsBankroll, (value) => {
+  if (import.meta.client) localStorage.setItem(ITEMS_BANKROLL_KEY, String(value || 0))
+})
+/**
+ * Lines the last scan read but could not confidently assign to a stat.
+ *
+ * Surfaced rather than dropped: silently discarding an unreadable line is how
+ * a missing stat goes unnoticed until the valuation is already wrong.
+ */
+const ocrUnmatchedLines = ref<Array<{ raw: string; bestGuessKey: string; bestScore: number }>>([])
+/**
+ * Prices the last manual save refused as out of line with this item.
+ *
+ * Surfaced rather than dropped silently: a rejected candidate is usually a
+ * truncated read of a real listing, so it tells you the crop needs redoing.
+ */
+const ocrRejectedPrices = ref<number[]>([])
 const effectCache = ref<Record<string, CachedEffectEntry>>({})
-const itemStatPriorities = ref<Record<string, Record<string, number>>>({})
+const statPriorityProfiles = ref<PriorityProfiles>(emptyPriorityProfiles())
 const craftingSessionsPreview = ref<CraftFmSession[]>([])
 const craftingPickerState = ref<{
   isOpen: boolean
@@ -515,90 +606,17 @@ const craftingToast = ref<{ message: string; tone: 'success' | 'error' }>({
   tone: 'success',
 })
 let craftingToastTimer: ReturnType<typeof setTimeout> | null = null
-const observationStatOptions = [
-  { key: 'vitalite', label: 'Vitalité', suffix: '' },
-  { key: 'force', label: 'Force', suffix: '' },
-  { key: 'intelligence', label: 'Intelligence', suffix: '' },
-  { key: 'chance', label: 'Chance', suffix: '' },
-  { key: 'agilite', label: 'Agilité', suffix: '' },
-  { key: 'sagesse', label: 'Sagesse', suffix: '' },
-  { key: 'initiative', label: 'Initiative', suffix: '' },
-  { key: 'critique', label: 'Critique', suffix: '%' },
-  { key: 'dommages', label: 'Dommages', suffix: '' },
-  { key: 'dommages_critiques', label: 'Dommages Critiques', suffix: '' },
-  { key: 'resistance_critique', label: 'Résistance Critique', suffix: '' },
-  { key: 'pa', label: 'PA', suffix: '' },
-  { key: 'pm', label: 'PM', suffix: '' },
-  { key: 'po', label: 'PO', suffix: '' },
-  { key: 'invocation', label: 'Invocation', suffix: '' },
-  { key: 'dommages_neutre', label: 'Dommages Neutre', suffix: '' },
-  { key: 'dommages_terre', label: 'Dommages Terre', suffix: '' },
-  { key: 'dommages_feu', label: 'Dommages Feu', suffix: '' },
-  { key: 'dommages_eau', label: 'Dommages Eau', suffix: '' },
-  { key: 'dommages_air', label: 'Dommages Air', suffix: '' },
-  { key: 'prospection', label: 'Prospection', suffix: '' },
-  { key: 'resistance_air', label: 'Résistance Air', suffix: '%' },
-  { key: 'resistance_terre', label: 'Résistance Terre', suffix: '%' },
-  { key: 'resistance_feu', label: 'Résistance Feu', suffix: '%' },
-  { key: 'resistance_eau', label: 'Résistance Eau', suffix: '%' },
-  { key: 'resistance_neutre', label: 'Résistance Neutre', suffix: '%' },
-  { key: 'fuite', label: 'Fuite', suffix: '' },
-  { key: 'tacle', label: 'Tacle', suffix: '' },
-  { key: 'dommages_poussee', label: 'Dommages Poussée', suffix: '' },
-  { key: 'retrait_pa', label: 'Retrait PA', suffix: '' },
-  { key: 'retrait_pm', label: 'Retrait PM', suffix: '' },
-  { key: 'esquive_pa', label: 'Esquive PA', suffix: '' },
-  { key: 'esquive_pm', label: 'Esquive PM', suffix: '' },
-  { key: 'dommages_distance', label: 'Dommages Distance', suffix: '%' },
-  { key: 'dommages_melee', label: 'Dommages Melee', suffix: '%' },
-  { key: 'dommages_sort', label: 'Dommages Sort', suffix: '%' },
-  { key: 'arme_de_chasse', label: 'Arme de Chasse', suffix: '' },
-]
-const statPriorityPresets = [
-  { key: 'ignore', label: 'Ignore', multiplier: 0 },
-  { key: 'low', label: 'Low', multiplier: 0.75 },
-  { key: 'normal', label: 'Normal', multiplier: 1 },
-  { key: 'high', label: 'High', multiplier: 1.5 },
-  { key: 'critical', label: 'Critical', multiplier: 2 },
-]
-const observationStatWeightMap: Record<string, number> = {
-  vitalite: 1,
-  force: 1,
-  intelligence: 1,
-  chance: 1,
-  agilite: 1,
-  initiative: 0.4,
-  critique: 1.5,
-  dommages: 2.4,
-  dommages_critiques: 2.4,
-  resistance_critique: 1.8,
-  pa: 4,
-  pm: 4,
-  po: 3,
-  invocation: 2,
-  dommages_neutre: 1.4,
-  dommages_terre: 1.4,
-  dommages_feu: 1.4,
-  dommages_eau: 1.4,
-  dommages_air: 1.4,
-  prospection: 0.8,
-  resistance_air: 1.8,
-  resistance_terre: 1.8,
-  resistance_feu: 1.8,
-  resistance_eau: 1.8,
-  resistance_neutre: 1.8,
-  fuite: 1.3,
-  tacle: 1.3,
-  dommages_poussee: 2.2,
-  retrait_pa: 2.2,
-  retrait_pm: 2.2,
-  esquive_pa: 2.2,
-  esquive_pm: 2.2,
-  dommages_distance: 2.8,
-  dommages_melee: 2.8,
-  dommages_sort: 3,
-  arme_de_chasse: 2.5,
-}
+/**
+ * The stat picker's options, derived from the one catalogue rather than
+ * hand-maintained beside it. The two lists were byte-identical, but nothing
+ * kept them that way — a stat added to `statsOcrDefs` alone would have matched
+ * during OCR and then had no option to correct it to.
+ */
+const observationStatOptions = statsOcrDefs.map((def) => ({
+  key: def.key,
+  label: def.label,
+  suffix: def.suffix || '',
+}))
 const setFilter = (key: keyof typeof filters, val: string) => {
   filters[key] = val
   fetchData()
@@ -659,7 +677,10 @@ const readObservedPrices = (): Record<string, StoredObservedPriceEntry[]> => {
   if (!import.meta.client) return {}
 
   try {
+    // v2 added the sale-tracking fields. Fall back to the v1 store so an
+    // existing price history survives the upgrade untouched.
     const raw = localStorage.getItem(ITEM_OBSERVED_PRICES_KEY)
+      ?? localStorage.getItem(ITEM_OBSERVED_PRICES_KEY_V1)
     if (!raw) return {}
     const parsed = JSON.parse(raw)
     if (!parsed || typeof parsed !== 'object') return {}
@@ -675,9 +696,15 @@ const readObservedPrices = (): Record<string, StoredObservedPriceEntry[]> => {
               id: entry?.id,
               itemKey: entry?.itemKey,
               itemName: entry?.itemName,
+              // Absent on rows written before servers were recorded. Left
+              // empty rather than filled in with the server that happens to be
+              // selected now — an assumed provenance is still a fabrication,
+              // and unknown already means "comparable with anything".
+              serverId: typeof entry?.serverId === 'string' ? entry.serverId : '',
               price: entry?.price,
               createdAt: entry?.createdAt,
               source: entry?.source,
+              priceUnverified: entry?.priceUnverified === true,
               statsEntries: Array.isArray(entry?.statsEntries)
                 ? entry.statsEntries
                 : Array.isArray(entry?.statsLines)
@@ -692,7 +719,12 @@ const readObservedPrices = (): Record<string, StoredObservedPriceEntry[]> => {
                   : [],
               statsRawText: typeof entry?.statsRawText === 'string' ? entry.statsRawText : '',
               scanHash: typeof entry?.scanHash === 'string' ? entry.scanHash : '',
+              status: entry?.status,
+              firstSeenAt: entry?.firstSeenAt,
+              lastSeenAt: entry?.lastSeenAt,
+              signatureHash: entry?.signatureHash,
             }))
+            .map((entry: any) => migrateObservation(entry))
           : [],
       ])
     )
@@ -723,21 +755,56 @@ const writeEffectCache = (entries: Record<string, CachedEffectEntry>) => {
   localStorage.setItem(DOFUS_EFFECT_CACHE_KEY, JSON.stringify(entries))
 }
 
-const readItemStatPriorities = (): Record<string, Record<string, number>> => {
-  if (!import.meta.client) return {}
+/** Maps the v1 numeric multipliers onto the named priorities that replaced them. */
+const priorityFromLegacyMultiplier = (multiplier: number): StatPriority => {
+  if (multiplier <= 0) return 'ignore'
+  if (multiplier < 1) return 'low'
+  if (multiplier < 1.5) return 'normal'
+  if (multiplier < 2) return 'high'
+  return 'critical'
+}
+
+const readStatPriorityProfiles = (): PriorityProfiles => {
+  if (!import.meta.client) return emptyPriorityProfiles()
+
   try {
     const raw = localStorage.getItem(ITEM_STAT_PRIORITY_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' ? parsed : {}
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object') {
+        return {
+          global: parsed.global && typeof parsed.global === 'object' ? parsed.global : {},
+          byItem: parsed.byItem && typeof parsed.byItem === 'object' ? parsed.byItem : {},
+        }
+      }
+    }
+
+    // Nothing in v2 yet: carry across whatever the numeric v1 store held, so a
+    // user who tuned priorities before doesn't silently lose them.
+    const legacyRaw = localStorage.getItem(ITEM_STAT_PRIORITY_KEY_V1)
+    if (!legacyRaw) return emptyPriorityProfiles()
+    const legacy = JSON.parse(legacyRaw)
+    if (!legacy || typeof legacy !== 'object') return emptyPriorityProfiles()
+
+    const byItem: Record<string, Record<string, StatPriority>> = {}
+    for (const [itemKey, stats] of Object.entries(legacy as Record<string, Record<string, number>>)) {
+      if (!stats || typeof stats !== 'object') continue
+      const mapped: Record<string, StatPriority> = {}
+      for (const [statKey, multiplier] of Object.entries(stats)) {
+        if (typeof multiplier !== 'number' || multiplier === 1) continue
+        mapped[statKey] = priorityFromLegacyMultiplier(multiplier)
+      }
+      if (Object.keys(mapped).length) byItem[itemKey] = mapped
+    }
+    return { global: {}, byItem }
   } catch {
-    return {}
+    return emptyPriorityProfiles()
   }
 }
 
-const writeItemStatPriorities = (entries: Record<string, Record<string, number>>) => {
+const writeStatPriorityProfiles = (profiles: PriorityProfiles) => {
   if (!import.meta.client) return
-  localStorage.setItem(ITEM_STAT_PRIORITY_KEY, JSON.stringify(entries))
+  localStorage.setItem(ITEM_STAT_PRIORITY_KEY, JSON.stringify(profiles))
 }
 
 const ensureEffectLabels = async (effects: Array<{ effectId?: number; id?: number }> | null | undefined) => {
@@ -951,7 +1018,10 @@ const resolveCraftingItem = async (item: { name: string; rawItem?: any }) => {
   const exactMatch = results.find((entry: any) =>
     normalizeDofusdbSearch(entry?.name?.fr || entry?.name?.en || '') === normalizeDofusdbSearch(item.name),
   )
-  const matchedItem = exactMatch || results[0]
+  // Falling back to the first of several fuzzy hits picks an item that merely
+  // resembles this one, and its effects become the crafting target's stats. One
+  // candidate is an unambiguous answer; several without an exact hit is not.
+  const matchedItem = exactMatch || (results.length === 1 ? results[0] : null)
 
   if (!matchedItem?.id) {
     throw new Error(`Could not resolve "${item.name}" from DofusDB.`)
@@ -1063,16 +1133,6 @@ const baseSelectedItemObservations = computed(() => {
   return (observedPrices.value[key] || []).slice()
 })
 
-const parseObservationRange = (rangeText: string) => {
-  const numbers = rangeText.match(/-?\d+/g)?.map(Number) || []
-  if (!numbers.length) return null
-  if (numbers.length === 1) return { min: numbers[0], max: numbers[0] }
-  return {
-    min: Math.min(numbers[0], numbers[1]),
-    max: Math.max(numbers[0], numbers[1]),
-  }
-}
-
 
 const scrollSectionIntoView = async (getTarget: () => HTMLElement | null | undefined) => {
   await nextTick()
@@ -1174,6 +1234,35 @@ const currentItemPriorityOptions = computed(() => {
     }))
 })
 
+/**
+ * Whether this item's roll table is fully known yet.
+ *
+ * `currentItemEffectMappings` drops any effect whose definition has not arrived
+ * from the cache yet, so while those requests are in flight the item looks like
+ * it has fewer rolls than it does. Reading a tooltip against that partial
+ * vocabulary is how a real line ends up "unmatched" — or worse, gets claimed by
+ * the catalogue pass as some other stat entirely — and the resulting
+ * observation is wrong in a way no later capture corrects.
+ *
+ * So capture waits. An item whose schema is still loading is not ready to be
+ * read against, and a few hundred milliseconds is nothing next to a bad row.
+ */
+const currentItemSchemaReady = computed(() => {
+  const effects = recipeLookupState.value.data?.result?.effects
+  if (!Array.isArray(effects)) return false
+
+  // An approximate name match means DofusDB handed back an item that merely
+  // resembles this one. Its roll table is then somebody else's, and reading a
+  // tooltip against it produces confident nonsense. The page still shows what
+  // it found — the user can see the match is approximate and correct it — but
+  // capture does not run on a schema we are not sure belongs to this item.
+  if (recipeLookupState.value.confidence !== 'exact') return false
+
+  return effects
+    .filter((effect: any) => effect?.category !== WEAPON_ATTACK_EFFECT_CATEGORY)
+    .every((effect: any) => Boolean(effectCache.value[String(effect.effectId)]?.data))
+})
+
 const currentExpectedObservationStats = computed(() =>
   currentItemPriorityOptions.value.map((option) => {
     const statOption = observationStatOptions.find((entry) => entry.key === option.key)
@@ -1186,378 +1275,151 @@ const currentExpectedObservationStats = computed(() =>
   })
 )
 
-const getItemStatMultiplier = (statKey: string) => {
+const priceModelConfig = computed(() => defaultPriceModelConfig())
+
+/** The item's official roll bounds — what quality and requirements measure against. */
+const currentExpectedLines = computed<ExpectedLine[]>(() =>
+  currentItemPriorityOptions.value.map((option) => {
+    const range = parseObservationRange(option.rangeText)
+    return {
+      statKey: option.key,
+      label: option.label,
+      min: range?.min ?? 0,
+      max: range?.max ?? 0,
+    }
+  })
+)
+
+const getStatPriority = (statKey: string): StatPriority => {
   const itemKey = currentItemKey.value
-  if (!itemKey) return 1
-  return itemStatPriorities.value[itemKey]?.[statKey] ?? 1
+  return statPriorityProfiles.value.byItem[itemKey]?.[statKey]
+    ?? statPriorityProfiles.value.global[statKey]
+    ?? 'normal'
 }
 
-const setItemStatMultiplier = (statKey: string, multiplier: number) => {
+const setStatPriority = (statKey: string, priority: StatPriority) => {
   const itemKey = currentItemKey.value
   if (!itemKey) return
-  const next = {
-    ...itemStatPriorities.value,
-    [itemKey]: {
-      ...(itemStatPriorities.value[itemKey] || {}),
-      [statKey]: multiplier,
+
+  const next: PriorityProfiles = {
+    global: { ...statPriorityProfiles.value.global },
+    byItem: {
+      ...statPriorityProfiles.value.byItem,
+      [itemKey]: {
+        ...(statPriorityProfiles.value.byItem[itemKey] || {}),
+        [statKey]: priority,
+      },
     },
   }
-  itemStatPriorities.value = next
-  writeItemStatPriorities(next)
+  statPriorityProfiles.value = next
+  writeStatPriorityProfiles(next)
 }
 
-const computeObservationRangeProgress = (value: number, range: { min: number; max: number }) => {
-  if (range.max <= range.min) {
-    return value >= range.max ? 1 + Math.max(0, value - range.max) : Math.max(0, value)
-  }
-
-  if (value <= range.min) {
-    return Math.max(0, (value - range.min) / (range.max - range.min))
-  }
-
-  const span = range.max - range.min
-  const cappedProgress = Math.min(1, (value - range.min) / span)
-  const overmageProgress = value > range.max ? (value - range.max) / span : 0
-  return cappedProgress + overmageProgress
+const clearStatPriorities = () => {
+  const itemKey = currentItemKey.value
+  if (!itemKey) return
+  const byItem = { ...statPriorityProfiles.value.byItem }
+  delete byItem[itemKey]
+  const next: PriorityProfiles = { global: { ...statPriorityProfiles.value.global }, byItem }
+  statPriorityProfiles.value = next
+  writeStatPriorityProfiles(next)
 }
 
-const computeObservationStatContribution = (entry: StoredObservedPriceEntry['statsEntries'][number], index: number) => {
-  const value = entry.value
-  const range = parseObservationRange(entry.rangeText)
-  const weight = (observationStatWeightMap[entry.key] ?? 1) * getItemStatMultiplier(entry.key)
-  const progress = value === null || value === undefined
-    ? 0
-    : range
-      ? computeObservationRangeProgress(value, range)
-      : 1
-  const overmageAmount = value !== null && value !== undefined && range && value > range.max
-    ? value - range.max
-    : 0
-
-  return {
-    index,
-    key: entry.key,
-    label: entry.label,
-    value,
-    suffix: entry.suffix || '',
-    rangeText: entry.rangeText || '',
-    weight,
-    progress,
-    overmageAmount,
-    contribution: weight > 0 ? progress * weight : 0,
-  }
-}
-
-const computeObservationScore = (observation: StoredObservedPriceEntry) => {
-  return observation.statsEntries.reduce((sum, entry) => {
-    if (entry.value === null || entry.value === undefined) return sum
-    const range = parseObservationRange(entry.rangeText)
-    const weight = (observationStatWeightMap[entry.key] ?? 1) * getItemStatMultiplier(entry.key)
-
-    if (weight <= 0) return sum
-
-    if (!range) return sum + weight
-
-    const normalized = computeObservationRangeProgress(entry.value, range)
-
-    return sum + normalized * weight
-  }, 0)
-}
-
-const observationHasUsableStats = (observation: StoredObservedPriceEntry) =>
-  computeObservationScore(observation) > 0
-
-const medianOf = (values: number[]) => {
-  if (!values.length) return 0
-  const sorted = values.slice().sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  if (sorted.length % 2 === 0) {
-    return (sorted[mid - 1] + sorted[mid]) / 2
-  }
-  return sorted[mid]
-}
-
-const roundRelistPrice = (value: number) => {
-  const rounded = Math.max(0, Math.round(value))
-  if (rounded <= 1000) return rounded
-  return rounded - 1
-}
-
-const pickScoreComparablePeers = <
-  T extends { id: string; score: number }
->(entry: T, peers: T[]) => {
-  if (peers.length <= 3) return peers
-
-  return peers
-    .slice()
-    .sort((a, b) => {
-      const distanceA = Math.abs(a.score - entry.score)
-      const distanceB = Math.abs(b.score - entry.score)
-      if (distanceA !== distanceB) return distanceA - distanceB
-      return b.score - a.score
-    })
-    .slice(0, 3)
-}
-
-const getObservationEntriesByKey = (observation: StoredObservedPriceEntry) => {
-  const statsMap = new Map<string, StoredObservedPriceEntry['statsEntries'][number]>()
-  observation.statsEntries.forEach((entry) => {
-    if (entry.value === null || entry.value === undefined || Number.isNaN(Number(entry.value))) return
-    statsMap.set(entry.key, entry)
-  })
-  return statsMap
-}
-
-const computeObservationComparableDistance = (
-  target: StoredObservedPriceEntry,
-  peer: StoredObservedPriceEntry,
-) => {
-  const targetStats = getObservationEntriesByKey(target)
-  const peerStats = getObservationEntriesByKey(peer)
-  const keys = new Set([...targetStats.keys(), ...peerStats.keys()])
-
-  if (!keys.size) {
+/**
+ * The priority strip the user actually edits, one row per official roll line,
+ * each stating in words what the current setting demands.
+ */
+const statPriorityRows = computed(() =>
+  currentExpectedLines.value.map((line) => {
+    const priority = getStatPriority(line.statKey)
     return {
-      distance: Number.POSITIVE_INFINITY,
-      overlapRatio: 0,
-      comparableCount: 0,
-    }
-  }
-
-  let weightedDistance = 0
-  let totalWeight = 0
-  let overlapCount = 0
-
-  keys.forEach((key) => {
-    const weight = (observationStatWeightMap[key] ?? 1) * getItemStatMultiplier(key)
-    if (weight <= 0) return
-    const missingPenaltyMultiplier = specialMageStatKeys.has(key) ? 2 : 1.15
-
-    const targetEntry = targetStats.get(key)
-    const peerEntry = peerStats.get(key)
-
-    if (!targetEntry || !peerEntry) {
-      weightedDistance += weight * missingPenaltyMultiplier
-      totalWeight += weight
-      return
-    }
-
-    overlapCount += 1
-    totalWeight += weight
-
-    const targetRange = parseObservationRange(targetEntry.rangeText)
-    const peerRange = parseObservationRange(peerEntry.rangeText)
-    const targetValue = Number(targetEntry.value)
-    const peerValue = Number(peerEntry.value)
-
-    if (targetRange && peerRange) {
-      const targetProgress = computeObservationRangeProgress(targetValue, targetRange)
-      const peerProgress = computeObservationRangeProgress(peerValue, peerRange)
-      weightedDistance += Math.abs(targetProgress - peerProgress) * weight
-      return
-    }
-
-    const denom = Math.max(Math.abs(targetValue), Math.abs(peerValue), 1)
-    weightedDistance += (Math.abs(targetValue - peerValue) / denom) * weight
-  })
-
-  if (totalWeight <= 0) {
-    return {
-      distance: Number.POSITIVE_INFINITY,
-      overlapRatio: 0,
-      comparableCount: 0,
-    }
-  }
-
-  const overlapRatio = overlapCount / Math.max(keys.size, 1)
-  const normalizedDistance = weightedDistance / totalWeight
-  const coveragePenalty = overlapRatio < 0.5 ? (0.5 - overlapRatio) * 1.5 : 0
-
-  return {
-    distance: normalizedDistance + coveragePenalty,
-    overlapRatio,
-    comparableCount: overlapCount,
-  }
-}
-
-const buildRelistTargets = (entryPrice: number, fairValue: number, peerPrices: number[]) => {
-  const sortedHigherPeers = peerPrices
-    .filter((price) => price > entryPrice)
-    .sort((a, b) => a - b)
-  const nearestHigherPeer = sortedHigherPeers[0]
-  const highestPeer = peerPrices.slice().sort((a, b) => b - a)[0]
-  const quickRelist = nearestHigherPeer
-    ? roundRelistPrice(nearestHigherPeer)
-    : roundRelistPrice(Math.max(fairValue * 0.98, entryPrice))
-  const fairRelist = roundRelistPrice(Math.max(fairValue, entryPrice))
-  const greedyRelist = roundRelistPrice(
-    Math.max(
-      nearestHigherPeer ? Math.min(highestPeer || fairValue, nearestHigherPeer * 1.02) : fairValue * 1.05,
-      fairRelist,
-    )
-  )
-
-  return {
-    quickRelist,
-    fairRelist,
-    greedyRelist,
-  }
-}
-
-const computeScoreModelValuation = (
-  entry: StoredObservedPriceEntry & { score: number },
-  allPeers: Array<StoredObservedPriceEntry & { score: number }>,
-) => {
-  const peers = pickScoreComparablePeers(entry, allPeers.filter((candidate) => candidate.score > 0))
-  if (!peers.length) return null
-
-  const referencePricePerPoint = medianOf(
-    peers.map((peer) => peer.price / peer.score).filter((value) => Number.isFinite(value) && value > 0),
-  )
-
-  if (!referencePricePerPoint) return null
-
-  const fairValue = Math.round(entry.score * referencePricePerPoint)
-  const relists = buildRelistTargets(entry.price, fairValue, peers.map((peer) => peer.price))
-
-  return {
-    modelUsed: 'score' as const,
-    id: entry.id,
-    price: entry.price,
-    score: entry.score,
-    fairValue,
-    delta: entry.price - fairValue,
-    referencePricePerPoint,
-    comparableCount: peers.length,
-    medianPeerDistance: medianOf(peers.map((peer) => Math.abs(peer.score - entry.score))),
-    peerMetricLabel: t('items.detail.valuation.peerMetric.pricePerPoint'),
-    peerMetricKind: 'currency' as const,
-    peerMetricValues: Object.fromEntries(peers.map((peer) => [peer.id, peer.price / peer.score])),
-    peers: peers.map((peer) => ({
-      ...peer,
-      distance: Math.abs(peer.score - entry.score),
-    })),
-    ...relists,
-  }
-}
-
-const computeComparableModelValuation = (
-  entry: StoredObservedPriceEntry & { score: number },
-  allPeers: Array<StoredObservedPriceEntry & { score: number }>,
-) => {
-  const peerDistances = allPeers
-    .map((peer) => ({
-      peer,
-      ...computeObservationComparableDistance(entry, peer),
-    }))
-    .filter((candidate) => Number.isFinite(candidate.distance) && candidate.overlapRatio >= 0.35)
-    .sort((a, b) => a.distance - b.distance)
-
-  const peers = peerDistances.slice(0, 4)
-  if (peers.length < 2) return null
-
-  const localReferencePricePerPoint = medianOf(
-    peers.map(({ peer }) => peer.price / peer.score).filter((value) => Number.isFinite(value) && value > 0),
-  )
-  const weightedAdjustedPrices = peers.map(({ peer, distance }) => {
-    const closenessWeight = 1 / Math.max(0.2, distance + 0.05)
-    const scoreAdjustment = localReferencePricePerPoint
-      ? (entry.score - peer.score) * localReferencePricePerPoint * 0.5
-      : 0
-    return {
-      peer,
-      distance,
-      closenessWeight,
-      adjustedPrice: Math.max(0, peer.price + scoreAdjustment),
+      ...line,
+      priority,
+      requirement: describeRequirement(line, priority),
+      isGating: priority === 'high' || priority === 'critical',
     }
   })
+)
 
-  const weightSum = weightedAdjustedPrices.reduce((sum, candidate) => sum + candidate.closenessWeight, 0)
-  if (weightSum <= 0) return null
-
-  const fairValue = Math.round(
-    weightedAdjustedPrices.reduce((sum, candidate) => sum + candidate.adjustedPrice * candidate.closenessWeight, 0)
-    / weightSum,
-  )
-  const relists = buildRelistTargets(entry.price, fairValue, peers.map(({ peer }) => peer.price))
-
-  return {
-    modelUsed: 'comparables' as const,
-    id: entry.id,
-    price: entry.price,
-    score: entry.score,
-    fairValue,
-    delta: entry.price - fairValue,
-    referencePricePerPoint: localReferencePricePerPoint,
-    comparableCount: peers.length,
-    medianPeerDistance: medianOf(peers.map((candidate) => candidate.distance)),
-    peerMetricLabel: t('items.detail.valuation.peerMetric.adjustedPrice'),
-    peerMetricKind: 'currency' as const,
-    peerMetricValues: Object.fromEntries(weightedAdjustedPrices.map((candidate) => [candidate.peer.id, candidate.adjustedPrice])),
-    peers: peers.map(({ peer, distance, overlapRatio }) => ({
-      ...peer,
-      distance,
-      overlapRatio,
-    })),
-    ...relists,
-  }
-}
-
-const allObservedValuations = computed(() => {
-  const withScores = baseSelectedItemObservations.value
-    .map((entry) => ({
-      ...entry,
-      score: computeObservationScore(entry),
-    }))
-    .filter((entry) => entry.score > 0)
-
-  if (withScores.length < 2) return []
-
-  return withScores.map((entry) => {
-    const allPeers = withScores.filter((candidate) => candidate.id !== entry.id && candidate.score > 0)
-    const scoreValuation = computeScoreModelValuation(entry, allPeers)
-    const comparableValuation = computeComparableModelValuation(entry, allPeers)
-
-    const activeValuation = valuationMode.value === 'score'
-      ? scoreValuation
-      : valuationMode.value === 'comparables'
-        ? comparableValuation
-        : comparableValuation && comparableValuation.comparableCount >= 2 && comparableValuation.medianPeerDistance <= 0.7
-          ? comparableValuation
-          : scoreValuation
-
-    if (activeValuation) return activeValuation
-
-    return {
-      modelUsed: 'score' as const,
-      id: entry.id,
-      price: entry.price,
-      score: entry.score,
-      fairValue: entry.price,
-      delta: 0,
-      quickRelist: entry.price,
-      fairRelist: entry.price,
-      greedyRelist: entry.price,
-      referencePricePerPoint: 0,
-      comparableCount: 0,
-      medianPeerDistance: Number.POSITIVE_INFINITY,
-      peerMetricLabel: t('items.detail.valuation.peerMetric.pricePerPoint'),
-      peerMetricKind: 'currency' as const,
-      peerMetricValues: {},
-      peers: [],
-    }
+/** Everything the engine knows about the captured listings for this item. */
+const valuationRun = computed(() =>
+  valueObservations({
+    observations: baseSelectedItemObservations.value as any,
+    expectedLines: currentExpectedLines.value,
+    profiles: statPriorityProfiles.value,
+    itemKey: currentItemKey.value,
+    config: priceModelConfig.value,
+    // Separate economies. A listing from another server is not evidence here.
+    serverId: selectedServer.value?.id ? String(selectedServer.value.id) : '',
+    // Zero means "not told", and the engine returns no plan rather than
+    // pretending an unconstrained ranking is one.
+    bankroll: itemsBankroll.value,
   })
+)
+
+const valuationById = computed(() => {
+  const map: Record<string, ValuedObservation> = {}
+  for (const result of valuationRun.value.results) map[result.observation.id] = result
+  return map
 })
+
+/**
+ * Adapter onto the row shape the observed-price components render.
+ *
+ * `delta` is kept as the legacy signed gap so existing bindings keep working,
+ * but every decision now hangs off `netProfit` and `isDeal` — a positive gap
+ * that doesn't survive the sale tax and the segment's own price scatter is not
+ * a deal, and that distinction is what stopped the page crying wolf.
+ */
+const allObservedValuations = computed(() =>
+  valuationRun.value.results
+    .filter((result) => result.valuation)
+    .map((result) => {
+      const valuation = result.valuation!
+      return {
+        id: result.observation.id,
+        price: result.observation.price,
+        score: result.score,
+        fairValue: valuation.fairValue,
+        delta: result.observation.price - valuation.fairValue,
+        netProfit: result.netProfit,
+        netAtQuick: valuation.netAtQuick,
+        netAtGreedy: valuation.netAtGreedy,
+        marginPercent: valuation.marginPercent,
+        edgeRatio: valuation.edgeRatio,
+        isDeal: valuation.isDeal,
+        quickRelist: valuation.relists.quickRelist,
+        fairRelist: valuation.relists.fairRelist,
+        greedyRelist: valuation.relists.greedyRelist,
+        modelUsed: valuation.curve.kind,
+        comparableCount: result.peerIds.length,
+        peerScope: result.peerScope,
+        segment: result.segment,
+        confidence: result.confidence,
+        requirementsPassed: result.requirements.passed,
+        requirementSummary: summariseFailures(result.requirements),
+        daysOnMarket: result.daysOnMarket,
+        status: result.observation.status,
+        peers: result.peerIds
+          .map((peerId) => valuationById.value[peerId])
+          .filter((peer): peer is ValuedObservation => Boolean(peer))
+          .map((peer) => ({
+            id: peer.observation.id,
+            price: peer.observation.price,
+            score: peer.score,
+            distance: Math.abs(peer.score - result.score),
+          })),
+      }
+    })
+)
 
 const allObservedValuationMap = computed(() =>
   Object.fromEntries(allObservedValuations.value.map((row) => [row.id, row]))
 )
 
-const bestBuyObservationId = computed(() => {
-  const undervalued = allObservedValuations.value.filter((row) => row.delta < 0)
-  if (!undervalued.length) return ''
-  return undervalued.slice().sort((a, b) => a.delta - b.delta)[0]?.id || ''
-})
+const bestBuyObservationId = computed(() =>
+  valuationRun.value.results.find((result) => result.badges.includes('best-buy'))?.observation.id || ''
+)
 
 const bestBuyObservation = computed(() => {
   const id = bestBuyObservationId.value
@@ -1569,142 +1431,84 @@ const bestBuyObservation = computed(() => {
 
 const selectedItemObservations = computed(() => {
   const rows = baseSelectedItemObservations.value.slice()
+  const newestFirst = (a: StoredObservedPriceEntry, b: StoredObservedPriceEntry) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
 
   return rows.sort((a, b) => {
     if (observedSortMode.value === 'price_asc') {
       if (a.price !== b.price) return a.price - b.price
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      return newestFirst(a, b)
     }
 
     if (observedSortMode.value === 'price_desc') {
       if (b.price !== a.price) return b.price - a.price
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      return newestFirst(a, b)
     }
 
-    if (observedSortMode.value === 'delta') {
-      const deltaA = allObservedValuationMap.value[a.id]?.delta ?? Number.POSITIVE_INFINITY
-      const deltaB = allObservedValuationMap.value[b.id]?.delta ?? Number.POSITIVE_INFINITY
-      if (deltaA !== deltaB) return deltaA - deltaB
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    if (observedSortMode.value === 'quality') {
+      const qualityA = valuationById.value[a.id]?.score ?? 0
+      const qualityB = valuationById.value[b.id]?.score ?? 0
+      if (qualityA !== qualityB) return qualityB - qualityA
+      return newestFirst(a, b)
     }
 
-    if (observedSortMode.value === 'best_buy') {
-      const bestId = bestBuyObservationId.value
-      if (a.id === bestId && b.id !== bestId) return -1
-      if (b.id === bestId && a.id !== bestId) return 1
-
-      const deltaA = allObservedValuationMap.value[a.id]?.delta ?? Number.POSITIVE_INFINITY
-      const deltaB = allObservedValuationMap.value[b.id]?.delta ?? Number.POSITIVE_INFINITY
-      if (deltaA !== deltaB) return deltaA - deltaB
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    // Both the profit sort and best-buy rank on what the flip actually nets;
+    // unpriced rows sink rather than floating on a default of zero.
+    if (observedSortMode.value === 'net_profit' || observedSortMode.value === 'best_buy') {
+      const netA = valuationById.value[a.id]?.valuation ? valuationById.value[a.id]!.netProfit : -Infinity
+      const netB = valuationById.value[b.id]?.valuation ? valuationById.value[b.id]!.netProfit : -Infinity
+      if (netA !== netB) return netB - netA
+      return newestFirst(a, b)
     }
 
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    return newestFirst(a, b)
   })
 })
 
-const displayedObservedValuations = computed(() => {
-  return showOnlyUndervaluedListings.value
-    ? allObservedValuations.value.filter((row) => row.delta < 0)
+const displayedObservedValuations = computed(() =>
+  showOnlyUndervaluedListings.value
+    ? allObservedValuations.value.filter((row) => row.isDeal && row.requirementsPassed)
     : allObservedValuations.value
-})
+)
 
 const valuationModeSummary = computed(() => {
-  if (valuationMode.value === 'score') {
-    return t('items.detail.valuation.modeSummary.score')
-  }
+  const summary = valuationRun.value.summary
+  const requirements = summary.requirementsInForce
+    .map((entry) => `${entry.label} ≥ ${entry.needs}`)
+    .join(', ')
 
-  if (valuationMode.value === 'comparables') {
-    return t('items.detail.valuation.modeSummary.comparables')
-  }
-
-  return t('items.detail.valuation.modeSummary.auto')
+  return [
+    t('items.detail.valuation.summary.counts', {
+      total: summary.total,
+      candidates: summary.candidates,
+      segments: summary.segments,
+    }),
+    summary.belowRequirement
+      ? t('items.detail.valuation.summary.rejected', { count: summary.belowRequirement })
+      : '',
+    requirements ? t('items.detail.valuation.summary.requirements', { requirements }) : '',
+    summary.clearedSamples
+      ? t('items.detail.valuation.summary.cleared', { count: summary.clearedSamples })
+      : t('items.detail.valuation.summary.asksOnly'),
+  ].filter(Boolean).join(' · ')
 })
 
-const medianAbsoluteDeviation = (values: number[]) => {
-  if (!values.length) return 0
-  const center = medianOf(values)
-  const deviations = values.map((value) => Math.abs(value - center))
-  return medianOf(deviations)
-}
-
+/**
+ * Item-level confidence: the weakest reading among the listings that are
+ * actually priced, so the header can't advertise more certainty than the rows.
+ */
 const valuationConfidence = computed(() => {
-  const rows = allObservedValuations.value
-  const sample = rows.length
-  const expectedStats = currentItemPriorityOptions.value.length || 0
+  const priced = valuationRun.value.results.filter((result) => result.valuation)
+  const summary = valuationRun.value.summary
 
-  if (!sample) {
-    return {
-      level: 'low' as const,
-      label: t('items.detail.valuation.confidence.low'),
-      details: t('items.detail.valuation.confidence.noUsable'),
-    }
-  }
-
-  const completenessScores = selectedItemObservations.value
-    .map((observation) => {
-      if (!observationHasUsableStats(observation)) return 0
-      if (!expectedStats) return 1
-
-      const matchedStats = observation.statsEntries.filter((entry) =>
-        currentItemPriorityOptions.value.some((option) => option.key === entry.key) &&
-        entry.value !== null &&
-        entry.value !== undefined
-      ).length
-
-      return Math.min(1, matchedStats / expectedStats)
-    })
-    .filter((value) => value > 0)
-
-  const avgCompleteness = completenessScores.length
-    ? completenessScores.reduce((sum, value) => sum + value, 0) / completenessScores.length
-    : 0
-
-  const avgComparableCount = rows.reduce((sum, row) => sum + (row.comparableCount ?? 0), 0) / sample
-  const comparableRows = rows.filter((row) => row.modelUsed === 'comparables')
-  const comparableCoverage = comparableRows.length / Math.max(sample, 1)
-  const priceRatios = rows
-    .map((row) => row.referencePricePerPoint)
-    .filter((value) => Number.isFinite(value) && value > 0)
-  const priceSpreadRatio = priceRatios.length > 1
-    ? medianAbsoluteDeviation(priceRatios) / Math.max(medianOf(priceRatios), 1)
-    : 1
-  const medianPeerDistance = medianOf(
-    comparableRows
-      .map((row) => row.medianPeerDistance)
-      .filter((value) => Number.isFinite(value) && value >= 0),
-  )
-
-  let score = 0
-
-  if (sample >= 6) score += 2
-  else if (sample >= 4) score += 1
-
-  if (avgComparableCount >= 3) score += 2
-  else if (avgComparableCount >= 2) score += 1
-
-  if (avgCompleteness >= 0.9) score += 2
-  else if (avgCompleteness >= 0.7) score += 1
-
-  if (valuationMode.value === 'comparables') {
-    if (medianPeerDistance <= 0.3) score += 2
-    else if (medianPeerDistance <= 0.55) score += 1
-  } else if (valuationMode.value === 'auto') {
-    if (comparableCoverage >= 0.75) score += 2
-    else if (comparableCoverage >= 0.4) score += 1
-  } else {
-    if (priceSpreadRatio <= 0.08) score += 2
-    else if (priceSpreadRatio <= 0.18) score += 1
-  }
-
-  const level =
-    score >= 7 ? 'high'
-      : score >= 4 ? 'medium'
-        : 'low'
-
-  const completenessPct = Math.round(avgCompleteness * 100)
-  const spreadPct = Math.round(priceSpreadRatio * 100)
-  const coveragePct = Math.round(comparableCoverage * 100)
+  const level = !priced.length
+    ? 'low' as const
+    : priced.some((result) => result.confidence === 'high')
+      && !priced.some((result) => result.confidence === 'low')
+      ? 'high' as const
+      : priced.some((result) => result.confidence !== 'low')
+        ? 'medium' as const
+        : 'low' as const
 
   return {
     level,
@@ -1713,50 +1517,48 @@ const valuationConfidence = computed(() => {
       : level === 'medium'
         ? t('items.detail.valuation.confidence.medium')
         : t('items.detail.valuation.confidence.low'),
-    details: valuationMode.value === 'comparables'
-      ? t('items.detail.valuation.confidence.detailsComparables', {
-        sample,
-        avg: avgComparableCount.toFixed(1),
-        coverage: completenessPct,
-        distance: medianPeerDistance.toFixed(2),
+    details: priced.length
+      ? t('items.detail.valuation.confidence.details', {
+        priced: priced.length,
+        total: summary.total,
+        cleared: summary.clearedSamples,
+        segments: summary.segments,
       })
-      : valuationMode.value === 'auto'
-        ? t('items.detail.valuation.confidence.detailsAuto', {
-          sample,
-          avg: avgComparableCount.toFixed(1),
-          coverage: completenessPct,
-          comparableCoverage: coveragePct,
-        })
-        : t('items.detail.valuation.confidence.detailsScore', {
-          sample,
-          avg: avgComparableCount.toFixed(1),
-          coverage: completenessPct,
-          spread: spreadPct,
-        }),
+      : t('items.detail.valuation.confidence.noUsable'),
   }
 })
 
 const getObservationBadges = (observation: StoredObservedPriceEntry) => {
   const badges: Array<{ label: string; tone: 'good' | 'bad' | 'warn' | 'neutral' }> = []
-  const valuation = allObservedValuationMap.value[observation.id]
+  const result = valuationById.value[observation.id]
+  if (!result) return badges
 
-  if (!observationHasUsableStats(observation)) {
-    badges.push({ label: t('items.detail.observed.badges.missingStats'), tone: 'warn' })
+  if (result.badges.includes('below-requirement')) {
+    badges.push({
+      label: t('items.detail.observed.badges.belowRequirement'),
+      tone: 'warn',
+    })
   }
 
-  if (valuation) {
-    if (valuation.delta < 0) {
-      badges.push({ label: t('items.detail.observed.badges.underpriced'), tone: 'good' })
-    } else if (valuation.delta > 0) {
-      badges.push({ label: t('items.detail.observed.badges.overpriced'), tone: 'bad' })
-    }
-
-    if (bestBuyObservationId.value === observation.id) {
-      badges.push({ label: t('items.detail.observed.badges.bestBuy'), tone: 'good' })
-    }
+  if (result.badges.includes('best-buy')) {
+    badges.push({ label: t('items.detail.observed.badges.bestBuy'), tone: 'good' })
   }
 
-  if (valuationConfidence.value.level === 'low') {
+  if (result.badges.includes('underpriced')) {
+    badges.push({ label: t('items.detail.observed.badges.underpriced'), tone: 'good' })
+  } else if (result.valuation && result.netProfit < 0) {
+    badges.push({ label: t('items.detail.observed.badges.overpriced'), tone: 'bad' })
+  }
+
+  if (result.observation.status === 'sold') {
+    badges.push({ label: t('items.detail.observed.badges.sold'), tone: 'neutral' })
+  } else if (result.observation.status === 'relisted') {
+    badges.push({ label: t('items.detail.observed.badges.relisted'), tone: 'warn' })
+  }
+
+  if (result.badges.includes('unpriced')) {
+    badges.push({ label: t('items.detail.observed.badges.unpriced'), tone: 'neutral' })
+  } else if (result.badges.includes('low-confidence')) {
     badges.push({ label: t('items.detail.valuation.confidence.low'), tone: 'neutral' })
   }
 
@@ -1827,49 +1629,62 @@ const selectedObservationValuationExplanation = computed(() => {
   const observation = selectedObservationDetail.value
   if (!observation) return null
 
-  const score = computeObservationScore(observation)
-  if (score <= 0) return null
+  const result = valuationById.value[observation.id]
+  if (!result?.valuation) return null
 
-  const withScores = baseSelectedItemObservations.value
-    .map((entry) => ({
-      ...entry,
-      score: computeObservationScore(entry),
-    }))
-    .filter((entry) => entry.score > 0)
-
-  const allPeers = withScores.filter((candidate) => candidate.id !== observation.id)
-  const scoreValuation = computeScoreModelValuation({ ...observation, score }, allPeers)
-  const comparableValuation = computeComparableModelValuation({ ...observation, score }, allPeers)
-  const valuation = valuationMode.value === 'score'
-    ? scoreValuation
-    : valuationMode.value === 'comparables'
-      ? comparableValuation
-      : comparableValuation && comparableValuation.comparableCount >= 2 && comparableValuation.medianPeerDistance <= 0.7
-        ? comparableValuation
-        : scoreValuation
-  if (!valuation) return null
-
-  const contributions = observation.statsEntries.map((entry, index) => computeObservationStatContribution(entry, index))
+  const valuation = result.valuation
+  const row = allObservedValuationMap.value[observation.id]
 
   return {
-    score: valuation.score,
+    score: result.score,
     fairValue: valuation.fairValue,
-    delta: valuation.delta,
-    referencePricePerPoint: valuation.referencePricePerPoint,
-    methodLabel: valuation.modelUsed === 'comparables' ? t('items.detail.valuation.models.comparables') : t('items.detail.valuation.models.score'),
-    referenceLabel: valuation.modelUsed === 'comparables' ? t('items.detail.valuation.reference.medianDistance') : t('items.detail.valuation.reference.referencePerPoint'),
-    referenceDisplay: valuation.modelUsed === 'comparables'
-      ? valuation.medianPeerDistance.toFixed(2)
-      : formatKamasFull(Math.round(valuation.referencePricePerPoint)),
-    peerMetricLabel: valuation.peerMetricLabel,
-    contributions,
-    peers: valuation.peers.map((peer) => ({
+    delta: row?.delta ?? 0,
+    netProfit: result.netProfit,
+    marginPercent: valuation.marginPercent,
+    edgeRatio: valuation.edgeRatio,
+    isDeal: valuation.isDeal,
+    requirementsPassed: result.requirements.passed,
+    requirementFailures: result.requirements.failures,
+    segment: result.segment,
+    confidence: result.confidence,
+    exoBoost: result.quality.exoBoost,
+    overBoost: result.quality.overBoost,
+    baseQuality: result.quality.baseQuality,
+    methodLabel: valuation.curve.kind === 'fitted'
+      ? t('items.detail.valuation.models.fitted')
+      : t('items.detail.valuation.models.anchored'),
+    referenceLabel: t('items.detail.valuation.reference.curve'),
+    referenceDisplay: t('items.detail.valuation.reference.curveValue', {
+      kappa: valuation.curve.kappa.toFixed(2),
+      samples: valuation.curve.sampleCount,
+      cleared: valuation.curve.clearedCount,
+    }),
+    peerScopeLabel: t(`items.detail.valuation.peerScope.${result.peerScope}`),
+    peerMetricLabel: t('items.detail.valuation.peerMetric.quality'),
+    // One row per rolled line: where it landed in its range, what the user's
+    // priority demanded of it, and how much of the score it actually carried.
+    contributions: result.quality.lines.map((line, index) => ({
+      index,
+      key: line.statKey,
+      label: line.label,
+      value: line.value,
+      suffix: observation.statsEntries.find((entry) => entry.key === line.statKey)?.suffix || '',
+      rangeText: line.span > 0 ? `[${line.min} à ${line.max}]` : `[${line.max}]`,
+      weight: line.weight,
+      progress: line.qEff,
+      tier: line.tier,
+      deficit: line.deficit,
+      priority: line.priority,
+      requirement: describeRequirement(line, line.priority),
+      overmageAmount: line.overmageAmount,
+      isExo: line.isExo,
+      contribution: line.contribution,
+    })),
+    peers: (row?.peers ?? []).map((peer) => ({
       id: peer.id,
       price: peer.price,
       score: peer.score,
-      metricDisplay: valuation.peerMetricKind === 'currency'
-        ? formatKamasFull(Math.round(valuation.peerMetricValues[peer.id] ?? 0))
-        : String(valuation.peerMetricValues[peer.id] ?? t('items.detail.common.emptyValue')),
+      metricDisplay: peer.score.toFixed(2),
       distance: peer.distance,
     })),
   }
@@ -1914,7 +1729,17 @@ const fetchResolvedRecipe = async (item: { name: string }, options: { forceRefre
       },
     })
 
-    const matchedItem = searchResponse?.data?.[0]
+    // Prefer the item that actually bears this name.
+    //
+    // `$search` is fuzzy and `$sort: -id` orders by recency, so taking the first
+    // row meant the newest *similar* item won — and that item's effects then
+    // became the roll table the OCR decodes against and the valuation measures
+    // quality with. A wrong schema is not a cosmetic mismatch: every stat read
+    // through it is scored against the wrong bounds.
+    const results: any[] = Array.isArray(searchResponse?.data) ? searchResponse.data : []
+    const exactMatch = results.find((entry: any) =>
+      normalizeDofusdbSearch(entry?.name?.fr || entry?.name?.en || '') === normalizedName)
+    const matchedItem = exactMatch || results[0]
 
     if (!matchedItem?.id) {
       throw new Error(t('items.detail.recipe.errors.resolveFailed', { name: item.name }))
@@ -2212,14 +2037,49 @@ const processStatsScreenshotImage = async (imageBase64: string, observationId: s
       error: '',
     }
 
-    const result = await runStatsOcr(imageBase64)
+    // The item's own roll table is the vocabulary the matcher decodes against —
+    // deciding between ~5 known lines beats reading arbitrary French correctly.
+    const result = await runStatsOcr(imageBase64, currentExpectedLines.value.map((line) => ({
+      statKey: line.statKey,
+      label: line.label,
+      min: line.min,
+      max: line.max,
+      suffix: observationStatOptions.find((option) => option.key === line.statKey)?.suffix || '',
+    })))
+
+    ocrUnmatchedLines.value = result.unmatched
+
+    // A rescan that read nothing must not erase what is already there.
+    //
+    // This replaced `statsEntries` wholesale, so a scan that "succeeded" with
+    // zero matched lines — a mis-crop, a tooltip that had not opened yet —
+    // silently wiped stats the user had hand-corrected, with no undo. Reading
+    // nothing is not evidence that the item has nothing.
+    if (!result.entries.length) {
+      statsOcrState.value = {
+        isLoading: false,
+        error: t('items.detail.ocr.errors.statsEmpty'),
+      }
+      return
+    }
 
     updateObservationEntries(itemKey, (entry) =>
       entry.id === observationId
         ? {
             ...entry,
             statsRawText: result.text,
-            statsEntries: result.entries,
+            statsEntries: result.entries.map((matched) => ({
+              key: matched.key,
+              label: matched.label,
+              value: matched.value,
+              suffix: matched.suffix,
+              rangeText: matched.rangeText,
+              raw: matched.raw,
+              // Carried through rather than dropped: see
+              // ObservationStatEntry.confidence.
+              confidence: matched.confidence,
+              matchSource: matched.source,
+            })),
           }
         : entry
     )
@@ -2257,10 +2117,20 @@ const handleGlobalPaste = async (event: ClipboardEvent) => {
   if (!file) return
 
   event.preventDefault()
-  const imageBase64 = await readFileAsDataUrl(file)
+  await ingestCaptureDataUrl(await readFileAsDataUrl(file))
+}
 
-  // Most specific target first: an armed row, then the open listing, then the
-  // item itself.
+/**
+ * Routes one captured image to whatever the user currently has open.
+ *
+ * Lifted out of the paste handler so a pushed capture takes exactly the same
+ * path a pasted one does — the routing rules were previously trapped inside a
+ * ClipboardEvent listener and could not be reached any other way.
+ *
+ * Most specific target first: an armed row, then the open listing, then the
+ * item itself.
+ */
+const ingestCaptureDataUrl = async (imageBase64: string) => {
   if (statsCaptureRowId.value) {
     await captureStatsScreenshot(statsCaptureRowId.value, imageBase64)
     return
@@ -2319,6 +2189,646 @@ const isDuplicateObservedEntry = (
   return diffMs <= 15 * 60 * 1000
 }
 
+interface LiveCaptureEntry {
+  id: string
+  /** The whole screen; the app decides which parts of it matter. */
+  frame: string
+  cursorX: number
+  cursorY: number
+  itemName: string
+  createdAt: string
+}
+
+/** What the companion shows over the game. Kept short — it is read at a glance. */
+interface LiveCaptureVerdict {
+  isDeal: boolean
+  headline: string
+  detail: string
+  price: number | null
+  /** What the app looked at and read, so a bad result can be diagnosed. */
+  debug?: {
+    stripImage: string
+    tooltipImage: string
+    stripProcessed: string
+    tooltipProcessed: string
+    priceText: string
+    statsText: string
+    unmatched: string[]
+  }
+}
+
+const liveCaptureArmed = ref(false)
+const liveCaptureLog = ref<Array<{ id: string; at: string; verdict: LiveCaptureVerdict; cursor: { x: number; y: number } }>>([])
+const liveCaptureError = ref('')
+/** What the server says it is armed on — the truth the companion actually uses. */
+const liveCaptureArmedItem = ref('')
+/** Last price strip captured, used as the sample the glyph teacher learns from. */
+const lastPriceStrip = ref('')
+/**
+ * Whether captures are archived to disk for later validation (phase 0b).
+ *
+ * On by default: the corpus is the only route to a measured error rate, and it
+ * can only be collected while the app is being used normally. It writes crops
+ * of the price row and tooltip — never the desktop frame — under `corpus/`.
+ */
+const corpusArchiveEnabled = ref(true)
+/** Reconstruction atlas for this screen profile, when one has been built. */
+const glyphAtlas = useGlyphAtlas()
+/** Prices read off the rest of the page in the last capture's frame. */
+const lastPageScan = ref<Array<{ ordinal: number; price: number | null; reason: string; residual: number; top: number }>>([])
+let liveCaptureTimer: ReturnType<typeof setInterval> | null = null
+let liveCaptureBusy = false
+
+/**
+ * Reads one pushed capture and turns it into a valued observation.
+ *
+ * This is the whole point of the live flow: the manual path needs two pastes
+ * (price, then stats) and leaves them to be matched up afterwards, whereas one
+ * hotkey press already carries both halves of the same listing — so the
+ * observation can be born complete, and judged immediately.
+ */
+/**
+ * A read that failed, carrying what it managed to see.
+ *
+ * Plain errors were useless here: a failure discarded the crops, so the one
+ * case where you most need to look at what the app cropped showed nothing at
+ * all.
+ */
+class CaptureReadError extends Error {
+  debug: LiveCaptureVerdict['debug']
+  /** Shown over the game. "UNREAD" unless the failure has a more useful name. */
+  headline: string
+
+  constructor(message: string, debug: LiveCaptureVerdict['debug'], headline = 'UNREAD') {
+    super(message)
+    this.debug = debug
+    this.headline = headline
+  }
+}
+
+/**
+ * Files one capture in the on-disk archive.
+ *
+ * Best-effort and never awaited by the caller: the archive is a research
+ * artefact, and a failure to write it must not cost the user a reading. See
+ * `server/utils/corpusStore.ts` for why it exists at all.
+ */
+const archiveCorpusSample = async (input: {
+  stripImage: string
+  tooltipImage?: string
+  itemKey: string
+  itemName: string
+  capture: LiveCaptureEntry
+  screen: { width: number; height: number }
+  readings: Array<{ reader: 'glyph' | 'ocr'; value: number | null; text: string; ms: number }>
+  storedPrice: number | null
+  agreed: boolean
+  error?: string
+  stats?: Array<{ key: string; value: number | null; confidence: number }>
+  statsText?: string
+}) => {
+  if (!import.meta.client || !corpusArchiveEnabled.value) return
+
+  try {
+    await $fetch('/api/corpus', {
+      method: 'POST',
+      body: {
+        stripImage: input.stripImage,
+        tooltipImage: input.tooltipImage,
+        itemKey: input.itemKey,
+        itemName: input.itemName,
+        serverId: selectedServer.value?.id ? String(selectedServer.value.id) : '',
+        profile: {
+          screenWidth: input.screen.width,
+          screenHeight: input.screen.height,
+          cursorX: input.capture.cursorX,
+          cursorY: input.capture.cursorY,
+          devicePixelRatio: window.devicePixelRatio || 1,
+          locale: 'fr',
+        },
+        readings: input.readings,
+        storedPrice: input.storedPrice,
+        agreed: input.agreed,
+        error: input.error,
+        stats: input.stats,
+        statsText: input.statsText,
+      },
+    })
+  } catch {
+    // Archiving is never load-bearing.
+  }
+}
+
+const ingestLiveCapture = async (capture: LiveCaptureEntry): Promise<LiveCaptureVerdict> => {
+  // Identity comes from the capture, never from the page.
+  //
+  // This used to read `selectedRecipeItem` here, which meant the observation was
+  // filed against whatever happened to be open when recognition *finished*, not
+  // what was armed when the screenshot was *taken*. Switching items mid-flight —
+  // or a second tab draining the same queue — therefore saved item A's price
+  // under item B, and nothing recorded that it had happened. A perfectly read
+  // price under the wrong item is exactly as poisonous as a misread one, and far
+  // harder to notice, because the number itself looks entirely reasonable.
+  const item = selectedRecipeItem.value
+  const identity = resolveCaptureIdentity({
+    captureItemName: capture.itemName,
+    openItemName: item?.name || '',
+    normalize: normalizeDofusdbSearch,
+  })
+
+  // Both crops happen up front so a failure at any stage still has them to show.
+  const screen = await imageSize(capture.frame)
+  // Cut generously, then narrow by content. A band positioned from the cursor
+  // cannot know where the text is, so the tight version clipped the digits
+  // whenever the hover was near a row's edge.
+  const priceRect = priceStripRect(capture.cursorX, capture.cursorY, screen.width, screen.height)
+  const stripImage = await trimToTextBand(
+    await cropDataUrl(capture.frame, priceRect),
+    capture.cursorY - priceRect.y,
+  )
+  const tooltipImage = await trimToTooltipPanel(await cropDataUrl(
+    capture.frame,
+    tooltipRect(capture.cursorX, capture.cursorY, screen.width, screen.height),
+  ))
+  lastPriceStrip.value = stripImage
+  const debug = {
+    stripImage,
+    tooltipImage,
+    // The processed versions are what tesseract sees; the crops above are only
+    // what it was cut from. A legible crop says nothing about a legible input.
+    stripProcessed: '',
+    tooltipProcessed: '',
+    priceText: '',
+    statsText: '',
+    unmatched: [] as string[],
+  }
+
+  if (!identity.ok) {
+    throw new CaptureReadError(identity.message, debug, identity.headline)
+  }
+
+  // Belt and braces alongside the arming gate: a capture already in flight when
+  // the item changed could still arrive while the new schema is loading.
+  if (!currentItemSchemaReady.value) {
+    throw new CaptureReadError(
+      'Item stats are still loading - capture again in a moment',
+      debug,
+      'NOT READY',
+    )
+  }
+
+  // From here on the capture's own key is the one that is used — never the
+  // page's, which may have moved on since the screenshot was taken.
+  const itemKey = identity.itemKey
+
+  // Shadow mode: both readers run on every capture, always.
+  //
+  // The pipeline only ever needed one answer — glyphs first, OCR as a fallback —
+  // so when the glyph atlas succeeded, OCR's opinion was never asked for and a
+  // disagreement between them was invisible. That is exactly the measurement
+  // this project lacks: how often is the current reader wrong? Running both and
+  // recording when they differ is what turns "unknown error rate" into a number,
+  // and it costs a few hundred milliseconds on a hotkey press.
+  //
+  // The *decision* is unchanged: glyphs still win when they resolve, because
+  // they are deterministic and refuse rather than guess. OCR's answer is
+  // recorded, not obeyed.
+  const glyphStart = performance.now()
+  // Reconstruction first, falling back to the old hand-taught atlas only where
+  // no reconstruction atlas has been built for this profile yet.
+  const atlasEntry = await glyphAtlas.load(
+    profileIdFor(screen.width, screen.height, window.devicePixelRatio || 1),
+  ).catch(() => null)
+
+  const reconstructed = atlasEntry
+    ? await readPriceByReconstruction(stripImage, atlasEntry.atlas).catch(() => null)
+    : null
+  const glyphPrice = reconstructed?.value ?? (atlasEntry ? null : await readPriceByGlyphs(stripImage))
+  const glyphMs = performance.now() - glyphStart
+
+  const ocrStart = performance.now()
+  const priceResult = await runPriceOcr(stripImage, true).catch(() => null)
+  const ocrMs = performance.now() - ocrStart
+  const ocrPrice = priceResult
+    ? (pickPriceFromStrip(priceResult.text)
+      ?? priceResult.candidates.slice().sort((a, b) => b - a)[0]
+      ?? null)
+    : null
+
+  const readings = [
+    {
+      reader: 'glyph' as const,
+      value: glyphPrice,
+      // Carries the reason it declined, which is the difference between "the
+      // atlas has never seen a 6" and "two digits fitted equally well".
+      text: reconstructed
+        ? `${reconstructed.text} (${reconstructed.reason}, res ${reconstructed.residual.toFixed(3)})`
+        : glyphPrice ? String(glyphPrice) : '',
+      ms: Math.round(glyphMs),
+    },
+    { reader: 'ocr' as const, value: ocrPrice, text: priceResult?.text || '', ms: Math.round(ocrMs) },
+  ]
+  const answered = readings.filter((reading) => reading.value !== null)
+  const agreed = answered.length < 2
+    || answered.every((reading) => reading.value === answered[0]!.value)
+
+  // A glyph refusal is a refusal, not a cue to trust the other reader.
+  //
+  // This was `glyphPrice ?? ocrPrice ?? 0`, which meant that when the
+  // deterministic reader said "I cannot read this", the statistical one's guess
+  // was promoted straight to stored fact. The corpus caught it doing exactly
+  // that: a strip plainly reading `4 899 999`, glyphs correctly refusing, and
+  // tesseract's `4090094` stored as the price — close enough to the item's
+  // other listings to clear the plausibility band, so nothing downstream
+  // objected. The disagreement metric could not flag it either, because only
+  // one reader had answered.
+  //
+  // So the OCR-only path still produces a row — throwing the capture away would
+  // cost real work — but the row is marked a *proposal* and kept out of
+  // valuation until someone confirms it.
+  const price = glyphPrice ?? ocrPrice ?? 0
+  const priceTrust: 'verified' | 'proposed' = glyphPrice !== null ? 'verified' : 'proposed'
+  debug.priceText = glyphPrice
+    ? `glyphs: ${glyphPrice}${ocrPrice !== null && ocrPrice !== glyphPrice ? ` (ocr disagreed: ${ocrPrice})` : ''}`
+    : priceResult?.text || ''
+  debug.stripProcessed = glyphPrice ? stripImage : (priceResult?.processedImage || '')
+
+  if (!price) {
+    void archiveCorpusSample({
+      stripImage,
+      tooltipImage,
+      itemKey: identity.itemKey,
+      itemName: capture.itemName,
+      capture,
+      screen,
+      readings,
+      storedPrice: null,
+      agreed,
+      error: 'no-price',
+    })
+    throw new CaptureReadError('Could not read the price on that row', debug)
+  }
+
+  // A price wildly out of line with what this item already sells for is a
+  // misread, not a find. Refusing it matters more than reading it: a truncated
+  // "2 750 000" saved as "2 750" did not just record a wrong number, it
+  // surfaced as the best buy on the list and told you to go and purchase it.
+  const knownPrices = (observedPrices.value[itemKey] || []).map((entry) => entry.price)
+  const priceCheck = checkPriceAgainst(price, knownPrices)
+  if (!priceCheck.ok) {
+    // Archived too. A rejected read is the most informative kind of sample
+    // there is — it is a known failure with the pixels that caused it attached.
+    void archiveCorpusSample({
+      stripImage,
+      tooltipImage,
+      itemKey,
+      itemName: capture.itemName,
+      capture,
+      screen,
+      readings,
+      storedPrice: null,
+      agreed,
+      error: 'implausible-price',
+    })
+    throw new CaptureReadError(
+      `Read ${formatKamasFull(price)} - out of line with this item, ignored`,
+      debug,
+    )
+  }
+
+  const statsResult = await runStatsOcr(tooltipImage, currentExpectedLines.value.map((line) => ({
+    statKey: line.statKey,
+    label: line.label,
+    min: line.min,
+    max: line.max,
+    suffix: observationStatOptions.find((option) => option.key === line.statKey)?.suffix || '',
+  })))
+
+  const createdAt = new Date().toISOString()
+  const observation: StoredObservedPriceEntry = {
+    id: `${itemKey}-${price}-${createdAt}-${Math.random().toString(36).slice(2, 8)}`,
+    itemKey,
+    // The name the capture was armed on, not the one currently on screen.
+    itemName: capture.itemName,
+    serverId: selectedServer.value?.id ? String(selectedServer.value.id) : '',
+    price,
+    createdAt,
+    source: 'ocr',
+    // Nothing existed to compare this against, so it went in unexamined.
+    priceUnverified: !priceCheck.checked,
+    priceTrust,
+    scanHash: hashScreenshot(stripImage),
+    statsRawText: statsResult.text,
+    statsEntries: statsResult.entries.map((matched) => ({
+      key: matched.key,
+      label: matched.label,
+      value: matched.value,
+      suffix: matched.suffix,
+      rangeText: matched.rangeText,
+      raw: matched.raw,
+      // Carried through rather than dropped: see ObservationStatEntry.confidence.
+      confidence: matched.confidence,
+      matchSource: matched.source,
+    })),
+  }
+
+  const existing = observedPrices.value[itemKey] || []
+  // Capturing the same lot twice is easy to do mid-session; it must not read as
+  // a second listing at the same price.
+  const duplicate = existing.some((entry) => isDuplicateObservedEntry(observation, entry))
+  if (!duplicate) {
+    const nextObserved = {
+      ...observedPrices.value,
+      [itemKey]: [observation, ...existing],
+    }
+    observedPrices.value = nextObserved
+    writeObservedPrices(nextObserved)
+    // Mirrored to the durable ledger. localStorage stays the read path for now
+    // so nothing depends on the server being up, but the ledger is where the
+    // history actually survives: a browser profile is not a backup.
+    void $fetch('/api/ledger', { method: 'POST', body: { observations: [observation] } })
+      .catch(() => {})
+  }
+
+  await nextTick()
+
+  const valued = valuationById.value[duplicate
+    ? existing.find((entry) => isDuplicateObservedEntry(observation, entry))!.id
+    : observation.id]
+
+  debug.statsText = statsResult.text || ''
+  debug.tooltipProcessed = statsResult.processedImage || ''
+  debug.unmatched = statsResult.unmatched.map((line) => line.raw)
+
+  // Read the rest of the page while the frame is already in hand.
+  //
+  // The hovered row is the one with a tooltip, so it is the only one that can
+  // contribute rolls — but every other row's *price* is right there in the same
+  // frame, and throwing it away meant a hotkey press per listing to learn what
+  // a page costs. Prices only, recorded as proposals: nothing here has been
+  // confirmed and none of it may authorise a purchase.
+  if (atlasEntry) {
+    void readPagePrices(capture.frame, atlasEntry.atlas)
+      .then((rows) => {
+        lastPageScan.value = rows.filter((row) => row.price !== null)
+      })
+      .catch(() => {})
+  }
+
+  void archiveCorpusSample({
+    stripImage,
+    tooltipImage,
+    itemKey,
+    itemName: capture.itemName,
+    capture,
+    screen,
+    readings,
+    storedPrice: price,
+    agreed,
+    stats: statsResult.entries.map((matched) => ({
+      key: matched.key,
+      value: matched.value,
+      confidence: matched.confidence,
+    })),
+    statsText: statsResult.text || '',
+  })
+
+  return { ...buildLiveCaptureVerdict(price, valued, statsResult.unmatched.length), debug }
+}
+
+/**
+ * The console the companion prints to is not UTF-8, so the narrow no-break
+ * spaces French number formatting inserts arrive as mojibake ("2â¯500").
+ * Plain spaces read correctly everywhere.
+ */
+const toConsoleSafe = (value: string) => value.replace(/[  ]/g, ' ')
+
+const buildLiveCaptureVerdict = (
+  price: number,
+  valued: ValuedObservation | undefined,
+  unmatchedCount: number,
+): LiveCaptureVerdict => {
+  const priceLabel = toConsoleSafe(formatKamasFull(price))
+
+  if (!valued) {
+    return { isDeal: false, headline: 'SAVED', detail: priceLabel, price }
+  }
+
+  // A listing that fails the user's own requirements is not a deal however
+  // cheap it is, and saying which line failed is more useful than a number.
+  if (!valued.requirements.passed) {
+    const failure = valued.requirements.failures[0]
+    return {
+      isDeal: false,
+      headline: 'SKIP',
+      detail: failure
+        ? `${failure.label} ${failure.got ?? '-'}/${failure.max}`
+        : 'below requirements',
+      price,
+    }
+  }
+
+  if (!valued.valuation) {
+    return {
+      isDeal: false,
+      headline: 'SAVED',
+      detail: `${priceLabel} · need more listings`,
+      price,
+    }
+  }
+
+  const quality = valued.score.toFixed(2)
+  // Exos and overmage are the reason an item is worth chasing, so they belong
+  // in the one line you read over the game rather than buried in the app.
+  const extras = valued.quality.lines.filter((line) => line.isExo && line.present)
+  const overs = valued.quality.lines.filter((line) => line.overmageAmount > 0)
+  const extraLabel = [
+    extras.length ? `EXO ${extras.map((line) => line.label).join('/')}` : '',
+    overs.length ? `OVER ${overs.map((line) => `${line.label}+${line.overmageAmount}`).join('/')}` : '',
+  ].filter(Boolean).join(' · ')
+
+  if (valued.valuation.isDeal) {
+    return {
+      isDeal: true,
+      headline: `DEAL +${toConsoleSafe(formatKamasFull(valued.netProfit))}`,
+      detail: [
+        `Q ${quality}`,
+        extraLabel,
+        `fair ${toConsoleSafe(formatKamasFull(valued.valuation.fairValue))}`,
+      ].filter(Boolean).join(' · '),
+      price,
+    }
+  }
+
+  return {
+    isDeal: false,
+    headline: 'SKIP',
+    detail: [
+      `Q ${quality}`,
+      extraLabel,
+      `fair ${toConsoleSafe(formatKamasFull(valued.valuation.fairValue))}`,
+      unmatchedCount ? `${unmatchedCount} unread` : '',
+    ].filter(Boolean).join(' · '),
+    price,
+  }
+}
+
+const pollLiveCaptures = async () => {
+  // Ingestion is slower than the poll interval, so without this a slow capture
+  // would be overlapped by the next tick and valued against a half-written list.
+  if (liveCaptureBusy) return
+  liveCaptureBusy = true
+
+  try {
+    // The item goes with every poll rather than once at start-up: a one-shot
+    // arm is lost the moment the server restarts, and nothing on the page can
+    // tell that it happened.
+    const response = await $fetch<{ captures: LiveCaptureEntry[]; activeItem: { itemName: string } | null }>(
+      '/api/capture/pending',
+      { query: { itemName: selectedRecipeItem.value?.name || '' } },
+    )
+    liveCaptureArmedItem.value = response.activeItem?.itemName || ''
+    liveCaptureError.value = ''
+
+    for (const capture of response.captures || []) {
+      try {
+        const verdict = await ingestLiveCapture(capture)
+        await $fetch(`/api/capture/${capture.id}/verdict`, { method: 'POST', body: verdict })
+        liveCaptureLog.value = [
+          { id: capture.id, at: new Date().toISOString(), verdict, cursor: { x: capture.cursorX, y: capture.cursorY } },
+          ...liveCaptureLog.value,
+        ].slice(0, 10)
+      } catch (error: any) {
+        // Always answer, even on failure — the companion is waiting, and a
+        // silent drop leaves it hanging until its timeout. The crops go too, so
+        // a failure can be looked at rather than only described.
+        const message = String(error?.message || 'Could not read the capture')
+        // A mis-filed capture and an unreadable one need different words: the
+        // first is a mistake you can correct by re-arming, the second by
+        // re-hovering. "UNREAD" for both taught you nothing.
+        const headline = String(error?.headline || 'UNREAD')
+        await $fetch(`/api/capture/${capture.id}/verdict`, {
+          method: 'POST',
+          body: { error: message, headline, debug: error?.debug },
+        }).catch(() => {})
+
+        if (error?.debug) {
+          liveCaptureLog.value = [
+            {
+              id: capture.id,
+              at: new Date().toISOString(),
+              cursor: { x: capture.cursorX, y: capture.cursorY },
+              verdict: { isDeal: false, headline, detail: message, price: null, debug: error.debug },
+            },
+            ...liveCaptureLog.value,
+          ].slice(0, 10)
+        }
+      }
+    }
+  } catch {
+    liveCaptureError.value = t('items.detail.liveCapture.offline')
+  } finally {
+    liveCaptureBusy = false
+  }
+}
+
+const setLiveCaptureArmed = async (armed: boolean) => {
+  // Server-side there is no companion to listen to, and no timers to own.
+  if (!import.meta.client) return
+  liveCaptureArmed.value = armed
+
+  if (liveCaptureTimer) {
+    clearInterval(liveCaptureTimer)
+    liveCaptureTimer = null
+  }
+
+  if (!armed) return
+
+  // Tell the server which item every capture belongs to, so the companion can
+  // stay item-agnostic exactly the way the /kamas one already does.
+  const item = selectedRecipeItem.value
+  if (item?.name) {
+    await $fetch('/api/hdv-scan/active', {
+      method: 'POST',
+      body: { itemName: item.name, source: 'items-live-capture' },
+    }).catch(() => {})
+  }
+
+  liveCaptureTimer = setInterval(pollLiveCaptures, 500)
+}
+
+/**
+ * Listening starts by itself once an item is open.
+ *
+ * Requiring a button press first meant a capture could be taken, accepted and
+ * then sit in the queue with nothing to read it — the hotkey appeared to do
+ * nothing. The button remains, as a way to stop.
+ */
+watch(() => selectedRecipeItem.value?.name, (name, previous) => {
+  // The session log belongs to the item it was captured for. Left alone it
+  // followed you to the next item, showing verdicts and crops for listings of
+  // something else entirely — which reads as the app having captured them.
+  if (name !== previous) {
+    liveCaptureLog.value = []
+    lastPriceStrip.value = ''
+    liveCaptureError.value = ''
+    // "I swept every page" is a claim about *this* item's market, and it was
+    // sticky. Left set, the next item's partial capture inherited it and every
+    // listing missing from a single page looked like it had left the market —
+    // manufacturing sales wholesale out of a scan that never claimed to be
+    // complete. The claim has to be re-made per item, deliberately.
+    fullSweepCapture.value = false
+  }
+
+  if (!name && liveCaptureArmed.value) setLiveCaptureArmed(false)
+}, { immediate: true })
+
+// Arming waits for the schema, not just for the item.
+//
+// Auto-arming on the name alone meant the hotkey was live while the effect
+// definitions were still arriving, so the first capture or two of every item
+// were matched against a half-built vocabulary.
+watch(
+  () => [Boolean(selectedRecipeItem.value?.name), currentItemSchemaReady.value] as const,
+  ([hasItem, ready]) => {
+    if (hasItem && ready && !liveCaptureArmed.value) setLiveCaptureArmed(true)
+    else if ((!hasItem || !ready) && liveCaptureArmed.value) setLiveCaptureArmed(false)
+  },
+  { immediate: true },
+)
+
+/**
+ * Everything behind this item's verdicts, as a file.
+ *
+ * A screenshot shows the answer but none of the arithmetic, which is why
+ * disagreements about a valuation kept coming down to guesswork. This carries
+ * the inputs and the outputs together so the numbers can be read directly.
+ */
+const exportCurrentItem = () => {
+  if (!import.meta.client) return
+
+  const data = buildItemExport({
+    itemKey: selectedObservationKey.value,
+    itemName: selectedRecipeItem.value?.name || '',
+    expectedLines: currentExpectedLines.value,
+    // Only what has been changed from the default, so the file stays readable.
+    priorities: Object.fromEntries(
+      statPriorityRows.value
+        .filter((row) => row.priority !== 'normal')
+        .map((row) => [row.statKey, row.priority]),
+    ),
+    results: valuationRun.value.results,
+  })
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = itemExportFilename(selectedObservationKey.value)
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 const saveOcrSnapshotPrices = async () => {
   const item = selectedRecipeItem.value
   const itemKey = selectedObservationKey.value
@@ -2329,27 +2839,71 @@ const saveOcrSnapshotPrices = async () => {
 
   const existing = observedPrices.value[itemKey] || []
   const createdAt = new Date().toISOString()
-  const candidateEntries = ocrState.value.candidates.map((price) => ({
-    id: `${itemKey}-${price}-${createdAt}-${Math.random().toString(36).slice(2, 8)}`,
-    itemKey,
-    itemName: item.name,
-    price,
-    createdAt,
-    source: 'ocr' as const,
-    scanHash: hashScreenshot(ocrState.value.screenshotDataUrl),
-    statsRawText: '',
-    statsEntries: [],
-  }))
+  const knownPrices = existing.map((entry) => entry.price)
+
+  // The manual path had no plausibility gate at all.
+  //
+  // The live path refuses a price an order of magnitude away from what the item
+  // already sells for, because that is a dropped digit rather than a find. This
+  // path wrote straight to storage, so the same truncated read that the live
+  // path rejects was accepted here without comment — and one bad row is enough
+  // to move the median that every later check is judged against.
+  const rejected: number[] = []
+  const candidateEntries = ocrState.value.candidates
+    .map((price) => ({ price, check: checkPriceAgainst(price, knownPrices) }))
+    .filter(({ price, check }) => {
+      if (!check.ok) rejected.push(price)
+      return check.ok
+    })
+    .map(({ price, check }) => ({
+      id: `${itemKey}-${price}-${createdAt}-${Math.random().toString(36).slice(2, 8)}`,
+      itemKey,
+      itemName: item.name,
+      serverId: selectedServer.value?.id ? String(selectedServer.value.id) : '',
+      price,
+      createdAt,
+      source: 'ocr' as const,
+      priceUnverified: !check.checked,
+      scanHash: hashScreenshot(ocrState.value.screenshotDataUrl),
+      statsRawText: '',
+      statsEntries: [],
+    }))
+
+  ocrRejectedPrices.value = rejected
+  if (rejected.length) {
+    // Checked after `processMarketScreenshotImage` has already gated on it, so
+    // this reports the outcome rather than blocking the save that produced it.
+    ocrState.value = {
+      ...ocrState.value,
+      error: t('items.detail.ocr.errors.pricesRejected', {
+        prices: rejected.map((price) => formatKamasFull(price)).join(', '),
+      }),
+    }
+  }
+
+  // Reconciling a capture whose implausible rows were dropped would read those
+  // listings as having left the market. Nothing here is trustworthy enough to
+  // conclude that from, so a capture with a bad read in it does not get to
+  // claim completeness.
+  const sweepClaimed = fullSweepCapture.value && !rejected.length
 
   const additions = candidateEntries.filter((candidate) =>
     !existing.some((entry) => isDuplicateObservedEntry(candidate, entry))
   )
 
-  if (!additions.length) return 0
+  // Fold the capture into the history rather than only appending to it: seeing
+  // the same listing again proves it did not sell, and a listing that has left
+  // a full sweep is the closest thing to a confirmed sale this page can get.
+  const reconciled = reconcileObservations(existing as any, candidateEntries as any, {
+    fullSweep: sweepClaimed,
+    now: createdAt,
+  })
+
+  if (!additions.length && !reconciled.markedSold && !reconciled.markedRelisted) return 0
 
   const nextObserved = {
     ...observedPrices.value,
-    [itemKey]: [...additions, ...existing],
+    [itemKey]: reconciled.observations as any,
   }
 
   observedPrices.value = nextObserved
@@ -2439,7 +2993,9 @@ const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) =
   const item = selectedRecipeItem.value
   const itemKey = selectedObservationKey.value || observation.itemKey
   const targetRelistPrice = valuation?.fairRelist ?? valuation?.quickRelist ?? observation.price
-  const estimatedProfit = Math.max(0, targetRelistPrice - observation.price)
+  // Net of the HDV cut: the tracker should carry the number that lands in the
+  // pocket, not a gross spread the sale tax will quietly eat into.
+  const estimatedProfit = Math.max(0, valuation?.netProfit ?? (targetRelistPrice - observation.price))
 
   createResaleTrackerEntry({
     itemKey,
@@ -2461,7 +3017,7 @@ const sendObservationToResaleTracker = (observation: StoredObservedPriceEntry) =
     estimatedFairValue: valuation?.fairValue ?? observation.price,
     estimatedQuickRelist: valuation?.quickRelist ?? observation.price,
     estimatedGreedyRelist: valuation?.greedyRelist ?? observation.price,
-    estimatedScore: valuation?.score ?? computeObservationScore(observation),
+    estimatedScore: valuation?.score ?? 0,
     estimatedDelta: estimatedProfit,
     observedListingId: observation.id,
     marketScreenshotDataUrl: '',
@@ -2933,11 +3489,13 @@ onMounted(() => {
   // first load after this change drops them and writes the storage back.
   const storedRaw = import.meta.client ? localStorage.getItem(ITEM_OBSERVED_PRICES_KEY) : null
   observedPrices.value = readObservedPrices()
+  const storedBankroll = Number(localStorage.getItem(ITEMS_BANKROLL_KEY) || 0)
+  itemsBankroll.value = Number.isFinite(storedBankroll) && storedBankroll > 0 ? storedBankroll : 0
   if (storedRaw?.includes('ScreenshotDataUrl')) {
     writeObservedPrices(observedPrices.value)
   }
   effectCache.value = readEffectCache()
-  itemStatPriorities.value = readItemStatPriorities()
+  statPriorityProfiles.value = readStatPriorityProfiles()
   window.addEventListener('paste', handleGlobalPaste)
   fetchData()
 })
@@ -2945,6 +3503,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (!import.meta.client) return
   window.removeEventListener('paste', handleGlobalPaste)
+  if (liveCaptureTimer) {
+    clearInterval(liveCaptureTimer)
+    liveCaptureTimer = null
+  }
 })
 
 watch(activeSlot, (slot) => {
@@ -2953,6 +3515,8 @@ watch(activeSlot, (slot) => {
   router.replace({ query: { slot } })
 })
 
+// Deliberately not immediate: on load `name` is still undefined, and replacing
+// the query then would strip ?item= and ?obs= before restoreFromUrl reads them.
 watch(() => selectedRecipeItem.value?.name, (name) => {
   const q: Record<string, string> = { slot: activeSlot.value }
   if (name) q.item = name

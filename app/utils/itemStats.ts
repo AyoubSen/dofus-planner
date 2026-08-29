@@ -42,9 +42,24 @@ export const statsOcrDefs: StatDef[] = [
   { key: 'resistance_feu', label: 'Résistance Feu', aliases: ['resistance feu', 'résistance feu'], suffix: '%' as const },
   { key: 'resistance_eau', label: 'Résistance Eau', aliases: ['resistance eau', 'résistance eau'], suffix: '%' as const },
   { key: 'resistance_neutre', label: 'Résistance Neutre', aliases: ['resistance neutre', 'résistance neutre'], suffix: '%' as const },
+  // Flat ("fixe") elemental resistance is a different stat from the percentage
+  // one, not a different way of writing it: different mechanic, different unit,
+  // different rune weight, different price. They shared a key, so an item with
+  // both reported one line with whichever value happened to be matched last,
+  // and a flat 5 could be scored against a percentage roll's bounds.
+  //
+  // The label is identical in the client — only the `%` separates them — so the
+  // suffix is what the matcher discriminates on. DofusDB is unambiguous:
+  // characteristics 33-37 are "(%)" and 54-58 are "(fixe)".
+  { key: 'resistance_terre_fixe', label: 'Résistance Terre (fixe)', aliases: ['resistance terre fixe', 'résistance terre (fixe)', 'resistance terre (fixe)'] },
+  { key: 'resistance_feu_fixe', label: 'Résistance Feu (fixe)', aliases: ['resistance feu fixe', 'résistance feu (fixe)', 'resistance feu (fixe)'] },
+  { key: 'resistance_eau_fixe', label: 'Résistance Eau (fixe)', aliases: ['resistance eau fixe', 'résistance eau (fixe)', 'resistance eau (fixe)'] },
+  { key: 'resistance_air_fixe', label: 'Résistance Air (fixe)', aliases: ['resistance air fixe', 'résistance air (fixe)', 'resistance air (fixe)'] },
+  { key: 'resistance_neutre_fixe', label: 'Résistance Neutre (fixe)', aliases: ['resistance neutre fixe', 'résistance neutre (fixe)', 'resistance neutre (fixe)'] },
   { key: 'fuite', label: 'Fuite', aliases: ['fuite'] },
   { key: 'tacle', label: 'Tacle', aliases: ['tacle'] },
   { key: 'dommages_poussee', label: 'Dommages Poussée', aliases: ['dommages poussee', 'dommage poussee', 'dommages poussée', 'dommage poussée', 'do pou', 'dopou'] },
+  { key: 'resistance_poussee', label: 'Résistance Poussée', aliases: ['resistance poussee', 'résistance poussée', 'resistances poussee', 'résistances poussée', 'res pou'] },
   { key: 'dommages_distance', label: 'Dommages Distance', aliases: ['dommages distance', 'dommages distances', 'dommages a distance', 'dommages à distance', 'do distance', 'do distances', 'do a distance', 'do à distance'], suffix: '%' as const },
   { key: 'dommages_melee', label: 'Dommages Melee', aliases: ['dommages melee', 'dommages mêlee', 'dommages mêlée', 'dommages au corps a corps', 'dommages au corps à corps', 'corps a corps', 'corps à corps', 'do melee', 'do mêlee', 'do mêlée'], suffix: '%' as const },
   { key: 'dommages_sort', label: 'Dommages Sort', aliases: ['dommages sort', 'dommages sorts', 'dommages au sort', 'dommages aux sorts', 'dommages sorts', 'do sort', 'do sorts'], suffix: '%' as const },
@@ -101,30 +116,51 @@ export const normalizeSpecialMageSignature = (value: string) =>
     .replace(/\s+/g, '')
     .trim()
 
+/** Aliases this short must match the whole signature, never a fragment of it. */
+const SHORT_ALIAS_LENGTH = 3
+
 export const findSpecialMageDef = (label: string) => {
   const signature = normalizeSpecialMageSignature(label)
   if (!signature) return undefined
 
-  return statsOcrDefs.find((def) => {
-    if (!specialMageStatKeys.has(def.key)) return false
-    return [def.label, ...def.aliases].some((alias) => {
+  // Longest match wins, rather than whichever def happens to come first in the
+  // catalogue. Order used to decide it, so "Dommages Poussée" resolved to PO —
+  // `po` sits earlier in the list and `dommagespoussee` contains `po`. Short
+  // aliases now have to match outright, which is what stops a two-letter stat
+  // name being found inside a longer one at all.
+  let best: { def: StatDef; length: number } | undefined
+
+  for (const def of statsOcrDefs) {
+    if (!specialMageStatKeys.has(def.key)) continue
+
+    for (const alias of [def.label, ...def.aliases]) {
       const aliasSignature = normalizeSpecialMageSignature(alias)
-      // Only the observed label may be the longer side. The reverse direction
-      // used to let the generic "dommages" match "dommagescritiques", which
-      // relabelled every plain Dommages roll as Dommages Critiques.
-      return signature === aliasSignature || signature.includes(aliasSignature)
-    })
-  })
+      if (!aliasSignature) continue
+
+      const matches = aliasSignature.length <= SHORT_ALIAS_LENGTH
+        ? signature === aliasSignature
+        : signature === aliasSignature || signature.includes(aliasSignature)
+
+      if (matches && (!best || aliasSignature.length > best.length)) {
+        best = { def, length: aliasSignature.length }
+      }
+    }
+  }
+
+  return best?.def
 }
 
 /** DofusDB gives every effect a numeric `characteristic`, which is far more
  *  reliable than matching its French description. Ids come from
  *  https://api.dofusdb.fr/characteristics.
  *
- *  Percentage and flat resistances collapse onto one key each, matching how the
- *  rest of the app already treats them. Ids left out (melee/weapon/spell %,
- *  critical resistance) fall through to label matching rather than risk a
- *  wrong mapping. */
+ *  Percentage (33-37) and flat (54-58) elemental resistances are separate keys:
+ *  they are separate mechanics with separate units and separate market value,
+ *  and collapsing them meant an item carrying both reported one. Ids left out
+ *  (melee/weapon %) fall through to label matching rather than risk a wrong
+ *  mapping — but note that a *wrong* entry here is worse than a missing one,
+ *  because the characteristic is trusted ahead of the effect's own French
+ *  description. `itemStats.spec.ts` pins the ids that have a "(fixe)" twin. */
 export const CHARACTERISTIC_TO_STAT_KEY: Record<number, string> = {
   1: 'pa',
   10: 'force',
@@ -147,19 +183,25 @@ export const CHARACTERISTIC_TO_STAT_KEY: Record<number, string> = {
   37: 'resistance_neutre',
   44: 'initiative',
   48: 'prospection',
-  54: 'resistance_terre',
-  55: 'resistance_feu',
-  56: 'resistance_eau',
-  57: 'resistance_air',
-  58: 'resistance_neutre',
+  // "(fixe)" per DofusDB — flat resistance, a different stat from the % twin
+  // above. These used to point at the same keys as 33-37.
+  54: 'resistance_terre_fixe',
+  55: 'resistance_feu_fixe',
+  56: 'resistance_eau_fixe',
+  57: 'resistance_air_fixe',
+  58: 'resistance_neutre_fixe',
   78: 'fuite',
   79: 'tacle',
   82: 'retrait_pa',
   83: 'retrait_pm',
   84: 'dommages_poussee',
-  85: 'dommages_poussee',
+  // The "(fixe)" twin of an id is always the resistance, never the damage.
+  // DofusDB spells it out: effect 416 (char 85) is "Résistance Poussée" and
+  // effect 420 (char 87) is "Résistance Critiques". Mapping both onto the
+  // damage key made every item carrying one report a stat it does not have.
+  85: 'resistance_poussee',
   86: 'dommages_critiques',
-  87: 'dommages_critiques',
+  87: 'resistance_critique',
   88: 'dommages_terre',
   89: 'dommages_feu',
   90: 'dommages_eau',

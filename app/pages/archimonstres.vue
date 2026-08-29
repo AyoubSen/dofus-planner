@@ -86,120 +86,361 @@
 
     <!-- ══ Route planner ══════════════════════════════════════════════════ -->
     <template v-else-if="mode === 'route-planner'">
-      <UiToolbar>
-        <template #search>
-          <div ref="routeAutoEl" class="relative">
-            <UiInput
-              v-model="routeSearch"
-              :placeholder="$t('v2.archi.route.searchPlaceholder')"
-              @update:model-value="showRouteDropdown = true; selectedRouteMonster = null"
-              @focus="showRouteDropdown = true"
-              @keyup.escape="showRouteDropdown = false"
-            >
-              <template #prefix><UiIcon name="search" /></template>
-            </UiInput>
 
-            <div
-              v-if="showRouteDropdown && routeMonsterSuggestions.length"
-              class="absolute top-[calc(100%+0.25rem)] right-0 left-0 max-h-72 overflow-y-auto rounded-md border border-line bg-raised p-1 shadow-md"
-              :style="{ zIndex: 'var(--z-dropdown)' }"
+      <!-- Run planner: zaap groups ranked by value, stops ordered into a walk -->
+      <UiCard :padded="false">
+        <template #title>{{ $t('v2.archi.route.title') }}</template>
+        <template #actions>
+          <span class="tabular text-xs text-subtle">
+            {{ huntView === 'route'
+              ? $t('v2.archi.route.routeSummary', { zones: huntRouteTotals.zones, stops: huntRouteTotals.stops, monsters: huntTotals.monsters })
+              : $t('v2.archi.route.spotsSummary', { spots: huntTotals.spots, monsters: huntTotals.monsters }) }}
+          </span>
+        </template>
+
+        <!-- Where to go now, so the answer isn't buried in 34 groups -->
+        <div v-if="huntView === 'route' && huntTopGroup" class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line bg-sunken p-3">
+          <span class="text-xs tracking-wide text-subtle uppercase">{{ $t('v2.archi.route.heroLabel') }}</span>
+          <span class="text-base font-medium text-ink">{{ huntTopGroup.zone }}</span>
+          <span v-if="huntSweepMode === 'quick'" class="tabular text-xs text-subtle">
+            {{ $t('v2.archi.route.heroNear', {
+              archi: huntTopGroup.near,
+              spots: huntTopGroup.nearby.length,
+              radius: huntRadius,
+            }) }}
+          </span>
+          <span v-else class="tabular text-xs text-subtle">
+            {{ $t('v2.archi.route.heroLine', { archi: huntTopGroup.total, stops: huntTopGroup.stops.length }) }}
+          </span>
+          <!-- Only when they differ, or every hero line would carry a redundant
+               "31 of 31 available". -->
+          <span
+            v-if="huntSweepMode === 'quick' ? huntTopGroup.nearReady !== huntTopGroup.near : huntTopGroup.ready !== huntTopGroup.total"
+            class="tabular text-xs text-subtle"
+          >
+            {{ $t('v2.archi.route.readyOf', { ready: huntSweepMode === 'quick' ? huntTopGroup.nearReady : huntTopGroup.ready }) }}
+          </span>
+          <UiBadge v-if="huntTopGroup.exclusive" tone="negative">
+            {{ $t('v2.archi.route.exclusive', { count: huntTopGroup.exclusive }) }}
+          </UiBadge>
+          <UiBadge v-else-if="huntTopGroup.oneShot" tone="positive">{{ $t('v2.archi.route.oneShot') }}</UiBadge>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 border-b border-line p-2">
+          <UiSegmented
+            v-model="huntView"
+            :options="[
+              { label: $t('v2.archi.route.viewRoute'), value: 'route' },
+              { label: $t('v2.archi.route.viewSpots'), value: 'spots' },
+              { label: $t('v2.archi.route.viewSteps'), value: 'steps' },
+              { label: $t('v2.archi.route.viewSpares'), value: 'spares' },
+              { label: $t('v2.archi.route.viewFind'), value: 'find' },
+            ]"
+          />
+          <UiSegmented
+            v-if="huntView === 'route'"
+            v-model="huntSweepMode"
+            :options="[
+              { label: $t('v2.archi.route.modeQuick'), value: 'quick' },
+              { label: $t('v2.archi.route.modeWalk'), value: 'walk' },
+            ]"
+          />
+          <UiSegmented
+            v-if="huntView === 'route' && huntSweepMode === 'walk'"
+            v-model="huntSort"
+            :options="[
+              { label: $t('v2.archi.route.sortTotal'), value: 'total' },
+              { label: $t('v2.archi.route.sortYield'), value: 'yield' },
+            ]"
+          />
+          <UiInput v-model="huntZoneFilter" size="sm" :placeholder="$t('v2.archi.route.zonePlaceholder')" class="min-w-40 flex-1">
+            <template #prefix><UiIcon name="search" /></template>
+          </UiInput>
+          <UiButton :variant="huntHideOwned ? 'primary' : 'ghost'" size="sm" @click="huntHideOwned = !huntHideOwned">
+            {{ $t('v2.archi.route.filterMissing') }}
+          </UiButton>
+          <UiButton :variant="huntNextStepOnly ? 'primary' : 'ghost'" size="sm" @click="huntToggleStepFilter">
+            {{ $t('v2.archi.route.filterStep', { step: huntTargetStep }) }}
+          </UiButton>
+          <label
+            v-if="huntSweepMode === 'quick'"
+            class="flex items-center gap-1.5 text-xs text-subtle"
+            :title="$t('v2.archi.route.radiusTitle')"
+          >
+            {{ $t('v2.archi.route.radiusLabel') }}
+            <input
+              v-model.number="huntRadius"
+              type="number"
+              min="0"
+              max="60"
+              step="1"
+              class="tabular w-14 rounded-md border border-line bg-sunken px-1.5 py-1 text-xs text-ink"
             >
+          </label>
+          <label class="flex items-center gap-1.5 text-xs text-subtle" :title="$t('v2.archi.route.cooldownTitle')">
+            {{ $t('v2.archi.route.cooldownLabel') }}
+            <input
+              v-model.number="huntCooldownHours"
+              type="number"
+              min="0.5"
+              max="48"
+              step="0.5"
+              class="tabular w-14 rounded-md border border-line bg-sunken px-1.5 py-1 text-xs text-ink"
+            >
+          </label>
+        </div>
+
+        <!-- The two folded-away filters are still active; say so rather than
+             leaving the user wondering where the dungeons went. -->
+        <p class="border-b border-line px-3 py-1.5 text-xs text-subtle">
+          {{ $t('v2.archi.route.defaultsNote') }}
+        </p>
+
+        <p v-if="huntLoading" class="p-4 text-sm text-subtle">{{ $t('v2.archi.route.spotsLoading') }}</p>
+        <p v-else-if="huntError" class="p-4 text-sm text-negative">{{ huntError }}</p>
+        <!-- Only the two spot-driven views depend on huntSpots; steps, spares
+             and lookup still have something to say when the filters empty it. -->
+        <p
+          v-else-if="!huntSpots.length && (huntView === 'route' || huntView === 'spots')"
+          class="p-4 text-sm text-subtle"
+        >
+          {{ $t('v2.archi.route.spotsEmpty') }}
+        </p>
+
+        <!-- Route: one group per zaap, collapsed apart from the next trip -->
+        <div v-else-if="huntView === 'route'" class="flex max-h-[32rem] flex-col divide-y divide-line overflow-y-auto">
+          <div v-for="zone in huntRoute" :key="zone.zone">
+            <!-- The sweep control is a sibling, not a child: a button inside a
+                 button is invalid and browsers handle it inconsistently. -->
+            <div class="flex items-center gap-2 p-3 transition-colors hover:bg-sunken">
               <button
-                v-for="s in routeMonsterSuggestions"
-                :key="s.id"
                 type="button"
-                class="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-sunken"
-                @mousedown.prevent="selectRouteMonster(s)"
+                class="flex min-w-0 flex-1 cursor-pointer items-baseline gap-2 text-left"
+                :aria-expanded="huntIsOpen(zone.zone)"
+                @click="huntToggle(zone.zone)"
               >
-                <img :src="getMonsterImg(s)" :alt="''" class="size-6 shrink-0 rounded object-contain" @error="onImgErr">
-                <span class="min-w-0 flex-1 truncate text-sm text-ink">{{ s.nom }}</span>
-                <span class="shrink-0 text-xs text-subtle">{{ s.souszone || s.zone }}</span>
+                <UiIcon :name="huntIsOpen(zone.zone) ? 'chevronDown' : 'chevronRight'" class="shrink-0 self-center" />
+                <span class="text-sm font-medium text-ink">{{ zone.zone }}</span>
+                <span class="tabular min-w-0 flex-1 truncate text-xs text-subtle">
+                  <!-- Quick mode is about one sous-zone, so stop counts and
+                       per-stop yield say nothing; what matters is how much is
+                       at the zaap versus how much the walk would add. -->
+                  <template v-if="huntSweepMode === 'quick'">
+                    {{ $t('v2.archi.route.nearMeta', {
+                      here: zone.own,
+                      near: zone.near,
+                      radius: huntRadius,
+                      spots: zone.nearby.length,
+                    }) }}
+                    <template v-if="zone.sweptSpots">
+                      · {{ $t('v2.archi.route.sweptSpots', { n: zone.sweptSpots, of: zone.nearby.length }) }}
+                    </template>
+                  </template>
+                  <template v-else>
+                    {{ $t('v2.archi.route.groupMeta', {
+                      stops: zone.stops.length,
+                      n: zone.yield.toFixed(1),
+                    }) }}
+                  </template>
+                </span>
+              </button>
+              <UiBadge v-if="zone.exclusive" tone="negative">
+                {{ $t('v2.archi.route.exclusive', { count: zone.exclusive }) }}
+              </UiBadge>
+              <UiBadge v-else-if="zone.oneShot" tone="positive">{{ $t('v2.archi.route.oneShot') }}</UiBadge>
+              <UiBadge v-if="huntSweepMode === 'quick'">
+                {{ zone.nearReady !== zone.near ? `${zone.nearReady}/${zone.near}` : zone.near }}
+              </UiBadge>
+              <UiBadge v-else>{{ zone.ready !== zone.total ? `${zone.ready}/${zone.total}` : zone.total }}</UiBadge>
+            </div>
+
+            <div v-show="huntIsOpen(zone.zone)" class="flex flex-col gap-2 px-3 pb-3">
+              <div
+                v-for="(stop, i) in (huntSweepMode === 'quick' ? zone.nearby : zone.stops)"
+                :key="stop.key"
+                class="rounded-md border border-line p-2"
+              >
+                <div class="mb-1.5 flex items-baseline gap-2">
+                  <span v-if="huntSweepMode === 'walk'" class="tabular text-xs text-subtle">{{ i + 1 }}.</span>
+                  <!-- Distance from the zaap: the thing that decides whether a
+                       spot is worth walking to, and 0 means you land on it. -->
+                  <span
+                    v-else
+                    class="tabular shrink-0 text-xs"
+                    :class="stop.dist < 1 ? 'text-positive' : 'text-subtle'"
+                  >
+                    {{ stop.dist < 1
+                      ? $t('v2.archi.route.atZaap')
+                      : $t('v2.archi.route.tiles', { n: Math.round(stop.dist) }) }}
+                  </span>
+                  <span class="min-w-0 flex-1 truncate text-xs font-medium text-ink">{{ stop.subzone }}</span>
+                  <span v-if="huntIsSwept(stop.key)" class="tabular shrink-0 text-xs text-subtle">
+                    {{ huntSweptLabel(stop.key) }}
+                  </span>
+                  <!-- One fée scans one sous-zone, so this is where the sweep
+                       belongs — on the spot you actually checked. -->
+                  <button
+                    type="button"
+                    class="shrink-0 cursor-pointer rounded-md px-1.5 py-0.5 text-xs transition-colors"
+                    :class="huntIsSwept(stop.key)
+                      ? 'bg-accent-soft text-subtle'
+                      : 'text-subtle hover:bg-raised hover:text-ink'"
+                    :aria-pressed="huntIsSwept(stop.key)"
+                    :title="$t('v2.archi.route.sweepTitle')"
+                    @click="huntSweep(stop.key)"
+                  >
+                    {{ $t('v2.archi.route.sweepNothing') }}
+                  </button>
+                  <span
+                    class="tabular shrink-0 text-xs text-subtle"
+                    :title="huntSweepMode === 'quick' ? $t('v2.archi.route.atZaapTitle') : $t('v2.archi.route.firstToCover')"
+                  >
+                    +{{ stop.monsters.length }}
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button
+                    v-for="m in stop.monsters"
+                    :key="`${stop.key}-${m.id}`"
+                    type="button"
+                    :class="[
+                      'flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors',
+                      huntIsCooling(m.id) ? 'bg-accent-soft opacity-50' : 'bg-sunken hover:bg-raised',
+                    ]"
+                    :aria-pressed="huntIsCooling(m.id)"
+                    :title="$t('v2.archi.route.monsterTitle', { step: m.step, owned: m.owned, required: m.required })"
+                    @click="huntCatch(m)"
+                  >
+                    <img :src="m.image" :alt="''" class="size-4 shrink-0 rounded object-contain" @error="onImgErr">
+                    <span :class="['text-xs text-ink', huntIsCooling(m.id) && 'line-through']">{{ m.name }}</span>
+                    <span v-if="huntIsCooling(m.id)" class="tabular shrink-0 text-xs text-subtle">
+                      {{ $t('v2.archi.route.readyIn', { duration: huntCoolingLabel(m.id) }) }}
+                    </span>
+                    <UiIcon v-if="huntIsCooling(m.id)" name="check" class="shrink-0" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Steps: "250 missing" is not a goal; "step 14 needs 11" is -->
+        <div v-else-if="huntView === 'steps'" class="flex max-h-[32rem] flex-col divide-y divide-line overflow-y-auto">
+          <button
+            v-for="s in huntSteps"
+            :key="s.step"
+            type="button"
+            :class="[
+              'flex cursor-pointer items-center gap-3 p-3 text-left transition-colors hover:bg-sunken',
+              s.step === huntNearestStep && 'bg-accent-soft',
+            ]"
+            @click="huntFocusStep(s.step)"
+          >
+            <span class="w-16 shrink-0 text-sm font-medium text-ink">
+              {{ $t('v2.archi.route.stepLabel', { step: s.step }) }}
+            </span>
+            <UiProgress :value="s.done" :max="s.total" class="min-w-0 flex-1" />
+            <span class="tabular w-14 shrink-0 text-right text-xs text-subtle">{{ s.done }}/{{ s.total }}</span>
+            <UiBadge v-if="s.left" :tone="s.step === huntNearestStep ? 'positive' : 'neutral'">
+              {{ $t('v2.archi.route.stepLeft', { count: s.left }) }}
+            </UiBadge>
+            <UiBadge v-else tone="positive">{{ $t('v2.archi.route.stepDone') }}</UiBadge>
+          </button>
+        </div>
+
+        <!-- Spares: required is 1 for every quest monster, so anything past the
+             first is surplus and tradeable in game -->
+        <div v-else-if="huntView === 'spares'" class="flex max-h-[32rem] flex-col overflow-y-auto p-3">
+          <p v-if="!huntSpares.length" class="text-sm text-subtle">{{ $t('v2.archi.route.sparesEmpty') }}</p>
+          <div v-else class="flex flex-wrap gap-2">
+            <div
+              v-for="s in huntSpares"
+              :key="s.id"
+              class="flex items-center gap-2 rounded-md border border-line px-2 py-1"
+              :title="$t('v2.archi.route.monsterTitle', { step: s.step, owned: s.owned, required: 1 })"
+            >
+              <img :src="s.image" :alt="''" class="size-5 shrink-0 rounded object-contain" @error="onImgErr">
+              <span class="text-xs text-ink">{{ s.name }}</span>
+              <span class="tabular text-xs text-subtle">{{ $t('v2.archi.route.stepLabel', { step: s.step }) }}</span>
+              <UiBadge tone="positive">+{{ s.spare }}</UiBadge>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lookup: where does this archi actually spawn, and can I get it with
+             one fée at a zaap -->
+        <div v-else-if="huntView === 'find'" class="flex max-h-[32rem] flex-col overflow-y-auto p-3">
+          <UiInput
+            v-model="huntFindQuery"
+            size="sm"
+            :placeholder="$t('v2.archi.route.findPlaceholder')"
+            class="mb-3"
+          >
+            <template #prefix><UiIcon name="search" /></template>
+          </UiInput>
+          <p v-if="huntFindQuery && !huntFound.length" class="text-sm text-subtle">
+            {{ $t('v2.archi.route.findEmpty') }}
+          </p>
+          <div v-else class="flex flex-col gap-3">
+            <div v-for="f in huntFound" :key="f.id" class="rounded-md border border-line p-2">
+              <div class="mb-1.5 flex items-center gap-2">
+                <img :src="f.image" :alt="''" class="size-5 shrink-0 rounded object-contain" @error="onImgErr">
+                <span class="text-sm font-medium text-ink">{{ f.name }}</span>
+                <span class="tabular text-xs text-subtle">{{ $t('v2.archi.route.stepLabel', { step: f.step }) }}</span>
+                <UiBadge v-if="f.status !== 'incomplete'" tone="positive">{{ $t('v2.archi.route.stepDone') }}</UiBadge>
+              </div>
+              <div class="flex flex-col gap-1">
+                <div
+                  v-for="spot in f.spots"
+                  :key="`${f.id}-${spot.zone}-${spot.subzone}`"
+                  class="flex items-baseline gap-2 text-xs"
+                >
+                  <UiBadge v-if="spot.atZaap" tone="positive">{{ $t('v2.archi.route.atZaap') }}</UiBadge>
+                  <span class="text-ink">{{ spot.subzone }}</span>
+                  <span class="min-w-0 flex-1 truncate text-subtle">
+                    {{ spot.zaap
+                      ? $t('v2.archi.route.viaZaap', { zaap: spot.zaap })
+                      : $t('v2.archi.route.noZaap') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex max-h-[32rem] flex-col divide-y divide-line overflow-y-auto">
+          <div v-for="spot in huntSpots" :key="spot.key" class="p-3">
+            <div class="mb-2 flex items-baseline gap-2">
+              <span class="text-sm font-medium text-ink">{{ spot.subzone }}</span>
+              <span class="min-w-0 flex-1 truncate text-xs text-subtle">{{ spot.zone }}</span>
+              <UiBadge>{{ spot.monsters.length }}</UiBadge>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="m in spot.monsters"
+                :key="`${spot.key}-${m.id}`"
+                type="button"
+                :class="[
+                  'flex cursor-pointer items-center gap-1.5 rounded-md border border-line px-2 py-1 transition-colors',
+                  huntIsCooling(m.id) ? 'bg-accent-soft opacity-50' : 'hover:bg-sunken',
+                ]"
+                :aria-pressed="huntIsCooling(m.id)"
+                :title="$t('v2.archi.route.monsterTitle', { step: m.step, owned: m.owned, required: m.required })"
+                @click="huntCatch(m)"
+              >
+                <img :src="m.image" :alt="''" class="size-5 shrink-0 rounded object-contain" @error="onImgErr">
+                <span :class="['text-xs text-ink', huntIsCooling(m.id) && 'line-through']">{{ m.name }}</span>
+                <span class="tabular text-xs text-subtle">
+                  {{ huntIsCooling(m.id)
+                    ? $t('v2.archi.route.readyIn', { duration: huntCoolingLabel(m.id) })
+                    : `${m.owned}/${m.required}` }}
+                </span>
               </button>
             </div>
           </div>
-        </template>
-        <template #filters>
-          <UiButton variant="primary" size="sm" :disabled="!selectedRouteMonster || resolvingRoute" :loading="resolvingRoute" @click="addRouteTarget">
-            {{ $t('v2.archi.route.add') }}
-          </UiButton>
-          <UiButton v-if="routeTargets.length" variant="ghost" size="sm" @click="clearRouteTargets">
-            {{ $t('v2.archi.route.clearAll') }}
-          </UiButton>
-        </template>
-      </UiToolbar>
-
-      <UiEmptyState
-        v-if="!routeTargets.length"
-        :title="$t('v2.archi.route.emptyTitle')"
-        :description="$t('v2.archi.route.emptyDesc')"
-      >
-        <template #icon><UiIcon name="archimonstres" /></template>
-      </UiEmptyState>
-
-      <div v-else class="grid gap-4 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
-        <UiCard :padded="false">
-          <template #title>
-            {{ $t('v2.archi.route.tracked') }}
-            <span class="tabular text-subtle">({{ routeTargets.length }})</span>
-          </template>
-
-          <div class="p-2">
-            <UiInput v-model="routeSidebarFilter" size="sm" :placeholder="$t('v2.archi.route.checkPlaceholder')">
-              <template #prefix><UiIcon name="search" /></template>
-            </UiInput>
-
-            <p v-if="routeSidebarFilter && !routeSidebarMatches.length" class="mt-2 px-1 text-xs text-negative">
-              {{ $t('v2.archi.route.notInRoute') }}
-            </p>
-
-            <div class="mt-2 flex max-h-96 flex-col gap-1 overflow-y-auto">
-              <div
-                v-for="target in routeSidebarVisible"
-                :key="target.monsterId"
-                :class="[
-                  'group flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors',
-                  routeSidebarFilter ? 'bg-accent-soft' : 'hover:bg-sunken',
-                ]"
-              >
-                <img :src="getMonsterImg(target)" :alt="''" class="size-6 shrink-0 rounded object-contain" @error="onImgErr">
-                <span class="min-w-0 flex-1 truncate text-sm text-ink">{{ target.monsterName }}</span>
-                <UiButton
-                  variant="ghost"
-                  size="sm"
-                  icon
-                  class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                  :aria-label="$t('v2.archi.route.remove')"
-                  @click="removeRouteTarget(target.monsterId)"
-                >
-                  <UiIcon name="close" />
-                </UiButton>
-              </div>
-            </div>
-          </div>
-        </UiCard>
-
-        <div class="flex min-w-0 flex-col gap-3">
-          <UiCard v-for="group in routeSubareaGroups" :key="group.name">
-            <template #title>{{ group.name }}</template>
-            <template #actions>
-              <span class="tabular text-xs text-subtle">
-                {{ $t('v2.archi.route.targetCount', { count: group.monsters.length }) }}
-              </span>
-            </template>
-            <p class="-mt-2 mb-2 text-xs text-subtle">{{ group.zoneLabel }}</p>
-            <div class="flex flex-wrap gap-2">
-              <div
-                v-for="monster in group.monsters"
-                :key="`${group.name}-${monster.monsterId}`"
-                class="flex items-center gap-1.5 rounded-md border border-line px-2 py-1"
-              >
-                <img :src="getMonsterImg(monster)" :alt="''" class="size-5 shrink-0 rounded object-contain" @error="onImgErr">
-                <span class="text-xs text-ink">{{ monster.monsterName }}</span>
-              </div>
-            </div>
-          </UiCard>
         </div>
-      </div>
+      </UiCard>
+
     </template>
 
     <!-- ══ Sell ═══════════════════════════════════════════════════════════ -->
@@ -606,6 +847,25 @@
 
 <script setup lang="ts">
 import monstersJson from '@/data/monsters.json'
+import subzoneZaaps from '@/data/subzoneZaaps.json'
+import subzoneGeo from '@/data/subzoneGeo.json'
+import { slugName } from '@/utils/slugName'
+import { orderStopsByWalk, zaapSubzone } from '@/utils/huntRoute'
+import { nearestStep, stepProgress } from '@/utils/huntSteps'
+import { findSpawns, listSpares } from '@/utils/huntQuery'
+import {
+  addCapture,
+  addSweep,
+  cooldownLeftMs,
+  emptyHuntLog,
+  loadHuntLog,
+  pruneLog,
+  removeLatestCapture,
+  saveHuntLog,
+  sweepFactor,
+  sweptAgoMs,
+} from '@/utils/huntLog'
+import { formatDuration } from '@/utils/format'
 
 const { appendActivity } = useAppDataStore()
 const { selectedServer, selectedCharacter, hasContext, initContext } = useV2Context()
@@ -695,10 +955,24 @@ const trendTone = (change: number) => (change > 5 ? 'positive' : change < -5 ? '
 const trendLabel = (change: number) =>
   change > 5 ? t('v2.archi.stats.rising') : change < -5 ? t('v2.archi.stats.falling') : t('v2.archi.stats.stable')
 
-const key = (m: any) =>
-  `monster_count_${selectedServer.value?.id}_${selectedCharacter.value?.id}_${m.id}`
+/**
+ * Counts are keyed by the *metamob* monster id, never by the monsters.json id —
+ * the two disagree for 316 of the 332 monsters they share, so keying on the
+ * local id would push quantities onto the wrong monsters upstream.
+ *
+ * monsters.json is the Retro list (636 rows) while the quest is Unity (337), so
+ * ~300 monsters have no metamobId. They still count locally under a `local:`
+ * key, which is deliberately non-numeric so it can never be mistaken for a
+ * metamob id and is dropped before any push.
+ */
+const countKey = (m: any): string | number => m?.metamobId ?? `local:${m?.id}`
 
-const getCount = (m: any) => counts[m.id] ?? 0
+const isSyncable = (k: string | number) => Number.isFinite(Number(k))
+
+const key = (m: any) =>
+  `monster_count_${selectedServer.value?.id}_${selectedCharacter.value?.id}_${countKey(m)}`
+
+const getCount = (m: any) => counts[countKey(m)] ?? 0
 
 const ensureArchimonstresProgress = () => {
   if (!selectedCharacter.value) return null
@@ -740,6 +1014,30 @@ const persistMonsterCount = (monsterId: string | number, count: number) => {
   progress.lastUpdated = new Date().toISOString()
 }
 
+/**
+ * Progress saved before the metamob rekey is filed under the monsters.json id.
+ * Left alone it would silently reattach to whichever monster now holds that id,
+ * so move each entry across once, keyed by the row it actually belongs to.
+ */
+const migrateProgressToMetamobIds = () => {
+  const progress = ensureArchimonstresProgress()
+  if (!progress) return
+
+  monsters.value.forEach((m: any) => {
+    const target = String(countKey(m))
+    const legacy = String(m.id)
+    if (target === legacy) return
+
+    const entry = progress.monsters[legacy]
+    if (!entry || progress.monsters[target]) return
+
+    progress.monsters[target] = entry
+    delete progress.monsters[legacy]
+  })
+
+  progress.lastUpdated = new Date().toISOString()
+}
+
 const loadCounts = () => {
   Object.keys(counts).forEach((monsterId) => {
     counts[monsterId] = 0
@@ -749,16 +1047,17 @@ const loadCounts = () => {
   let migratedLegacyData = false
 
   monsters.value.forEach(m => {
-    const progressCount = getStoredCountFromProgress(m.id)
+    const id = countKey(m)
+    const progressCount = getStoredCountFromProgress(id)
     if (progressCount !== null) {
-      counts[m.id] = progressCount
+      counts[id] = progressCount
       return
     }
 
     const legacyCount = parseInt(localStorage.getItem(key(m)) ?? '0', 10)
-    counts[m.id] = legacyCount
+    counts[id] = legacyCount
     if (legacyCount > 0) {
-      persistMonsterCount(m.id, legacyCount)
+      persistMonsterCount(id, legacyCount)
       migratedLegacyData = true
     }
   })
@@ -788,31 +1087,130 @@ const logMonsterCountActivity = (monster: any, previousCount: number, nextCount:
     path: '/archimonstres',
     imageUrl: getMonsterImg(monster),
     meta: {
-      monsterId: monster.id,
+      // countKey, not monster.id: the local and metamob ids disagree for 316 of
+      // the 332 shared rows, so the raw id would file the same monster under two
+      // different numbers depending on which row the caller happened to hold.
+      monsterId: countKey(monster),
       previousCount,
       nextCount,
     },
   })
 }
 
+// ── Metamob sync ────────────────────────────────────────────────────────────
+// The counts map is keyed by the metamob monster id, so both directions are a
+// plain id → quantity transfer. We pull on page open and push after any edit.
+const metamobSync = reactive({
+  state: 'idle' as 'idle' | 'pulling' | 'pushing' | 'ready' | 'error',
+  characterName: '',
+  error: '',
+})
+
+// Never push before a pull succeeded — otherwise a failed pull would overwrite
+// the metamob collection with whatever empty state the app started with.
+let metamobPullOk = false
+let metamobPushTimer: ReturnType<typeof setTimeout> | null = null
+
+const pullFromMetamob = async () => {
+  metamobSync.state = 'pulling'
+  metamobSync.error = ''
+  try {
+    const res = await $fetch<{ characterName: string, counts: Record<string, number> }>('/api/metamob/quest')
+    Object.entries(res.counts ?? {}).forEach(([monsterId, quantity]) => {
+      counts[monsterId] = quantity
+      persistMonsterCount(monsterId, quantity)
+      // Match on metamobId — monsters.json ids are a different numbering.
+      const m = monsters.value.find((x: any) => String(x.metamobId) === monsterId)
+      if (m) localStorage.setItem(key(m), String(quantity))
+    })
+    metamobSync.characterName = res.characterName ?? ''
+    metamobSync.state = 'ready'
+    metamobPullOk = true
+  } catch (e: any) {
+    metamobSync.state = 'error'
+    metamobSync.error = e?.data?.statusMessage ?? e?.message ?? 'Sync failed'
+    console.warn('Metamob pull failed, keeping local counts', e)
+  }
+}
+
+const pushToMetamob = async () => {
+  if (!metamobPullOk) return
+  metamobSync.state = 'pushing'
+  try {
+    // Retro-only monsters carry a `local:` key and have no metamob counterpart.
+    const syncable = Object.fromEntries(Object.entries(counts).filter(([id]) => isSyncable(id)))
+    await $fetch('/api/metamob/quest', { method: 'PATCH', body: { counts: syncable } })
+    metamobSync.state = 'ready'
+  } catch (e: any) {
+    metamobSync.state = 'error'
+    metamobSync.error = e?.data?.statusMessage ?? e?.message ?? 'Sync failed'
+    console.warn('Metamob push failed', e)
+  }
+}
+
+// Coalesce rapid +/- clicks into one batch request.
+const queueMetamobPush = () => {
+  if (metamobPushTimer) clearTimeout(metamobPushTimer)
+  metamobPushTimer = setTimeout(pushToMetamob, 1500)
+}
+
+// ── Hunt log ────────────────────────────────────────────────────────────────
+// When each archi was captured, so the planner can stop suggesting one you just
+// took. Written from inc/dec rather than from the planner chip: every capture
+// path goes through here, and because the respawn counter is per-archimonster
+// and server-wide, the monster id and a timestamp are the whole record — no
+// location needed.
+const huntLog = ref(emptyHuntLog())
+
+/**
+ * How long a captured archi stays "gone", in hours.
+ *
+ * Nobody outside Ankama knows this number. It scales with server population and
+ * is tuned per server, and the widely-repeated "2-3h" is folklore traceable to
+ * an uncited wiki line — hence a setting rather than a constant, and hence the
+ * "est." on every surface that shows it.
+ */
+const HUNT_COOLDOWN_KEY = 'archi_cooldown_hours'
+const huntCooldownHours = ref(3)
+const huntCooldownMs = computed(() => Math.max(0, huntCooldownHours.value) * 60 * 60_000)
+
+// Drives every countdown on the page. One timer, coarse on purpose: the value
+// is an estimate, so a per-second countdown would imply precision it lacks.
+const huntNow = ref(Date.now())
+let huntClock: ReturnType<typeof setInterval> | null = null
+
+const writeHuntLog = (next: typeof huntLog.value) => {
+  huntLog.value = pruneLog(next, huntCooldownMs.value)
+  if (selectedServer.value?.id && selectedCharacter.value?.id) {
+    saveHuntLog(selectedServer.value.id, selectedCharacter.value.id, huntLog.value)
+  }
+}
+
 const saveCount = (m: any) => {
-  const count = counts[m.id] ?? 0
-  persistMonsterCount(m.id, count)
+  const id = countKey(m)
+  const count = counts[id] ?? 0
+  persistMonsterCount(id, count)
   localStorage.setItem(key(m), String(count))
+  if (isSyncable(id)) queueMetamobPush()
 }
 const inc = (m: any) => {
-  const previousCount = counts[m.id] ?? 0
-  counts[m.id] = previousCount + 1
+  const id = countKey(m)
+  const previousCount = counts[id] ?? 0
+  counts[id] = previousCount + 1
   saveCount(m)
-  logMonsterCountActivity(m, previousCount, counts[m.id] ?? 0)
+  // Retro-only rows have no metamob id, so no cooldown to model.
+  if (isSyncable(id)) writeHuntLog(addCapture(huntLog.value, Number(id)))
+  logMonsterCountActivity(m, previousCount, counts[id] ?? 0)
 }
 const dec = (m: any) => {
-  const current = counts[m.id] ?? 0
+  const id = countKey(m)
+  const current = counts[id] ?? 0
   if (current > 0) {
     const previousCount = current
-    counts[m.id] = current - 1
+    counts[id] = current - 1
     saveCount(m)
-    logMonsterCountActivity(m, previousCount, counts[m.id] ?? 0)
+    if (isSyncable(id)) writeHuntLog(removeLatestCapture(huntLog.value, Number(id)))
+    logMonsterCountActivity(m, previousCount, counts[id] ?? 0)
   }
 }
 
@@ -855,22 +1253,10 @@ interface SoldItem extends PendingItem {
   dateSold: string
   soldPrice: number
 }
-interface RouteTarget {
-  monsterId: string | number
-  monsterName: string
-  baseMonsterName: string
-  image_url: string
-  zone: string
-  souszone: string
-  subareas: string[]
-  addedAt: string
-}
-
 const sellTab = ref<'queue' | 'history' | 'analytics'>('queue')
 const pendingItems = ref<PendingItem[]>([])
 const soldItems = ref<SoldItem[]>([])
 const priceHistory = ref<Record<string, number[]>>({})
-const routeTargets = ref<RouteTarget[]>([])
 const slowMovingDays = ref(7)
 const slowMovingDayOptions = [1, 3, 5, 7, 10, 14, 21, 30].map(days => ({
   key: String(days),
@@ -884,24 +1270,6 @@ const addQuantity = ref(1)
 const addPrice = ref(0)
 const selectedMonster = ref<any>(null)
 const showDropdown = ref(false)
-const routeSearch = ref('')
-const routeSidebarFilter = ref('')
-const selectedRouteMonster = ref<any>(null)
-const showRouteDropdown = ref(false)
-const resolvingRoute = ref(false)
-
-// The sidebar filter highlights rather than hides, so you can confirm a
-// monster is already in the route without losing sight of the rest.
-const routeSidebarMatches = computed(() => {
-  const needle = routeSidebarFilter.value.trim().toLowerCase()
-  if (!needle) return routeTargets.value
-  return routeTargets.value.filter(target => target.monsterName.toLowerCase().includes(needle))
-})
-
-const routeSidebarVisible = computed(() =>
-  routeSidebarFilter.value.trim() ? routeSidebarMatches.value : routeTargets.value,
-)
-
 // Price editing
 const editingPriceId = ref<string | null>(null)
 const editingPriceVal = ref(0)
@@ -916,34 +1284,19 @@ const soldKey = computed(() =>
 const historyKey = computed(() =>
   `selling_price_history_${selectedServer.value?.id}_${selectedCharacter.value?.id}`
 )
-const routeKey = computed(() =>
-  `archi_route_targets_${selectedServer.value?.id}_${selectedCharacter.value?.id}`
-)
-
 const loadSellData = () => {
   if (!hasContext.value) return
   const pRaw = localStorage.getItem(pendingKey.value)
   const sRaw = localStorage.getItem(soldKey.value)
   const hRaw = localStorage.getItem(historyKey.value)
-  const rRaw = localStorage.getItem(routeKey.value)
   pendingItems.value = pRaw ? JSON.parse(pRaw) : []
   soldItems.value = sRaw ? JSON.parse(sRaw) : []
   priceHistory.value = hRaw ? JSON.parse(hRaw) : {}
-  routeTargets.value = rRaw ? JSON.parse(rRaw) : []
 }
 
 const savePending = () => localStorage.setItem(pendingKey.value, JSON.stringify(pendingItems.value))
 const saveSold = () => localStorage.setItem(soldKey.value, JSON.stringify(soldItems.value))
 const saveHistory = () => localStorage.setItem(historyKey.value, JSON.stringify(priceHistory.value))
-const saveRouteTargets = () => localStorage.setItem(routeKey.value, JSON.stringify(routeTargets.value))
-
-const normalizeDofusdbSearch = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[’`]/g, "'")
-    .toLowerCase()
-    .trim()
 
 const getSuggestions = (query: string, archiOnly = false) => {
   if (!query || query.length < 2) return []
@@ -963,7 +1316,6 @@ const getSuggestions = (query: string, archiOnly = false) => {
 
 // Monster autocomplete
 const monsterSuggestions = computed(() => getSuggestions(searchMonster.value))
-const routeMonsterSuggestions = computed(() => getSuggestions(routeSearch.value, true))
 
 const suggestedPrice = computed(() => {
   if (!selectedMonster.value) return 0
@@ -978,65 +1330,6 @@ const selectMonster = (m: any) => {
   searchMonster.value = m.nom
   showDropdown.value = false
   if (suggestedPrice.value > 0) addPrice.value = suggestedPrice.value
-}
-
-const selectRouteMonster = (m: any) => {
-  selectedRouteMonster.value = m
-  routeSearch.value = m.nom
-  showRouteDropdown.value = false
-}
-
-const resolveRouteSubareas = async (monster: any): Promise<{ subareas: string[]; baseMonsterName: string }> => {
-  const fallbackSubareas = [monster.souszone, monster.zone].filter(Boolean)
-  const searchTerms = [monster.nom_normal, monster.nom].filter(Boolean) as string[]
-
-  for (const term of searchTerms) {
-    try {
-      const res = await $fetch<{ data?: Array<{ id: number; name?: { fr?: string }; subareas?: number[] }> }>('/api/dofusdb/monsters', {
-        query: {
-          '$limit': 10,
-          '$populate': false,
-          lang: 'fr',
-          'slug.fr[$search]': normalizeDofusdbSearch(term),
-        },
-      })
-
-      const candidates = res.data ?? []
-      const exact = candidates.find((candidate) =>
-        normalizeDofusdbSearch(candidate.name?.fr ?? '') === normalizeDofusdbSearch(term)
-      ) ?? candidates[0]
-
-      const subareaIds = exact?.subareas ?? []
-      if (!subareaIds.length) {
-        if (fallbackSubareas.length) {
-          return { subareas: [...new Set(fallbackSubareas)], baseMonsterName: exact?.name?.fr ?? term }
-        }
-        continue
-      }
-
-      const subareasRes = await $fetch<{ data?: Array<{ id: number; name?: { fr?: string } }> }>('/api/dofusdb/subareas', {
-        query: { 'id[]': subareaIds, lang: 'fr', '$limit': Math.max(subareaIds.length, 20) },
-      })
-
-      const names = (subareasRes.data ?? [])
-        .map(subarea => subarea.name?.fr)
-        .filter((name): name is string => Boolean(name))
-
-      if (names.length) {
-        return {
-          subareas: [...new Set(names)],
-          baseMonsterName: exact?.name?.fr ?? term,
-        }
-      }
-    } catch {
-      // Keep fallback below.
-    }
-  }
-
-  return {
-    subareas: [...new Set(fallbackSubareas)],
-    baseMonsterName: monster.nom_normal || monster.nom,
-  }
 }
 
 const addToQueue = () => {
@@ -1059,83 +1352,6 @@ const addToQueue = () => {
   addQuantity.value = 1
   addPrice.value = 0
 }
-
-const addRouteTarget = async () => {
-  if (!selectedRouteMonster.value || resolvingRoute.value) return
-  if (routeTargets.value.some(target => String(target.monsterId) === String(selectedRouteMonster.value.id))) {
-    routeSearch.value = ''
-    selectedRouteMonster.value = null
-    return
-  }
-
-  resolvingRoute.value = true
-  try {
-    const resolved = await resolveRouteSubareas(selectedRouteMonster.value)
-    routeTargets.value.unshift({
-      monsterId: selectedRouteMonster.value.id,
-      monsterName: selectedRouteMonster.value.nom,
-      baseMonsterName: resolved.baseMonsterName,
-      image_url: selectedRouteMonster.value.image_url,
-      zone: selectedRouteMonster.value.zone ?? '',
-      souszone: selectedRouteMonster.value.souszone ?? '',
-      subareas: resolved.subareas.length ? resolved.subareas : [selectedRouteMonster.value.souszone || selectedRouteMonster.value.zone].filter(Boolean),
-      addedAt: new Date().toISOString(),
-    })
-    saveRouteTargets()
-    routeSearch.value = ''
-    selectedRouteMonster.value = null
-  } finally {
-    resolvingRoute.value = false
-  }
-}
-
-const removeRouteTarget = (monsterId: string | number) => {
-  routeTargets.value = routeTargets.value.filter(target => String(target.monsterId) !== String(monsterId))
-  saveRouteTargets()
-}
-
-const clearRouteTargets = () => {
-  routeTargets.value = []
-  saveRouteTargets()
-}
-
-const routeSubareaGroups = computed(() => {
-  const groups = new Map<string, { name: string; zoneLabel: string; monsters: RouteTarget[] }>()
-
-  routeTargets.value.forEach((target) => {
-    target.subareas.forEach((subarea) => {
-      const existing = groups.get(subarea)
-      if (existing) {
-        existing.monsters.push(target)
-        return
-      }
-
-      groups.set(subarea, {
-        name: subarea,
-        zoneLabel: target.zone || 'Unknown zone',
-        monsters: [target],
-      })
-    })
-  })
-
-  return [...groups.values()]
-    .map(group => ({
-      ...group,
-      monsters: group.monsters.sort((a, b) => a.monsterName.localeCompare(b.monsterName, 'fr')),
-    }))
-    .sort((a, b) => {
-      if (b.monsters.length !== a.monsters.length) return b.monsters.length - a.monsters.length
-      return a.name.localeCompare(b.name, 'fr')
-    })
-})
-
-const routeSubareaSummary = computed(() =>
-  routeSubareaGroups.value.map(group => ({
-    name: group.name,
-    zoneLabel: group.zoneLabel,
-    count: group.monsters.length,
-  }))
-)
 
 const markSold = (item: PendingItem) => {
   const soldAt = new Date().toISOString()
@@ -1387,41 +1603,605 @@ const standardizePrices = (monsterName: string, targetPrice: number) => {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+// v2 ships metamobId on every row. Anything cached at v1 predates it and would
+// leave the whole page keyed on the wrong ids, so that cache must be replaced
+// and the stored progress moved across before counts are read.
+const MONSTERS_VERSION = 2
+
 const init = () => {
   const ver = parseInt(localStorage.getItem('archimonstres-monsters-version') ?? '0', 10)
-  if (ver < 1) {
+  const stale = ver < MONSTERS_VERSION
+
+  if (stale) {
     monsters.value = monstersJson as any[]
     localStorage.setItem('archimonstres-monsters', JSON.stringify(monstersJson))
-    localStorage.setItem('archimonstres-monsters-version', '1')
+    localStorage.setItem('archimonstres-monsters-version', String(MONSTERS_VERSION))
   } else {
     const raw = localStorage.getItem('archimonstres-monsters')
     monsters.value = raw ? JSON.parse(raw) : (monstersJson as any[])
   }
+
+  if (stale) migrateProgressToMetamobIds()
+
   loadCounts()
   loadSellData()
   loading.value = false
 }
 
+// ── Hunt planner (metamob zones) ────────────────────────────────────────────
+// Ranks subzones by how many archi you still need there, so a run is "go to
+// these subzones" instead of "here is every spawn in the game".
+type HuntMonster = {
+  id: number
+  name: string
+  image: string
+  typeId: number
+  step: number
+  owned: number
+  required: number
+  status: 'validated' | 'completed' | 'incomplete'
+}
+
+const huntZones = ref<{ name: string, subzones: { id: number, name: string, monsters: HuntMonster[] }[] }[]>([])
+
+/**
+ * Where each metamob subzone actually is.
+ *
+ * Metamob gives no coordinates, no zaap and no dungeon flag, so those come from
+ * DofusDB (app/data/subzoneGeo.json, rebuilt by scripts/fetch-subzone-geo.mjs).
+ * subzoneZaaps.json survives for two reasons: it is the only place the metamob
+ * subzone id is tied to a name, and DofusDB has no zaap for 15 subzones —
+ * most of Astrub — where the hand-typed value is still the right answer.
+ *
+ * The join is on area + subzone, not subzone alone: there are two "Cimetière",
+ * one in Amakna and one in Incarnam.
+ */
+type ZaapRow = { subzoneId: number, zone: string, subzone: string, zaap: string, skip: boolean }
+type GeoRow = {
+  slug: string, name: string, area: string, zaap: string | null,
+  zaapX: number | null, zaapY: number | null, zaapWorld: number | null,
+  x: number | null, y: number | null, world: number | null, dungeon: boolean
+}
+// `world` is the world-map layer the coordinates belong to. Without it a
+// distance between two sous-zones can be arithmetic on unrelated grids.
+type SubzoneGeo = {
+  zaap: string, zaapX: number | null, zaapY: number | null, zaapWorld: number | null,
+  x: number | null, y: number | null, world: number | null, dungeon: boolean
+}
+
+const huntGeo = computed(() => {
+  const byPair = new Map<string, GeoRow>()
+  const bySlug = new Map<string, GeoRow>()
+  ;(subzoneGeo as GeoRow[]).forEach((row) => {
+    byPair.set(`${slugName(row.area)}/${row.slug}`, row)
+    if (!bySlug.has(row.slug)) bySlug.set(row.slug, row)
+  })
+
+  const map: Record<number, SubzoneGeo> = {}
+  const unmatched: string[] = []
+
+  // A sous-zone that other rows name as their zaap is its own zaap. DofusDB has
+  // no zaap for any Astrub sous-zone, and the hand table fills "Cité d'Astrub"
+  // in on the seven around it but leaves it blank on Cité d'Astrub itself — so
+  // without this the zaap's own sous-zone splits into a separate group and its
+  // archi never count as reachable on arrival.
+  const zaapNames = new Set((subzoneZaaps as ZaapRow[]).map(r => slugName(r.zaap)).filter(Boolean))
+
+  ;(subzoneZaaps as ZaapRow[]).forEach((row) => {
+    const slug = slugName(row.subzone)
+    const geo = byPair.get(`${slugName(row.zone)}/${slug}`) ?? bySlug.get(slug)
+    if (!geo) { unmatched.push(row.subzone); return }
+
+    map[row.subzoneId] = {
+      // DofusDB wins; the hand value only fills the gaps it leaves. `||`, not
+      // `??`: the hand table uses "" rather than null for "no zaap".
+      zaap: geo.zaap || row.zaap || (zaapNames.has(slug) ? row.subzone : ''),
+      zaapX: geo.zaapX,
+      zaapY: geo.zaapY,
+      zaapWorld: geo.zaapWorld,
+      x: geo.x,
+      y: geo.y,
+      world: geo.world,
+      dungeon: geo.dungeon,
+    }
+  })
+
+  return { map, unmatched }
+})
+const huntCurrentStep = ref(0)
+const huntLoading = ref(false)
+const huntError = ref('')
+
+const huntHideOwned = ref(true)
+const huntArchiOnly = ref(true)
+// Off by default: archi sit at steps above the quest's current step, so a
+// "step <= current step" filter would hide every one of them.
+const huntNextStepOnly = ref(false)
+const huntZoneFilter = ref('')
+// Folded into defaults — no longer user-toggleable, but still read by
+// keepHuntMonster, huntNextStep and huntSpots, so the refs stay.
+const huntRoamableOnly = ref(true)
+const huntSort = ref<'total' | 'yield'>('total')
+const huntView = ref<'route' | 'spots' | 'steps' | 'spares' | 'find'>('route')
+
+/**
+ * Which run you are actually doing.
+ *
+ * The fée d'artifice scans the sous-zone you are standing in, not the area
+ * around it. Popping one at the zaap and moving on ("quick") therefore only
+ * ever reaches the zaap's own sous-zone, and ranking by everything under the
+ * zaap sends you to places worth nothing on that loop — Village côtier leads
+ * the walk ranking with 31 archi and has none at the zaap itself.
+ *
+ * "walk" is the older behaviour: several sous-zones per zaap, a fée in each.
+ */
+const huntSweepMode = ref<'quick' | 'walk'>('quick')
+
+/**
+ * How far you are willing to move from a zaap, in map tiles.
+ *
+ * Quick mode used to show only the zaap's own sous-zone, which hid the point of
+ * going: standing at Bord de la forêt maléfique there are ~47 archi within a
+ * dozen tiles, and the app was showing 4. The rest were filed under other
+ * zaaps, because DofusDB's zaap assignment says which zaap *owns* a sous-zone,
+ * not what is near what.
+ */
+const HUNT_RADIUS_KEY = 'archi_hunt_radius'
+const huntRadius = ref(10)
+
+/** Where each zaap is, so a radius can be measured from it. */
+const huntZaapPos = computed(() => {
+  const pos: Record<string, { x: number, y: number, world: number | null }> = {}
+  Object.values(huntGeo.value.map).forEach((g) => {
+    if (!g.zaap || g.zaapX === null || g.zaapY === null) return
+    if (!pos[g.zaap]) pos[g.zaap] = { x: g.zaapX, y: g.zaapY, world: g.zaapWorld }
+  })
+  return pos
+})
+
+const loadHuntZones = async () => {
+  huntLoading.value = true
+  huntError.value = ''
+  try {
+    const res = await $fetch<{ currentStep: number, zones: typeof huntZones.value }>('/api/metamob/zones')
+    huntZones.value = res.zones ?? []
+    huntCurrentStep.value = res.currentStep ?? 0
+
+    // A rename upstream would silently drop a subzone to zone-level grouping,
+    // and a metamob addition would drop it out of the route entirely.
+    if (huntGeo.value.unmatched.length) {
+      console.warn('No DofusDB geography for:', huntGeo.value.unmatched.join(', '))
+    }
+    const known = new Set((subzoneZaaps as ZaapRow[]).map(r => r.subzoneId))
+    const missing = huntZones.value
+      .flatMap(z => z.subzones.filter(s => !known.has(s.id)).map(s => s.name))
+    if (missing.length) {
+      console.warn('Subzones metamob reports but subzoneZaaps.json does not list:', missing.join(', '))
+    }
+
+    // Real today for Village de la Canopée (layer 10, zaap on the surface).
+    // Those stops cannot be walk-ordered, so they sit at the tail — visible
+    // here rather than as a route that quietly stops making sense.
+    const crossLayer = Object.values(huntGeo.value.map)
+      .filter(g => g.zaap && g.world !== null && g.zaapWorld !== null && g.world !== g.zaapWorld)
+    if (crossLayer.length) {
+      console.warn(`${crossLayer.length} subzones sit on a different world-map layer from their zaap; their stops are not distance-ordered.`)
+    }
+  } catch (e: any) {
+    huntError.value = e?.data?.statusMessage ?? e?.message ?? 'Could not load zones'
+    console.warn('Metamob zones failed', e)
+  } finally {
+    huntLoading.value = false
+  }
+}
+
+/** Lowest step that still has something missing — the step you're actually on. */
+const huntNextStep = computed(() => {
+  let lowest = Infinity
+  huntZones.value.forEach(zone => zone.subzones.forEach(sub => sub.monsters.forEach((m) => {
+    if (m.status !== 'incomplete') return
+    if (huntArchiOnly.value && m.typeId !== 3) return
+    if (m.step < lowest) lowest = m.step
+  })))
+  return Number.isFinite(lowest) ? lowest : 0
+})
+
+/**
+ * Which step the step filter targets: whatever the steps view last picked, or
+ * the lowest incomplete one when nothing has been chosen.
+ */
+const huntStepFilter = ref<number | null>(null)
+const huntTargetStep = computed(() => huntStepFilter.value ?? huntNextStep.value)
+
+const keepHuntMonster = (m: HuntMonster) => {
+  if (huntArchiOnly.value && m.typeId !== 3) return false
+  if (huntHideOwned.value && m.status !== 'incomplete') return false
+  if (huntNextStepOnly.value && huntTargetStep.value && m.step !== huntTargetStep.value) return false
+  return true
+}
+
+/** Subzones that still have something worth farming, densest first. */
+const huntSpots = computed(() => {
+  const needle = huntZoneFilter.value.trim().toLowerCase()
+  const spots: {
+    key: string, subzoneId: number, zone: string, subzone: string,
+    x: number | null, y: number | null, world: number | null, monsters: HuntMonster[]
+  }[] = []
+
+  huntZones.value.forEach((zone) => {
+    zone.subzones.forEach((sub) => {
+      const geo = huntGeo.value.map[sub.id]
+      if (huntRoamableOnly.value && geo?.dungeon) return
+      if (needle && !zone.name.toLowerCase().includes(needle) && !sub.name.toLowerCase().includes(needle)) return
+      const monsters = sub.monsters.filter(keepHuntMonster)
+      if (!monsters.length) return
+      spots.push({
+        key: `${zone.name}-${sub.id}`,
+        subzoneId: sub.id,
+        zone: zone.name,
+        subzone: sub.name,
+        x: geo?.x ?? null,
+        y: geo?.y ?? null,
+        world: geo?.world ?? null,
+        monsters: monsters.sort((a, b) => a.step - b.step || a.name.localeCompare(b.name)),
+      })
+    })
+  })
+
+  return spots.sort((a, b) => b.monsters.length - a.monsters.length || a.zone.localeCompare(b.zone))
+})
+
+/**
+ * Group the run by zaap, then pick the fewest subzones that still cover every
+ * archi under it (greedy set cover), then order those stops into a walk.
+ *
+ * Each stop lists only the archi it is the *first* to cover, so an archi that
+ * spawns in 11 subzones stops padding all 11 — which means a later stop can
+ * legitimately show more monsters than an earlier one once the walk reorders
+ * them. Set cover chooses the stops; distance only sorts them.
+ */
+const huntRoute = computed(() => {
+  const byZone = new Map<string, typeof huntSpots.value>()
+  huntSpots.value.forEach((spot) => {
+    // Subzones DofusDB gives no zaap for fall back to their parent zone.
+    const group = huntGeo.value.map[spot.subzoneId]?.zaap || spot.zone
+    if (!byZone.has(group)) byZone.set(group, [])
+    byZone.get(group)!.push(spot)
+  })
+
+  /**
+   * Everything within the radius of a zaap, nearest first — regardless of which
+   * zaap DofusDB says owns it.
+   *
+   * That ownership is the whole problem quick mode had: Forêt d'Amakna is five
+   * tiles from Bord de la forêt maléfique but filed under Rivage sufokien, so
+   * it was invisible from the group you were standing in. A sous-zone can
+   * therefore appear under several zaaps here, which is correct — it really is
+   * reachable from each of them.
+   */
+  const withinRadius = (zone: string) => {
+    const at = huntZaapPos.value[zone]
+    if (!at) return null
+    const r2 = huntRadius.value ** 2
+    return huntSpots.value
+      .filter(s => s.x !== null && s.y !== null && s.world === at.world)
+      .map(s => ({ ...s, dist: Math.hypot((s.x as number) - at.x, (s.y as number) - at.y) }))
+      .filter(s => s.dist ** 2 <= r2)
+      .sort((a, b) => a.dist - b.dist || b.monsters.length - a.monsters.length)
+  }
+
+  const zones = [...byZone.entries()].map(([zone, spots]) => {
+    const remaining = new Set(spots.flatMap(s => s.monsters.map(m => m.id)))
+    const total = remaining.size
+    const stops: {
+      key: string, subzone: string, x: number | null, y: number | null,
+      world: number | null, monsters: HuntMonster[]
+    }[] = []
+    const pool = [...spots]
+
+    while (remaining.size) {
+      // Whichever subzone knocks out the most of what's still missing.
+      let best: typeof pool[number] | null = null
+      let bestNew: HuntMonster[] = []
+      for (const spot of pool) {
+        const gained = spot.monsters.filter(m => remaining.has(m.id))
+        if (gained.length > bestNew.length) { best = spot; bestNew = gained }
+      }
+      if (!best || !bestNew.length) break
+
+      stops.push({
+        key: best.key, subzone: best.subzone,
+        x: best.x, y: best.y, world: best.world, monsters: bestNew,
+      })
+      bestNew.forEach(m => remaining.delete(m.id))
+      pool.splice(pool.indexOf(best), 1)
+    }
+
+    // You arrive at the zaap, so the walk starts there. Any spot in the group
+    // carries the same zaap position.
+    const origin = spots.map(s => huntGeo.value.map[s.subzoneId]).find(g => g?.zaapX != null)
+    const walked = orderStopsByWalk(stops, {
+      x: origin?.zaapX ?? null,
+      y: origin?.zaapY ?? null,
+      // Stops on a different layer from the zaap cannot be distance-sorted
+      // against it; orderStopsByWalk parks them at the tail instead.
+      world: origin?.zaapWorld ?? null,
+    })
+
+    // Read from `spots`, not from `stops`: set cover assigns each archi to the
+    // first stop that covers it, so the sous-zone you actually land in is often
+    // not among the chosen stops even when it holds archi you need.
+    const landing = zaapSubzone(spots, zone)
+
+    // Zaaps with no coordinates (Astrub's, which DofusDB has no zaap map for)
+    // cannot have a radius measured, so they keep the assigned-zaap grouping.
+    const nearby = withinRadius(zone) ?? spots.map(s => ({ ...s, dist: 0 }))
+
+    return { zone, total, stops: walked, landing, nearby }
+  })
+
+  // An archi that spawns under only one zaap makes that trip mandatory — you
+  // cannot pick it up anywhere else, however poor the rest of the group is.
+  const groupsPerMonster = new Map<number, number>()
+  zones.forEach(z => new Set(z.stops.flatMap(s => s.monsters.map(m => m.id)))
+    .forEach(id => groupsPerMonster.set(id, (groupsPerMonster.get(id) ?? 0) + 1)))
+
+  const ranked = zones.map((z) => {
+    const ids = new Set(z.stops.flatMap(s => s.monsters.map(m => m.id)))
+    const exclusive = new Set(ids)
+    exclusive.forEach((id) => { if ((groupsPerMonster.get(id) ?? 0) > 1) exclusive.delete(id) })
+
+    // The richest stop, not the first one — the walk order no longer puts the
+    // biggest stop at the front.
+    const topStop = z.stops.reduce((n, s) => Math.max(n, s.monsters.length), 0)
+
+    // What is actually catchable right now. `total` stays what it always was —
+    // everything still missing here — so the two numbers together read as
+    // "31 archi, 24 of them available".
+    const ready = [...ids].filter(id => !huntCooling.value.has(id)).length
+
+    // What one fée at the zaap itself reaches — kept as a separate figure so
+    // "4 at the zaap, 47 within 10" can both be shown.
+    const ownMonsters = z.landing?.monsters ?? []
+    const ownReady = ownMonsters.filter(m => !huntCooling.value.has(m.id)).length
+
+    // Everything inside the radius, deduped: one archi spawning in six of the
+    // nearby sous-zones is still one archi to catch.
+    //
+    // An archi is only discounted when *every* nearby sous-zone holding it has
+    // been swept — if it also spawns somewhere you have not checked, it is
+    // still there to find. That is why the weight is a max, not a product.
+    const weights = new Map<number, number>()
+    z.nearby.forEach((spot) => {
+      const w = sweepFactor(huntLog.value, spot.key, huntNow.value)
+      spot.monsters.forEach(m => weights.set(m.id, Math.max(weights.get(m.id) ?? 0, w)))
+    })
+
+    const near = weights.size
+    const nearReady = [...weights.entries()]
+      .filter(([id, w]) => w === 1 && !huntCooling.value.has(id)).length
+    const nearScore = [...weights.entries()]
+      .reduce((sum, [id, w]) => sum + (huntCooling.value.has(id) ? 0 : w), 0)
+
+    const counted = huntSweepMode.value === 'quick' ? nearScore : ready
+
+    return {
+      ...z,
+      ready,
+      own: ownMonsters.length,
+      ownReady,
+      near,
+      nearReady,
+      // Sweeps already discounted per sous-zone inside `counted`; applying a
+      // group-level factor on top would penalise the same check twice.
+      score: counted,
+      // How much of this group you have already checked, shown in the header so
+      // "I've done most of this one" is visible without expanding it.
+      sweptSpots: z.nearby.filter(s => huntIsSwept(s.key)).length,
+      // How much you get per subzone you actually have to walk.
+      yield: z.stops.length ? z.total / z.stops.length : 0,
+      exclusive: exclusive.size,
+      // Most of the value sits in one stop: tele, sweep one map, leave.
+      oneShot: z.total > 0 && z.stops.length > 1 && topStop / z.total >= 0.6,
+    }
+  })
+
+  // Ranking runs on `score` (cooldowns and sweeps applied); `total` and `yield`
+  // stay untouched as the honest "what is here" figures the UI displays.
+  //
+  // The yield sort is meaningless in quick mode — every group is one stop by
+  // definition — so it only splits the ranking on a walk.
+  return huntSort.value === 'yield' && huntSweepMode.value === 'walk'
+    ? ranked.sort((a, b) =>
+        (b.score / (b.stops.length || 1)) - (a.score / (a.stops.length || 1)) || b.score - a.score)
+    : ranked.sort((a, b) => b.score - a.score || a.zone.localeCompare(b.zone))
+})
+
+const huntRouteTotals = computed(() => ({
+  zones: huntRoute.value.length,
+  stops: huntRoute.value.reduce((n, z) => n + z.stops.length, 0),
+}))
+
+/** The trip to make next — whichever group the active sort put first. */
+const huntTopGroup = computed(() => huntRoute.value[0] ?? null)
+
+/**
+ * Archi you have taken recently and that therefore cannot be caught again yet.
+ *
+ * This replaces what used to be a session-only Set of ticked chips. Deriving it
+ * from the hunt log instead means a ticked chip survives a reload, which is what
+ * you want halfway through a run — and it costs nothing, because "captured
+ * within the cooldown" and "ticked just now" are the same fact.
+ *
+ * The old invariant still holds: huntSpots filters on metamob's `status`, which
+ * does not change on a tick, so nothing may call loadHuntZones() mid-run or the
+ * chips will vanish underneath you.
+ */
+const huntCooling = computed(() => {
+  const map = new Map<number, number>()
+  huntLog.value.captures.forEach((c) => {
+    if (map.has(c.m)) return
+    const left = cooldownLeftMs(huntLog.value, c.m, huntCooldownMs.value, huntNow.value)
+    if (left > 0) map.set(c.m, left)
+  })
+  return map
+})
+
+const huntIsCooling = (id: number) => huntCooling.value.has(id)
+
+/**
+ * "~2h 10m" — always behind a "~", never a precise countdown.
+ *
+ * formatDuration floors to whole minutes, so the last minute would render as
+ * the confusing "~0m"; under a minute it is effectively back anyway.
+ */
+const huntCoolingLabel = (id: number) => {
+  const left = huntCooling.value.get(id) ?? 0
+  return left < 60_000 ? t('v2.archi.route.readySoon') : formatDuration(left)
+}
+
+const huntCatch = (m: HuntMonster) => {
+  // Same row the Ocre grid uses, so the activity log gets a name and an image.
+  const row = monsters.value.find((x: any) => x.metamobId === m.id)
+    ?? { id: m.id, metamobId: m.id, nom: m.name, image_url: m.image }
+
+  // inc/dec write the hunt log themselves, so the cooling state follows.
+  huntIsCooling(m.id) ? dec(row) : inc(row)
+}
+
+// ── Sweeps ──────────────────────────────────────────────────────────────────
+// "I stood at this zaap, popped a fairy, nothing." Weak evidence — an archi can
+// drop into a group a minute after you leave — so it only ever nudges the
+// ranking down and expires within the hour.
+const huntSweep = (spotKey: string) => writeHuntLog(addSweep(huntLog.value, spotKey))
+
+const huntIsSwept = (spotKey: string) =>
+  sweptAgoMs(huntLog.value, spotKey, huntNow.value) !== null
+
+/** The whole phrase, because "just now" does not take an "ago". */
+const huntSweptLabel = (spotKey: string) => {
+  const ago = sweptAgoMs(huntLog.value, spotKey, huntNow.value)
+  if (ago === null) return ''
+  // The clock ticks once a minute, so a fresh tap sits at "0m" for a while.
+  return ago < 60_000
+    ? t('v2.archi.route.sweptNow')
+    : t('v2.archi.route.sweptAgo', { duration: formatDuration(ago) })
+}
+
+// ── Group collapsing ────────────────────────────────────────────────────────
+const huntOpen = ref(new Set<string>())
+let huntLastTop: string | null = null
+
+const huntIsOpen = (zone: string) => huntOpen.value.has(zone)
+
+const huntToggle = (zone: string) => {
+  const next = new Set(huntOpen.value)
+  next.has(zone) ? next.delete(zone) : next.add(zone)
+  huntOpen.value = next
+}
+
+// Follow the ranking when it genuinely changes, but leave manual expansions
+// alone while the user is working within the same top group.
+watch(huntTopGroup, (top) => {
+  const zone = top?.zone ?? null
+  if (zone === huntLastTop) return
+  huntLastTop = zone
+  huntOpen.value = new Set(zone ? [zone] : [])
+}, { immediate: true })
+
+// ── Steps, spares, lookup ───────────────────────────────────────────────────
+// All three read huntZones, which is already in memory — no extra requests.
+
+const huntSteps = computed(() => stepProgress(huntZones.value, huntArchiOnly.value))
+
+/** The step you are closest to finishing, which is rarely the lowest one. */
+const huntNearestStep = computed(() => nearestStep(huntSteps.value))
+
+/** Jump from the steps view straight to a planner filtered to that step. */
+const huntFocusStep = (step: number) => {
+  huntStepFilter.value = step
+  huntNextStepOnly.value = true
+  huntView.value = 'route'
+}
+
+// Turning the filter off also drops a step picked in the steps view, so the
+// button goes back to tracking the lowest incomplete step on its own.
+const huntToggleStepFilter = () => {
+  huntNextStepOnly.value = !huntNextStepOnly.value
+  if (!huntNextStepOnly.value) huntStepFilter.value = null
+}
+
+const huntSpares = computed(() => listSpares(huntZones.value, counts))
+
+const huntFindQuery = ref('')
+const huntFound = computed(() =>
+  findSpawns(huntZones.value, huntFindQuery.value, huntGeo.value.map, { archiOnly: huntArchiOnly.value }))
+
+const huntTotals = computed(() => ({
+  spots: huntSpots.value.length,
+  // A monster spawning in several subzones must only be counted once.
+  monsters: new Set(huntSpots.value.flatMap(s => s.monsters.map(m => m.id))).size,
+}))
+
 const monsterAutoEl = ref<HTMLElement | null>(null)
-const routeAutoEl = ref<HTMLElement | null>(null)
 
 const onDocMousedownArchi = (e: MouseEvent) => {
   if (monsterAutoEl.value && !monsterAutoEl.value.contains(e.target as Node)) {
     showDropdown.value = false
   }
-  if (routeAutoEl.value && !routeAutoEl.value.contains(e.target as Node)) {
-    showRouteDropdown.value = false
-  }
 }
+
+const loadHuntState = () => {
+  const stored = Number(localStorage.getItem(HUNT_COOLDOWN_KEY))
+  if (Number.isFinite(stored) && stored > 0) huntCooldownHours.value = stored
+
+  const radius = Number(localStorage.getItem(HUNT_RADIUS_KEY))
+  if (Number.isFinite(radius) && radius >= 0) huntRadius.value = radius
+
+  if (!selectedServer.value?.id || !selectedCharacter.value?.id) {
+    huntLog.value = emptyHuntLog()
+    return
+  }
+  huntLog.value = pruneLog(
+    loadHuntLog(selectedServer.value.id, selectedCharacter.value.id),
+    huntCooldownMs.value,
+  )
+}
+
+watch(huntCooldownHours, (hours) => {
+  if (!Number.isFinite(hours) || hours <= 0) return
+  localStorage.setItem(HUNT_COOLDOWN_KEY, String(hours))
+})
+
+watch(huntRadius, (radius) => {
+  if (!Number.isFinite(radius) || radius < 0) return
+  localStorage.setItem(HUNT_RADIUS_KEY, String(radius))
+})
 
 onMounted(() => {
   initContext()
   init()
   loadMetamobImages()
+  pullFromMetamob()
+  loadHuntZones()
+  loadHuntState()
+  // A minute is fine: every countdown here is an estimate, and re-ranking more
+  // often than that would move the list under the user's cursor for no gain.
+  huntClock = setInterval(() => { huntNow.value = Date.now() }, 60_000)
   document.addEventListener('mousedown', onDocMousedownArchi)
 })
-onUnmounted(() => document.removeEventListener('mousedown', onDocMousedownArchi))
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onDocMousedownArchi)
+  if (huntClock) clearInterval(huntClock)
+  // Don't lose an edit made right before navigating away.
+  if (metamobPushTimer) {
+    clearTimeout(metamobPushTimer)
+    pushToMetamob()
+  }
+})
 watch([selectedServer, selectedCharacter], () => {
   if (monsters.value.length) { loadCounts(); loadSellData() }
+  // The log is per character — switching must not carry captures across.
+  loadHuntState()
 })
 </script>

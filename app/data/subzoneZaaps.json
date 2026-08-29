@@ -1,0 +1,1250 @@
+[
+  {
+    "subzoneId": 106,
+    "zone": "Île d'Otomaï",
+    "subzone": "Plage de Corail",
+    "archi": 9,
+    "zaap": "Village Cotier",
+    "skip": false
+  },
+  {
+    "subzoneId": 3,
+    "zone": "Amakna",
+    "subzone": "Montagne basse des Craqueleurs",
+    "archi": 8,
+    "zaap": "Village d'Amakna",
+    "skip": false
+  },
+  {
+    "subzoneId": 117,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Canyon sauvage",
+    "archi": 8,
+    "zaap": "Village des éleveurs",
+    "skip": false
+  },
+  {
+    "subzoneId": 56,
+    "zone": "Plaines de Cania",
+    "subzone": "Lac de Cania",
+    "archi": 8,
+    "zaap": "Lac de Cania",
+    "skip": false
+  },
+  {
+    "subzoneId": 101,
+    "zone": "Plaines de Cania",
+    "subzone": "Village des Dopeuls",
+    "archi": 8,
+    "zaap": "Villages de dopeuls",
+    "skip": false
+  },
+  {
+    "subzoneId": 80,
+    "zone": "Plaines de Cania",
+    "subzone": "Bois de Litneg",
+    "archi": 7,
+    "zaap": "Plaines rocheuses",
+    "skip": false
+  },
+  {
+    "subzoneId": 144,
+    "zone": "Île d'Otomaï",
+    "subzone": "Jungle obscure",
+    "archi": 7,
+    "zaap": "Village Cotier",
+    "skip": false
+  },
+  {
+    "subzoneId": 62,
+    "zone": "Île de Moon",
+    "subzone": "Plage de la Tortue",
+    "archi": 7,
+    "zaap": "Plage de tortue",
+    "skip": false
+  },
+  {
+    "subzoneId": 34,
+    "zone": "Amakna",
+    "subzone": "Cimetière",
+    "archi": 6,
+    "zaap": "Rivage sufokien",
+    "skip": false
+  },
+  {
+    "subzoneId": 19,
+    "zone": "Astrub",
+    "subzone": "Cité d'Astrub",
+    "archi": 6,
+    "zaap": "",
+    "skip": false
+  },
+  {
+    "subzoneId": 22,
+    "zone": "Bonta",
+    "subzone": "Cœur immaculé",
+    "archi": 6,
+    "zaap": "Bonta",
+    "skip": false
+  },
+  {
+    "subzoneId": 20,
+    "zone": "Bonta",
+    "subzone": "Faubourgs des artisans",
+    "archi": 6,
+    "zaap": "",
+    "skip": false
+  },
+  {
+    "subzoneId": 21,
+    "zone": "Bonta",
+    "subzone": "Havres d'ivoire",
+    "archi": 6,
+    "zaap": "Bonta",
+    "skip": false
+  },
+  {
+    "subzoneId": 23,
+    "zone": "Bonta",
+    "subzone": "Promontoire des cieux",
+    "archi": 6,
+    "zaap": "Bonta",
+    "skip": false
+  },
+  {
+    "subzoneId": 25,
+    "zone": "Brâkmar",
+    "subzone": "L'Ancre",
+    "archi": 6,
+    "zaap": "Brâkmar",
+    "skip": false
+  },
+  {
+    "subzoneId": 27,
+    "zone": "Brâkmar",
+    "subzone": "L'Enclume",
+    "archi": 6,
+    "zaap": "Brâkmar",
+    "skip": false
+  },
+  {
+    "subzoneId": 24,
+    "zone": "Brâkmar",
+    "subzone": "La Cuirasse",
+    "archi": 6,
+    "zaap": "Brâkmar",
+    "skip": false
+  },
+  {
+    "subzoneId": 26,
+    "zone": "Brâkmar",
+    "subzone": "La Marmite",
+    "archi": 6,
+    "zaap": "Brâkmar",
+    "skip": false
+  },
+  {
+    "subzoneId": 128,
+    "zone": "Île d'Otomaï",
+    "subzone": "Plaines herbeuses",
+    "archi": 6,
+    "zaap": "Village Cotier",
+    "skip": false
+  },
+  {
+    "subzoneId": 46,
+    "zone": "Amakna",
+    "subzone": "Campement des Bworks",
+    "archi": 5,
+    "zaap": "Bord de la forêt maléfique",
+    "skip": false
+  },
+  {
+    "subzoneId": 30,
+    "zone": "Amakna",
+    "subzone": "Cryptes du cimetière",
+    "archi": 5,
+    "zaap": "Rivage sufokien",
+    "skip": false
+  },
+  {
+    "subzoneId": 17,
+    "zone": "Amakna",
+    "subzone": "Village d'Amakna",
+    "archi": 5,
+    "zaap": "Village d'Amakna",
+    "skip": false
+  },
+  {
+    "subzoneId": 18,
+    "zone": "Baie de Sufokia",
+    "subzone": "Sufokia",
+    "archi": 5,
+    "zaap": "Sufokia",
+    "skip": false
+  },
+  {
+    "subzoneId": 105,
+    "zone": "Plaines de Cania",
+    "subzone": "Baie de Cania",
+    "archi": 5,
+    "zaap": "Villages de dopeuls",
+    "skip": false
+  },
+  {
+    "subzoneId": 151,
+    "zone": "Île d'Otomaï",
+    "subzone": "Tronc de l'arbre Hakam",
+    "archi": 5,
+    "zaap": "Village de la canopée",
+    "skip": false
+  },
+  {
+    "subzoneId": 154,
+    "zone": "Île d'Otomaï",
+    "subzone": "Village de la Canopée",
+    "archi": 5,
+    "zaap": "Village de la canopée",
+    "skip": false
+  },
+  {
+    "subzoneId": 153,
+    "zone": "Île d'Otomaï",
+    "subzone": "Village des Zoths",
+    "archi": 5,
+    "zaap": "Villages des Zoths",
+    "skip": false
+  },
+  {
+    "subzoneId": 60,
+    "zone": "Amakna",
+    "subzone": "Bord de la forêt maléfique",
+    "archi": 4,
+    "zaap": "Bord de la forêt maléfique",
+    "skip": false
+  },
+  {
+    "subzoneId": 39,
+    "zone": "Amakna",
+    "subzone": "Passage vers Brâkmar",
+    "archi": 4,
+    "zaap": "Route des roulottes",
+    "skip": false
+  },
+  {
+    "subzoneId": 135,
+    "zone": "Amakna",
+    "subzone": "Presqu'île des Dragoeufs",
+    "archi": 4,
+    "zaap": "Plaines des scarafeuilles",
+    "skip": false
+  },
+  {
+    "subzoneId": 156,
+    "zone": "Amakna",
+    "subzone": "Souterrains des Dragoeufs",
+    "archi": 4,
+    "zaap": "Plaines des scarafeuilles",
+    "skip": false
+  },
+  {
+    "subzoneId": 37,
+    "zone": "Amakna",
+    "subzone": "Territoire des Bandits",
+    "archi": 4,
+    "zaap": "Rivage sufokien",
+    "skip": false
+  },
+  {
+    "subzoneId": 155,
+    "zone": "Amakna",
+    "subzone": "Village des Dragoeufs",
+    "archi": 4,
+    "zaap": "Plaines des scarafeuilles",
+    "skip": false
+  },
+  {
+    "subzoneId": 77,
+    "zone": "Astrub",
+    "subzone": "Calanques d'Astrub",
+    "archi": 4,
+    "zaap": "Cité d'Astrub",
+    "skip": false
+  },
+  {
+    "subzoneId": 11,
+    "zone": "Baie de Sufokia",
+    "subzone": "Rivage sufokien",
+    "archi": 4,
+    "zaap": "",
+    "skip": false
+  },
+  {
+    "subzoneId": 111,
+    "zone": "Bonta",
+    "subzone": "Cimetière des Héros",
+    "archi": 4,
+    "zaap": "Bonta",
+    "skip": false
+  },
+  {
+    "subzoneId": 112,
+    "zone": "Brâkmar",
+    "subzone": "Cimetière des Torturés",
+    "archi": 4,
+    "zaap": "Brâkmar",
+    "skip": false
+  },
+  {
+    "subzoneId": 148,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Cimetière primitif",
+    "archi": 4,
+    "zaap": "Cimetière primitif",
+    "skip": false
+  },
+  {
+    "subzoneId": 116,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Forêt de Kaliptus",
+    "archi": 4,
+    "zaap": "Village des éleveurs",
+    "skip": false
+  },
+  {
+    "subzoneId": 115,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Lacs enchantés",
+    "archi": 4,
+    "zaap": "Village des éleveurs",
+    "skip": false
+  },
+  {
+    "subzoneId": 149,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Vallée de la Morh'Kitu",
+    "archi": 4,
+    "zaap": "Village des éleveurs",
+    "skip": false
+  },
+  {
+    "subzoneId": 137,
+    "zone": "Plaines de Cania",
+    "subzone": "Dents de Pierre",
+    "archi": 4,
+    "zaap": "Village des Kanigs",
+    "skip": false
+  },
+  {
+    "subzoneId": 55,
+    "zone": "Plaines de Cania",
+    "subzone": "Plaine des Porkass",
+    "archi": 4,
+    "zaap": "Plaine des Porkass",
+    "skip": false
+  },
+  {
+    "subzoneId": 138,
+    "zone": "Plaines de Cania",
+    "subzone": "Village des Kanigs",
+    "archi": 4,
+    "zaap": "Village des Kanigs",
+    "skip": false
+  },
+  {
+    "subzoneId": 123,
+    "zone": "Île d'Otomaï",
+    "subzone": "Tourbière nauséabonde",
+    "archi": 4,
+    "zaap": "Village Cotier",
+    "skip": false
+  },
+  {
+    "subzoneId": 122,
+    "zone": "Île d'Otomaï",
+    "subzone": "Tourbière sans fond",
+    "archi": 4,
+    "zaap": "Village Cotier",
+    "skip": false
+  },
+  {
+    "subzoneId": 165,
+    "zone": "Île de Grobe",
+    "subzone": "Cimetière de Grobe",
+    "archi": 4,
+    "zaap": "Mont des Tombeaux",
+    "skip": false
+  },
+  {
+    "subzoneId": 132,
+    "zone": "Île de Moon",
+    "subzone": "Forêt des Masques",
+    "archi": 4,
+    "zaap": "Plage de tortue",
+    "skip": false
+  },
+  {
+    "subzoneId": 120,
+    "zone": "Île de Pandala",
+    "subzone": "Aerdala",
+    "archi": 4,
+    "zaap": "Pandala",
+    "skip": false
+  },
+  {
+    "subzoneId": 103,
+    "zone": "Île de Pandala",
+    "subzone": "Akwadala",
+    "archi": 4,
+    "zaap": "Pandala",
+    "skip": false
+  },
+  {
+    "subzoneId": 84,
+    "zone": "Île de Pandala",
+    "subzone": "Terrdala",
+    "archi": 4,
+    "zaap": "Pandala",
+    "skip": false
+  },
+  {
+    "subzoneId": 40,
+    "zone": "Île des Wabbits",
+    "subzone": "Île de la Cawotte",
+    "archi": 4,
+    "zaap": "Ile de la Cawotte",
+    "skip": false
+  },
+  {
+    "subzoneId": 14,
+    "zone": "Amakna",
+    "subzone": "Côte d'Asse",
+    "archi": 3,
+    "zaap": "Coin des bouftous",
+    "skip": false
+  },
+  {
+    "subzoneId": 42,
+    "zone": "Amakna",
+    "subzone": "Forêt d'Amakna",
+    "archi": 3,
+    "zaap": "Coin des bouftous",
+    "skip": false
+  },
+  {
+    "subzoneId": 57,
+    "zone": "Amakna",
+    "subzone": "Marécages d'Amakna",
+    "archi": 3,
+    "zaap": "Bord de la forêt maléfique",
+    "skip": false
+  },
+  {
+    "subzoneId": 4,
+    "zone": "Amakna",
+    "subzone": "Milifutaie",
+    "archi": 3,
+    "zaap": "Coin des bouftous",
+    "skip": false
+  },
+  {
+    "subzoneId": 61,
+    "zone": "Amakna",
+    "subzone": "Montagne des Craqueleurs",
+    "archi": 3,
+    "zaap": "Montagne des Craqueleurs",
+    "skip": false
+  },
+  {
+    "subzoneId": 12,
+    "zone": "Amakna",
+    "subzone": "Plaine des Scarafeuilles",
+    "archi": 3,
+    "zaap": "Plaines des scarafeuilles",
+    "skip": false
+  },
+  {
+    "subzoneId": 13,
+    "zone": "Amakna",
+    "subzone": "Port de Madrestam",
+    "archi": 3,
+    "zaap": "Port de Madrestam",
+    "skip": false
+  },
+  {
+    "subzoneId": 130,
+    "zone": "Amakna",
+    "subzone": "Sanctuaire des Dragoeufs",
+    "archi": 3,
+    "zaap": "Plaines des scarafeuilles",
+    "skip": false
+  },
+  {
+    "subzoneId": 28,
+    "zone": "Amakna",
+    "subzone": "Village des Bworks",
+    "archi": 3,
+    "zaap": "Bord de la forêt maléfique",
+    "skip": false
+  },
+  {
+    "subzoneId": 83,
+    "zone": "Astrub",
+    "subzone": "Cimetière d'Astrub",
+    "archi": 3,
+    "zaap": "Cité d'Astrub",
+    "skip": false
+  },
+  {
+    "subzoneId": 64,
+    "zone": "Astrub",
+    "subzone": "Forêt d'Astrub",
+    "archi": 3,
+    "zaap": "Cité d'Astrub",
+    "skip": false
+  },
+  {
+    "subzoneId": 15,
+    "zone": "Astrub",
+    "subzone": "Prairies d'Astrub",
+    "archi": 3,
+    "zaap": "Cité d'Astrub",
+    "skip": false
+  },
+  {
+    "subzoneId": 52,
+    "zone": "Bonta",
+    "subzone": "Rives iridescentes",
+    "archi": 3,
+    "zaap": "Bonta",
+    "skip": false
+  },
+  {
+    "subzoneId": 74,
+    "zone": "Brâkmar",
+    "subzone": "Bordure de Brâkmar",
+    "archi": 3,
+    "zaap": "Brâkmar",
+    "skip": false
+  },
+  {
+    "subzoneId": 49,
+    "zone": "Forêt des Abraknydes",
+    "subzone": "Orée de la forêt des Abraknydes",
+    "archi": 3,
+    "zaap": "Montagne des Craqueleurs",
+    "skip": false
+  },
+  {
+    "subzoneId": 163,
+    "zone": "Landes de Sidimote",
+    "subzone": "Caverne des Fungus",
+    "archi": 3,
+    "zaap": "Terres désacrées",
+    "skip": false
+  },
+  {
+    "subzoneId": 58,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Marécages nauséabonds",
+    "archi": 3,
+    "zaap": "Bord de la forêt maléfique",
+    "skip": false
+  },
+  {
+    "subzoneId": 59,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Marécages sans fond",
+    "archi": 3,
+    "zaap": "Bord de la forêt maléfique",
+    "skip": false
+  },
+  {
+    "subzoneId": 158,
+    "zone": "Plaines de Cania",
+    "subzone": "Massif de Cania",
+    "archi": 3,
+    "zaap": "Massif de Cania",
+    "skip": false
+  },
+  {
+    "subzoneId": 102,
+    "zone": "Plaines de Cania",
+    "subzone": "Mine des Dopeuls",
+    "archi": 3,
+    "zaap": "Villages de dopeuls",
+    "skip": false
+  },
+  {
+    "subzoneId": 86,
+    "zone": "Plaines de Cania",
+    "subzone": "Routes Rocailleuses",
+    "archi": 3,
+    "zaap": "Routes Rocailleuses",
+    "skip": false
+  },
+  {
+    "subzoneId": 159,
+    "zone": "Île d'Otomaï",
+    "subzone": "Feuillage de l'arbre Hakam",
+    "archi": 3,
+    "zaap": "Village de la canopée",
+    "skip": false
+  },
+  {
+    "subzoneId": 63,
+    "zone": "Île d'Otomaï",
+    "subzone": "Île des naufragés",
+    "archi": 3,
+    "zaap": "Sufokia",
+    "skip": false
+  },
+  {
+    "subzoneId": 162,
+    "zone": "Île de Grobe",
+    "subzone": "Mont des Tombeaux",
+    "archi": 3,
+    "zaap": "Mont des Tombeaux",
+    "skip": false
+  },
+  {
+    "subzoneId": 89,
+    "zone": "Île de Moon",
+    "subzone": "Chemin du Crâne",
+    "archi": 3,
+    "zaap": "Plage de tortue",
+    "skip": false
+  },
+  {
+    "subzoneId": 65,
+    "zone": "Île de Moon",
+    "subzone": "Jungle Interdite",
+    "archi": 3,
+    "zaap": "Plage de tortue",
+    "skip": false
+  },
+  {
+    "subzoneId": 126,
+    "zone": "Île de Pandala",
+    "subzone": "Feudala",
+    "archi": 3,
+    "zaap": "Pandala",
+    "skip": false
+  },
+  {
+    "subzoneId": 68,
+    "zone": "Île de Pandala",
+    "subzone": "Plantala",
+    "archi": 3,
+    "zaap": "Pandala",
+    "skip": false
+  },
+  {
+    "subzoneId": 67,
+    "zone": "Île des Wabbits",
+    "subzone": "Îlot de la Couronne",
+    "archi": 3,
+    "zaap": "Laboratoires abandonnés",
+    "skip": false
+  },
+  {
+    "subzoneId": 98,
+    "zone": "Île du Minotoror",
+    "subzone": "Labyrinthe du Minotoror",
+    "archi": 3,
+    "zaap": "Villages de dopeuls",
+    "skip": false
+  },
+  {
+    "subzoneId": 76,
+    "zone": "Île du Minotoror",
+    "subzone": "Île du Minotoror",
+    "archi": 3,
+    "zaap": "Villages de dopeuls",
+    "skip": false
+  },
+  {
+    "subzoneId": 5,
+    "zone": "Amakna",
+    "subzone": "Campagne d'Amakna",
+    "archi": 2,
+    "zaap": "Coin des bouftous",
+    "skip": false
+  },
+  {
+    "subzoneId": 47,
+    "zone": "Amakna",
+    "subzone": "Campement des Gobelins",
+    "archi": 2,
+    "zaap": "Bord de la forêt maléfique",
+    "skip": false
+  },
+  {
+    "subzoneId": 125,
+    "zone": "Amakna",
+    "subzone": "Cloaque d'Amakna",
+    "archi": 2,
+    "zaap": "Port de Madrestam",
+    "skip": false
+  },
+  {
+    "subzoneId": 44,
+    "zone": "Amakna",
+    "subzone": "Péninsule des gelées",
+    "archi": 2,
+    "zaap": "Sufokia",
+    "skip": false
+  },
+  {
+    "subzoneId": 2,
+    "zone": "Amakna",
+    "subzone": "Rivière Kawaii",
+    "archi": 2,
+    "zaap": "Port de Madrestam",
+    "skip": false
+  },
+  {
+    "subzoneId": 92,
+    "zone": "Amakna",
+    "subzone": "Territoire des Porcos",
+    "archi": 2,
+    "zaap": "Plaines des scarafeuilles",
+    "skip": false
+  },
+  {
+    "subzoneId": 53,
+    "zone": "Astrub",
+    "subzone": "Champs d'Astrub",
+    "archi": 2,
+    "zaap": "Cité d'Astrub",
+    "skip": false
+  },
+  {
+    "subzoneId": 6,
+    "zone": "Astrub",
+    "subzone": "Souterrains d'Astrub",
+    "archi": 2,
+    "zaap": "Cité d'Astrub",
+    "skip": false
+  },
+  {
+    "subzoneId": 36,
+    "zone": "Astrub",
+    "subzone": "Égouts d'Astrub",
+    "archi": 2,
+    "zaap": "Cité d'Astrub",
+    "skip": false
+  },
+  {
+    "subzoneId": 94,
+    "zone": "Labyrinthe du Dragon Cochon",
+    "subzone": "Labyrinthe du Dragon Cochon",
+    "archi": 2,
+    "zaap": "Plaines des scarafeuilles",
+    "skip": false
+  },
+  {
+    "subzoneId": 164,
+    "zone": "Landes de Sidimote",
+    "subzone": "Domaine des Fungus",
+    "archi": 2,
+    "zaap": "Terres désacrées",
+    "skip": false
+  },
+  {
+    "subzoneId": 50,
+    "zone": "Landes de Sidimote",
+    "subzone": "Désolation de Sidimote",
+    "archi": 2,
+    "zaap": "Route des roulottes",
+    "skip": false
+  },
+  {
+    "subzoneId": 146,
+    "zone": "Plaines de Cania",
+    "subzone": "Champs de Cania",
+    "archi": 2,
+    "zaap": "Champs de Cania",
+    "skip": false
+  },
+  {
+    "subzoneId": 143,
+    "zone": "Île d'Otomaï",
+    "subzone": "Arche d'Otomaï",
+    "archi": 2,
+    "zaap": "Village Cotier",
+    "skip": false
+  },
+  {
+    "subzoneId": 108,
+    "zone": "Île des Wabbits",
+    "subzone": "Îlot de Waldo",
+    "archi": 2,
+    "zaap": "Laboratoires abandonnés",
+    "skip": false
+  },
+  {
+    "subzoneId": 31,
+    "zone": "Amakna",
+    "subzone": "Champ des Ingalsse",
+    "archi": 1,
+    "zaap": "Coin des bouftous",
+    "skip": false
+  },
+  {
+    "subzoneId": 16,
+    "zone": "Amakna",
+    "subzone": "Clairière de Brouce Boulgoure",
+    "archi": 1,
+    "zaap": "Coin des bouftous",
+    "skip": false
+  },
+  {
+    "subzoneId": 8,
+    "zone": "Amakna",
+    "subzone": "Coin des Boos",
+    "archi": 1,
+    "zaap": "Coin des bouftous",
+    "skip": false
+  },
+  {
+    "subzoneId": 7,
+    "zone": "Amakna",
+    "subzone": "Coin des Bouftous",
+    "archi": 1,
+    "zaap": "Coin des bouftous",
+    "skip": false
+  },
+  {
+    "subzoneId": 9,
+    "zone": "Astrub",
+    "subzone": "Tainéla",
+    "archi": 1,
+    "zaap": "Tainéla",
+    "skip": false
+  },
+  {
+    "subzoneId": 147,
+    "zone": "Landes de Sidimote",
+    "subzone": "Hauts des Hurlements",
+    "archi": 1,
+    "zaap": "Route des roulottes",
+    "skip": false
+  },
+  {
+    "subzoneId": 118,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Antre du Koulosse",
+    "archi": 1,
+    "zaap": "Village des éleveurs",
+    "skip": true
+  },
+  {
+    "subzoneId": 82,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Territoire des dragodindes sauvages",
+    "archi": 1,
+    "zaap": "Village des éleveurs",
+    "skip": false
+  },
+  {
+    "subzoneId": 72,
+    "zone": "Plaines de Cania",
+    "subzone": "Bibliothèque du Maître Corbac",
+    "archi": 1,
+    "zaap": "Plaines rocheuses",
+    "skip": false
+  },
+  {
+    "subzoneId": 113,
+    "zone": "Plaines de Cania",
+    "subzone": "Plaines Rocheuses",
+    "archi": 1,
+    "zaap": "Plaines rocheuses",
+    "skip": false
+  },
+  {
+    "subzoneId": 71,
+    "zone": "Plaines de Cania",
+    "subzone": "Pénates du Corbac",
+    "archi": 1,
+    "zaap": "Plaines rocheuses",
+    "skip": false
+  },
+  {
+    "subzoneId": 87,
+    "zone": "Île des Wabbits",
+    "subzone": "Îlot des Tombeaux",
+    "archi": 1,
+    "zaap": "Laboratoires abandonnés",
+    "skip": false
+  },
+  {
+    "subzoneId": 131,
+    "zone": "Amakna",
+    "subzone": "Antre de Crocabulia",
+    "archi": 0,
+    "zaap": "Plaines des scarafeuilles",
+    "skip": true
+  },
+  {
+    "subzoneId": 70,
+    "zone": "Amakna",
+    "subzone": "Donjon des Bworks",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 171,
+    "zone": "Amakna",
+    "subzone": "Donjon des Larves",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 95,
+    "zone": "Amakna",
+    "subzone": "Donjon des Scarafeuilles",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 81,
+    "zone": "Amakna",
+    "subzone": "Pitons Rocheux des Craqueleurs",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 168,
+    "zone": "Amakna",
+    "subzone": "Repaire de Sphincter Cell",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 33,
+    "zone": "Amakna",
+    "subzone": "Tofulailler Royal",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 210,
+    "zone": "Archipel de Valonia",
+    "subzone": "Refuge sylvestre",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 78,
+    "zone": "Astrub",
+    "subzone": "Château Ensablé",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 10,
+    "zone": "Astrub",
+    "subzone": "Cour du Bouftou Royal",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 54,
+    "zone": "Astrub",
+    "subzone": "Grange du Tournesol Affamé",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 169,
+    "zone": "Bonta",
+    "subzone": "Garde-manger du Rat Blanc",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 170,
+    "zone": "Brâkmar",
+    "subzone": "Sousouricière du Rat Noir",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 207,
+    "zone": "Expéditions",
+    "subzone": "Expédition de l'Audace - Grotte du Bworker",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 202,
+    "zone": "Expéditions",
+    "subzone": "Expédition de l'Audace - Salle du Minotot",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 208,
+    "zone": "Expéditions",
+    "subzone": "Expédition de la Bravoure - Grotte du Bworker",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 203,
+    "zone": "Expéditions",
+    "subzone": "Expédition de la Bravoure - Salle du Minotot",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 175,
+    "zone": "Forêt Maléfique",
+    "subzone": "Tertre du long sommeil",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 209,
+    "zone": "Forêt des Abraknydes",
+    "subzone": "Antre de la Reine Nyée",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 180,
+    "zone": "Forêt des Abraknydes",
+    "subzone": "Clairière du Chêne Mou",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 110,
+    "zone": "Forêt des Abraknydes",
+    "subzone": "Domaine Ancestral",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 109,
+    "zone": "Forêt des Abraknydes",
+    "subzone": "Forêt Sombre",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 45,
+    "zone": "Gelaxième dimension",
+    "subzone": "Gelaxième dimension",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 93,
+    "zone": "Labyrinthe du Dragon Cochon",
+    "subzone": "Antre du Dragon Cochon",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 211,
+    "zone": "Landes de Sidimote",
+    "subzone": "Chapiteau des Magik Riktus",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 177,
+    "zone": "Landes de Sidimote",
+    "subzone": "Grotte du Bworker",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 73,
+    "zone": "Landes de Sidimote",
+    "subzone": "Tanière du Meulou",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 43,
+    "zone": "Landes de Sidimote",
+    "subzone": "Temple du Grand Ougah",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 114,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Caverne du Koulosse",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 142,
+    "zone": "Montagne des Koalaks",
+    "subzone": "Repaire de Skeunk",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 167,
+    "zone": "Plaines de Cania",
+    "subzone": "Antre du Blop Multicolore Royal",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 88,
+    "zone": "Plaines de Cania",
+    "subzone": "Clos des Blops",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 176,
+    "zone": "Plaines de Cania",
+    "subzone": "Salle de lecture du Maître Corbac",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 181,
+    "zone": "Plaines de Cania",
+    "subzone": "Volière de la Haute Truche",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 91,
+    "zone": "Île d'Otomaï",
+    "subzone": "Cale de l'arche d'Otomaï",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 150,
+    "zone": "Île d'Otomaï",
+    "subzone": "Canopée du Kimbo",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 129,
+    "zone": "Île d'Otomaï",
+    "subzone": "Goulet du Rasboul",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 107,
+    "zone": "Île d'Otomaï",
+    "subzone": "Grotte Hesque",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 145,
+    "zone": "Île d'Otomaï",
+    "subzone": "Laboratoire du Tynril",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 66,
+    "zone": "Île de Moon",
+    "subzone": "Arbre de Moon",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 85,
+    "zone": "Île de Pandala",
+    "subzone": "Atelier du Tanukouï San",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 69,
+    "zone": "Île de Pandala",
+    "subzone": "Bambusaie de Damadrya",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 121,
+    "zone": "Île de Pandala",
+    "subzone": "Dojo du Vent",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 127,
+    "zone": "Île de Pandala",
+    "subzone": "Fabrique de foux d'artifice",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 41,
+    "zone": "Île des Wabbits",
+    "subzone": "Château du Wa Wabbit",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  },
+  {
+    "subzoneId": 97,
+    "zone": "Île du Minotoror",
+    "subzone": "Centre du labyrinthe du Minotoror",
+    "archi": 0,
+    "zaap": "",
+    "skip": true
+  }
+]
